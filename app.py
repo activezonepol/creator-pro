@@ -7,7 +7,7 @@ import unicodedata
 import gc
 from datetime import datetime, timedelta, date
 
-# Minimalistyczna konfiguracja - bez emoji
+# Minimalistyczna konfiguracja - bez emoji w tytule strony
 st.set_page_config(layout="wide", page_title="Activezone Oferta", initial_sidebar_state="expanded")
 
 # --- CUSTOM CSS DLA ELEGANCKIEGO PANELU BOKU ---
@@ -880,7 +880,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                         a_day = str(s.get(f"aday_{ai}") or "")
                         d_match = re.search(r'Dzień\s+(\d+)', a_day)
                         if d_match and int(d_match.group(1)) == di + 1:
-                            ic, nm = icon_map.get(s.get(f"atype_{ai}", "Atrakcja"), ""), s.get(f"amain_{ai}", "")
+                            ic, nm = icon_map.get(s.get(f"atype_{ai}", "Atrakcja"), "")
                             sub = str(s.get(f"asub_{ai}", "")).strip()
                             sub_html = f"<div style='font-size:12px; font-weight:400; color:{c_t}; opacity:0.8; margin-top:-2px; margin-left:26px; line-height:1.2; margin-bottom:8px;'>{sub}</div>" if sub else "<div style='margin-bottom:8px;'></div>"
                             if s.get(f"ahide_{ai}"): mh += f"<div><div style='display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600; color:{c_t};'><span style='font-size:18px; color:{acc};'>{ic}</span> <span>{nm}</span></div>{sub_html}</div>"
@@ -1057,18 +1057,15 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div></div>{fhtml()}""", "slide-pillow-gifts"))
 
     koszt_ukryj_caly = s.get('koszt_hide_1', False)
-    
     if not koszt_ukryj_caly:
         k1 = get_b64('img_koszt_1', (4,5))
         imk1 = f"<img src='data:image/jpeg;base64,{k1}' style='width:100%;height:100%;object-fit:cover;'>" if k1 else get_ph('ZDJĘCIE KOSZTORYSU')
-        
         zaw1_list = []
         for x in s.get('koszt_zawiera_1', '').split('\n'):
             if not x.strip(): continue
             if x.strip().startswith('--'): zaw1_list.append(f"<li class='sub-item'>{x.replace('--', '', 1).strip()}</li>")
             else: zaw1_list.append(f"<li>{x.strip()}</li>")
         zaw1_html = f'<ul class="app-list">{"".join(zaw1_list)}</ul>' if zaw1_list else ''
-        
         hp.append(shtml(f"""{lhtml()}<div class="premium-layout"><div class="photo-col">{imk1}</div><div class="info-col" style="padding-top:30px; justify-content:flex-start;">
             <i class="fa-solid fa-wallet" style="color:{acc}; font-size:36px; margin-bottom:15px; display:block;"></i>
             <div class="app-overline-style" style="margin-bottom:15px;"><span>{str(s.get('koszt_title', 'KOSZTORYS'))}</span></div>
@@ -1083,20 +1080,16 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     if not koszt_ukryj_caly and not s.get('koszt_hide_2', False):
         k2 = get_b64('img_koszt_2', (4,5))
         imk2 = f"<img src='data:image/jpeg;base64,{k2}' style='width:100%;height:100%;object-fit:cover;'>" if k2 else get_ph('ZDJĘCIE KOSZTORYSU 2')
-        
         zaw2_list = []
         for x in s.get('koszt_zawiera_2', '').split('\n'):
             if not x.strip(): continue
             if x.strip().startswith('--'): zaw2_list.append(f"<li class='sub-item'>{x.replace('--', '', 1).strip()}</li>")
             else: zaw2_list.append(f"<li>{x.strip()}</li>")
         zaw2_html = f'<ul class="app-list">{"".join(zaw2_list)}</ul>' if zaw2_list else ''
-        
         niezaw_list = [f"<li>{x.strip()}</li>" for x in s.get('koszt_nie_zawiera', '').split('\n') if x.strip()]
         niezaw_html = f'<ul class="app-list" style="margin-top:5px;">{"".join(niezaw_list)}</ul>' if niezaw_list else ''
-        
         opcje = s.get('koszt_opcje', '').strip()
         opcje_html = f"""<div style="margin-top:20px;"><div style="font-family:'{f_h2}'; font-weight:800; font-size:{fs_t+2}px; color:{c_h2}; margin-bottom:5px; text-transform:uppercase;">KOSZTY OPCJONALNE (WYCIECZKI / DODATKI):</div><div style="font-family:'{f_t}'; font-size:{fs_t}px; color:{c_t}; white-space:pre-line; line-height:1.5;">{opcje}</div></div>""" if opcje else ''
-
         hp.append(shtml(f"""{lhtml()}<div class="premium-layout">
             <div class="info-col" style="padding-top:30px; justify-content:flex-start; padding-right:30px;">
                 <i class="fa-solid fa-file-invoice" style="color:{acc}; font-size:36px; margin-bottom:15px; display:block;"></i>
@@ -1112,7 +1105,6 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     if not s.get('testim_hide', False):
         t_main_img = get_b64('img_testim_main', (4,5))
         t_main_img_html = f'<img src="data:image/jpeg;base64,{t_main_img}" style="width:100%;height:100%;object-fit:cover;">' if t_main_img else get_ph('ZDJĘCIE GŁÓWNE')
-        
         t_h = ""
         for i in range(int(s.get('testim_count', 3))):
             it = get_b64(f'testim_img_{i}', (1,1))
@@ -1168,15 +1160,13 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
 
     return "".join(hp)
 
-
-# --- RENDEROWANIE PREZENTACJI ---
+# --- WYŚWIETLANIE PREZENTACJI ---
 html_content = build_presentation(current_page=st.session_state.get('last_page', 'Strona Tytułowa'))
 css_str = get_local_css(return_str=True)
 safe_markdown(f'{css_str}\n<div class="presentation-wrapper" id="main-wrapper">{html_content}</div>')
 
 first_visible_place = next((i for i in range(int(st.session_state.get('num_places', 0))) if not st.session_state.get(f'phide_{i}')), None)
 pid = f"place_{first_visible_place}" if first_visible_place is not None else "slide-title"
-
 first_visible_attr = next((i for i in range(int(st.session_state.get('num_attr', 1))) if not st.session_state.get(f'ahide_{i}')), None)
 fid = f"attr_{first_visible_attr}" if first_visible_attr is not None else "slide-title"
 
@@ -1196,7 +1186,7 @@ if st.session_state.get('client_mode', False):
     st.stop()
 
 
-# --- PANEL BOCZNY ---
+# --- PANEL BOCZNY (INTERFEJS) ---
 with st.sidebar:
     page = st.radio("WYBIERZ SEKCJE DO EDYCJI:", ["Strona Tytułowa", "Opis Kierunku", "Mapa Podróży", "Jak lecimy?", "Zakwaterowanie", "Program Wyjazdu", "Opis miejsc", "Opis atrakcji", "Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent", "Pillow Gifts", "Kosztorys", "Co o nas mówią", "O Nas (Zespół)", "Wygląd i Kolory", "Zapisz / Wczytaj Projekt"])
     
