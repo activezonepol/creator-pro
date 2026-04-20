@@ -1,50 +1,35 @@
 import streamlit as st
 from datetime import date, timedelta
 import json
+import base64
+import re
 
-# ====================== IMPORT Z RENDERERA ======================
+# ====================== IMPORTY Z RENDERERA ======================
 from renderer import (
     build_presentation,
     get_local_css,
     get_project_filename,
-    create_slug,
-    # funkcje używane w sidebarze (dodaj tutaj wszystkie, które będą wywoływane):
     optimize_img,
     optimize_logo,
     geocode_place,
     generate_map_data,
-    get_b64,
-    section_template_manager,      # jeśli masz tę funkcję
-    parse_date_and_days,           # jeśli masz
-    set_focus,                     # jeśli masz
-    clean_str,                     # jeśli masz
-    build_day_options,             # jeśli masz
-    auto_generate_kosztorys,       # jeśli masz
-    load_project_data              # jeśli masz
+    section_template_manager,
+    parse_date_and_days,
+    set_focus,
+    clean_str,
+    build_day_options,
+    auto_generate_kosztorys,
+    load_project_data,
 )
 
-# ====================== INICJALIZACJA SESSION STATE ======================
+# ====================== INICJALIZACJA ======================
 if "initialized" not in st.session_state:
     st.session_state.initialized = True
     st.session_state.last_page = "Strona Tytułowa"
     st.session_state.client_mode = False
     st.session_state.scroll_target = ""
-    
-    # Domyślne wartości (możesz rozszerzyć)
-    st.session_state.font_h1 = "Montserrat"
-    st.session_state.font_h2 = "Montserrat"
-    st.session_state.font_sub = "Open Sans"
-    st.session_state.font_text = "Open Sans"
-    st.session_state.font_metric = "Montserrat"
-    
-    st.session_state.color_h1 = "#003366"
-    st.session_state.color_h2 = "#003366"
-    st.session_state.color_sub = "#FF6600"
-    st.session_state.color_accent = "#FF6600"
-    st.session_state.color_text = "#333333"
-    st.session_state.color_metric = "#003366"
 
-# ====================== GŁÓWNA FUNKCJA ======================
+# ====================== GŁÓWNA APLIKACJA ======================
 def main():
     # Renderowanie prezentacji
     html_content = build_presentation(
@@ -53,83 +38,51 @@ def main():
 
     css_str = get_local_css(return_str=True)
 
-    # Wyświetlenie całej aplikacji
     st.markdown(
         css_str + f'\n<div class="presentation-wrapper" id="main-wrapper">{html_content}</div>',
         unsafe_allow_html=True
     )
 
-    # Automatyczne przewijanie do sekcji
+    # Scroll do aktywnej sekcji
     tid = st.session_state.get('scroll_target')
     if tid and not st.session_state.get('client_mode', False):
         st.components.v1.html(
-            f"""
-            <script>
-                var t = window.parent.document.getElementById('{tid}');
-                if (t) t.scrollIntoView({{behavior: 'smooth', block: 'center'}});
-            </script>
-            """,
+            f"<script>var t = window.parent.document.getElementById('{tid}'); if(t) t.scrollIntoView({{behavior: 'smooth', block: 'center'}});</script>",
             height=0
         )
 
-    # ====================== TRYB KLIENTA (pełny ekran) ======================
+    # Tryb klienta (pełny ekran bez sidebaru)
     if st.session_state.get('client_mode', False):
-        accent_color = st.session_state.get('color_accent', '#FF6600')
+        accent = st.session_state.get('color_accent', '#FF6600')
         st.markdown(f"""
         <style>
-        div.stButton {{ 
-            position: fixed !important; 
-            top: 20px !important; 
-            left: 20px !important; 
-            z-index: 999999 !important; 
-        }}
-        div.stButton > button {{ 
-            background-color: {accent_color} !important; 
-            color: white !important; 
-            font-weight: 700 !important;
-            text-transform: uppercase !important;
-        }}
+        div.stButton {{ position: fixed !important; top: 20px !important; left: 20px !important; z-index: 999999 !important; }}
+        div.stButton > button {{ background-color: {accent} !important; color: white !important; }}
         </style>
         """, unsafe_allow_html=True)
 
         if st.button("ZAKOŃCZ PODGLĄD"):
             st.session_state.client_mode = False
             st.rerun()
-        st.stop()   # zatrzymujemy dalsze renderowanie
+        st.stop()
 
     # ====================== PANEL BOCZNY ======================
     with st.sidebar:
-        page = st.radio(
-            "WYBIERZ SEKCJĘ:",
-            [
-                "Strona Tytułowa", "Opis Kierunku", "Mapa Podróży", "Jak lecimy?", 
-                "Zakwaterowanie", "Program Wyjazdu", "Opis miejsc", "Opis atrakcji",
-                "Aplikacja (Komunikacja)", "Materiały Brandingowe", 
-                "Wirtualny Asystent", "Pillow Gifts", "Kosztorys", 
-                "Co o nas mówią", "O Nas (Zespół)", "Wygląd i Kolory", 
-                "Zapisz / Wczytaj Projekt"
-            ],
-            key="sidebar_radio"
-        )
+        page = st.radio("WYBIERZ SEKCJE DO EDYCJI:", 
+                        ["Strona Tytułowa", "Opis Kierunku", "Mapa Podróży", "Jak lecimy?", 
+                         "Zakwaterowanie", "Program Wyjazdu", "Opis miejsc", "Opis atrakcji", 
+                         "Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent", 
+                         "Pillow Gifts", "Kosztorys", "Co o nas mówią", "O Nas (Zespół)", 
+                         "Wygląd i Kolory", "Zapisz / Wczytaj Projekt"])
 
-        # Aktualizacja ostatniej strony
         if st.session_state.get('last_page') != page:
             st.session_state.last_page = page
             st.session_state.scroll_target = ""
 
         st.divider()
 
-       with st.sidebar:
-    page = st.radio("WYBIERZ SEKCJE DO EDYCJI:", ["Strona Tytułowa", "Opis Kierunku", "Mapa Podróży", "Jak lecimy?", "Zakwaterowanie", "Program Wyjazdu", "Opis miejsc", "Opis atrakcji", "Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent", "Pillow Gifts", "Kosztorys", "Co o nas mówią", "O Nas (Zespół)", "Wygląd i Kolory", "Zapisz / Wczytaj Projekt"])
-    
-    if st.session_state.get('last_page') != page:
-        st.session_state['last_page'] = page
-        st.session_state['scroll_target'] = ""
-        
-    st.divider()
-
-    # GLOBALNY TYTUŁ ZAKŁADKI W PANELU BOKU
-    if page == "Wygląd i Kolory":
+        # === TWÓJ PEŁNY KOD SIDEBARU ===
+ if page == "Wygląd i Kolory":
         st.markdown(f"<h2 style='color: #003366; margin-bottom: 0; font-size: 22px; font-weight: 700; font-family: Montserrat, sans-serif;'>KONFIGURACJA WYGLĄDU</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size: 13px; color: #64748b; margin-bottom: 15px; font-family: Open Sans, sans-serif;'>Dostosuj kolory i typografię oferty</div>", unsafe_allow_html=True)
     elif page == "Zapisz / Wczytaj Projekt":
@@ -682,22 +635,6 @@ def main():
             st.session_state['ready_export_html'] = client_html
             st.rerun()
             
-    if st.session_state.get('ready_export_html'):
-        st.download_button(
-            "POBIERZ GOTOWY PLIK HTML", 
-            st.session_state['ready_export_html'], 
-            get_project_filename().replace('.json', '.html'), 
-            "text/html", 
-            type="primary", 
-            use_container_width=True
-        )
-    
-    if st.button("GENERUJ LINK DO OFERTY ONLINE", use_container_width=True):
-        st.session_state['show_link_info'] = not st.session_state.get('show_link_info', False)
-        
-    if st.session_state.get('show_link_info', False):
-        st.info("Wyeksportuj plik HTML za pomocą przycisku wyżej i umieść go na serwerze swojej agencji. Plik jest w pełni autonomiczną stroną WWW – gotowym, bezpiecznym linkiem dla klienta.")
-    
-    if st.button("PODGLĄD PEŁNOEKRANOWY", use_container_width=True): 
-        st.session_state['client_mode'] = True
-        st.rerun()
+  # ====================== URUCHOMIENIE ======================
+if __name__ == "__main__":
+    main()
