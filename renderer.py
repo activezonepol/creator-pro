@@ -102,6 +102,7 @@ for _i in range(50):
         f'img_d_{_i}', f'ah_{_i}', f'at1_{_i}', f'at2_{_i}', f'at3_{_i}',
         f'pimg1_{_i}', f'pimg2_{_i}',
         f'testim_img_{_i}', f't_img_{_i}',
+        f'kimg_{_i}',
     })
 
 EXCLUDE_EXPORT_KEYS = {
@@ -140,6 +141,9 @@ defaults = {
     'map_pt_name_1': 'Podgorica', 'map_conn_1': 'Przejazd (Linia ciągła)',
     'map_pt_sym_1': False,
     'map_pt_name_2': 'Kotor', 'map_conn_2': 'Brak', 'map_pt_sym_2': False,
+    'map_dist_title': 'ODLEGŁOŚCI I CZAS DOJAZDU',
+    'num_dist_pairs': 0,
+    'ors_api_key': '',
     'num_hotels': 1,
     'h_hide_0': False, 'h_overline_0': 'ZAKWATEROWANIE',
     'h_title_0': 'NAZWA HOTELU 5*',
@@ -148,7 +152,7 @@ defaults = {
     'h_amenities_0': ["Basen", "SPA", "Wi-Fi", "Restauracja", "Plaża"],
     'h_text_0': 'Zapewniamy zakwaterowanie w starannie wyselekcjonowanym hotelu.',
     'h_advantages_0': 'Położenie tuż przy prywatnej plaży',
-    'prg_hide': False, 'num_days': 4, 'num_places': 0, 'num_attr': 1,
+    'prg_hide': False, 'num_days': 4, 'num_places': 0, 'num_attr': 1, 'num_kierunki': 0,
     'koszt_hide_1': False, 'koszt_hide_2': False, 'koszt_title': 'KOSZTORYS',
     'koszt_pax': '25', 'koszt_price': '4.990 zł / os.',
     'koszt_hotel': 'Iberostar Bellevue 4* all inclusive',
@@ -243,6 +247,10 @@ def parse_date_and_days():
         pass
 
 
+_COLOR_KEYS = {'color_h1', 'color_h2', 'color_sub', 'color_accent', 'color_text', 'color_metric'}
+_SIZE_KEYS = {'font_size_h1', 'font_size_h2', 'font_size_sub', 'font_size_text', 'font_size_metric'}
+
+
 def load_project_data(data: dict):
     for k, v in data.items():
         if k in IMAGE_KEYS and isinstance(v, str):
@@ -255,6 +263,18 @@ def load_project_data(data: dict):
                 st.session_state[k] = date.fromisoformat(v)
             except Exception:
                 pass
+        elif k in _COLOR_KEYS:
+            # Upewnij się że kolor jest w formacie #RRGGBB
+            if isinstance(v, str) and v.startswith('#') and len(v) == 7:
+                st.session_state[k] = v
+            else:
+                st.session_state[k] = defaults.get(k, '#000000')
+        elif k in _SIZE_KEYS:
+            # Upewnij się że rozmiar to int > 0
+            try:
+                st.session_state[k] = max(8, int(float(v)))
+            except Exception:
+                st.session_state[k] = defaults.get(k, 14)
         else:
             st.session_state[k] = v
 
@@ -463,6 +483,53 @@ def geocode_place(name, country=None):
     return None, None
 
 
+def get_road_distance(place_a: str, place_b: str, ors_api_key: str, country: str = ''):
+    """
+    Zwraca (dystans_km: float, czas_min: int) dla trasy drogowej A→B.
+    Używa OpenRouteService Directions API (klucz bezpłatny na openrouteservice.org).
+    Przy błędzie zwraca (None, None).
+    """
+    if not ors_api_key or not place_a.strip() or not place_b.strip():
+        return None, None
+    try:
+        lat_a, lon_a = geocode_place(place_a.strip(), country)
+        lat_b, lon_b = geocode_place(place_b.strip(), country)
+        if None in (lat_a, lon_a, lat_b, lon_b):
+            return None, None
+        url = 'https://api.openrouteservice.org/v2/directions/driving-car'
+        body = json.dumps({'coordinates': [[lon_a, lat_a], [lon_b, lat_b]]})
+        req = urllib.request.Request(
+            url,
+            data=body.encode('utf-8'),
+            headers={
+                'Authorization': ors_api_key,
+                'Content-Type': 'application/json',
+            },
+            method='POST',
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+        summary = data['routes'][0]['summary']
+        dist_km = round(summary['distance'] / 1000, 0)
+        time_min = round(summary['duration'] / 60, 0)
+        return int(dist_km), int(time_min)
+    except Exception:
+        return None, None
+
+
+def format_duration(minutes: int) -> str:
+    """Formatuje minuty jako 'X h Y min' lub 'Y min'."""
+    if minutes is None:
+        return '—'
+    h = minutes // 60
+    m = minutes % 60
+    if h > 0 and m > 0:
+        return f'{h} h {m} min'
+    elif h > 0:
+        return f'{h} h'
+    return f'{m} min'
+
+
 @st.cache_data(max_entries=20, show_spinner=False)
 def generate_map_data(points, zoom=6, _depth=0):
     if not points:
@@ -660,10 +727,10 @@ def get_local_css(return_str=False):
         .prog-img-container {{ width: 100%; height: 160px; margin-bottom: 8px; border-radius: 4px; overflow: hidden; border: 1px solid #eee; background-color: #fcfcfc; }}
         .prog-img-container img {{ width: 100%; height: 100%; object-fit: cover; }}
         .prog-attr {{ font-family: '{f_txt}'; font-size: {fs_t + 2}px; color: {acc}; font-weight: 700; margin: 12px 0; border-left: 3px solid {acc}; padding-left: 10px; text-transform: uppercase; line-height: 1.3; }}
-        .app-overline-style {{ display: flex; align-items: center; gap: 15px; font-family: '{f_met}'; font-size: {fs_met - 2}px; font-weight: 700; letter-spacing: 4px; color: {acc}; margin-bottom: 10px; text-transform: uppercase; }}
-        .app-overline-style::before, .app-overline-style::after {{ content: ""; height: 1px; background-color: {acc}; opacity: 0.5; }}
-        .app-overline-style::before {{ width: 40px; }}
-        .app-overline-style::after {{ flex: 1; margin-right: 280px; }}
+        .app-overline-style {{ display: flex; align-items: center; gap: 10px; font-family: '{f_met}'; font-size: {fs_met - 2}px; font-weight: 700; letter-spacing: 4px; color: {acc}; margin-bottom: 10px; text-transform: uppercase; }}
+        .app-overline-style::before, .app-overline-style::after {{ content: ""; height: 1px; background-color: {acc}; opacity: 0.5; flex-shrink: 0; }}
+        .app-overline-style::before {{ width: 32px; }}
+        .app-overline-style::after {{ flex: 1; }}
         .app-list {{ list-style: none; padding: 0; margin-top: 15px; margin-bottom: 15px; }}
         .app-list li {{ position: relative; padding-left: 20px; margin-bottom: 10px; font-family: '{f_txt}'; font-size: {fs_t}px; line-height: 1.4; color: {c_t}; font-weight: 400; }}
         .app-list li::before {{ content: '■'; position: absolute; left: 0; top: 1px; color: {c_h2}; font-size: 0.7em; }}
@@ -865,15 +932,81 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                             <i class="fa-solid fa-plane"></i>
                         </div>'''
         ul_points_html = f'<ul class="app-list" style="margin-top:10px;">{"".join(ul_points)}</ul>' if ul_points else ''
+
+        # --- Siatka odległości ---
+        num_dp = s.get('num_dist_pairs', 0)
+        dist_title = str(s.get('map_dist_title', 'ODLEGŁOŚCI I CZAS DOJAZDU'))
+        dist_rows_html = ''
+        if num_dp > 0:
+            rows_html = ''
+            for di in range(num_dp):
+                pa = str(s.get(f'dist_a_{di}', ''))
+                pb = str(s.get(f'dist_b_{di}', ''))
+                dist_val = str(s.get(f'dist_km_{di}', '—'))
+                time_val = str(s.get(f'dist_time_{di}', '—'))
+                if not pa and not pb:
+                    continue
+                label = f'{pa} → {pb}' if pa and pb else (pa or pb)
+                rows_html += f"""
+                <div style="display:flex; align-items:center; justify-content:space-between;
+                            padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.15);">
+                    <div style="font-family:'{f_t}'; font-size:{fs_t}px; color:white;
+                                font-weight:400; flex:1; padding-right:10px; line-height:1.3;">
+                        {label}
+                    </div>
+                    <div style="display:flex; gap:10px; flex-shrink:0;">
+                        <div style="text-align:center; min-width:60px;">
+                            <div style="font-family:'{f_h2}'; font-weight:800;
+                                        font-size:{fs_t+3}px; color:white; line-height:1;">
+                                {dist_val} km
+                            </div>
+                            <div style="font-family:'{f_t}'; font-size:{max(9,fs_t-3)}px;
+                                        color:rgba(255,255,255,0.7); margin-top:2px;">
+                                odległość
+                            </div>
+                        </div>
+                        <div style="width:1px; background:rgba(255,255,255,0.2);"></div>
+                        <div style="text-align:center; min-width:65px;">
+                            <div style="font-family:'{f_h2}'; font-weight:800;
+                                        font-size:{fs_t+3}px; color:{acc}; line-height:1;">
+                                {time_val}
+                            </div>
+                            <div style="font-family:'{f_t}'; font-size:{max(9,fs_t-3)}px;
+                                        color:rgba(255,255,255,0.7); margin-top:2px;">
+                                czas dojazdu
+                            </div>
+                        </div>
+                    </div>
+                </div>"""
+            if rows_html:
+                dist_rows_html = f"""
+                <div style="background-color:{c_h2}; border-radius:8px; padding:12px 14px;
+                            margin-top:10px; box-shadow:0 4px 12px rgba(0,0,0,0.12);">
+                    <div style="font-family:'{f_h2}'; font-weight:800; font-size:{fs_t}px;
+                                color:white; text-transform:uppercase; letter-spacing:1px;
+                                margin-bottom:8px; opacity:0.8;">
+                        {dist_title}
+                    </div>
+                    {rows_html}
+                </div>"""
+
         hp.append(_shtml(f"""{lh}
             <div class="premium-layout">
                 <div class="info-col" style="flex: 40; padding-right: 30px; padding-top: 30px; justify-content: flex-start;">
-                    <div class="app-overline-style"><span>{str(s.get('map_overline','TRASA WYJAZDU'))}</span></div>
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                        <div style="width:32px; height:1px; background:{acc}; opacity:0.6; flex-shrink:0;"></div>
+                        <span style="font-family:'{f_met}'; font-size:{max(9,fs_met-2)}px; font-weight:700;
+                                     letter-spacing:4px; color:{acc}; text-transform:uppercase; white-space:nowrap;">
+                            {str(s.get('map_overline','TRASA WYJAZDU'))}
+                        </span>
+                        <div style="flex:1; height:1px; background:{acc}; opacity:0.6;"></div>
+                    </div>
                     <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(s.get('map_title','ZARYS\\nPODRÓŻY')).replace(chr(10),'<br>')}</div>
-                    <div class="title-sub" style="color: {acc}; font-weight: 700; text-transform: none; margin-bottom: 25px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('map_subtitle','')).replace(chr(10),'<br>')}</div>
-                    <div style="font-family: '{f_t}'; font-size: {fs_t}px; line-height: 1.6; color: {c_t}; margin-bottom: 20px;">{str(s.get('map_desc','')).replace(chr(10),'<br>')}</div>
+                    <div class="title-sub" style="color: {acc}; font-weight: 700; text-transform: none; margin-bottom: 15px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('map_subtitle','')).replace(chr(10),'<br>')}</div>
+                    <div style="font-family: '{f_t}'; font-size: {fs_t}px; line-height: 1.6; color: {c_t}; margin-bottom: 10px;">{str(s.get('map_desc','')).replace(chr(10),'<br>')}</div>
                     <div style="font-family:'{f_h2}'; font-weight:800; font-size:{fs_t+2}px; color:{c_h2}; margin-bottom:5px; text-transform:uppercase;">PUNKTY NA TRASIE:</div>
                     {ul_points_html}
+                    {dist_rows_html}
                 </div>
                 <div class="photo-col" style="flex: 60; position:relative; overflow:hidden; border: 2px solid #eee; border-radius:8px; background-color: #fcfcfc;">
                     {m_bg_html}
@@ -906,7 +1039,14 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         h_e = f"<p style='font-size:10px;margin-top:15px;'>{str(s.get('l_extra') or '').replace(chr(10),'<br>')}</p>" if str(s.get('l_extra','')).strip() else ""
         hp.append(_shtml(f"""{lh}<div class="premium-layout"><div class="photo-col">{iml}</div>
             <div class="info-col" style="padding-top:30px; justify-content:flex-start;">
-            <div class="app-overline-style" style="margin-bottom:15px;"><span>{str(s.get('l_overline','PRZELOT'))}</span></div>
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+                <div style="width:32px; height:1px; background:{acc}; opacity:0.6; flex-shrink:0;"></div>
+                <span style="font-family:'{f_met}'; font-size:{max(9,fs_met-2)}px; font-weight:700;
+                             letter-spacing:4px; color:{acc}; text-transform:uppercase; white-space:nowrap;">
+                    {str(s.get('l_overline','PRZELOT'))}
+                </span>
+                <div style="flex:1; height:1px; background:{acc}; opacity:0.6;"></div>
+            </div>
             <div class="title-h1" style="margin-bottom:5px; font-size:{fs_h1_val-6}px;">{str(s.get('l_main','JAK LECIMY?')).replace(chr(10),'<br>')}</div>
             <div class="title-sub" style="margin-bottom:15px;">{str(s.get('l_sub','')).replace(chr(10),'<br>')}</div>{h_d}
             <div class="metric-grid">
@@ -1087,6 +1227,102 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                         <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a2}" style="width:100%;height:100%;object-fit:cover;">' if a2 else _get_ph('FOT 2')}</div>
                         <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a3}" style="width:100%;height:100%;object-fit:cover;">' if a3 else _get_ph('FOT 3')}</div>
                     </div></div></div>{fh}""", f"attr_{i}"))
+
+
+    # --- Kierunki (nowy układ: kolaż zdjęć + box faktów + opis) ---
+    for i in range(s.get('num_kierunki', 0)):
+        if s.get(f'khide_{i}'):
+            continue
+
+        # Jedno zdjęcie wyświetlane w dwóch zachodzących na siebie ramkach
+        kimg = get_b64(f'kimg_{i}', (3, 4))
+        img_html = (
+            f'<img src="data:image/jpeg;base64,{kimg}" '
+            f'style="width:100%;height:100%;object-fit:cover;">'
+            if kimg else _get_ph('ZDJĘCIE KIERUNKU')
+        )
+
+        # Box faktów
+        kfacts = str(s.get(f'kfacts_{i}') or '')
+        kfacts_title = str(s.get(f'kfacts_title_{i}') or '')
+        facts_lines = []
+        for line in kfacts.split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+            if ':' in line:
+                lbl, val = line.split(':', 1)
+                facts_lines.append(
+                    f"<div style='margin-bottom:7px; line-height:1.4;'>"
+                    f"<strong style='font-weight:700;'>{lbl.strip()}:</strong> "
+                    f"<span style='font-weight:300;'>{val.strip()}</span></div>"
+                )
+            else:
+                facts_lines.append(
+                    f"<div style='margin-bottom:7px; line-height:1.4;'>{line}</div>"
+                )
+        facts_html_k = ''.join(facts_lines) or 'Dodaj fakty w panelu...'
+
+        # Box faktów — kolory edytowalne per instancja
+        kbox_bg  = str(s.get(f'kbox_bg_{i}')  or c_h2)
+        kbox_txt = str(s.get(f'kbox_txt_{i}') or '#ffffff')
+
+        facts_title_html = (
+            f"<div style='font-family:{f_h2}; font-weight:800; font-size:{fs_t+2}px; "
+            f"color:{kbox_txt}; text-transform:uppercase; letter-spacing:1px; "
+            f"margin-bottom:12px; padding-bottom:8px; "
+            f"border-bottom:1px solid rgba(255,255,255,0.3);'>{kfacts_title}</div>"
+            if kfacts_title else ''
+        )
+
+        # Overline + tytuł + podtytuł + opis
+        k_over = str(s.get(f'kover_{i}') or 'NASZ KIERUNEK')
+        k_main = str(s.get(f'kmain_{i}') or '').replace(chr(10), '<br>')
+        k_sub  = str(s.get(f'ksub_{i}')  or '').replace(chr(10), '<br>')
+        k_opis = str(s.get(f'kopis_{i}') or '').replace(chr(10), '<br>')
+
+        hp.append(_shtml(f"""{lh}
+        <div class="premium-layout" id="kierunek_{i}" style="gap:0; position:relative;">
+            <div style="flex:38; position:relative; margin-right:30px;">
+                <div style="position:absolute; bottom:0; left:0; right:15px; top:30px;
+                            border-radius:12px; overflow:hidden; border:1px solid #eee;
+                            box-shadow:0 8px 24px rgba(0,0,0,0.10);">
+                    {img_html}
+                </div>
+                <div style="position:absolute; top:0; left:15px; right:0; bottom:30px;
+                            border-radius:12px; overflow:hidden; border:3px solid white;
+                            box-shadow:0 4px 16px rgba(0,0,0,0.15); z-index:2;">
+                    {img_html}
+                </div>
+            </div>
+            <div style="flex:28; display:flex; flex-direction:column; margin-right:30px;">
+                <div style="background-color:{kbox_bg}; color:{kbox_txt}; padding:22px 18px;
+                            border-radius:10px; font-family:'{f_t}'; font-size:{fs_t}px;
+                            line-height:1.5; box-shadow:0 10px 30px rgba(0,0,0,0.15);
+                            flex-grow:1;">
+                    {facts_title_html}
+                    {facts_html_k}
+                </div>
+            </div>
+            <div class="info-col" style="flex:34; padding-top:20px; justify-content:flex-start;">
+                <div class="app-overline-style" style="margin-bottom:12px;">
+                    <span>{k_over}</span>
+                </div>
+                <div class="title-h1" style="margin-bottom:8px;
+                     font-size:{max(28,fs_h1_val-4)}px; line-height:1.05;">
+                    {k_main}
+                </div>
+                <div class="title-sub" style="margin-bottom:20px;
+                     font-size:{max(14,fs_sub_val-4)}px; line-height:1.3;">
+                    {k_sub}
+                </div>
+                <div style="font-family:'{f_t}'; font-size:{fs_t}px; line-height:1.7;
+                            color:{c_t}; text-align:justify; flex-grow:1;">
+                    {k_opis}
+                </div>
+            </div>
+
+        </div>{fh}""", f"kierunek_{i}"))
 
     # --- Aplikacja ---
     if not s.get('app_hide', False):
@@ -1300,11 +1536,16 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     )
     fid = f"attr_{first_visible_attr}" if first_visible_attr is not None else "slide-title"
 
+    first_visible_kierunek = next(
+        (i for i in range(s.get('num_kierunki', 0)) if not s.get(f'khide_{i}')), None
+    )
+    kid = f"kierunek_{first_visible_kierunek}" if first_visible_kierunek is not None else "slide-title"
+
     default_tid = {
         "Strona Tytułowa": "slide-title", "Opis Kierunku": "slide-kierunek",
         "Mapa Podróży": "slide-mapa", "Jak lecimy?": "slide-loty",
         "Zakwaterowanie": "slide-hotel-0", "Program Wyjazdu": "slide-program",
-        "Opis miejsc": pid, "Opis atrakcji": fid,
+        "Opis miejsc": pid, "Opis kierunków": kid, "Opis atrakcji": fid,
         "Kosztorys": "slide-kosztorys-1", "Aplikacja (Komunikacja)": "slide-app",
         "Materiały Brandingowe": "slide-branding",
         "Wirtualny Asystent": "slide-virtual-assistant",
