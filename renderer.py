@@ -1284,14 +1284,12 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     if export_mode:
         return "".join(hp)
 
-    get_local_css()
-    # Otwieramy wrapper
-    st.markdown('<div class="presentation-wrapper" id="main-wrapper">', unsafe_allow_html=True)
-    # Każdy slajd osobnym st.markdown — unikamy limitu wielkości w Streamlit Cloud
-    for slide in hp:
-        st.markdown(slide, unsafe_allow_html=True)
-    # Zamykamy wrapper
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Budujemy cały CSS + slajdy + scroll w jednym components.html.
+    # To jedyne podejście działające na Streamlit Community Cloud:
+    # - brak limitu rozmiaru (w przeciwieństwie do st.markdown)
+    # - pełny dostęp do DOM własnego dokumentu (w przeciwieństwie do window.parent)
+    # - scroll działa na .presentation-wrapper który ma własny overflow:auto
+    import streamlit.components.v1 as components
 
     first_visible_place = next(
         (i for i in range(s.get('num_places', 0)) if not s.get(f'phide_{i}')), None
@@ -1315,36 +1313,62 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     }.get(current_page, "")
 
     tid = s.get('scroll_target') or default_tid
-    # Czyścimy scroll_target po odczytaniu — żeby przy kolejnym rerunie
-    # (np. zmiana zakładki) nie nadpisywał default_tid nowej strony.
     if 'scroll_target' in s:
         s['scroll_target'] = ""
+
+    scroll_js = ""
     if tid and not s.get('client_mode'):
-        import streamlit.components.v1 as components
-        components.html(
-            f"""<script>
-            (function() {{
-                var targetId = "{tid}";
-                function doScroll() {{
-                    var doc = window.parent ? window.parent.document : document;
-                    var wrapper = doc.querySelector('.presentation-wrapper');
-                    var el = doc.getElementById(targetId);
-                    if (el && wrapper) {{
-                        var elTop = el.getBoundingClientRect().top;
-                        var wrapperTop = wrapper.getBoundingClientRect().top;
-                        var offset = elTop - wrapperTop + wrapper.scrollTop;
-                        wrapper.scrollTo({{
-                            top: offset - (wrapper.clientHeight / 2) + (el.clientHeight / 2),
-                            behavior: 'smooth'
-                        }});
-                    }} else if (el) {{
-                        el.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
-                    }}
+        scroll_js = f"""
+        <script>
+        (function() {{
+            var targetId = "{tid}";
+            function doScroll() {{
+                var wrapper = document.getElementById('main-wrapper');
+                var el = document.getElementById(targetId);
+                if (el && wrapper) {{
+                    var offset = el.offsetTop - (wrapper.clientHeight / 2) + (el.offsetHeight / 2);
+                    wrapper.scrollTo({{ top: offset, behavior: 'smooth' }});
                 }}
-                doScroll();
-                setTimeout(doScroll, 300);
-                setTimeout(doScroll, 800);
-            }})();
-            </script>""",
-            height=0,
-        )
+            }}
+            doScroll();
+            setTimeout(doScroll, 200);
+            setTimeout(doScroll, 600);
+        }})();
+        </script>"""
+
+    css_str = get_local_css(return_str=True)
+    slides_html = "".join(hp)
+
+    full_html = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+{css_str}
+<style>
+  body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; }}
+  .presentation-wrapper {{
+      height: 100vh;
+      overflow-y: auto;
+      scroll-snap-type: y proximity;
+      scroll-behavior: smooth;
+      background-color: #f4f5f7;
+      padding: 5vh 0 15vh 0;
+      box-sizing: border-box;
+  }}
+</style>
+</head>
+<body>
+<div class="presentation-wrapper" id="main-wrapper">
+{slides_html}
+</div>
+{scroll_js}
+</body>
+</html>"""
+
+    # Wysokość = 100vh okna przeglądarki — components.html potrzebuje px
+    # Używamy dużej wartości; scrollbar wewnątrz kontenera obsługuje resztę
+    # height musi pokryć całe okno przeglądarki.
+    # Streamlit Community Cloud: components.html jest iframe — dajemy mu
+    # wysokość okna (900px jako bezpieczna wartość dla Full HD).
+    # Wewnętrzny .presentation-wrapper sam scrolluje swoje slajdy.
+    components.html(full_html, height=900, scrolling=False)
