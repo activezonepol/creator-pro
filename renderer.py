@@ -308,6 +308,7 @@ def auto_generate_kosztorys():
         "Ubezpieczenie wersja MAX", "Transfery",
         "Woda podczas wycieczek i transferów",
         "Opieka profesjonalnego tour leadera Activezone",
+        "Lokalny przewodnik",
     ]
     for i in range(s.get('num_attr', 1)):
         if not s.get(f'ahide_{i}', False):
