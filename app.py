@@ -1,92 +1,289 @@
 import streamlit as st
-from datetime import date, timedelta
-import json
-import base64
-import re
+import streamlit.components.v1 as components
+import json, base64, re, io, unicodedata
+from datetime import datetime, timedelta, date
 
-# ====================== IMPORTY Z RENDERERA ======================
+# Importy z pliku renderer.py (naszego silnika)
 from renderer import (
-    build_presentation,
-    get_local_css,
-    get_project_filename,
-    optimize_img,
-    optimize_logo,
-    geocode_place,
-    generate_map_data,
-    section_template_manager,
-    parse_date_and_days,
-    set_focus,
-    clean_str,
-    build_day_options,
-    auto_generate_kosztorys,
-    load_project_data,
+    optimize_img, optimize_logo, geocode_place, generate_map_data,
+    build_presentation, get_local_css,
+    icon_map, hotel_icons, pl_days_map, COUNTRIES_DICT, FONTS_LIST, FONT_WEIGHTS
 )
 
-# ====================== INICJALIZACJA ======================
-if "initialized" not in st.session_state:
-    st.session_state.initialized = True
-    st.session_state.last_page = "Strona Tytułowa"
-    st.session_state.client_mode = False
-    st.session_state.scroll_target = ""
+# Minimalistyczna konfiguracja - bez emoji
+st.set_page_config(layout="wide", page_title="Activezone Oferta", initial_sidebar_state="expanded")
 
-# ====================== GŁÓWNA APLIKACJA ======================
-def main():
-    # Renderowanie prezentacji
-    html_content = build_presentation(
-        current_page=st.session_state.get('last_page', 'Strona Tytułowa')
-    )
+# --- CUSTOM CSS DLA ELEGANCKIEGO PANELU BOKU ---
+st.markdown("""
+<style>
+div.stButton > button {
+    border-radius: 4px !important;
+    font-family: 'Montserrat', sans-serif !important;
+    text-transform: uppercase !important;
+    font-size: 12px !important;
+    letter-spacing: 1px !important;
+    font-weight: 600 !important;
+}
+div.stDownloadButton > button {
+    border-radius: 4px !important;
+    font-family: 'Montserrat', sans-serif !important;
+    text-transform: uppercase !important;
+    font-size: 12px !important;
+    letter-spacing: 1px !important;
+    font-weight: 600 !important;
+}
+/* BRUTALNE UKRYCIE DOMYŚLNEJ IKONY POBIERANIA/DYSKIETKI WBUDOWANEJ W STREAMLIT */
+div.stDownloadButton > button svg {
+    display: none !important;
+}
+div[data-testid="stExpander"] {
+    border-radius: 4px !important;
+    border: 1px solid #e2e8f0 !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
-    css_str = get_local_css(return_str=True)
+if 'client_mode' not in st.session_state:
+    st.session_state['client_mode'] = False
 
-    st.markdown(
-        css_str + f'\n<div class="presentation-wrapper" id="main-wrapper">{html_content}</div>',
-        unsafe_allow_html=True
-    )
+# --- FUNKCJE POMOCNICZE (INTERFEJS) ---
+def clean_str(val, default=""):
+    if val is None or str(val).strip() == "None":
+        return default
+    return str(val)
 
-    # Scroll do aktywnej sekcji
-    tid = st.session_state.get('scroll_target')
-    if tid and not st.session_state.get('client_mode', False):
-        st.components.v1.html(
-            f"<script>var t = window.parent.document.getElementById('{tid}'); if(t) t.scrollIntoView({{behavior: 'smooth', block: 'center'}});</script>",
-            height=0
-        )
+def set_focus(target_id):
+    st.session_state['scroll_target'] = target_id
 
-    # Tryb klienta (pełny ekran bez sidebaru)
-    if st.session_state.get('client_mode', False):
-        accent = st.session_state.get('color_accent', '#FF6600')
-        st.markdown(f"""
-        <style>
-        div.stButton {{ position: fixed !important; top: 20px !important; left: 20px !important; z-index: 999999 !important; }}
-        div.stButton > button {{ background-color: {accent} !important; color: white !important; }}
-        </style>
-        """, unsafe_allow_html=True)
+def create_slug(text):
+    if not text:
+        return "szablon"
+    text = re.sub(r'<[^>]+>', '', str(text))
+    text = text.lower().strip()
+    text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('utf-8')
+    text = re.sub(r'[^\w\s-]', '', text)
+    text = re.sub(r'[-\s]+', '-', text)
+    return text.strip('-')
 
-        if st.button("ZAKOŃCZ PODGLĄD"):
-            st.session_state.client_mode = False
-            st.rerun()
-        st.stop()
+def get_project_filename():
+    d_str = st.session_state.get('t_date', '')
+    yy, mm = "XX", "XX"
+    m_date = re.search(r'\.(\d{1,2})\.(\d{4})', d_str)
+    if m_date:
+        mm = m_date.group(1).zfill(2)
+        yy = m_date.group(2)[-2:]
+    cc = st.session_state.get('country_code', 'OTH')
+    cli = str(st.session_state.get('t_klient', 'KLI')).strip()[:3].upper()
+    if not cli: cli = "KLI"
+    tit = re.sub(r'[^A-Za-z0-9_-]', '', str(st.session_state.get('t_main', 'OFERTA')).replace(' ', '_'))
+    return f"{yy}-{mm}-{cc}-{cli}-{tit}.json"
 
-    # ====================== PANEL BOCZNY ======================
-    with st.sidebar:
-        page = st.radio("WYBIERZ SEKCJE DO EDYCJI:", 
-                        ["Strona Tytułowa", "Opis Kierunku", "Mapa Podróży", "Jak lecimy?", 
-                         "Zakwaterowanie", "Program Wyjazdu", "Opis miejsc", "Opis atrakcji", 
-                         "Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent", 
-                         "Pillow Gifts", "Kosztorys", "Co o nas mówią", "O Nas (Zespół)", 
-                         "Wygląd i Kolory", "Zapisz / Wczytaj Projekt"])
+def parse_date_and_days():
+    d_str = st.session_state.get('t_date', '').strip()
+    m1 = re.search(r'^(\d{1,2})\s*-\s*(\d{1,2})\.(\d{1,2})\.(\d{4})$', d_str)
+    m2 = re.search(r'^(\d{1,2})\.(\d{1,2})\s*-\s*(\d{1,2})\.(\d{1,2})\.(\d{4})$', d_str)
+    m3 = re.search(r'^(\d{1,2})\.(\d{1,2})\.(\d{4})$', d_str)
+    try:
+        if m1:
+            s_dt = date(int(m1.group(4)), int(m1.group(3)), int(m1.group(1)))
+            st.session_state['num_days'] = (date(int(m1.group(4)), int(m1.group(3)), int(m1.group(2))) - s_dt).days + 1
+            st.session_state['p_start_dt'] = s_dt
+        elif m2:
+            s_dt = date(int(m2.group(5)), int(m2.group(2)), int(m2.group(1)))
+            st.session_state['num_days'] = (date(int(m2.group(5)), int(m2.group(4)), int(m2.group(3))) - s_dt).days + 1
+            st.session_state['p_start_dt'] = s_dt
+        elif m3:
+            s_dt = date(int(m3.group(3)), int(m3.group(2)), int(m3.group(1)))
+            st.session_state['num_days'] = 1
+            st.session_state['p_start_dt'] = s_dt
+    except Exception:
+        pass
 
-        if st.session_state.get('last_page') != page:
-            st.session_state.last_page = page
-            st.session_state.scroll_target = ""
+IMAGE_KEYS = {
+    'img_hero_t', 'img_hero_k', 'img_hero_l', 'img_map_bg', 'img_map_bg_auto',
+    'logo_az', 'logo_cli', 'img_app_bg', 'img_app_screen',
+    'img_brand_1', 'img_brand_2', 'img_brand_3',
+    'img_va_1', 'img_va_2', 'img_va_3',
+    'img_pg_1', 'img_pg_2', 'img_pg_3',
+    'img_koszt_1', 'img_koszt_2', 'img_testim_main', 'img_about_clients',
+    'img_k_th1', 'img_k_th2', 'img_k_th3',
+}
+for _i in range(50):
+    IMAGE_KEYS.update({
+        f'img_hotel_1_{_i}', f'img_hotel_1b_{_i}',
+        f'img_hotel_2_{_i}', f'img_hotel_3_{_i}',
+        f'img_d_{_i}', f'ah_{_i}', f'at1_{_i}', f'at2_{_i}', f'at3_{_i}',
+        f'pimg1_{_i}', f'pimg2_{_i}',
+        f'testim_img_{_i}', f't_img_{_i}',
+    })
 
-        st.divider()
+def load_project_data(data: dict):
+    for k, v in data.items():
+        if k in IMAGE_KEYS and isinstance(v, str):
+            try:
+                st.session_state[k] = base64.b64decode(v)
+            except Exception:
+                st.session_state[k] = v
+        elif k == 'p_start_dt' and isinstance(v, str):
+            try:
+                st.session_state[k] = date.fromisoformat(v)
+            except Exception:
+                pass
+        else:
+            st.session_state[k] = v
 
-        # === TWÓJ PEŁNY KOD SIDEBARU ===
- if page == "Wygląd i Kolory":
-        st.markdown(f"<h2 style='color: #003366; margin-bottom: 0; font-size: 22px; font-weight: 700; font-family: Montserrat, sans-serif;'>KONFIGURACJA WYGLĄDU</h2>", unsafe_allow_html=True)
+def section_template_manager(section_keys, file_prefix, default_filename, uploader_key, index=None):
+    ATR_KEY_MAP = {"atype": "type", "amain": "main", "asub": "sub", "aopis": "opis"}
+    
+    st.markdown("<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; letter-spacing: 1px;'>Zarządzanie Szablonem Sekcji</div>", unsafe_allow_html=True)
+    
+    c1, c2 = st.columns(2)
+    with c1:
+        uploaded_file = st.file_uploader("Wgraj plik JSON", type=['json'], key=f"up_{uploader_key}", label_visibility="collapsed")
+        if st.button("WCZYTAJ SZABLON", key=f"btn_apply_{uploader_key}", use_container_width=True, disabled=not uploaded_file):
+            try:
+                data = json.load(uploaded_file)
+                filtered_data = {}
+                for k in section_keys:
+                    save_key = k
+                    load_key = k if index is None else re.sub(f'_{index}$', '', k)
+                    if file_prefix == "ATR": load_key = ATR_KEY_MAP.get(load_key, load_key)
+
+                    if load_key in data:
+                        filtered_data[save_key] = data[load_key]
+                
+                load_project_data(filtered_data)
+                st.success("Szablon wczytany pomyślnie.")
+                st.rerun()
+            except Exception:
+                st.error("Błąd odczytu pliku szablonu.")
+
+    with c2:
+        export_data = {}
+        for k in section_keys:
+            save_key = k if index is None else re.sub(f'_{index}$', '', k)
+            if file_prefix == "ATR": save_key = ATR_KEY_MAP.get(save_key, save_key)
+            val = st.session_state.get(k)
+            if val is not None:
+                if isinstance(val, bytes): export_data[save_key] = base64.b64encode(val).decode('utf-8')
+                elif isinstance(val, (date, datetime)): export_data[save_key] = val.isoformat()
+                else: export_data[save_key] = val
+                    
+        json_str = json.dumps(export_data)
+        cc = st.session_state.get('country_code', 'OTH')
+        base_slug = create_slug(default_filename)
+        
+        custom_name = st.text_input("Nazwa pliku:", value=base_slug, key=f"fn_{uploader_key}", label_visibility="collapsed")
+        final_slug = create_slug(custom_name)
+        full_filename = f"{cc}-{file_prefix}-{final_slug}.json"
+        
+        st.download_button("POBIERZ SZABLON", json_str, full_filename, key=f"dl_{uploader_key}", use_container_width=True)
+    st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+
+defaults = {
+    'country_name': 'Czarnogóra', 'country_code': 'MNE',
+    'font_h1': 'Montserrat', 'font_h2': 'Montserrat', 'font_sub': 'Montserrat', 'font_text': 'Open Sans', 'font_metric': 'Montserrat',
+    'color_h1': '#003366', 'color_h2': '#003366', 'color_sub': '#FF6600', 'color_accent': '#FF6600', 'color_text': '#333333', 'color_metric': '#003366',
+    'font_size_h1': 48, 'font_size_h2': 36, 'font_size_sub': 26, 'font_size_text': 14, 'font_size_metric': 16,
+    't_main': 'BAŁKAŃSKI KLEJNOT', 't_sub': 'MONTENEGRO EXPERIENCE', 't_klient': 'NAZWA KLIENTA',
+    't_kierunek': 'CZARNOGÓRA', 't_date': '1-4.10.2026', 't_pax': '60', 't_hotel': '4* ALL INCLUSIVE', 't_trans': 'SAMOLOT PLL LOT',
+    'hide_logo_cli': False,
+    'k_hide': False, 'k_overline': 'OPIS KIERUNKU', 'k_main': 'CZARNOGÓRA', 'k_sub': 'BAŁKAŃSKI KLEJNOT', 'k_opis': 'Opisz tutaj <b>piękno</b> kierunku...',
+    'l_hide': False, 'l_przesiadka': False, 'l_port': 'Monachium (MUC)', 'l_czas': '3h 20 min', 'l_overline': 'PRZELOT', 'l_main': 'JAK LECIMY?', 'l_sub': 'NASZA PROPOZYCJA PRZELOTU', 'l_desc': 'Komfortowy przelot liniami PLL LOT.', 'm_route': 'Warszawa (WAW) - Podgorica (TGD)', 'm_luggage': '23kg rejestrowany',
+    'f1': 'LO 585, 17MAY, WAW-TGD, 14:25 - 16:25', 'f2': 'LO 586, 21MAY, TGD-WAW, 17:15 - 19:05', 'f3': '', 'f4': '',
+    'map_hide': False, 'map_overline': 'TRASA WYJAZDU', 'map_title': 'ZARYS\nPODRÓŻY', 'map_subtitle': 'Kluczowe punkty programu', 'map_desc': 'Zapraszamy do zapoznania się z poglądową mapą naszego wyjazdu. Odkryjemy najpiękniejsze zakątki regionu.',
+    'map_zoom': 6, 'num_map_points': 3, 'map_pt_name_0': 'Warszawa', 'map_conn_0': 'Przelot (Linia przerywana + Samolot)', 'map_pt_sym_0': True, 'map_pt_x_0': 15, 'map_pt_y_0': 15, 'map_pt_name_1': 'Podgorica', 'map_conn_1': 'Przejazd (Linia ciągła)', 'map_pt_sym_1': False, 'map_pt_name_2': 'Kotor', 'map_conn_2': 'Brak', 'map_pt_sym_2': False,
+    'num_hotels': 1, 'h_hide_0': False, 'h_overline_0': 'ZAKWATEROWANIE', 'h_title_0': 'NAZWA HOTELU 5*', 'h_subtitle_0': 'Komfort i elegancja na najwyższym poziomie', 'h_url_0': 'www.przykładowy-hotel.com', 'h_booking_0': '8.9', 'h_amenities_0': ["Basen", "SPA", "Wi-Fi", "Restauracja", "Plaża"], 'h_text_0': 'Zapewniamy zakwaterowanie w starannie wyselekcjonowanym hotelu.', 'h_advantages_0': 'Położenie tuż przy prywatnej plaży',
+    'prg_hide': False, 'num_days': 4, 'num_places': 0, 'num_attr': 1,
+    'koszt_hide_1': False, 'koszt_hide_2': False, 'koszt_title': 'KOSZTORYS', 'koszt_pax': '25', 'koszt_price': '4.990 zł / os.', 'koszt_hotel': 'Iberostar Bellevue 4* all inclusive', 'koszt_dbl': '12', 'koszt_sgl': '1',
+    'koszt_zawiera_1': 'Wybierz z listy auto-uzupełniania', 'koszt_zawiera_2': '', 'koszt_nie_zawiera': 'Napiwki\nWydatki osobiste\nAtrakcje wymienione jako opcje', 'koszt_opcje': '',
+    'app_hide': False, 'app_overline': 'KOMUNIKACJA', 'app_title': 'APLIKACJA\nNA WYJAZD', 'app_subtitle': 'Dedykowana na wyjazd aplikacja dla uczestników', 'app_features': 'Intuicyjna obsługa\nWygoda i nowoczesność',
+    'brand_hide': False, 'brand_overline': 'IDENTYFIKACJA', 'brand_title': 'MATERIAŁY\nBRANDINGOWE', 'brand_subtitle': 'Komunikacja przed, w trakcie i po wyjeździe', 
+    'brand_features': 'Komunikacja SMS, e-mail, push w aplikacji przed i w trakcie wyjazdu\nAtrakcyjne zaproszenie elektroniczne\nProgram i materiały, w tym koperta na bilet z logo\nStrona www i aplikacja mobilna z formularzem uczestnika\nStanowisko na lotnisku z logo',
+    'va_hide': False, 'va_overline': 'SPRAWNA ORGANIZACJA', 'va_title': 'WIRTUALNY\nASYSTENT', 'va_subtitle': 'Sprawna organizacja i wygoda', 'va_text': 'Nowatorski system do zarządzania grupami.',
+    'pg_hide': False, 'pg_overline': 'PILLOW GIFTS', 'pg_title': 'PILLOW\nGIFTS', 'pg_subtitle': 'Aby wspólne chwile zatrzymać na dłużej', 'pg_text': 'Upominki pełnią ważną rolę w budowaniu relacji biznesowych.',
+    'testim_hide': False, 'testim_overline': 'REKOMENDACJE', 'testim_title': 'CO O NAS\nMÓWIĄ?', 'testim_subtitle': '100% NASZYCH KLIENTÓW JEST CAŁKOWICIE ZADOWOLONYCH Z NASZYCH USŁUG.', 'testim_count': 3, 'testim_head_0': 'PROJEKT INCENTIVE W DUBAJU', 'testim_quote_0': 'Pełen profesjonalizm.', 'testim_author_0': 'Anna Kowalska', 'testim_role_0': 'Dyrektor Marketingu', 'testim_head_1': 'WYJAZD INTEGRACYJNY', 'testim_quote_1': 'Niezwykłe zaangażowanie.', 'testim_author_1': 'Piotr Nowak', 'testim_role_1': 'CEO', 'testim_head_2': 'NAGRODA DLA KLIENTÓW', 'testim_quote_2': 'Współpraca na najwyższym poziomie.', 'testim_author_2': 'Marta Wiśniewska', 'testim_role_2': 'Head of Sales',
+    'about_hide': False, 'about_overline': 'NASZ ZESPÓŁ', 'about_title': 'POZNAJMY SIĘ', 'about_sub': 'ZESPÓŁ ACTIVEZONE', 'about_desc': 'Activezone to agencja incentive travel...', 'about_panel_title': 'NASZE WARTOŚCI', 'about_panel_text': 'Bezpieczeństwo\nProfesjonalizm', 'team_count': 2, 'p_start_dt': date(2026, 10, 1)
+}
+
+for k, v in defaults.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
+
+@st.cache_data
+def build_day_options(start_dt: date, num_days: int) -> list:
+    options = ["Brak przypisania"]
+    for d in range(num_days):
+        curr_date = start_dt + timedelta(days=d)
+        options.append(f"Dzień {d+1} ({curr_date.strftime('%d.%m.%Y')} - {pl_days_map[curr_date.weekday()]})")
+    return options
+
+def auto_generate_kosztorys():
+    s = st.session_state
+    part1, part2 = [], []
+    route, luggage = s.get('m_route', ''), s.get('m_luggage', '')
+    if route: part1.append(f"Przelot samolotem na trasie {route}, bagaż {luggage}")
+    
+    dbl, sgl = s.get('koszt_dbl', ''), s.get('koszt_sgl', '')
+    part1.append(f"Zakwaterowanie w pokojach dwuosobowych ({dbl}) i jednoosobowych ({sgl})")
+    part1.extend(["Wyżywienie wg programu", "Napoje wg programu", "Ubezpieczenie wersja MAX", "Transfery", "Woda podczas wycieczek i transferów", "Opieka profesjonalnego tour leadera Activezone"])
+    for i in range(s.get('num_attr', 1)):
+        if not s.get(f'ahide_{i}', False):
+            name = str(s.get(f'amain_{i}', '')).strip()
+            if name: part1.append(name)
+            
+    if not s.get('brand_hide', False):
+        part2.append("Materiały brandingowe:")
+        for bf in str(s.get('brand_features', '')).split('\n'):
+            if bf.strip(): part2.append(f"-- {bf.strip()}")
+            
+    if not s.get('app_hide', False): part2.extend(["Aplikacja na wyjazd", "Strona www z formularzem uczestnika"])
+    if not s.get('pg_hide', False): part2.append("Pillow gift dla każdego uczestnika na przywitanie")
+    part2.extend(["Obowiązkowa opłata TFG i TFP", "VAT marża"])
+    
+    s['koszt_zawiera_1'] = "\n".join(part1)
+    s['koszt_zawiera_2'] = "\n".join(part2)
+    s['koszt_nie_zawiera'] = "Napiwki\nWydatki osobiste\nAtrakcje wymienione jako opcje"
+
+# --- RENDEROWANIE GŁÓWNEGO OKNA ---
+html_content = build_presentation(current_page=st.session_state.get('last_page', 'Strona Tytułowa'))
+st.markdown(f'{get_local_css(True)}\n<div class="presentation-wrapper" id="main-wrapper">{html_content}</div>', unsafe_allow_html=True)
+
+first_visible_place = next((i for i in range(int(st.session_state.get('num_places', 0))) if not st.session_state.get(f'phide_{i}')), None)
+pid = f"place_{first_visible_place}" if first_visible_place is not None else "slide-title"
+first_visible_attr = next((i for i in range(int(st.session_state.get('num_attr', 1))) if not st.session_state.get(f'ahide_{i}')), None)
+fid = f"attr_{first_visible_attr}" if first_visible_attr is not None else "slide-title"
+
+default_tid = {"Strona Tytułowa":"slide-title","Opis Kierunku":"slide-kierunek","Mapa Podróży":"slide-mapa","Jak lecimy?":"slide-loty","Zakwaterowanie":"slide-hotel-0","Program Wyjazdu":"slide-program","Opis miejsc":pid,"Opis atrakcji":fid,"Kosztorys":"slide-kosztorys-1","Aplikacja (Komunikacja)":"slide-app","Materiały Brandingowe":"slide-branding","Wirtualny Asystent":"slide-virtual-assistant","Pillow Gifts":"slide-pillow-gifts","Co o nas mówią":"slide-testimonials","O Nas (Zespół)":"slide-about"}.get(st.session_state.get('last_page', 'Strona Tytułowa'), "")
+tid = st.session_state.get('scroll_target') or default_tid
+
+if tid and not st.session_state.get('client_mode', False):
+    components.html(f"<script>var t = window.parent.document.getElementById('{tid}'); if(t) {{ t.scrollIntoView({{behavior: 'smooth', block: 'center'}}); }}</script>", height=0)
+
+if st.session_state.get('client_mode', False):
+    accent_color = st.session_state.get('color_accent', '#FF6600')
+    st.markdown(f"<style>div.stButton {{ position: fixed !important; top: 20px !important; left: 20px !important; z-index: 999999 !important; width: auto !important; }} div.stButton > button {{ background-color: {accent_color} !important; color: white !important; border: none !important; border-radius: 4px !important; padding: 15px 25px !important; font-size: 14px !important; font-weight: 700 !important; box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important; display: flex !important; align-items: center !important; justify-content: center !important; width: auto !important; white-space: nowrap !important; text-transform: uppercase !important; }} div.stButton > button:hover {{ transform: scale(1.02); opacity: 0.9; }}</style>", unsafe_allow_html=True)
+    if st.button("ZAKOŃCZ PODGLĄD"):
+        st.session_state['client_mode'] = False
+        st.rerun()
+    st.stop()
+
+
+# --- PANEL BOCZNY (INTERFEJS) ---
+with st.sidebar:
+    page = st.radio("WYBIERZ SEKCJĘ DO EDYCJI:", ["Strona Tytułowa", "Opis Kierunku", "Mapa Podróży", "Jak lecimy?", "Zakwaterowanie", "Program Wyjazdu", "Opis miejsc", "Opis atrakcji", "Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent", "Pillow Gifts", "Kosztorys", "Co o nas mówią", "O Nas (Zespół)", "Wygląd i Kolory", "Zapisz / Wczytaj Projekt"])
+    
+    if st.session_state.get('last_page') != page:
+        st.session_state['last_page'] = page
+        st.session_state['scroll_target'] = ""
+        
+    st.divider()
+
+    if page == "Wygląd i Kolory":
+        st.markdown("<h2 style='color: #003366; margin-bottom: 0; font-size: 22px; font-weight: 700; font-family: Montserrat, sans-serif;'>KONFIGURACJA WYGLĄDU</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size: 13px; color: #64748b; margin-bottom: 15px; font-family: Open Sans, sans-serif;'>Dostosuj kolory i typografię oferty</div>", unsafe_allow_html=True)
     elif page == "Zapisz / Wczytaj Projekt":
-        st.markdown(f"<h2 style='color: #003366; margin-bottom: 0; font-size: 22px; font-weight: 700; font-family: Montserrat, sans-serif;'>ZARZĄDZANIE PROJEKTEM</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='color: #003366; margin-bottom: 0; font-size: 22px; font-weight: 700; font-family: Montserrat, sans-serif;'>ZARZĄDZANIE PROJEKTEM</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size: 13px; color: #64748b; margin-bottom: 15px; font-family: Open Sans, sans-serif;'>Eksportuj lub importuj cały plik JSON</div>", unsafe_allow_html=True)
     else:
         st.markdown(f"<h2 style='color: #003366; margin-bottom: 0; font-size: 22px; font-weight: 700; font-family: Montserrat, sans-serif; text-transform: uppercase;'>{page}</h2>", unsafe_allow_html=True)
@@ -135,7 +332,7 @@ def main():
 
     elif page == "Mapa Podróży":
         map_keys = ['map_hide', 'map_overline', 'map_title', 'map_subtitle', 'map_desc', 'img_map_bg', 'map_zoom', 'num_map_points', 'img_map_bg_auto', 'auto_map_points']
-        for i in range(st.session_state.get('num_map_points', 3)): 
+        for i in range(int(st.session_state.get('num_map_points', 3))): 
             map_keys.extend([f'map_pt_name_{i}', f'map_conn_{i}', f'map_pt_sym_{i}', f'map_pt_x_{i}', f'map_pt_y_{i}'])
         section_template_manager(map_keys, "MAP", "mapa-podrozy", "map")
 
@@ -150,7 +347,7 @@ def main():
         st.number_input("Liczba punktów na trasie:", 1, 10, step=1, key="num_map_points")
         
         points_data = []
-        for i in range(st.session_state['num_map_points']):
+        for i in range(int(st.session_state.get('num_map_points', 3))):
             with st.expander(f"Punkt {i+1}", expanded=True):
                 if f'map_pt_name_{i}' not in st.session_state: st.session_state[f'map_pt_name_{i}'] = f'Punkt {i+1}'
                 if f'map_conn_{i}' not in st.session_state: st.session_state[f'map_conn_{i}'] = 'Brak'
@@ -201,8 +398,6 @@ def main():
                             st.rerun()
                     except Exception: 
                         st.error("Błąd podczas generowania mapy.")
-                else:
-                    st.warning("Nie udało się zgeokodować żadnego punktu. Sprawdź połączenie z internetem lub poprawność nazw.")
 
     elif page == "Jak lecimy?":
         l_keys = ['l_hide', 'l_przesiadka', 'l_port', 'l_czas', 'l_overline', 'l_main', 'l_sub', 'm_route', 'm_luggage', 'f1', 'f2', 'f3', 'f4', 'l_desc', 'l_extra', 'img_hero_l']
@@ -229,8 +424,8 @@ def main():
         if u5: st.session_state['img_hero_l'] = optimize_img(u5.getvalue())
 
     elif page == "Zakwaterowanie":
-        st.number_input("Liczba hoteli do wyboru:", 1, 3, step=1, key="num_hotels")
-        for i in range(st.session_state['num_hotels']):
+        st.session_state['num_hotels'] = st.number_input("Liczba hoteli do wyboru:", 1, 3, value=int(st.session_state.get('num_hotels', 1)), step=1)
+        for i in range(int(st.session_state.get('num_hotels', 1))):
             with st.expander(f"Hotel {i+1}"):
                 st.button("POKAŻ PODGLĄD", key=f"btn_show_hot_{i}", on_click=set_focus, args=(f"slide-hotel-{i}",), use_container_width=True)
                 
@@ -272,9 +467,9 @@ def main():
 
     elif page == "Program Wyjazdu":
         st.checkbox("Ukryj CAŁĄ sekcję Programu w PDF", key="prg_hide")
-        st.number_input("Ilość dni:", 1, 15, step=1, key="num_days")
+        st.session_state['num_days'] = st.number_input("Ilość dni:", 1, 15, value=int(st.session_state.get('num_days', 5)), step=1)
         st.date_input("Data startu:", key="p_start_dt")
-        for d in range(st.session_state['num_days']):
+        for d in range(int(st.session_state.get('num_days', 5))):
             with st.expander(f"Dzień {d+1}"):
                 if f"attr_{d}" not in st.session_state: st.session_state[f"attr_{d}"] = ""
                 if f"desc_{d}" not in st.session_state: st.session_state[f"desc_{d}"] = ""
@@ -292,8 +487,8 @@ def main():
             st.session_state.get('p_start_dt', date.today()),
             int(st.session_state.get('num_days', 5))
         )
-        st.number_input("Liczba miejsc:", 0, 20, step=1, key="num_places")
-        for i in range(st.session_state['num_places']):
+        st.session_state['num_places'] = st.number_input("Liczba miejsc:", 0, 20, value=int(st.session_state.get('num_places', 0)), step=1)
+        for i in range(int(st.session_state.get('num_places', 0))):
             if f"pmain_{i}" not in st.session_state: st.session_state[f"pmain_{i}"] = ""
             if f"psub_{i}" not in st.session_state: st.session_state[f"psub_{i}"] = ""
             if f"pday_{i}" not in st.session_state: st.session_state[f"pday_{i}"] = "Brak przypisania"
@@ -318,13 +513,19 @@ def main():
                 st.text_input("Nazwa (H1):", key=f"pmain_{i}", on_change=set_focus, args=(f"place_{i}",))
                 st.text_input("Podtytuł:", key=f"psub_{i}", on_change=set_focus, args=(f"place_{i}",))
                 
-                # POPRAWKA #5: bezpieczna walidacja wartości przed renderem widgetu
+                curr_day = st.session_state.get(f"pday_{i}", "")
+                d_match = re.search(r'Dzień\s+(\d+)', curr_day)
+                day_idx = 0
+                if d_match:
+                    d_val = int(d_match.group(1))
+                    if 1 <= d_val < len(day_options_global):
+                        day_idx = d_val
+                
                 widget_key = f"pday_{i}"
-                curr_val = st.session_state.get(widget_key, day_options_global[0])
-                if curr_val not in day_options_global:
+                if widget_key in st.session_state and st.session_state[widget_key] not in day_options_global:
                     st.session_state[widget_key] = day_options_global[0]
                 
-                st.selectbox("Przypisz do dnia:", day_options_global, key=widget_key, on_change=set_focus, args=(f"place_{i}",))
+                st.selectbox("Przypisz do dnia:", day_options_global, index=day_idx, key=widget_key, on_change=set_focus, args=(f"place_{i}",))
                 
                 st.text_area("Fakty (niebieska ramka, Format: 'Etykieta: Wartość'):", height=120, key=f"pfacts_{i}", on_change=set_focus, args=(f"place_{i}",))
                 st.text_area("Główny opis:", height=150, key=f"popis_{i}", on_change=set_focus, args=(f"place_{i}",))
@@ -340,9 +541,8 @@ def main():
             st.session_state.get('p_start_dt', date.today()),
             int(st.session_state.get('num_days', 5))
         )
-        # POPRAWKA #6: bez dubla klucza
-        st.number_input("Ilość atrakcji:", 1, 20, step=1, key="num_attr")
-        for i in range(st.session_state['num_attr']):
+        st.session_state['num_attr'] = st.number_input("Ilość atrakcji:", 1, 20, value=int(st.session_state.get('num_attr', 1)), step=1)
+        for i in range(int(st.session_state.get('num_attr', 1))):
             if f"amain_{i}" not in st.session_state: st.session_state[f"amain_{i}"] = ""
             if f"asub_{i}" not in st.session_state: st.session_state[f"asub_{i}"] = ""
             if f"aday_{i}" not in st.session_state: st.session_state[f"aday_{i}"] = "Brak przypisania"
@@ -366,13 +566,19 @@ def main():
                 st.text_input("Nazwa:", key=f"amain_{i}", on_change=set_focus, args=(f"attr_{i}",))
                 st.text_input("Podtytuł:", key=f"asub_{i}", on_change=set_focus, args=(f"attr_{i}",))
                 
-                # POPRAWKA #5: bezpieczna walidacja wartości przed renderem widgetu
+                curr_day = st.session_state.get(f"aday_{i}", "")
+                d_match = re.search(r'Dzień\s+(\d+)', curr_day)
+                day_idx = 0
+                if d_match:
+                    d_val = int(d_match.group(1))
+                    if 1 <= d_val < len(day_options_global):
+                        day_idx = d_val
+                
                 widget_key = f"aday_{i}"
-                curr_val = st.session_state.get(widget_key, day_options_global[0])
-                if curr_val not in day_options_global:
+                if widget_key in st.session_state and st.session_state[widget_key] not in day_options_global:
                     st.session_state[widget_key] = day_options_global[0]
                 
-                st.selectbox("Przypisz do dnia:", day_options_global, key=widget_key, on_change=set_focus, args=(f"attr_{i}",))
+                st.selectbox("Przypisz do dnia:", day_options_global, index=day_idx, key=widget_key, on_change=set_focus, args=(f"attr_{i}",))
                 st.selectbox("Ikona:", list(icon_map.keys()), key=f"atype_{i}", on_change=set_focus, args=(f"attr_{i}",))
                 st.text_area("Opis:", key=f"aopis_{i}", on_change=set_focus, args=(f"attr_{i}",))
                 
@@ -509,8 +715,8 @@ def main():
         u_main = st.file_uploader("Zdjęcie główne slajdu (z prawej strony)", key="opi_main")
         if u_main: st.session_state['img_testim_main'] = optimize_img(u_main.getvalue())
         
-        st.number_input("Liczba opinii:", 1, 4, step=1, key="testim_count")
-        for i in range(st.session_state['testim_count']):
+        st.session_state['testim_count'] = st.number_input("Liczba opinii:", 1, 4, value=int(st.session_state.get('testim_count', 3)), step=1)
+        for i in range(int(st.session_state.get('testim_count', 3))):
             with st.expander(f"Opinia {i+1}"):
                 if f"testim_head_{i}" not in st.session_state: st.session_state[f"testim_head_{i}"] = ""
                 if f"testim_quote_{i}" not in st.session_state: st.session_state[f"testim_quote_{i}"] = ""
@@ -541,8 +747,8 @@ def main():
         u_clients = st.file_uploader("Zdjęcie prawe (Klienci / Logotypy)", key="nas_clients")
         if u_clients: st.session_state['img_about_clients'] = optimize_img(u_clients.getvalue())
         
-        st.number_input("Liczba osób w zespole:", 1, 4, step=1, key="team_count")
-        for i in range(st.session_state['team_count']):
+        st.session_state['team_count'] = st.number_input("Liczba osób w zespole:", 1, 4, value=int(st.session_state.get('team_count', 2)), step=1)
+        for i in range(int(st.session_state.get('team_count', 2))):
             with st.expander(f"Osoba {i+1}"):
                 if f"t_name_{i}" not in st.session_state: st.session_state[f"t_name_{i}"] = ""
                 if f"t_role_{i}" not in st.session_state: st.session_state[f"t_role_{i}"] = ""
@@ -583,32 +789,19 @@ def main():
         st.color_picker("Akcent", key="color_accent")
 
     elif page == "Zapisz / Wczytaj Projekt":
-        # POPRAWKA #8: jawna lista wyłączeń zamiast fragile startswith("u")
         proj = {}
         for k, v in st.session_state.items():
-            if k in EXCLUDE_EXPORT_KEYS:
-                continue
-            # Pomijamy klucze technicznych widgetów (uploaderów itp.) oraz pól formularzy
-            if k.startswith('FormSubmitter') or k.startswith('$$'):
-                continue
-            if k.startswith('up_') or k.startswith('fn_') or k.startswith('dl_') or k.startswith('btn_'):
-                continue
-            if k in ('tyt_hero', 'tyt_logo_az', 'tyt_logo_cli', 'kie_hero', 'kie_th1', 'kie_th2', 'kie_th3', 'lot_hero', 'app_bg', 'app_sc', 'bra_img_1', 'bra_img_2', 'bra_img_3', 'va_img_1', 'va_img_2', 'va_img_3', 'pg_img_1', 'pg_img_2', 'pg_img_3', 'koszt_img_1', 'koszt_img_2', 'opi_main', 'nas_clients'):
-                continue
-            # Pomijamy uploadery dynamiczne (np. uh1_0, uh1b_0, uh2_0, atr_hero_0, ...)
-            if re.match(r'^(uh1|uh1b|uh2|uh3|prg_img|plc_img1|plc_img2|atr_hero|atr_th1|atr_th2|atr_th3|opi_img|nas_img)_\d+$', k):
-                continue
-            try:
-                if isinstance(v, bytes):
-                    proj[k] = base64.b64encode(v).decode()
-                elif isinstance(v, (date, datetime)):
-                    proj[k] = v.isoformat()
-                elif isinstance(v, (str, int, float, bool, list, dict)) or v is None:
-                    proj[k] = v
-                # inne typy (np. UploadedFile) pomijamy
-            except Exception:
-                pass
-        
+            if k in ['client_mode', 'scroll_target', 'last_page', 'ready_export_html', 'show_link_info']: continue
+            if k.startswith(('btn_', 'up_', 'uh', 'plc_img', 'atr_hero', 'atr_th', 'bra_img', 'va_img', 'pg_img', 'koszt_img', 'opi_main', 'opi_img', 'nas_clients', 'nas_img', 'kie_hero', 'kie_th', 'tyt_hero', 'tyt_logo', 'lot_hero', 'app_bg', 'app_sc', '_')): continue
+            if "UploadedFile" in str(type(v)): continue
+            
+            if isinstance(v, bytes):
+                proj[k] = base64.b64encode(v).decode('utf-8')
+            elif isinstance(v, (date, datetime)):
+                proj[k] = v.isoformat()
+            elif isinstance(v, (str, int, float, bool, list, dict)):
+                proj[k] = v
+
         st.download_button("POBIERZ PLIK PROJEKTU (JSON)", json.dumps(proj), get_project_filename(), use_container_width=True)
         
         st.markdown("---")
@@ -626,15 +819,26 @@ def main():
     if st.button("PRZYGOTUJ OFERTĘ DO POBRANIA", type="secondary", use_container_width=True):
         with st.spinner("Generowanie ostatecznego pliku oferty..."):
             export_content = build_presentation(export_mode=True)
-            client_html = f"""<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8"><title>{st.session_state.get('t_main')}</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23FF6600'/></svg>">{get_local_css(True)}
-            <style>body{{background:#f4f5f7;margin:0;}} .presentation-wrapper{{height:100vh;overflow-y:auto;scroll-snap-type:y proximity;}}
-            .client-export-btn{{position:fixed;top:20px;left:20px;z-index:9999;background:{st.session_state.get('color_accent')};color:white;border:none;padding:15px 25px;border-radius:4px;font-family:sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.3);}}
-            @media print{{.client-export-btn{{display:none !important;}} .presentation-wrapper{{height:auto !important;overflow:visible !important;}}}}</style>
-            </head><body><button class="client-export-btn" onclick="window.print()">POBIERZ JAKO PDF</button>
-            <div class="presentation-wrapper">{export_content}</div></body></html>"""
+            client_html = f"""<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8"><title>{st.session_state.get('t_main')}</title><style>body{{background:#f4f5f7;margin:0;}} .presentation-wrapper{{height:100vh;overflow-y:auto;scroll-snap-type:y proximity;}} .client-export-btn{{position:fixed;top:20px;left:20px;z-index:9999;background:{st.session_state.get('color_accent')};color:white;border:none;padding:15px 25px;border-radius:4px;font-family:sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.3);}} @media print{{.client-export-btn{{display:none !important;}} .presentation-wrapper{{height:auto !important;overflow:visible !important;}}}}</style>{get_local_css(True)}</head><body><button class="client-export-btn" onclick="window.print()">POBIERZ JAKO PDF</button><div class="presentation-wrapper">{export_content}</div></body></html>"""
             st.session_state['ready_export_html'] = client_html
             st.rerun()
             
-  # ====================== URUCHOMIENIE ======================
-if __name__ == "__main__":
-    main()
+    if st.session_state.get('ready_export_html'):
+        st.download_button(
+            "POBIERZ GOTOWY PLIK HTML", 
+            st.session_state['ready_export_html'], 
+            get_project_filename().replace('.json', '.html'), 
+            "text/html", 
+            type="primary", 
+            use_container_width=True
+        )
+    
+    if st.button("GENERUJ LINK DO OFERTY ONLINE", use_container_width=True):
+        st.session_state['show_link_info'] = not st.session_state.get('show_link_info', False)
+        
+    if st.session_state.get('show_link_info', False):
+        st.info("Wyeksportuj plik HTML za pomocą przycisku wyżej i umieść go na serwerze swojej agencji. Plik jest w pełni autonomiczną stroną WWW – gotowym, bezpiecznym linkiem dla klienta.")
+    
+    if st.button("PODGLĄD PEŁNOEKRANOWY", use_container_width=True): 
+        st.session_state['client_mode'] = True
+        st.rerun()
