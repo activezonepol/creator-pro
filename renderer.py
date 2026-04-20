@@ -1,779 +1,699 @@
 import streamlit as st
-import streamlit.components.v1 as components
-import json, base64, re
+from PIL import Image, ImageOps
+import io, re, base64, math, gc, json
+import urllib.request, urllib.parse
 from datetime import datetime, timedelta, date
 
-from renderer import (
-    optimize_img, optimize_logo, geocode_place, generate_map_data,
-    build_presentation, get_project_filename, get_local_css, create_slug,
-    icon_map, hotel_icons, pl_days_map, COUNTRIES_DICT, FONTS_LIST, FONT_WEIGHTS
-)
+# --- STAŁE I SŁOWNIKI RENDEROWANIA ---
+pl_days_map = ["Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota", "Niedziela"]
 
-# Minimalistyczna konfiguracja
-st.set_page_config(layout="wide", page_title="Activezone Oferta", initial_sidebar_state="expanded")
+hotel_icons = {
+    "Basen": "fa-person-swimming", "SPA": "fa-spa", "Siłownia": "fa-dumbbell", "Restauracja": "fa-utensils",
+    "Bar": "fa-martini-glass-citrus", "Plaża": "fa-umbrella-beach", "Wi-Fi": "fa-wifi", "All inclusive": "fa-wine-glass",
+    "Recepcja 24h": "fa-bell-concierge", "Sport": "fa-volleyball", "Night club": "fa-champagne-glasses", "Konferencje": "fa-people-roof", "Widok na morze": "fa-water"
+}
 
-st.markdown("""
-<style>
-div.stButton > button { border-radius: 4px !important; font-family: 'Montserrat', sans-serif !important; text-transform: uppercase !important; font-size: 12px !important; letter-spacing: 1px !important; font-weight: 600 !important; }
-div.stDownloadButton > button { border-radius: 4px !important; font-family: 'Montserrat', sans-serif !important; text-transform: uppercase !important; font-size: 12px !important; letter-spacing: 1px !important; font-weight: 600 !important; }
-div.stDownloadButton > button svg { display: none !important; }
-div[data-testid="stExpander"] { border-radius: 4px !important; border: 1px solid #e2e8f0 !important; }
-</style>
-""", unsafe_allow_html=True)
+icon_map = {
+    "Atrakcja": '<i class="fa-solid fa-camera-retro"></i>', "Zwiedzanie / Kultura": '<i class="fa-solid fa-landmark-dome"></i>', "Opis miejsca": '<i class="fa-solid fa-map-location-dot"></i>', "Przygoda / Active": '<i class="fa-solid fa-compass"></i>', "Rejs": '<i class="fa-solid fa-anchor"></i>', "Plaża / Relaks": '<i class="fa-solid fa-umbrella-beach"></i>', "SPA / Odnowa": '<i class="fa-solid fa-spa"></i>', "Restauracja": '<i class="fa-solid fa-utensils"></i>', "Zakwaterowanie": '<i class="fa-solid fa-bed"></i>', "Transfer autokarem": '<i class="fa-solid fa-bus"></i>', "Przelot samolotem": '<i class="fa-solid fa-plane"></i>', "Zabawa": '<i class="fa-solid fa-champagne-glasses"></i>'
+}
 
-if 'client_mode' not in st.session_state: st.session_state['client_mode'] = False
+FONTS_LIST = ["Montserrat","Open Sans","Roboto","Poppins","Inter","Nunito","Lato","Oswald","Raleway","Playfair Display","Merriweather","Lora","Libre Baskerville","Libre Franklin","Marck Script","La Belle Aurore","Nanum Pen Script","Alex Brush","Amatic SC"]
+FONT_WEIGHTS = {"Montserrat":"300,400,600,700,800","Open Sans":"300,400,600,700,800","Roboto":"300,400,500,700","Poppins":"300,400,500,600,700","Inter":"300,400,500,600,700","Nunito":"300,400,600,700","Lato":"300,400,700,900","Oswald":"300,400,500,600,700","Raleway":"300,400,500,600,700","Playfair Display":"400,500,600,700","Merriweather":"300,400,700","Lora":"400,500,600,700","Libre Baskerville":"400,700","Libre Franklin":"300,400,500,600,700","Marck Script":"400","La Belle Aurore":"400","Nanum Pen Script":"400","Alex Brush":"400","Amatic SC":"400,700"}
 
-def clean_str(val, default=""):
-    return default if val is None or str(val).strip() == "None" else str(val)
-
-def set_focus(target_id):
-    st.session_state['scroll_target'] = target_id
-
-def parse_date_and_days():
-    d_str = st.session_state.get('t_date', '').strip()
-    m1 = re.search(r'^(\d{1,2})\s*-\s*(\d{1,2})\.(\d{1,2})\.(\d{4})$', d_str)
-    m2 = re.search(r'^(\d{1,2})\.(\d{1,2})\s*-\s*(\d{1,2})\.(\d{1,2})\.(\d{4})$', d_str)
-    m3 = re.search(r'^(\d{1,2})\.(\d{1,2})\.(\d{4})$', d_str)
+# --- FUNKCJE LOGICZNE I OPTYMALIZACYJNE ---
+def geocode_place(place_name, country_name=""):
+    if '_geo_cache' not in st.session_state: st.session_state['_geo_cache'] = {}
+    key = f"{place_name}_{country_name}"
+    if key in st.session_state['_geo_cache']: return st.session_state['_geo_cache'][key]
+        
+    q = urllib.parse.quote(place_name.encode('utf-8'))
+    if country_name: q += "," + urllib.parse.quote(country_name.encode('utf-8'))
+    url = f"https://nominatim.openstreetmap.org/search?q={q}&format=json&limit=1"
     try:
-        if m1:
-            s_dt = date(int(m1.group(4)), int(m1.group(3)), int(m1.group(1)))
-            st.session_state['num_days'] = (date(int(m1.group(4)), int(m1.group(3)), int(m1.group(2))) - s_dt).days + 1
-            st.session_state['p_start_dt'] = s_dt
-        elif m2:
-            s_dt = date(int(m2.group(5)), int(m2.group(2)), int(m2.group(1)))
-            st.session_state['num_days'] = (date(int(m2.group(5)), int(m2.group(4)), int(m2.group(3))) - s_dt).days + 1
-            st.session_state['p_start_dt'] = s_dt
-        elif m3:
-            s_dt = date(int(m3.group(3)), int(m3.group(2)), int(m3.group(1)))
-            st.session_state['num_days'] = 1
-            st.session_state['p_start_dt'] = s_dt
-    except Exception: pass
+        req = urllib.request.Request(url, headers={'User-Agent': 'ActivezoneMap/1.0'})
+        with urllib.request.urlopen(req, timeout=5) as response:
+            data = json.loads(response.read().decode())
+            if data: 
+                res = float(data[0]['lat']), float(data[0]['lon'])
+                st.session_state['_geo_cache'][key] = res
+                return res
+    except BaseException: pass
+    return None, None
 
-IMAGE_KEYS = {
-    'img_hero_t', 'img_hero_k', 'img_hero_l', 'img_map_bg', 'img_map_bg_auto',
-    'logo_az', 'logo_cli', 'img_app_bg', 'img_app_screen',
-    'img_brand_1', 'img_brand_2', 'img_brand_3',
-    'img_va_1', 'img_va_2', 'img_va_3',
-    'img_pg_1', 'img_pg_2', 'img_pg_3',
-    'img_koszt_1', 'img_koszt_2', 'img_testim_main', 'img_about_clients',
-    'img_k_th1', 'img_k_th2', 'img_k_th3',
-}
-for _i in range(50):
-    IMAGE_KEYS.update({
-        f'img_hotel_1_{_i}', f'img_hotel_1b_{_i}', f'img_hotel_2_{_i}', f'img_hotel_3_{_i}',
-        f'img_d_{_i}', f'ah_{_i}', f'at1_{_i}', f'at2_{_i}', f'at3_{_i}',
-        f'pimg1_{_i}', f'pimg2_{_i}', f'testim_img_{_i}', f't_img_{_i}',
-    })
+@st.cache_data(max_entries=10)
+def optimize_logo(raw_bytes, max_dim=400):
+    if not raw_bytes: return None
+    try:
+        with Image.open(io.BytesIO(raw_bytes)) as img:
+            try: img = ImageOps.exif_transpose(img)
+            except: pass
+            resample_filter = getattr(Image, 'Resampling', Image).LANCZOS
+            img.thumbnail((max_dim, max_dim), resample_filter)
+            buf = io.BytesIO()
+            img.save(buf, format="PNG", optimize=True)
+            return buf.getvalue()
+    except Exception: return raw_bytes
 
-def load_project_data(data: dict):
-    for k, v in data.items():
-        if k in IMAGE_KEYS and isinstance(v, str):
-            try: st.session_state[k] = base64.b64decode(v)
-            except Exception: st.session_state[k] = v
-        elif k == 'p_start_dt' and isinstance(v, str):
-            try: st.session_state[k] = date.fromisoformat(v)
-            except Exception: pass
+@st.cache_data(max_entries=20)
+def optimize_img(raw_bytes, max_dim=800):
+    if not raw_bytes: return None
+    try:
+        with Image.open(io.BytesIO(raw_bytes)) as img:
+            try: img = ImageOps.exif_transpose(img)
+            except: pass
+            if img.mode in ("RGBA", "P"):
+                bg = Image.new("RGB", img.size, (255, 255, 255))
+                if img.mode == "RGBA": bg.paste(img, mask=img.split()[3])
+                else: bg.paste(img)
+                img.close()
+                img = bg
+            elif img.mode != "RGB":
+                old_img = img
+                img = img.convert("RGB")
+                old_img.close()
+            resample_filter = getattr(Image, 'Resampling', Image).LANCZOS
+            img.thumbnail((max_dim, max_dim), resample_filter)
+            buf = io.BytesIO()
+            img.save(buf, format="JPEG", quality=70, optimize=True)
+            img.close()
+            del img
+            gc.collect()
+            return buf.getvalue()
+    except Exception: return None
+
+def get_tile_bytes(z, x, y):
+    if '_tile_cache' not in st.session_state: st.session_state['_tile_cache'] = {}
+    key = f"{z}_{x}_{y}"
+    if key in st.session_state['_tile_cache']: return st.session_state['_tile_cache'][key]
+    url = f"https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'ActivezoneMap/1.0'})
+        with urllib.request.urlopen(req, timeout=5) as response:
+            data = response.read()
+            if len(st.session_state['_tile_cache']) > 150: st.session_state['_tile_cache'].clear()
+            st.session_state['_tile_cache'][key] = data
+            return data
+    except BaseException: return None
+
+MAX_ZOOM_RECURSION_DEPTH = 8
+
+@st.cache_data(max_entries=5, show_spinner=False)
+def generate_map_data(points, zoom=6, _depth=0):
+    if not points: return None, []
+    geo_pts = [p for p in points if not p.get('symbolic')]
+    if not geo_pts:
+        return None, [{'name': p['name'], 'x': p['x'], 'y': p['y'], 'conn': p['conn']} for p in points]
+
+    tiles = []
+    for p in geo_pts:
+        n = 2.0 ** zoom
+        x = (p['lon'] + 180.0) / 360.0 * n
+        y = (1.0 - math.asinh(math.tan(math.radians(p['lat']))) / math.pi) / 2.0 * n
+        tiles.append((x, y))
+        
+    min_tx, max_tx = int(min([t[0] for t in tiles])) - 1, int(max([t[0] for t in tiles])) + 1
+    min_ty, max_ty = int(min([t[1] for t in tiles])) - 1, int(max([t[1] for t in tiles])) + 1
+    
+    if (max_tx - min_tx + 1) * (max_ty - min_ty + 1) > 60:
+        if zoom > 2 and _depth < MAX_ZOOM_RECURSION_DEPTH:
+            return generate_map_data(points, zoom - 1, _depth + 1)
         else:
-            st.session_state[k] = v
-
-def section_template_manager(section_keys, file_prefix, default_filename, uploader_key, index=None):
-    ATR_KEY_MAP = {"atype": "type", "amain": "main", "asub": "sub", "aopis": "opis"}
-    st.markdown("<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; letter-spacing: 1px;'>Zarządzanie Szablonem Sekcji</div>", unsafe_allow_html=True)
+            cx, cy = (min_tx + max_tx) // 2, (min_ty + max_ty) // 2
+            max_tx, min_tx = cx + 3, cx - 3
+            max_ty, min_ty = cy + 3, cy - 3
+        
+    w, h = (max_tx - min_tx + 1) * 256, (max_ty - min_ty + 1) * 256
+    stitched = Image.new('RGB', (w, h), color="#eef2f5")
     
-    c1, c2 = st.columns(2)
-    with c1:
-        uploaded_file = st.file_uploader("Wgraj plik JSON", type=['json'], key=f"up_{uploader_key}", label_visibility="collapsed")
-        if st.button("WCZYTAJ SZABLON", key=f"btn_apply_{uploader_key}", use_container_width=True, disabled=not uploaded_file):
-            try:
-                data = json.load(uploaded_file)
-                filtered_data = {}
-                for k in section_keys:
-                    save_key = k
-                    load_key = k if index is None else re.sub(f'_{index}$', '', k)
-                    if file_prefix == "ATR": load_key = ATR_KEY_MAP.get(load_key, load_key)
-                    if load_key in data: filtered_data[save_key] = data[load_key]
-                load_project_data(filtered_data)
-                st.success("Szablon wczytany pomyślnie.")
-                st.rerun()
-            except Exception: st.error("Błąd odczytu pliku szablonu.")
+    for tx in range(min_tx, max_tx + 1):
+        for ty in range(min_ty, max_ty + 1):
+            t_bytes = get_tile_bytes(zoom, tx, ty)
+            if t_bytes:
+                try:
+                    with Image.open(io.BytesIO(t_bytes)) as tile_img:
+                        stitched.paste(tile_img, ((tx - min_tx) * 256, (ty - min_ty) * 256))
+                except: pass
+            
+    pixel_points = []
+    for p in geo_pts:
+        n = 2.0 ** zoom
+        px = ((p['lon'] + 180.0) / 360.0 * n - min_tx) * 256.0
+        py = ((1.0 - math.asinh(math.tan(math.radians(p['lat']))) / math.pi) / 2.0 * n - min_ty) * 256.0
+        pixel_points.append({'name': p['name'], 'px': px, 'py': py})
+        
+    pts_min_x, pts_max_x = min([p['px'] for p in pixel_points]), max([p['px'] for p in pixel_points])
+    pts_min_y, pts_max_y = min([p['py'] for p in pixel_points]), max([p['py'] for p in pixel_points])
+    pts_cx, pts_cy = (pts_min_x + pts_max_x) / 2, (pts_min_y + pts_max_y) / 2
+    
+    crop_w = max((pts_max_x - pts_min_x) + 160, 500)
+    crop_h = max(crop_w * 0.85, (pts_max_y - pts_min_y) + 160)
+    if crop_h == (pts_max_y - pts_min_y) + 160: crop_w = crop_h / 0.85
+        
+    left, top = max(0, pts_cx - crop_w / 2), max(0, pts_cy - crop_h / 2)
+    right, bottom = min(w, left + crop_w), min(h, top + crop_h)
+    
+    final_img = stitched.crop((int(left), int(top), int(right), int(bottom)))
+    final_w, final_h = final_img.size
+    
+    final_points, geo_idx = [], 0
+    for p in points:
+        if p.get('symbolic'):
+            final_points.append({'name': p['name'], 'x': p['x'], 'y': p['y'], 'conn': p['conn']})
+        else:
+            px, py = pixel_points[geo_idx]['px'], pixel_points[geo_idx]['py']
+            geo_idx += 1
+            x_pct, y_pct = (px - left) / max(1, final_w) * 100, (py - top) / max(1, final_h) * 100
+            final_points.append({'name': p['name'], 'x': x_pct, 'y': y_pct, 'conn': p['conn']})
+        
+    buf = io.BytesIO()
+    final_img.save(buf, format="JPEG", quality=75)
+    img_b64 = base64.b64encode(buf.getvalue()).decode()
+    
+    stitched.close(); final_img.close()
+    del stitched, final_img
+    gc.collect()
+    
+    return img_b64, final_points
 
-    with c2:
-        export_data = {}
-        for k in section_keys:
-            save_key = k if index is None else re.sub(f'_{index}$', '', k)
-            if file_prefix == "ATR": save_key = ATR_KEY_MAP.get(save_key, save_key)
-            val = st.session_state.get(k)
-            if val is not None:
-                if isinstance(val, bytes): export_data[save_key] = base64.b64encode(val).decode('utf-8')
-                elif isinstance(val, (date, datetime)): export_data[save_key] = val.isoformat()
-                else: export_data[save_key] = val
-                    
-        json_str = json.dumps(export_data)
-        cc = st.session_state.get('country_code', 'OTH')
-        base_slug = create_slug(default_filename)
-        custom_name = st.text_input("Nazwa pliku:", value=base_slug, key=f"fn_{uploader_key}", label_visibility="collapsed")
-        full_filename = f"{cc}-{file_prefix}-{create_slug(custom_name)}.json"
-        st.download_button("POBIERZ SZABLON", json_str, full_filename, key=f"dl_{uploader_key}", use_container_width=True)
-    st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+@st.cache_data(max_entries=30)
+def get_b64_cached(raw_bytes, ratio):
+    if not raw_bytes: return None
+    try:
+        with Image.open(io.BytesIO(raw_bytes)) as img:
+            try: img = ImageOps.exif_transpose(img)
+            except: pass
+            w, h = img.size
+            tw = h * ratio[0] / ratio[1]
+            if w > tw: left = (w - tw) / 2; cropped = img.crop((left, 0, left + tw, h))
+            else: th = w * ratio[1] / ratio[0]; top = (h - th) / 2; cropped = img.crop((0, top, w, top + th))
+            
+            max_w = 600 if ratio == (1,1) else 800
+            if cropped.size[0] > max_w:
+                target_h = int(max_w * (ratio[1] / ratio[0]))
+                resized = cropped.resize((max_w, target_h), getattr(Image, 'Resampling', Image).LANCZOS)
+                cropped.close()
+                cropped = resized
+                
+            buf = io.BytesIO()
+            cropped.save(buf, format="JPEG", quality=70, optimize=True)
+            cropped.close(); img.close()
+            del cropped, img
+            gc.collect()
+            return base64.b64encode(buf.getvalue()).decode()
+    except Exception: return None
 
-defaults = {
-    'country_name': 'Czarnogóra', 'country_code': 'MNE',
-    'font_h1': 'Montserrat', 'font_h2': 'Montserrat', 'font_sub': 'Montserrat', 'font_text': 'Open Sans', 'font_metric': 'Montserrat',
-    'color_h1': '#003366', 'color_h2': '#003366', 'color_sub': '#FF6600', 'color_accent': '#FF6600', 'color_text': '#333333', 'color_metric': '#003366',
-    'font_size_h1': 48, 'font_size_h2': 36, 'font_size_sub': 26, 'font_size_text': 14, 'font_size_metric': 16,
-    't_main': 'BAŁKAŃSKI KLEJNOT', 't_sub': 'MONTENEGRO EXPERIENCE', 't_klient': 'NAZWA KLIENTA',
-    't_kierunek': 'CZARNOGÓRA', 't_date': '1-4.10.2026', 't_pax': '60', 't_hotel': '4* ALL INCLUSIVE', 't_trans': 'SAMOLOT PLL LOT',
-    'hide_logo_cli': False,
-    'k_hide': False, 'k_overline': 'OPIS KIERUNKU', 'k_main': 'CZARNOGÓRA', 'k_sub': 'BAŁKAŃSKI KLEJNOT', 'k_opis': 'Opisz tutaj <b>piękno</b> kierunku...',
-    'l_hide': False, 'l_przesiadka': False, 'l_port': 'Monachium (MUC)', 'l_czas': '3h 20 min', 'l_overline': 'PRZELOT', 'l_main': 'JAK LECIMY?', 'l_sub': 'NASZA PROPOZYCJA PRZELOTU', 'l_desc': 'Komfortowy przelot liniami PLL LOT.', 'm_route': 'Warszawa (WAW) - Podgorica (TGD)', 'm_luggage': '23kg rejestrowany',
-    'f1': 'LO 585, 17MAY, WAW-TGD, 14:25 - 16:25', 'f2': 'LO 586, 21MAY, TGD-WAW, 17:15 - 19:05', 'f3': '', 'f4': '',
-    'map_hide': False, 'map_overline': 'TRASA WYJAZDU', 'map_title': 'ZARYS\nPODRÓŻY', 'map_subtitle': 'Kluczowe punkty programu', 'map_desc': 'Zapraszamy do zapoznania się z poglądową mapą naszego wyjazdu. Odkryjemy najpiękniejsze zakątki regionu.',
-    'map_zoom': 6, 'num_map_points': 3, 'map_pt_name_0': 'Warszawa', 'map_conn_0': 'Przelot (Linia przerywana + Samolot)', 'map_pt_sym_0': True, 'map_pt_x_0': 15, 'map_pt_y_0': 15, 'map_pt_name_1': 'Podgorica', 'map_conn_1': 'Przejazd (Linia ciągła)', 'map_pt_sym_1': False, 'map_pt_name_2': 'Kotor', 'map_conn_2': 'Brak', 'map_pt_sym_2': False,
-    'num_hotels': 1, 'h_hide_0': False, 'h_overline_0': 'ZAKWATEROWANIE', 'h_title_0': 'NAZWA HOTELU 5*', 'h_subtitle_0': 'Komfort i elegancja na najwyższym poziomie', 'h_url_0': 'www.przykładowy-hotel.com', 'h_booking_0': '8.9', 'h_amenities_0': ["Basen", "SPA", "Wi-Fi", "Restauracja", "Plaża"], 'h_text_0': 'Zapewniamy zakwaterowanie w starannie wyselekcjonowanym hotelu.', 'h_advantages_0': 'Położenie tuż przy prywatnej plaży',
-    'prg_hide': False, 'num_days': 4, 'num_places': 0, 'num_attr': 1,
-    'koszt_hide_1': False, 'koszt_hide_2': False, 'koszt_title': 'KOSZTORYS', 'koszt_pax': '25', 'koszt_price': '4.990 zł / os.', 'koszt_hotel': 'Iberostar Bellevue 4* all inclusive', 'koszt_dbl': '12', 'koszt_sgl': '1',
-    'koszt_zawiera_1': 'Wybierz z listy auto-uzupełniania', 'koszt_zawiera_2': '', 'koszt_nie_zawiera': 'Napiwki\nWydatki osobiste\nAtrakcje wymienione jako opcje', 'koszt_opcje': '',
-    'app_hide': False, 'app_overline': 'KOMUNIKACJA', 'app_title': 'APLIKACJA\nNA WYJAZD', 'app_subtitle': 'Dedykowana na wyjazd aplikacja dla uczestników', 'app_features': 'Intuicyjna obsługa\nWygoda i nowoczesność',
-    'brand_hide': False, 'brand_overline': 'IDENTYFIKACJA', 'brand_title': 'MATERIAŁY\nBRANDINGOWE', 'brand_subtitle': 'Komunikacja przed, w trakcie i po wyjeździe', 
-    'brand_features': 'Komunikacja SMS, e-mail, push w aplikacji przed i w trakcie wyjazdu\nAtrakcyjne zaproszenie elektroniczne\nProgram i materiały, w tym koperta na bilet z logo\nStrona www i aplikacja mobilna z formularzem uczestnika\nStanowisko na lotnisku z logo',
-    'va_hide': False, 'va_overline': 'SPRAWNA ORGANIZACJA', 'va_title': 'WIRTUALNY\nASYSTENT', 'va_subtitle': 'Sprawna organizacja i wygoda', 'va_text': 'Nowatorski system do zarządzania grupami.',
-    'pg_hide': False, 'pg_overline': 'PILLOW GIFTS', 'pg_title': 'PILLOW\nGIFTS', 'pg_subtitle': 'Aby wspólne chwile zatrzymać na dłużej', 'pg_text': 'Upominki pełnią ważną rolę w budowaniu relacji biznesowych.',
-    'testim_hide': False, 'testim_overline': 'REKOMENDACJE', 'testim_title': 'CO O NAS\nMÓWIĄ?', 'testim_subtitle': '100% NASZYCH KLIENTÓW JEST CAŁKOWICIE ZADOWOLONYCH Z NASZYCH USŁUG.', 'testim_count': 3, 'testim_head_0': 'PROJEKT INCENTIVE W DUBAJU', 'testim_quote_0': 'Pełen profesjonalizm.', 'testim_author_0': 'Anna Kowalska', 'testim_role_0': 'Dyrektor Marketingu', 'testim_head_1': 'WYJAZD INTEGRACYJNY', 'testim_quote_1': 'Niezwykłe zaangażowanie.', 'testim_author_1': 'Piotr Nowak', 'testim_role_1': 'CEO', 'testim_head_2': 'NAGRODA DLA KLIENTÓW', 'testim_quote_2': 'Współpraca na najwyższym poziomie.', 'testim_author_2': 'Marta Wiśniewska', 'testim_role_2': 'Head of Sales',
-    'about_hide': False, 'about_overline': 'NASZ ZESPÓŁ', 'about_title': 'POZNAJMY SIĘ', 'about_sub': 'ZESPÓŁ ACTIVEZONE', 'about_desc': 'Activezone to agencja incentive travel...', 'about_panel_title': 'NASZE WARTOŚCI', 'about_panel_text': 'Bezpieczeństwo\nProfesjonalizm', 'team_count': 2, 'p_start_dt': date(2026, 10, 1)
-}
+def get_b64(key, ratio=(4,5)):
+    r = st.session_state.get(key)
+    return get_b64_cached(r, ratio) if r else None
 
-for k, v in defaults.items():
-    if k not in st.session_state: st.session_state[k] = v
+@st.cache_data(max_entries=50)
+def get_logo_b64_cached(val):
+    if not val: return ""
+    if isinstance(val, bytes): return base64.b64encode(val).decode('utf-8')
+    elif isinstance(val, str):
+        if val.startswith("data:"): return val.split(",", 1)[-1]
+        if val.startswith("b'") or val.startswith('b"'): return val[2:-1]
+        return val
+    return ""
 
-@st.cache_data
-def build_day_options(start_dt: date, num_days: int) -> list:
-    options = ["Brak przypisania"]
-    for d in range(num_days):
-        curr_date = start_dt + timedelta(days=d)
-        options.append(f"Dzień {d+1} ({curr_date.strftime('%d.%m.%Y')} - {pl_days_map[curr_date.weekday()]})")
-    return options
+# --- STRUKTURY HTML DLA WIDOKÓW ---
+def lhtml():
+    b64 = get_logo_b64_cached(st.session_state.get('logo_az'))
+    return f'<div class="top-right-logo-container"><img src="data:image/png;base64,{b64}"></div>' if b64 else ""
 
-def auto_generate_kosztorys():
+def fhtml(): return f'<div class="page-footer"><span>www.activezone.pl | wszystkie prawa zastrzeżone {datetime.today().year}</span><span class="page-counter"></span></div>'
+def shtml(c, sid=""): return f'<div class="slide-scaler" id="{sid}"><div class="slide-page">{c}</div></div>'
+def get_ph(t): return f'<div class="photo-placeholder">{t}</div>'
+
+def get_local_css(return_str=False):
     s = st.session_state
-    part1, part2 = [], []
-    route, luggage = s.get('m_route', ''), s.get('m_luggage', '')
-    if route: part1.append(f"Przelot samolotem na trasie {route}, bagaż {luggage}")
+    c_h1, c_h2, c_sub, c_acc, c_txt, c_met = s.get('color_h1'), s.get('color_h2'), s.get('color_sub'), s.get('color_accent'), s.get('color_text'), s.get('color_metric')
+    f_h1, f_h2, f_sub, f_txt, f_met = s.get('font_h1'), s.get('font_h2'), s.get('font_sub'), s.get('font_text'), s.get('font_metric')
+    try: fs_h1_val, fs_h2_val, fs_sub_val, fs_txt_val, fs_met = s.get('font_size_h1'), s.get('font_size_h2'), s.get('font_size_sub'), s.get('font_size_text'), int(s.get('font_size_metric', 16))
+    except: fs_h1_val, fs_h2_val, fs_sub_val, fs_txt_val, fs_met = 48, 36, 26, 14, 16
     
-    dbl, sgl = s.get('koszt_dbl', ''), s.get('koszt_sgl', '')
-    part1.append(f"Zakwaterowanie w pokojach dwuosobowych ({dbl}) i jednoosobowych ({sgl})")
-    part1.extend(["Wyżywienie wg programu", "Napoje wg programu", "Ubezpieczenie wersja MAX", "Transfery", "Woda podczas wycieczek i transferów", "Opieka profesjonalnego tour leadera Activezone"])
-    for i in range(s.get('num_attr', 1)):
-        if not s.get(f'ahide_{i}', False):
-            name = str(s.get(f'amain_{i}', '')).strip()
-            if name: part1.append(name)
-            
+    ufonts = set([f_h1, f_h2, f_sub, f_txt, f_met, 'Montserrat', 'Open Sans'])
+    font_imports = [f"@import url('https://fonts.googleapis.com/css?family={f.replace(' ', '+')}:{FONT_WEIGHTS.get(f, '400,700')}&display=swap');" for f in ufonts]
+    fonts_css = "\n        ".join(font_imports)
+    client_css = "[data-testid='stSidebar'] { display: none !important; } header { display: none !important; }" if s.get('client_mode', False) else ""
+
+    css = f"""<style>{fonts_css}@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css');{client_css}
+        body {{ counter-reset: slide_counter; background-color: #f4f5f7; scroll-behavior: smooth; margin: 0; }}
+        .presentation-wrapper {{ height: 100vh; overflow-y: auto; scroll-snap-type: y proximity; scroll-behavior: smooth; background-color: #f4f5f7; padding: 5vh 0 15vh 0; box-sizing: border-box; }}
+        .slide-scaler {{ display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%; scroll-snap-align: center; padding: 10vh 0; }}
+        .slide-page {{ width: 297mm !important; height: 210mm !important; min-width: 297mm !important; min-height: 210mm !important; margin: auto; box-sizing: border-box !important; background-color: white; box-shadow: 0 15px 45px rgba(0,0,0,0.08); padding: 30px 45px 15px 45px; position: relative; overflow: hidden; display: flex; flex-direction: column; font-family: '{f_txt}', sans-serif; color: {c_txt}; transition: transform 0.3s ease, box-shadow 0.3s ease; }}
+        @media screen and (max-height: 950px) {{ .slide-page {{ zoom: 0.90; }} }}
+        @media screen and (max-height: 800px) {{ .slide-page {{ zoom: 0.80; }} }}
+        .title-h1 {{ font-family: '{f_h1}'; font-weight: 800; font-size: {fs_h1_val}px; line-height: 1.1; text-transform: uppercase; color: {c_h1}; margin-bottom: 5px; }}
+        .title-h2 {{ font-family: '{f_h2}'; font-weight: 800; font-size: {fs_h2_val}px; line-height: 1.1; text-transform: uppercase; color: {c_h2}; margin-bottom: 5px; }}
+        .title-sub {{ font-family: '{f_sub}'; font-weight: 300; font-size: {fs_sub_val}px; color: {c_sub}; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px; }}
+        .type-icon-box {{ color: transparent; -webkit-text-stroke: 1.5px {c_acc}; font-size: {fs_h2_val}px; margin-bottom: 5px; display: inline-block; }} 
+        .metric-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }}
+        .metric-label {{ font-size: {fs_met}px; text-transform: uppercase; letter-spacing: 1px; color: {c_met}; font-family: '{f_met}'; font-weight: 600; margin-bottom: 2px; display: block; }}
+        .metric-value {{ font-size: {max(14, fs_sub_val - 8)}px; font-weight: 700; color: {c_txt}; font-family: '{f_sub}'; display: block; margin-bottom: 8px; }}
+        .flight-val {{ font-size: {fs_txt_val}px; font-weight: 600; color: {c_txt}; font-family: '{f_txt}'; display: block; margin-bottom: 8px; }}
+        .flight-table {{ width: 100%; border-collapse: collapse; margin-top: 15px; }}
+        .flight-table th {{ text-align: left; padding: 6px 10px; border-bottom: 2px solid {c_acc}; font-family: '{f_h2}'; font-weight: 700; font-size: {fs_txt_val}px; color: {c_h2}; }}
+        .flight-table td {{ padding: 6px 10px; border-bottom: 1px solid #eee; font-size: {fs_txt_val}px; }}
+        .premium-layout {{ display: flex; gap: 40px; flex-grow: 1; min-height: 0; width: 100%; margin-bottom: 20px; overflow: hidden; }}
+        .photo-col {{ flex: 45; position: relative; height: 100%; border-radius: 8px; overflow: hidden; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; background-color: #fcfcfc; }}
+        .photo-col img {{ width: 100%; height: 100%; object-fit: cover; }}
+        .info-col {{ flex: 55; display: flex; flex-direction: column; height: 100%; }}
+        .info-col p {{ font-size: {fs_txt_val}px; line-height: 1.5; }}
+        .floating-btn {{ position: absolute; bottom: 25px; left: 25px; background: {c_acc}; color: white !important; padding: 12px 24px; border-radius: 40px; text-decoration: none !important; font-family: '{f_h2}'; font-weight: 700; font-size: 10px; text-transform: uppercase; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 10; transition: opacity 0.2s; opacity: 0.9; }}
+        .floating-btn:hover {{ opacity: 1; }}
+        .gallery-row {{ display: flex; justify-content: space-between; gap: 15px; margin-top: auto; padding-top: 15px; }}
+        .gallery-thumb {{ flex: 1; aspect-ratio: 1/1; border: 1px solid #eee; border-radius: 6px; overflow: hidden; background-color: #fcfcfc; }}
+        .gallery-thumb img {{ width: 100%; height: 100%; object-fit: cover; }}
+        .top-right-logo-container {{ position: absolute; top: 15px; right: 25px; z-index: 100; text-align: right; }}
+        .top-right-logo-container img {{ max-height: 60px; width: auto; object-fit: contain; opacity: 0.9; }}
+        .day-header {{ font-family: '{f_h2}'; font-weight: 800; font-size: {max(12, fs_sub_val - 4)}px; border-bottom: 2px solid {c_acc}; color: {c_h2}; padding-bottom: 2px; }}
+        .day-date {{ font-family: '{f_txt}'; font-size: {max(10, fs_sub_val - 12)}px; color: {c_acc}; font-weight: 600; margin-top: 3px; display: block; margin-bottom: 5px; text-transform: uppercase; }}
+        .prog-img-container {{ width: 100%; height: 160px; margin-bottom: 8px; border-radius: 4px; overflow: hidden; border: 1px solid #eee; background-color: #fcfcfc; }}
+        .prog-img-container img {{ width: 100%; height: 100%; object-fit: cover; }}
+        .prog-attr {{ font-family: '{f_txt}'; font-size: {fs_txt_val + 2}px; color: {c_acc}; font-weight: 700; margin: 12px 0; border-left: 3px solid {c_acc}; padding-left: 10px; text-transform: uppercase; line-height: 1.3; }}
+        .app-overline-style {{ display: flex; align-items: center; gap: 15px; font-family: '{f_met}'; font-size: {fs_met - 2}px; font-weight: 700; letter-spacing: 4px; color: {c_acc}; margin-bottom: 10px; text-transform: uppercase; }}
+        .app-overline-style::before, .app-overline-style::after {{ content: ""; height: 1px; background-color: {c_acc}; opacity: 0.5; }}
+        .app-overline-style::before {{ width: 40px; }}
+        .app-overline-style::after {{ flex: 1; margin-right: 280px; }}
+        .app-list {{ list-style: none; padding: 0; margin-top: 15px; margin-bottom: 15px; }}
+        .app-list li {{ position: relative; padding-left: 20px; margin-bottom: 10px; font-family: '{f_txt}'; font-size: {fs_txt_val}px; line-height: 1.4; color: {c_txt}; font-weight: 400; }}
+        .app-list li::before {{ content: '■'; position: absolute; left: 0; top: 1px; color: {c_h2}; font-size: 0.7em; }}
+        .app-list li.sub-item {{ padding-left: 35px; margin-bottom: 6px; font-size: 0.95em; color: {c_txt}; font-weight: 300; }}
+        .app-list li.sub-item::before {{ content: '○'; left: 18px; top: 3px; font-size: 0.6em; color: {c_h2}; }}
+        .app-image-col {{ position: absolute; top: -30px; right: -45px; bottom: -15px; width: 62%; clip-path: polygon(20% 0, 100% 0, 100% 100%, 0 100%); z-index: 1; background-color: #eff4f8; display: flex; align-items: center; justify-content: center; }}
+        .app-image-col img {{ width: 100%; height: 100%; object-fit: cover; }}
+        .phone-mockup {{ position: absolute; top: 50%; left: 58%; transform: translate(-50%, -50%); width: 260px; height: 530px; background-color: #111; border-radius: 30px; border: 8px solid #111; box-shadow: -15px 20px 40px rgba(0,0,0,0.4); z-index: 10; overflow: hidden; }}
+        .phone-mockup::before {{ content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 110px; height: 20px; background-color: #111; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; z-index: 11; }}
+        .phone-screen {{ width: 100%; height: 100%; object-fit: cover; display: block; background: #fff; }}
+        .brand-collage {{ display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 45% 55%; gap: 15px; height: 100%; width: 100%; }}
+        .brand-img-1 {{ grid-column: 1; grid-row: 1; border-radius: 8px 50px 8px 8px; overflow: hidden; background-color: #fcfcfc; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; }}
+        .brand-img-1 img {{ width: 100%; height: 100%; object-fit: cover; }}
+        .brand-img-2 {{ grid-column: 2; grid-row: 1; border-radius: 50px 8px 8px 8px; overflow: hidden; background-color: #fcfcfc; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; }}
+        .brand-img-2 img {{ width: 100%; height: 100%; object-fit: cover; }}
+        .brand-img-3 {{ grid-column: 1 / span 2; grid-row: 2; border-radius: 8px 8px 50px 50px; overflow: hidden; background-color: #fcfcfc; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; position: relative; }}
+        .brand-img-3 img {{ width: 100%; height: 100%; object-fit: cover; }}
+        .brand-gap {{ position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 15px; height: calc(100% + 20px); background-color: #fff; z-index: 5; }}
+        .va-collage {{ display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: 1.2fr 1fr; gap: 12px; height: 100%; width: 100%; }}
+        .va-img-common {{ width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #fcfcfc; border: 1px solid #eee; }}
+        .va-img-common img {{ width: 100%; height: 100%; object-fit: cover; }}
+        .va-img-1-wrap {{ grid-column: 1 / span 2; grid-row: 1; border-radius: 8px 60px 8px 8px; overflow: hidden; }}
+        .va-img-2-wrap {{ grid-column: 1; grid-row: 2; border-radius: 8px; overflow: hidden; }}
+        .va-img-3-wrap {{ grid-column: 2; grid-row: 2; border-radius: 8px; overflow: hidden; }}
+        .pg-collage {{ display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); gap: 15px; height: 100%; width: 100%; }}
+        .pg-img-common {{ width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #fcfcfc; border: 1px solid #eee; }}
+        .pg-img-common img {{ width: 100%; height: 100%; object-fit: cover; }}
+        .pg-img-1-wrap {{ grid-column: 1; grid-row: 1; border-radius: 8px 8px 50px 8px; overflow: hidden; }}
+        .pg-img-2-wrap {{ grid-column: 2; grid-row: 1 / span 2; border-radius: 8px 8px 8px 50px; overflow: hidden; }}
+        .pg-img-3-wrap {{ grid-column: 1; grid-row: 2; border-radius: 50px 8px 8px 8px; overflow: hidden; }}
+        .testim-item {{ display: flex; gap: 15px; padding: 12px 0; border-top: 1px solid #eaeaea; align-items: center; }}
+        .testim-item:first-of-type {{ border-top: 2px solid #eee; }}
+        .testim-item:last-of-type {{ border-bottom: 2px solid #eee; }}
+        .testim-img-wrapper {{ flex: 0 0 80px; height: 80px; background: #fcfcfc; border: 1px solid #eee; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; }}
+        .testim-img-wrapper img {{ width: 100%; height: 100%; object-fit: cover; }}
+        .testim-content {{ flex: 1; display: flex; flex-direction: column; gap: 4px; }}
+        .testim-head {{ font-family: '{f_h2}'; font-size: {max(10, fs_txt_val - 2)}px; font-weight: 700; color: {c_h2}; text-transform: uppercase; letter-spacing: 1px; }}
+        .testim-quote {{ font-family: '{f_txt}'; font-size: {fs_txt_val}px; font-style: italic; color: {c_txt}; line-height: 1.4; }}
+        .testim-author {{ font-family: '{f_txt}'; font-size: {max(10, fs_txt_val - 2)}px; color: {c_txt}; margin-top: 2px; }}
+        .testim-author strong {{ font-weight: 700; color: {c_h2}; }}
+        .page-footer {{ width: 100%; border-top: 1px solid {c_acc}; padding-top: 8px; margin-top: auto; display: flex; justify-content: space-between; font-size: 9px; text-transform: uppercase; font-weight: 600; color: {c_met}; font-family: '{f_met}'; position: relative; z-index: 10; }}
+        .page-counter::after {{ counter-increment: slide_counter; content: counter(slide_counter); font-family: '{f_met}'; color: {c_met}; }}
+        .photo-placeholder {{ width: 100%; height: 100%; background: #fcfcfc; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #aaa; font-weight: bold; font-size: 11px; text-align: center; text-transform: uppercase; }}
+        @media print {{
+            * {{ -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }}
+            @page {{ size: A4 landscape; margin: 0 !important; }}
+            body {{ background: white !important; margin: 0 !important; padding: 0 !important; }}
+            [data-testid="stSidebar"], header {{ display: none !important; }}
+            .presentation-wrapper {{ height: auto !important; overflow: visible !important; scroll-snap-type: none !important; background: white !important; padding: 0 !important; margin: 0 !important; }}
+            .slide-scaler {{ height: 210mm !important; width: 297mm !important; min-height: 210mm !important; margin: 0 !important; padding: 0 !important; display: block !important; page-break-after: always !important; page-break-inside: avoid !important; overflow: hidden !important; }}
+            .slide-page {{ transform: none !important; box-shadow: none !important; width: 297mm !important; height: 210mm !important; max-height: 210mm !important; padding: 10mm 15mm 5mm 15mm !important; margin: 0 !important; zoom: 1 !important; border-radius: 0 !important; border: none !important; }}
+            .floating-btn, .client-export-btn {{ display: none !important; }}
+        }}
+        </style>"""
+    if return_str: return css
+    st.markdown(css, unsafe_allow_html=True)
+
+def build_presentation(current_page="Strona Tytułowa", export_mode=False):
+    s = st.session_state
+    hp = []
+    
+    c_h1, c_h2 = s.get('color_h1', '#003366'), s.get('color_h2', '#003366')
+    c_sub, acc = s.get('color_sub', '#FF6600'), s.get('color_accent', '#FF6600')
+    c_t, c_met = s.get('color_text', '#333333'), s.get('color_metric', '#003366')
+    
+    f_h1, f_h2 = s.get('font_h1', 'Montserrat'), s.get('font_h2', 'Montserrat')
+    f_sub, f_t = s.get('font_sub', 'Montserrat'), s.get('font_text', 'Open Sans')
+    f_met = s.get('font_metric', 'Montserrat')
+    
+    try: fs_t = int(float(s.get('font_size_text', 14)))
+    except: fs_t = 14
+    try: fs_h1_val = int(float(s.get('font_size_h1', 48)))
+    except: fs_h1_val = 48
+    try: fs_sub_val = int(float(s.get('font_size_sub', 26)))
+    except: fs_sub_val = 26
+
+    i1 = get_b64('img_hero_t', (4,5))
+    im1 = f"<img src='data:image/jpeg;base64,{i1}' style='width:100%;height:100%;object-fit:cover;'>" if i1 else get_ph('ZDJĘCIE GŁÓWNE')
+    
+    hide_cli = s.get('hide_logo_cli', False)
+    lcli_b64 = get_logo_b64_cached(s.get('logo_cli'))
+    lcli = f"<img src='data:image/png;base64,{lcli_b64}' style='max-height:100%;max-width:150px;object-fit:contain;'>" if (lcli_b64 and not hide_cli) else ""
+    lcli_container = f"<div style='margin-bottom:40px;height:60px;display:flex;align-items:center;justify-content:flex-start;'>{lcli}</div>"
+
+    hp.append(shtml(f"""{lhtml()}<div class="premium-layout"><div class="photo-col">{im1}</div><div class="info-col">
+        {lcli_container}
+        <div class="title-h1">{str(s.get('t_main','')).replace(chr(10),'<br>')}</div><div class="title-sub" style="color:{acc}">{str(s.get('t_sub','')).replace(chr(10),'<br>')}</div>
+        <div class="metric-grid">
+            <div><div class="metric-label">Klient</div><div class="metric-value">{s.get('t_klient','')}</div></div>
+            <div><div class="metric-label">Kierunek</div><div class="metric-value">{s.get('t_kierunek','')}</div></div>
+            <div><div class="metric-label">Termin</div><div class="metric-value">{s.get('t_date','')}</div></div>
+            <div><div class="metric-label">Liczba osób</div><div class="metric-value">{s.get('t_pax','')}</div></div>
+            <div><div class="metric-label">Hotel</div><div class="metric-value">{s.get('t_hotel','')}</div></div>
+            <div><div class="metric-label">Dojazd</div><div class="metric-value">{s.get('t_trans','')}</div></div>
+        </div></div></div>{fhtml()}""", "slide-title"))
+
+    if not s.get('k_hide', False):
+        ik = get_b64('img_hero_k', (4,5))
+        imk = f"<img src='data:image/jpeg;base64,{ik}' style='width:100%;height:100%;object-fit:cover;'>" if ik else get_ph('FOTO KIERUNKU')
+        tk1, tk2, tk3 = get_b64('img_k_th1',(1,1)), get_b64('img_k_th2',(1,1)), get_b64('img_k_th3',(1,1))
+        hp.append(shtml(f"""{lhtml()}<div class="premium-layout"><div class="photo-col">{imk}</div><div class="info-col" style="padding-top:30px; justify-content:flex-start;">
+            <div class="app-overline-style" style="margin-bottom:15px;"><span>{str(s.get('k_overline', 'OPIS KIERUNKU'))}</span></div>
+            <div class="title-h1" style="margin-bottom:5px; font-size:{fs_h1_val-6}px;">{str(s.get('k_main','')).replace(chr(10),'<br>')}</div>
+            <div class="title-sub" style="margin-bottom:15px;">{str(s.get('k_sub','')).replace(chr(10),'<br>')}</div>
+            <div style="flex-grow:1;"><p>{str(s.get('k_opis') or '').replace(chr(10), '<br>')}</p></div>
+            <div class="gallery-row" style="padding-top:0; padding-bottom:5px;">
+                <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{tk1}" style="width:100%;height:100%;object-fit:cover;">' if tk1 else get_ph('FOT 1')}</div>
+                <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{tk2}" style="width:100%;height:100%;object-fit:cover;">' if tk2 else get_ph('FOT 2')}</div>
+                <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{tk3}" style="width:100%;height:100%;object-fit:cover;">' if tk3 else get_ph('FOT 3')}</div>
+            </div></div></div>{fhtml()}""", "slide-kierunek"))
+
+    if not s.get('map_hide', False):
+        m_bg = s.get('img_map_bg_auto')
+        m_bg_html = f'<img src="data:image/jpeg;base64,{m_bg}" style="width:100%;height:100%;object-fit:fill;opacity:0.85;border-radius:8px;">' if m_bg else f'<div style="width:100%;height:100%;background:#eef2f5;display:flex;align-items:center;justify-content:center;color:#ccc;font-weight:bold;font-size:14px;text-align:center;border-radius:8px;border:2px dashed {acc};">MAPA ZOSTANIE WYGENEROWANA AUTOMATYCZNIE<br>Wprowadź punkty trasy w panelu sterowania</div>'
+        auto_pts = s.get('auto_map_points', [])
+        svg_lines, html_markers, ul_points = "", "", []
+        for i, pt in enumerate(auto_pts):
+            name, x1, y1, conn = pt['name'], pt['x'], pt['y'], pt['conn']
+            ul_points.append(f'<li>{name}</li>')
+            html_markers += f'''<div style="position:absolute; top:{y1}%; left:{x1}%; z-index:3; transform:translate(-50%, -50%); display:flex; flex-direction:column; align-items:center;">
+                <div style="font-family:sans-serif; font-weight:800; color:{c_h2}; text-shadow:2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 0 2px 0 #fff, 0 -2px 0 #fff; white-space:nowrap; font-size:{fs_t+2}px; margin-bottom:2px;">{name}</div>
+                <div style="width:14px; height:14px; background:{acc}; border-radius:50%; border:3px solid #fff; box-shadow:0 3px 6px rgba(0,0,0,0.3);"></div></div>'''
+            if i < len(auto_pts) - 1 and conn != 'Brak':
+                x2, y2 = auto_pts[i+1]['x'], auto_pts[i+1]['y']
+                is_flight = "Przelot" in conn
+                stroke_dash = "8,8" if is_flight else "none"
+                svg_lines += f'<line x1="{x1}%" y1="{y1}%" x2="{x2}%" y2="{y2}%" stroke="{acc}" stroke-width="3" stroke-dasharray="{stroke_dash}" stroke-linecap="round"/>'
+        ul_points_html = f'<ul class="app-list" style="margin-top:10px;">{"".join(ul_points)}</ul>' if ul_points else ''
+        hp.append(shtml(f"""{lhtml()}<div class="premium-layout"><div class="info-col" style="flex: 40; padding-right: 30px; padding-top: 30px; justify-content: flex-start;">
+            <div class="app-overline-style"><span>{str(s.get('map_overline', 'TRASA WYJAZDU'))}</span></div>
+            <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(s.get('map_title', 'ZARYS\\nPODRÓŻY')).replace(chr(10), '<br>')}</div>
+            <div class="title-sub" style="color: {acc}; font-weight: 700; text-transform: none; margin-bottom: 25px; font-size:{max(12, fs_sub_val-4)}px;">{str(s.get('map_subtitle', 'Kluczowe punkty programu')).replace(chr(10), '<br>')}</div>
+            <div style="font-size: {fs_t}px; line-height: 1.6; color: {c_t}; margin-bottom: 20px;">{str(s.get('map_desc', '')).replace(chr(10), '<br>')}</div>
+            <div style="font-weight:800; font-size:{fs_t+2}px; color:{c_h2}; margin-bottom:5px; text-transform:uppercase;">PUNKTY NA TRASIE:</div>{ul_points_html}</div>
+            <div class="photo-col" style="flex: 60; position:relative; overflow:hidden; border: 2px solid #eee; border-radius:8px; background-color: #fcfcfc;">
+            {m_bg_html}<svg style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:2; pointer-events:none; overflow:visible;">{svg_lines}</svg>{html_markers}
+            </div></div>{fhtml()}""", "slide-mapa"))
+
+    if not s.get('l_hide', False):
+        il = get_b64('img_hero_l', (4,5))
+        iml = f"<img src='data:image/jpeg;base64,{il}' style='width:100%;height:100%;object-fit:cover;'>" if il else get_ph('FOTO SAMOLOTU')
+        f_keys = ['f1', 'f2']
+        if s.get('l_przesiadka', False): f_keys.extend(['f3', 'f4'])
+        rows = ""
+        for f_key in f_keys:
+            f_val = str(s.get(f_key, ''))
+            parts = f_val.split(',')
+            if len(parts) >= 4: rows += f"<tr><td>{parts[0]}</td><td>{parts[1]}</td><td>{parts[2]}</td><td>{parts[3]}</td></tr>"
+        przesiadka_html = ""
+        if s.get('l_przesiadka', False):
+            przesiadka_html = f"""<div style="background-color: #f8f9fa; border-left: 4px solid {acc}; padding: 15px 20px; margin-top: 15px; margin-bottom: 15px; border-radius: 4px; display: flex; gap: 40px; align-items: center;">
+                <div><div style="font-size: 11px; font-weight: 700; color: {c_h2}; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Port przesiadkowy</div><div style="font-size: {fs_t + 2}px; font-weight: 600; color: {c_t};"><i class="fa-solid fa-location-dot" style="color:{acc}; margin-right:6px;"></i>{s.get('l_port', '')}</div></div>
+                <div><div style="font-size: 11px; font-weight: 700; color: {c_h2}; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Czas przesiadki</div><div style="font-size: {fs_t + 2}px; font-weight: 600; color: {c_t};"><i class="fa-solid fa-clock" style="color:{acc}; margin-right:6px;"></i>{s.get('l_czas', '')}</div></div></div>"""
+        h_d = f"<p>{str(s.get('l_desc') or '').replace(chr(10), '<br>')}</p>" if str(s.get('l_desc', '')).strip() else ""
+        h_e = f"<p style='font-size:10px;margin-top:15px;'>{str(s.get('l_extra') or '').replace(chr(10), '<br>')}</p>" if str(s.get('l_extra', '')).strip() else ""
+        hp.append(shtml(f"""{lhtml()}<div class="premium-layout"><div class="photo-col">{iml}</div><div class="info-col" style="padding-top:30px; justify-content:flex-start;">
+            <div class="app-overline-style" style="margin-bottom:15px;"><span>{str(s.get('l_overline', 'PRZELOT'))}</span></div>
+            <div class="title-h1" style="margin-bottom:5px; font-size:{fs_h1_val-6}px;">{str(s.get('l_main','JAK LECIMY?')).replace(chr(10),'<br>')}</div>
+            <div class="title-sub" style="margin-bottom:15px;">{str(s.get('l_sub','')).replace(chr(10),'<br>')}</div>{h_d}
+            <div class="metric-grid">
+                <div><div class="metric-label">Trasa</div><div class="flight-val">{s.get('m_route','')}</div></div>
+                <div><div class="metric-label">Limit bagażu</div><div class="flight-val">{s.get('m_luggage','')}</div></div>
+            </div>{przesiadka_html}
+            <table class="flight-table"><tr><th>NR LOTU</th><th>DATA</th><th>TRASA</th><th>GODZINY</th></tr>{rows}</table>{h_e}
+            </div></div>{fhtml()}""", "slide-loty"))
+
+    num_hotels = int(s.get('num_hotels', 1))
+    for i in range(num_hotels):
+        if not s.get(f'h_hide_{i}', False):
+            h1 = get_b64(f'img_hotel_1_{i}', (16,9)); h1b = get_b64(f'img_hotel_1b_{i}', (16,9)); h2 = get_b64(f'img_hotel_2_{i}', (16,9)); h3 = get_b64(f'img_hotel_3_{i}', (16,9))
+            h1_html = f'<img src="data:image/jpeg;base64,{h1}" style="width:100%; height:100%; object-fit:cover;">' if h1 else get_ph('ZDJ. LEWE 1')
+            h1b_html = f'<img src="data:image/jpeg;base64,{h1b}" style="width:100%; height:100%; object-fit:cover;">' if h1b else get_ph('ZDJ. LEWE 2')
+            url_val = str(s.get(f'h_url_{i}', '')).strip()
+            h_url_html = f'<div style="font-size:{max(10, fs_t-2)}px; color:{c_t}; opacity:0.8; margin-bottom:15px;"><i class="fa-solid fa-globe" style="color:{acc}; margin-right:5px;"></i> {url_val}</div>' if url_val else ''
+            h_amenities = s.get(f'h_amenities_{i}', [])
+            am_items = []
+            book_val = str(s.get(f'h_booking_{i}', '')).strip()
+            if book_val: am_items.append(f'<div style="display:flex; align-items:center; gap:6px; margin-right:10px;"><div style="background:#003580; color:white; padding:3px 8px; border-radius:6px; border-bottom-left-radius:0; font-weight:800; font-size:{max(12, fs_t)}px;">{book_val}</div><span style="font-weight:700; color:#003580; font-size:{max(10, fs_t-1)}px;">Booking.com</span></div>')
+            for a in h_amenities:
+                if a in hotel_icons: am_items.append(f'<div style="display:flex; align-items:center; gap:6px; font-size:{max(10, fs_t-1)}px; font-weight:600; color:{c_t};"><i class="fa-solid {hotel_icons[a]}" style="color:{acc}; font-size:{fs_t+4}px;"></i> {a}</div>')
+            h_am_html = f'<div style="display:flex; flex-wrap:wrap; align-items:center; gap:15px; margin-bottom:15px; padding:10px 0; border-top:1px solid #eee; border-bottom:1px solid #eee;">{"".join(am_items)}</div>' if am_items else ''
+            advs = [f.strip() for f in s.get(f'h_advantages_{i}', '').split('\n') if f.strip()]
+            adv_html = f'<ul class="app-list" style="margin-top:0;">{"".join([f"<li>{a}</li>" for a in advs])}</ul>' if advs else ''
+
+            hp.append(shtml(f"""{lhtml()}<div class="premium-layout" id="slide-hotel-{i}">
+                <div style="flex:40; display:flex; flex-direction:column; gap:15px;">
+                    <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background-color:#fcfcfc;">{h1_html}</div>
+                    <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background-color:#fcfcfc;">{h1b_html}</div>
+                </div>
+                <div class="info-col" style="flex:60; padding-left:15px; padding-top:30px; justify-content:flex-start;">
+                    <div class="app-overline-style" style="margin-bottom:5px;"><span>{str(s.get(f'h_overline_{i}', 'ZAKWATEROWANIE'))}</span></div>
+                    <div class="title-h1" style="margin-bottom:5px; font-size:{max(20, fs_h1_val-6)}px;">{str(s.get(f'h_title_{i}','')).replace(chr(10),'<br>')}</div>
+                    <div class="title-sub" style="color:{acc}; font-size:{max(12, fs_sub_val-4)}px; margin-top:0px; margin-bottom:5px;">{str(s.get(f'h_subtitle_{i}','')).replace(chr(10),'<br>')}</div>
+                    {h_url_html}<div style="flex-grow:0; font-size:{fs_t}px; line-height:1.4; margin-bottom:10px; color:{c_t};">{str(s.get(f'h_text_{i}', '')).replace(chr(10), '<br>')}</div>
+                    {h_am_html}<div style="flex-grow:1;">{adv_html}</div>
+                    <div class="gallery-row" style="padding-top:0; padding-bottom:5px; gap:15px;">
+                        <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{f'<img src="data:image/jpeg;base64,{h2}" style="width:100%;height:100%;object-fit:cover;">' if h2 else get_ph('FOT DÓŁ 1')}</div>
+                        <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{f'<img src="data:image/jpeg;base64,{h3}" style="width:100%;height:100%;object-fit:cover;">' if h3 else get_ph('FOT DÓŁ 2')}</div>
+                    </div></div></div>{fhtml()}""", f"slide-hotel-{i}"))
+
+    if not s.get('prg_hide', False):
+        nd = int(s.get('num_days', 5))
+        start_dt_local = s.get('p_start_dt', date.today())
+        for st_idx in range(0, nd, 3):
+            ch = ""
+            for i in range(3):
+                di = st_idx + i
+                if di < nd:
+                    cdt = start_dt_local + timedelta(days=di)
+                    id = get_b64(f'img_d_{di}', (16,9))
+                    mh = ""
+                    for pi in range(int(s.get('num_places', 0))):
+                        p_day = str(s.get(f"pday_{pi}") or "")
+                        d_match = re.search(r'Dzień\s+(\d+)', p_day)
+                        if d_match and int(d_match.group(1)) == di + 1:
+                            nm = s.get(f"pmain_{pi}", "")
+                            if s.get(f"phide_{pi}"): mh += f"<div><div style='display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600; color:{c_t}; margin-bottom:5px;'><span style='font-size:18px; color:{acc};'><i class='fa-solid fa-map-location-dot'></i></span> <span>{nm}</span></div></div>"
+                            else: mh += f"<div><a href='#place_{pi}' style='text-decoration:none; color:{acc}; display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600; margin-bottom:5px;'><span style='font-size:18px;'><i class='fa-solid fa-map-location-dot'></i></span> <span>{nm} <span style='font-size:12px; font-weight:400; opacity:0.8;'>(zobacz)</span></span></a></div>"
+                    for ai in range(int(s.get('num_attr', 1))):
+                        a_day = str(s.get(f"aday_{ai}") or "")
+                        d_match = re.search(r'Dzień\s+(\d+)', a_day)
+                        if d_match and int(d_match.group(1)) == di + 1:
+                            ic, nm = icon_map.get(s.get(f"atype_{ai}", "Atrakcja"), ""), s.get(f"amain_{ai}", "")
+                            sub = str(s.get(f"asub_{ai}", "")).strip()
+                            sub_html = f"<div style='font-size:12px; font-weight:400; color:{c_t}; opacity:0.8; margin-top:-2px; margin-left:26px; line-height:1.2; margin-bottom:8px;'>{sub}</div>" if sub else "<div style='margin-bottom:8px;'></div>"
+                            if s.get(f"ahide_{ai}"): mh += f"<div><div style='display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600; color:{c_t};'><span style='font-size:18px; color:{acc};'>{ic}</span> <span>{nm}</span></div>{sub_html}</div>"
+                            else: mh += f"<div><a href='#attr_{ai}' style='text-decoration:none; color:{acc}; display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600;'><span style='font-size:18px;'>{ic}</span> <span>{nm} <span style='font-size:12px; font-weight:400; opacity:0.8;'>(zobacz)</span></span></a>{sub_html}</div>"
+                    ch += f"""<div style="flex:1;display:flex;flex-direction:column;" id="program_day_{di}">
+                        <div class="day-header">DZIEŃ {di+1}</div><div class="day-date">{cdt.strftime('%d.%m.%Y')} - {pl_days_map[cdt.weekday()]}</div>
+                        <div class="prog-img-container">{f'<img src="data:image/jpeg;base64,{id}" style="width:100%;height:100%;object-fit:cover;">' if id else get_ph('FOTO DNIA')}</div>
+                        <div class="prog-attr">{str(s.get(f'attr_{di}') or '').replace(chr(10), '<br>')}</div>{mh}
+                        <p style="font-size:13px; margin-top:10px; line-height: 1.5;">{str(s.get(f'desc_{di}') or '').replace(chr(10), '<br>')}</p></div>"""
+                else: ch += "<div style='flex:1;'></div>"
+            hp.append(shtml(f"""{lhtml()}<div class="title-h2">PROGRAM WYJAZDU</div><div style="display:flex;gap:25px;flex-grow:1;min-height:0;margin-top:15px;margin-bottom:20px;">{ch}</div>{fhtml()}""", "slide-program" if st_idx == 0 else ""))
+
+    all_items = []
+    for i in range(int(s.get('num_places', 0))):
+        if not s.get(f"phide_{i}"):
+            pday = str(s.get(f"pday_{i}") or "")
+            m = re.search(r'Dzień\s+(\d+)', pday)
+            all_items.append(('place', i, int(m.group(1)) if m else 999))
+    for i in range(int(s.get('num_attr', 1))):
+        if not s.get(f"ahide_{i}"):
+            aday = str(s.get(f"aday_{i}") or "")
+            m = re.search(r'Dzień\s+(\d+)', aday)
+            all_items.append(('attr', i, int(m.group(1)) if m else 999))
+    all_items.sort(key=lambda x: (x[2], 0 if x[0] == 'place' else 1, x[1]))
+
+    for item_type, i, d_idx in all_items:
+        if item_type == 'place':
+            p1 = get_b64(f'pimg1_{i}', (1,2.2)); p2 = get_b64(f'pimg2_{i}', (1,1))
+            im1 = f'<img src="data:image/jpeg;base64,{p1}" style="width:100%;height:100%;object-fit:cover;">' if p1 else get_ph('FOTO PIONOWE')
+            im2 = f'<img src="data:image/jpeg;base64,{p2}" style="width:100%;height:100%;object-fit:cover;">' if p2 else get_ph('FOTO')
+            facts = s.get(f"pfacts_{i}", "")
+            facts_html_lines = []
+            for line in facts.split('\n'):
+                if ':' in line: k, v = line.split(':', 1); facts_html_lines.append(f"<div style='margin-bottom:6px;'><strong style='font-weight:700;'>{k.strip()}:</strong> <span style='font-weight:300;'>{v.strip()}</span></div>")
+                elif line.strip(): facts_html_lines.append(f"<div style='margin-bottom:6px;'>{line.strip()}</div>")
+            facts_html = "".join(facts_html_lines) if facts_html_lines else "Dodaj fakty w panelu..."
+            bb = ""
+            md = re.search(r'Dzień (\d+)', str(s.get(f"pday_{i}") or ""))
+            if md: bb = f"<a href='#program_day_{int(md.group(1)) - 1}' class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
+            hp.append(shtml(f"""{lhtml()}
+            <div class="premium-layout" id="place_{i}" style="gap: 30px; position:relative;">{bb}
+                <div style="flex: 28; border-radius: 8px; overflow: hidden; border: 1px solid #eee; background-color: #fcfcfc;">{im1}</div>
+                <div style="flex: 28; display: flex; flex-direction: column; gap: 30px;">
+                    <div style="background-color: {c_h2}; color: white; padding: 25px 20px; border-radius: 8px; font-size: {max(11, fs_t-1)}px; line-height: 1.4; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">{facts_html}</div>
+                    <div style="flex-grow: 1; border-radius: 8px; overflow: hidden; border: 1px solid #eee; background-color: #fcfcfc;">{im2}</div>
+                </div>
+                <div class="info-col" style="flex: 44; padding-left: 20px; padding-top: 15px; justify-content: flex-start;">
+                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 15px; font-size: {max(10, fs_met - 2)}px; font-weight: 700; letter-spacing: 4px; color: {acc}; margin-bottom: 20px; text-transform: uppercase;">
+                        <div style="height: 1px; background-color: {acc}; opacity: 0.5; width: 40px;"></div><span>{str(s.get(f'pover_{i}', 'NASZ KIERUNEK'))}</span><div style="height: 1px; background-color: {acc}; opacity: 0.5; width: 60px;"></div></div>
+                    <div class="title-h1" style="margin-bottom:10px; font-size:{max(28, fs_h1_val-6)}px; text-align: right; color:{c_h1};">{str(s.get(f'pmain_{i}','')).replace(chr(10),'<br>')}</div>
+                    <div class="title-sub" style="margin-bottom:30px; text-align: right; color: {c_h2}; font-size:{max(14, fs_sub_val-4)}px; line-height:1.3;">{str(s.get(f'psub_{i}','')).replace(chr(10),'<br>')}</div>
+                    <div style="font-size: {fs_t}px; line-height: 1.6; color: {c_t}; text-align: justify;">{str(s.get(f'popis_{i}') or '').replace(chr(10), '<br>')}</div>
+                </div></div>{fhtml()}""", f"place_{i}"))
+
+        elif item_type == 'attr':
+            iah = get_b64(f'ah_{i}', (4,5)); a1 = get_b64(f'at1_{i}',(1,1)); a2 = get_b64(f'at2_{i}',(1,1)); a3 = get_b64(f'at3_{i}',(1,1))
+            bb = ""
+            md = re.search(r'Dzień (\d+)', str(s.get(f"aday_{i}") or ""))
+            if md: bb = f"<a href='#program_day_{int(md.group(1)) - 1}' class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
+            hp.append(shtml(f"""{lhtml()}<div class="premium-layout" id="attr_{i}">
+                <div class="photo-col">{f'<img src="data:image/jpeg;base64,{iah}" style="width:100%;height:100%;object-fit:cover;">' if iah else get_ph('FOTO GŁÓWNE')}{bb}</div>
+                <div class="info-col"><div class="type-icon-box">{icon_map.get(s.get(f"atype_{i}", "Atrakcja"), "")}</div>
+                    <div class="title-h2">{str(s.get(f'amain_{i}','')).replace(chr(10),'<br>')}</div><div class="title-sub">{str(s.get(f'asub_{i}','')).replace(chr(10),'<br>')}</div>
+                    <div style="flex-grow:1;"><p>{str(s.get(f'aopis_{i}') or '').replace(chr(10), '<br>')}</p></div>
+                    <div class="gallery-row">
+                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a1}" style="width:100%;height:100%;object-fit:cover;">' if a1 else get_ph('FOT 1')}</div>
+                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a2}" style="width:100%;height:100%;object-fit:cover;">' if a2 else get_ph('FOT 2')}</div>
+                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a3}" style="width:100%;height:100%;object-fit:cover;">' if a3 else get_ph('FOT 3')}</div>
+                    </div></div></div>{fhtml()}""", f"attr_{i}"))
+
+    if not s.get('app_hide', False):
+        ibg = st.session_state.get('img_app_bg')
+        ibg_b64 = base64.b64encode(ibg).decode() if ibg else None
+        bg_html = f'<img src="data:image/jpeg;base64,{ibg_b64}" style="width:100%;height:100%;object-fit:cover;">' if ibg_b64 else '<div class="photo-placeholder">ZDJĘCIE TŁA</div>'
+        iscr = get_b64('img_app_screen', (9, 16))
+        scr_html = f'<img class="phone-screen" src="data:image/jpeg;base64,{iscr}">' if iscr else '<div class="photo-placeholder" style="background:#fff;">EKRAN APP</div>'
+        fh = "".join([f"<li>{f.strip()}</li>" for f in s.get('app_features', '').split('\n') if f.strip()])
+        hp.append(shtml(f"""{lhtml()}<div style="position:relative;height:100%;width:100%;display:flex;">
+            <div style="flex:0 0 46%; max-width:46%; z-index:2; display:flex; flex-direction:column; padding-right:20px; padding-top:30px; justify-content:flex-start;">
+                <div class="app-overline-style"><span>{str(s.get('app_overline', ''))}</span></div>
+                <div class="title-h1" style="margin-bottom:15px; font-size:{fs_h1_val-6}px;">{str(s.get('app_title', '')).replace(chr(10), '<br>')}</div>
+                <div class="title-sub" style="color:{acc};font-weight:700;text-transform:none;margin-bottom:25px; font-size:{max(12, fs_sub_val-4)}px;">{str(s.get('app_subtitle', '')).replace(chr(10), '<br>')}</div>
+                <ul class="app-list">{fh}</ul></div>
+            <div class="app-image-col">{bg_html}</div><div class="phone-mockup">{scr_html}</div></div>{fhtml()}""", "slide-app"))
+
     if not s.get('brand_hide', False):
-        part2.append("Materiały brandingowe:")
-        for bf in str(s.get('brand_features', '')).split('\n'):
-            if bf.strip(): part2.append(f"-- {bf.strip()}")
-            
-    if not s.get('app_hide', False): part2.extend(["Aplikacja na wyjazd", "Strona www z formularzem uczestnika"])
-    if not s.get('pg_hide', False): part2.append("Pillow gift dla każdego uczestnika na przywitanie")
-    part2.extend(["Obowiązkowa opłata TFG i TFP", "VAT marża"])
-    
-    s['koszt_zawiera_1'] = "\n".join(part1)
-    s['koszt_zawiera_2'] = "\n".join(part2)
-    s['koszt_nie_zawiera'] = "Napiwki\nWydatki osobiste\nAtrakcje wymienione jako opcje"
+        b1, b2, b3 = get_b64('img_brand_1', (1,1)), get_b64('img_brand_2', (1,1)), get_b64('img_brand_3', (16,9))
+        b1h = f'<img src="data:image/jpeg;base64,{b1}" style="width:100%;height:100%;object-fit:cover;">' if b1 else get_ph('ZDJ 1 (LEWE GÓRNE)')
+        b2h = f'<img src="data:image/jpeg;base64,{b2}" style="width:100%;height:100%;object-fit:cover;">' if b2 else get_ph('ZDJ 2 (PRAWE GÓRNE)')
+        b3h = f'<img src="data:image/jpeg;base64,{b3}" style="width:100%;height:100%;object-fit:cover;"><div class="brand-gap"></div>' if b3 else get_ph('ZDJ 3 (PODZIELONE)')
+        bfh = "".join([f"<li>{f.strip()}</li>" for f in s.get('brand_features', '').split('\n') if f.strip()])
+        hp.append(shtml(f"""{lhtml()}<div class="premium-layout"><div class="info-col" style="flex: 50; padding-right: 40px; padding-top: 30px; justify-content: flex-start;">
+            <div class="app-overline-style"><span>{str(s.get('brand_overline', ''))}</span></div>
+            <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(s.get('brand_title', '')).replace(chr(10), '<br>')}</div>
+            <div class="title-sub" style="color: {acc}; font-weight: 700; text-transform: none; margin-bottom: 25px; font-size:{max(12, fs_sub_val-4)}px;">{str(s.get('brand_subtitle', '')).replace(chr(10), '<br>')}</div>
+            <ul class="app-list">{bfh}</ul></div><div style="flex: 50; position: relative; height: 100%;">
+            <div class="brand-collage"><div class="brand-img-1">{b1h}</div><div class="brand-img-2">{b2h}</div><div class="brand-img-3">{b3h}</div></div></div></div>{fhtml()}""", "slide-branding"))
 
-# --- RENDEROWANIE GŁÓWNEGO OKNA ---
-html_content = build_presentation(current_page=st.session_state.get('last_page', 'Strona Tytułowa'))
-st.markdown(f'{get_local_css(True)}\n<div class="presentation-wrapper" id="main-wrapper">{html_content}</div>', unsafe_allow_html=True)
+    if not s.get('va_hide', False):
+        va1, va2, va3 = get_b64('img_va_1', (16,9)), get_b64('img_va_2', (1,1)), get_b64('img_va_3', (1,1))
+        v1h = f'<img src="data:image/jpeg;base64,{va1}" style="width:100%;height:100%;object-fit:cover;">' if va1 else get_ph('ZDJ 1 (Szerokie)')
+        v2h = f'<img src="data:image/jpeg;base64,{va2}" style="width:100%;height:100%;object-fit:cover;">' if va2 else get_ph('ZDJ 2')
+        v3h = f'<img src="data:image/jpeg;base64,{va3}" style="width:100%;height:100%;object-fit:cover;">' if va3 else get_ph('ZDJ 3')
+        hp.append(shtml(f"""{lhtml()}<div class="premium-layout"><div style="flex: 45; position: relative; height: 100%;">
+            <div class="va-collage"><div class="va-img-1-wrap va-img-common">{v1h}</div><div class="va-img-2-wrap va-img-common">{v2h}</div><div class="va-img-3-wrap va-img-common">{v3h}</div></div></div>
+            <div class="info-col" style="flex: 55; padding-left: 40px; padding-top: 30px; justify-content: flex-start;">
+            <div class="app-overline-style"><span>{str(s.get('va_overline', ''))}</span></div>
+            <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(s.get('va_title', '')).replace(chr(10), '<br>')}</div>
+            <div class="title-sub" style="color: {acc}; font-weight: 700; text-transform: none; margin-bottom: 25px; font-size:{max(12, fs_sub_val-4)}px;">{str(s.get('va_subtitle', '')).replace(chr(10), '<br>')}</div>
+            <div style="font-size: {fs_t}px; line-height: 1.6; color: {c_t}; text-align: justify;">{str(s.get('va_text') or '').replace(chr(10), '<br>')}</div></div></div>{fhtml()}""", "slide-virtual-assistant"))
 
-first_visible_place = next((i for i in range(int(st.session_state.get('num_places', 0))) if not st.session_state.get(f'phide_{i}')), None)
-pid = f"place_{first_visible_place}" if first_visible_place is not None else "slide-title"
-first_visible_attr = next((i for i in range(int(st.session_state.get('num_attr', 1))) if not st.session_state.get(f'ahide_{i}')), None)
-fid = f"attr_{first_visible_attr}" if first_visible_attr is not None else "slide-title"
+    if not s.get('pg_hide', False):
+        p1, p2, p3 = get_b64('img_pg_1',(1,1)), get_b64('img_pg_2',(1,2.1)), get_b64('img_pg_3',(1,1))
+        h1 = f'<img src="data:image/jpeg;base64,{p1}" style="width:100%;height:100%;object-fit:cover;">' if p1 else get_ph('ZDJ 1'); h2 = f'<img src="data:image/jpeg;base64,{p2}" style="width:100%;height:100%;object-fit:cover;">' if p2 else get_ph('ZDJ 2 PION'); h3 = f'<img src="data:image/jpeg;base64,{p3}" style="width:100%;height:100%;object-fit:cover;">' if p3 else get_ph('ZDJ 3')
+        hp.append(shtml(f"""{lhtml()}<div class="premium-layout"><div style="flex:50;position:relative;height:100%;">
+            <div class="pg-collage"><div class="pg-img-1-wrap pg-img-common">{h1}</div><div class="pg-img-2-wrap pg-img-common">{h2}</div><div class="pg-img-3-wrap pg-img-common">{h3}</div></div></div>
+            <div class="info-col" style="flex:50;padding-left:40px;padding-top:30px;justify-content:flex-start;">
+            <div class="app-overline-style"><span>{str(s.get('pg_overline', ''))}</span></div>
+            <div class="title-h1" style="margin-bottom:15px; font-size:{fs_h1_val-6}px;">{str(s.get('pg_title', '')).replace(chr(10), '<br>')}</div>
+            <div class="title-sub" style="color:{acc};font-weight:700;text-transform:none;margin-bottom:25px; font-size:{max(12, fs_sub_val-4)}px;">{str(s.get('pg_subtitle', '')).replace(chr(10), '<br>')}</div>
+            <div style="font-size:{fs_t}px;line-height:1.6;color:{c_t};">{str(s.get('pg_text') or '').replace(chr(10), '<br>')}</div></div></div>{fhtml()}""", "slide-pillow-gifts"))
 
-default_tid = {"Strona Tytułowa":"slide-title","Opis Kierunku":"slide-kierunek","Mapa Podróży":"slide-mapa","Jak lecimy?":"slide-loty","Zakwaterowanie":"slide-hotel-0","Program Wyjazdu":"slide-program","Opis miejsc":pid,"Opis atrakcji":fid,"Kosztorys":"slide-kosztorys-1","Aplikacja (Komunikacja)":"slide-app","Materiały Brandingowe":"slide-branding","Wirtualny Asystent":"slide-virtual-assistant","Pillow Gifts":"slide-pillow-gifts","Co o nas mówią":"slide-testimonials","O Nas (Zespół)":"slide-about"}.get(st.session_state.get('last_page', 'Strona Tytułowa'), "")
-tid = st.session_state.get('scroll_target') or default_tid
+    koszt_ukryj_caly = s.get('koszt_hide_1', False)
+    if not koszt_ukryj_caly:
+        k1 = get_b64('img_koszt_1', (4,5))
+        imk1 = f"<img src='data:image/jpeg;base64,{k1}' style='width:100%;height:100%;object-fit:cover;'>" if k1 else get_ph('ZDJĘCIE KOSZTORYSU')
+        zaw1_list = []
+        for x in s.get('koszt_zawiera_1', '').split('\n'):
+            if not x.strip(): continue
+            if x.strip().startswith('--'): zaw1_list.append(f"<li class='sub-item'>{x.replace('--', '', 1).strip()}</li>")
+            else: zaw1_list.append(f"<li>{x.strip()}</li>")
+        zaw1_html = f'<ul class="app-list">{"".join(zaw1_list)}</ul>' if zaw1_list else ''
+        hp.append(shtml(f"""{lhtml()}<div class="premium-layout"><div class="photo-col">{imk1}</div><div class="info-col" style="padding-top:30px; justify-content:flex-start;">
+            <i class="fa-solid fa-wallet" style="color:{acc}; font-size:36px; margin-bottom:15px; display:block;"></i>
+            <div class="app-overline-style" style="margin-bottom:15px;"><span>{str(s.get('koszt_title', 'KOSZTORYS'))}</span></div>
+            <div style="background:{acc}; color:white; padding: 25px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+                <div style="font-size:{max(10, fs_t-2)}px; font-weight:700; text-transform:uppercase; margin-bottom:5px; opacity:0.9; letter-spacing:1px;">Grupa {s.get('koszt_pax', '')} osób | {s.get('koszt_hotel', '')}</div>
+                <div style="font-size:{fs_h1_val-8}px; font-weight:800; font-family:'{f_h1}';">CENA: {s.get('koszt_price', '')}</div>
+            </div>
+            <div style="font-weight:800; font-size:{fs_t+4}px; color:{c_h2}; margin-bottom:10px; text-transform:uppercase;">CENA OFERTY OBEJMUJE:</div>
+            <div style="flex-grow:1; overflow-y:auto; padding-right:10px;">{zaw1_html}</div></div></div>{fhtml()}""", "slide-kosztorys-1"))
 
-if tid and not st.session_state.get('client_mode', False):
-    components.html(f"<script>var t = window.parent.document.getElementById('{tid}'); if(t) {{ t.scrollIntoView({{behavior: 'smooth', block: 'center'}}); }}</script>", height=0)
+    if not koszt_ukryj_caly and not s.get('koszt_hide_2', False):
+        k2 = get_b64('img_koszt_2', (4,5))
+        imk2 = f"<img src='data:image/jpeg;base64,{k2}' style='width:100%;height:100%;object-fit:cover;'>" if k2 else get_ph('ZDJĘCIE KOSZTORYSU 2')
+        zaw2_list = []
+        for x in s.get('koszt_zawiera_2', '').split('\n'):
+            if not x.strip(): continue
+            if x.strip().startswith('--'): zaw2_list.append(f"<li class='sub-item'>{x.replace('--', '', 1).strip()}</li>")
+            else: zaw2_list.append(f"<li>{x.strip()}</li>")
+        zaw2_html = f'<ul class="app-list">{"".join(zaw2_list)}</ul>' if zaw2_list else ''
+        niezaw_list = [f"<li>{x.strip()}</li>" for x in s.get('koszt_nie_zawiera', '').split('\n') if x.strip()]
+        niezaw_html = f'<ul class="app-list" style="margin-top:5px;">{"".join(niezaw_list)}</ul>' if niezaw_list else ''
+        opcje = s.get('koszt_opcje', '').strip()
+        opcje_html = f"""<div style="margin-top:20px;"><div style="font-weight:800; font-size:{fs_t+2}px; color:{c_h2}; margin-bottom:5px; text-transform:uppercase;">KOSZTY OPCJONALNE (WYCIECZKI / DODATKI):</div><div style="font-size:{fs_t}px; color:{c_t}; white-space:pre-line; line-height:1.5;">{opcje}</div></div>""" if opcje else ''
+        hp.append(shtml(f"""{lhtml()}<div class="premium-layout"><div class="info-col" style="padding-top:30px; justify-content:flex-start; padding-right:30px;">
+            <i class="fa-solid fa-file-invoice" style="color:{acc}; font-size:36px; margin-bottom:15px; display:block;"></i>
+            <div class="app-overline-style" style="margin-bottom:15px;"><span>KOSZTORYS - CIĄG DALSZY</span></div>{zaw2_html}
+            <div style="font-weight:800; font-size:{fs_t+2}px; color:{c_h2}; margin-top:15px; margin-bottom:5px; text-transform:uppercase;">NIE POLICZONE W CENIE:</div>{niezaw_html}{opcje_html}</div>
+            <div class="photo-col">{imk2}</div></div>{fhtml()}""", "slide-kosztorys-2"))
 
-if st.session_state.get('client_mode', False):
-    accent_color = st.session_state.get('color_accent', '#FF6600')
-    st.markdown(f"<style>div.stButton {{ position: fixed !important; top: 20px !important; left: 20px !important; z-index: 999999 !important; width: auto !important; }} div.stButton > button {{ background-color: {accent_color} !important; color: white !important; border: none !important; border-radius: 4px !important; padding: 15px 25px !important; font-size: 14px !important; font-weight: 700 !important; box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important; display: flex !important; align-items: center !important; justify-content: center !important; width: auto !important; white-space: nowrap !important; text-transform: uppercase !important; }} div.stButton > button:hover {{ transform: scale(1.02); opacity: 0.9; }}</style>", unsafe_allow_html=True)
-    if st.button("ZAKOŃCZ PODGLĄD"):
-        st.session_state['client_mode'] = False
-        st.rerun()
-    st.stop()
+    if not s.get('testim_hide', False):
+        t_main_img = get_b64('img_testim_main', (4,5))
+        t_main_img_html = f'<img src="data:image/jpeg;base64,{t_main_img}" style="width:100%;height:100%;object-fit:cover;">' if t_main_img else get_ph('ZDJĘCIE GŁÓWNE')
+        t_h = ""
+        for i in range(int(s.get('testim_count', 3))):
+            it = get_b64(f'testim_img_{i}', (1,1))
+            itg = f"<img src='data:image/jpeg;base64,{it}' style='width:100%;height:100%;object-fit:cover;'>" if it else get_ph('LOGO')
+            t_h += f"""<div class="testim-item"><div class="testim-img-wrapper">{itg}</div><div class="testim-content"><div class="testim-head">{str(s.get(f'testim_head_{i}', '')).replace(chr(10),'<br>')}</div><div class="testim-quote">"{str(s.get(f'testim_quote_{i}', '')).replace(chr(10),'<br>')}"</div><div class="testim-author"><strong>{s.get(f'testim_author_{i}', '')}</strong> | {s.get(f'testim_role_{i}', '')}</div></div></div>"""
+        hp.append(shtml(f"""{lhtml()}<div class="premium-layout"><div class="info-col" style="flex: 55; padding-right: 40px; padding-top: 30px; justify-content: flex-start;">
+            <div class="app-overline-style"><span>{str(s.get('testim_overline', 'REKOMENDACJE'))}</span></div>
+            <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(s.get('testim_title', '')).replace(chr(10), '<br>')}</div>
+            <div class="title-sub" style="color: {acc}; margin-bottom: 25px; font-size:{max(12, fs_sub_val-4)}px;">{str(s.get('testim_subtitle', '')).replace(chr(10), '<br>')}</div>
+            <div style="display: flex; flex-direction: column;">{t_h}</div></div><div class="photo-col" style="flex: 45;">{t_main_img_html}</div></div>{fhtml()}""", "slide-testimonials"))
 
+    if not s.get('about_hide', False):
+        tm_h = ""
+        tc = int(s.get('team_count', 2))
+        grid_cols = "1fr 1fr" if tc == 2 or tc == 4 else f"repeat({tc}, 1fr)"
+        for i in range(tc):
+            it = get_b64(f't_img_{i}', (1,1))
+            itg = f"<img src='data:image/jpeg;base64,{it}' style='width:70px;height:70px;border-radius:50%;border:2px solid {acc};object-fit:cover;'>" if it else f"<div style='width:70px;height:70px;border-radius:50%;border:2px dashed #ccc;display:flex;align-items:center;justify-content:center;margin:0 auto 10px auto;color:#aaa;font-size:10px;'>ZDJĘCIE</div>"
+            tm_h += f"""<div style='display:flex; flex-direction:column; align-items:flex-start; text-align:left;'>
+                <div style="margin-bottom:8px;">{itg}</div>
+                <div style='font-weight:800;font-size:{max(12, fs_t)}px;color:{c_h2};line-height:1.2;margin-bottom:2px;'>{str(s.get(f't_name_{i}',''))}</div>
+                <div style='font-size:{max(9, fs_t-3)}px;color:{acc};font-weight:600;margin-bottom:6px;text-transform:uppercase;'>{str(s.get(f't_role_{i}',''))}</div>
+                <div style='font-size:{max(10, fs_t-2)}px;line-height:1.4;color:{c_t};'>{str(s.get(f't_desc_{i}') or '').replace(chr(10),'<br>')}</div></div>"""
+        c_img = get_b64('img_about_clients', (4,5))
+        c_img_html = f'<img src="data:image/jpeg;base64,{c_img}" style="width:100%;height:100%;object-fit:cover;">' if c_img else get_ph('ZDJĘCIE / LOGA KLIENTÓW')
+        hp.append(shtml(f"""{lhtml()}<div class="premium-layout"><div class="info-col" style="flex: 60; padding-right: 40px; padding-top: 30px; justify-content: flex-start; display: flex; flex-direction: column;">
+            <div class="app-overline-style"><span>{str(s.get('about_overline', 'NASZ ZESPÓŁ'))}</span></div>
+            <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(s.get('about_title', '')).replace(chr(10), '<br>')}</div>
+            <div class="title-sub" style="color: {acc}; margin-bottom: 25px; font-size:{max(12, fs_sub_val-4)}px;">{str(s.get('about_sub', '')).replace(chr(10), '<br>')}</div>
+            <div style="font-size: {fs_t}px; line-height: 1.6; color: {c_t}; text-align: justify; margin-bottom: 15px;">{str(s.get('about_desc') or '').replace(chr(10), '<br>')}</div>
+            <div style="display: grid; grid-template-columns: {grid_cols}; gap: 20px; margin-top: auto; border-top: 1px solid #eee; padding-top: 20px;">{tm_h}</div></div>
+            <div class="photo-col" style="flex: 40; background-color: #fcfcfc;">{c_img_html}</div></div>{fhtml()}""", "slide-about"))
 
-# --- PANEL BOCZNY (INTERFEJS) ---
-with st.sidebar:
-    page = st.radio("WYBIERZ SEKCJĘ:", ["Strona Tytułowa", "Opis Kierunku", "Mapa Podróży", "Jak lecimy?", "Zakwaterowanie", "Program Wyjazdu", "Opis miejsc", "Opis atrakcji", "Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent", "Pillow Gifts", "Kosztorys", "Co o nas mówią", "O Nas (Zespół)", "Wygląd i Kolory", "Zapisz / Wczytaj Projekt"])
-    
-    if st.session_state.get('last_page') != page:
-        st.session_state['last_page'] = page
-        st.session_state['scroll_target'] = ""
-        
-    st.divider()
-
-    if page == "Wygląd i Kolory":
-        st.markdown("<h2 style='color: #003366; margin-bottom: 0; font-size: 22px; font-weight: 700; font-family: Montserrat, sans-serif;'>KONFIGURACJA WYGLĄDU</h2>", unsafe_allow_html=True)
-        st.markdown("<div style='font-size: 13px; color: #64748b; margin-bottom: 15px; font-family: Open Sans, sans-serif;'>Dostosuj kolory i typografię oferty</div>", unsafe_allow_html=True)
-    elif page == "Zapisz / Wczytaj Projekt":
-        st.markdown("<h2 style='color: #003366; margin-bottom: 0; font-size: 22px; font-weight: 700; font-family: Montserrat, sans-serif;'>ZARZĄDZANIE PROJEKTEM</h2>", unsafe_allow_html=True)
-        st.markdown("<div style='font-size: 13px; color: #64748b; margin-bottom: 15px; font-family: Open Sans, sans-serif;'>Eksportuj lub importuj cały plik JSON</div>", unsafe_allow_html=True)
-    else:
-        st.markdown(f"<h2 style='color: #003366; margin-bottom: 0; font-size: 22px; font-weight: 700; font-family: Montserrat, sans-serif; text-transform: uppercase;'>{page}</h2>", unsafe_allow_html=True)
-        st.markdown("<div style='font-size: 13px; color: #64748b; margin-bottom: 15px; font-family: Open Sans, sans-serif;'>Wprowadź dane dla tej sekcji poniżej:</div>", unsafe_allow_html=True)
-
-    if page == "Strona Tytułowa":
-        tit_keys = ['t_date', 'country_name', 'country_code', 't_main', 't_sub', 't_klient', 't_kierunek', 't_pax', 't_hotel', 't_trans', 'img_hero_t', 'logo_az', 'logo_cli', 'hide_logo_cli']
-        section_template_manager(tit_keys, "TYT", "strona-tytulowa", "tit")
-        
-        st.text_input("Termin:", key="t_date", on_change=parse_date_and_days)
-        st.selectbox("Kraj docelowy:", list(COUNTRIES_DICT.keys()), key="country_name")
-        st.session_state['country_code'] = COUNTRIES_DICT[st.session_state['country_name']]
-        
-        for k, l in [('t_main','Tytuł H1'), ('t_sub','Podtytuł'), ('t_klient','Klient'), ('t_kierunek','Kierunek'), ('t_pax','Liczba osób'), ('t_hotel','Hotel'), ('t_trans','Dojazd')]: 
-            st.text_input(l, key=k)
-            
-        u1 = st.file_uploader("Zdjęcie główne (4:5)", key="tyt_hero")
-        if u1: st.session_state['img_hero_t'] = optimize_img(u1.getvalue())
-        c1, c2 = st.columns(2)
-        u2 = c1.file_uploader("Logo Firmy", key="tyt_logo_az")
-        if u2: st.session_state['logo_az'] = optimize_logo(u2.getvalue())
-        u3 = c2.file_uploader("Logo Klienta", key="tyt_logo_cli")
-        if u3: st.session_state['logo_cli'] = optimize_logo(u3.getvalue())
-        
-        c2.checkbox("Ukryj logo klienta na stronie tytułowej", key="hide_logo_cli")
-
-    elif page == "Opis Kierunku":
-        k_keys = ['k_hide', 'k_overline', 'k_main', 'k_sub', 'k_opis', 'img_hero_k', 'img_k_th1', 'img_k_th2', 'img_k_th3']
-        section_template_manager(k_keys, "KIE", st.session_state.get('k_main', 'czarnogora'), "kie")
-        
-        st.checkbox("Ukryj ten slajd w PDF", key="k_hide")
-        st.text_input("Mały nadtytuł:", key="k_overline")
-        for k, l in [('k_main','Kierunek (Tytuł H2)'), ('k_sub','Podtytuł')]: 
-            st.text_input(l, key=k)
-        st.text_area("Opis (obsługuje HTML, np. <b>):", height=200, key="k_opis")
-        
-        u4 = st.file_uploader("Zdjęcie lewe", key="kie_hero")
-        if u4: st.session_state['img_hero_k'] = optimize_img(u4.getvalue())
-        c1, c2, c3 = st.columns(3)
-        ut1 = c1.file_uploader("Fot. 1", key="kie_th1")
-        if ut1: st.session_state['img_k_th1'] = optimize_img(ut1.getvalue())
-        ut2 = c2.file_uploader("Fot. 2", key="kie_th2")
-        if ut2: st.session_state['img_k_th2'] = optimize_img(ut2.getvalue())
-        ut3 = c3.file_uploader("Fot. 3", key="kie_th3")
-        if ut3: st.session_state['img_k_th3'] = optimize_img(ut3.getvalue())
-
-    elif page == "Mapa Podróży":
-        map_keys = ['map_hide', 'map_overline', 'map_title', 'map_subtitle', 'map_desc', 'img_map_bg', 'map_zoom', 'num_map_points', 'img_map_bg_auto', 'auto_map_points']
-        for i in range(int(st.session_state.get('num_map_points', 3))): 
-            map_keys.extend([f'map_pt_name_{i}', f'map_conn_{i}', f'map_pt_sym_{i}', f'map_pt_x_{i}', f'map_pt_y_{i}'])
-        section_template_manager(map_keys, "MAP", "mapa-podrozy", "map")
-
-        st.checkbox("Ukryj slajd", key="map_hide")
-        st.text_input("Mały nadtytuł:", key="map_overline")
-        st.text_area("Główny tytuł H1:", key="map_title")
-        st.text_input("Podtytuł:", key="map_subtitle")
-        st.text_area("Opis pod mapą:", height=100, key="map_desc")
-
-        st.markdown("<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; letter-spacing: 1px;'>AUTOMATYCZNY KREATOR MAPY</div>", unsafe_allow_html=True)
-        map_zoom = st.slider("Przybliżenie mapy docelowej (Zoom):", 4, 10, key="map_zoom")
-        st.number_input("Liczba punktów na trasie:", 1, 10, step=1, key="num_map_points")
-        
-        points_data = []
-        for i in range(int(st.session_state.get('num_map_points', 3))):
-            with st.expander(f"Punkt {i+1}", expanded=True):
-                if f'map_pt_name_{i}' not in st.session_state: st.session_state[f'map_pt_name_{i}'] = f'Punkt {i+1}'
-                if f'map_conn_{i}' not in st.session_state: st.session_state[f'map_conn_{i}'] = 'Brak'
-                if f'map_pt_sym_{i}' not in st.session_state: st.session_state[f'map_pt_sym_{i}'] = False
-                if f'map_pt_x_{i}' not in st.session_state: st.session_state[f'map_pt_x_{i}'] = 15
-                if f'map_pt_y_{i}' not in st.session_state: st.session_state[f'map_pt_y_{i}'] = 10
-                
-                st.text_input("Nazwa (np. Rzym, Hiszpania):", key=f"map_pt_name_{i}")
-                conn_opts = ["Brak", "Przejazd (Linia ciągła)", "Przelot (Linia przerywana + Samolot)"]
-                st.selectbox("Połączenie z NASTĘPNYM punktem:", conn_opts, key=f"map_conn_{i}")
-                
-                pt_sym = st.checkbox("Punkt oddalony (symboliczny - np. wylot z Polski)", key=f"map_pt_sym_{i}")
-                if pt_sym:
-                    c1, c2 = st.columns(2)
-                    c1.slider("Ręczna pozycja X (lewo-prawo) %:", 0, 100, key=f"map_pt_x_{i}")
-                    c2.slider("Ręczna pozycja Y (góra-dół) %:", 0, 100, key=f"map_pt_y_{i}")
-                    
-                points_data.append({
-                    'name': st.session_state[f"map_pt_name_{i}"], 
-                    'conn': st.session_state[f"map_conn_{i}"], 
-                    'symbolic': st.session_state[f"map_pt_sym_{i}"], 
-                    'x': st.session_state[f"map_pt_x_{i}"], 
-                    'y': st.session_state[f"map_pt_y_{i}"]
-                })
-
-        if st.button("GENERUJ MAPĘ AUTOMATYCZNIE", type="primary", use_container_width=True):
-            with st.spinner("Pobieranie i renderowanie danych..."):
-                country = st.session_state.get('country_name', '')
-                valid_pts = []
-                for p in points_data:
-                    nm = p['name'].strip()
-                    if not nm: continue
-                    if p['symbolic']: 
-                        valid_pts.append({'name': nm, 'conn': p['conn'], 'symbolic': True, 'x': p['x'], 'y': p['y']})
-                    else:
-                        lat, lon = geocode_place(nm, country)
-                        if lat is None: lat, lon = geocode_place(nm)
-                        if lat is not None: 
-                            valid_pts.append({'name': nm, 'conn': p['conn'], 'symbolic': False, 'lat': lat, 'lon': lon})
-                
-                if valid_pts:
-                    try:
-                        bg_b64, final_pts = generate_map_data(valid_pts, zoom=map_zoom)
-                        if bg_b64 is not None or final_pts:
-                            if bg_b64: st.session_state['img_map_bg_auto'] = bg_b64
-                            st.session_state['auto_map_points'] = final_pts
-                            st.success("Mapa wygenerowana pomyślnie.")
-                            st.rerun()
-                    except Exception: 
-                        st.error("Błąd podczas generowania mapy.")
-
-    elif page == "Jak lecimy?":
-        l_keys = ['l_hide', 'l_przesiadka', 'l_port', 'l_czas', 'l_overline', 'l_main', 'l_sub', 'm_route', 'm_luggage', 'f1', 'f2', 'f3', 'f4', 'l_desc', 'l_extra', 'img_hero_l']
-        section_template_manager(l_keys, "LOT", "jak-lecimy", "lot")
-
-        st.checkbox("Ukryj ten slajd w PDF", key="l_hide")
-        st.text_input("Mały nadtytuł:", key="l_overline")
-        st.text_input("Tytuł (H1):", key="l_main")
-        for k, l in [('l_sub','Podtytuł'), ('m_route','Trasa'), ('m_luggage','Bagaż'), ('f1','Lot 1'), ('f2','Lot 2')]: 
-            st.text_input(l, key=k)
-        
-        if st.checkbox("Lot z przesiadką", key="l_przesiadka"):
-            st.markdown("<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; letter-spacing: 1px;'>DANE PRZESIADKI I KOLEJNE ODCINKI LOTU</div>", unsafe_allow_html=True)
-            c1, c2 = st.columns(2)
-            c1.text_input("Port przesiadkowy:", key="l_port")
-            c2.text_input("Długość przesiadki:", key="l_czas")
-            for k, l in [('f3','Lot 3'), ('f4','Lot 4')]: 
-                st.text_input(l, key=k)
-
-        for k, l in [('l_desc','Opis'), ('l_extra','Dodatkowe info')]: 
-            st.text_area(l, key=k)
-            
-        u5 = st.file_uploader("Foto Samolotu", key="lot_hero")
-        if u5: st.session_state['img_hero_l'] = optimize_img(u5.getvalue())
-
-    elif page == "Zakwaterowanie":
-        st.session_state['num_hotels'] = st.number_input("Liczba hoteli do wyboru:", 1, 3, value=int(st.session_state.get('num_hotels', 1)), step=1)
-        for i in range(int(st.session_state.get('num_hotels', 1))):
-            with st.expander(f"Hotel {i+1}"):
-                st.button("POKAŻ PODGLĄD", key=f"btn_show_hot_{i}", on_click=set_focus, args=(f"slide-hotel-{i}",), use_container_width=True)
-                
-                if f'h_hide_{i}' not in st.session_state: st.session_state[f'h_hide_{i}'] = False
-                if f'h_overline_{i}' not in st.session_state: st.session_state[f'h_overline_{i}'] = 'ZAKWATEROWANIE'
-                if f'h_title_{i}' not in st.session_state: st.session_state[f'h_title_{i}'] = f'NAZWA HOTELU {i+1} 5*'
-                if f'h_subtitle_{i}' not in st.session_state: st.session_state[f'h_subtitle_{i}'] = 'Komfort i elegancja na najwyższym poziomie'
-                if f'h_url_{i}' not in st.session_state: st.session_state[f'h_url_{i}'] = 'www.przykładowy-hotel.com'
-                if f'h_booking_{i}' not in st.session_state: st.session_state[f'h_booking_{i}'] = '8.9'
-                if f'h_amenities_{i}' not in st.session_state: st.session_state[f'h_amenities_{i}'] = ["Basen", "SPA", "Wi-Fi", "Restauracja", "Plaża"]
-                if f'h_text_{i}' not in st.session_state: st.session_state[f'h_text_{i}'] = 'Zapewniamy zakwaterowanie w starannie wyselekcjonowanym hotelu.'
-                if f'h_advantages_{i}' not in st.session_state: st.session_state[f'h_advantages_{i}'] = 'Położenie tuż przy prywatnej plaży'
-                
-                h_keys = [f'h_hide_{i}', f'h_overline_{i}', f'h_title_{i}', f'h_subtitle_{i}', f'h_url_{i}', f'h_booking_{i}', f'h_amenities_{i}', f'h_text_{i}', f'h_advantages_{i}', f'img_hotel_1_{i}', f'img_hotel_1b_{i}', f'img_hotel_2_{i}', f'img_hotel_3_{i}']
-                section_template_manager(h_keys, "HOT", st.session_state.get(f'h_title_{i}', f'hotel-{i+1}'), f"hot_{i}", index=i)
-
-                st.checkbox("Ukryj ten slajd w PDF", key=f"h_hide_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                st.text_input("Mały nadtytuł:", key=f"h_overline_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                st.text_area("Nazwa hotelu (H1):", key=f"h_title_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                st.text_input("Podtytuł:", key=f"h_subtitle_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                c1, c2 = st.columns(2)
-                c1.text_input("Strona www:", key=f"h_url_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                c2.text_input("Ocena Booking.com:", key=f"h_booking_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                st.multiselect("Udogodnienia (ikonki):", list(hotel_icons.keys()), key=f"h_amenities_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                st.text_area("Opis hotelu:", height=100, key=f"h_text_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                st.text_area("Atuty hotelu (nowa linia = nowy punkt):", height=100, key=f"h_advantages_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                
-                c_left1, c_left2 = st.columns(2)
-                u_h1 = c_left1.file_uploader("Zdj. Lewe Górne (poziome)", key=f"uh1_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                if u_h1: st.session_state[f'img_hotel_1_{i}'] = optimize_img(u_h1.getvalue())
-                u_h1b = c_left2.file_uploader("Zdj. Lewe Dolne (poziome)", key=f"uh1b_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                if u_h1b: st.session_state[f'img_hotel_1b_{i}'] = optimize_img(u_h1b.getvalue())
-                
-                c3, c4 = st.columns(2)
-                u_h2 = c3.file_uploader("Zdj. Dolne 1 (poziome)", key=f"uh2_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                if u_h2: st.session_state[f'img_hotel_2_{i}'] = optimize_img(u_h2.getvalue())
-                u_h3 = c4.file_uploader("Zdj. Dolne 2 (poziome)", key=f"uh3_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                if u_h3: st.session_state[f'img_hotel_3_{i}'] = optimize_img(u_h3.getvalue())
-
-    elif page == "Program Wyjazdu":
-        st.checkbox("Ukryj CAŁĄ sekcję Programu w PDF", key="prg_hide")
-        st.session_state['num_days'] = st.number_input("Ilość dni:", 1, 15, value=int(st.session_state.get('num_days', 5)), step=1)
-        st.date_input("Data startu:", key="p_start_dt")
-        for d in range(int(st.session_state.get('num_days', 5))):
-            with st.expander(f"Dzień {d+1}"):
-                if f"attr_{d}" not in st.session_state: st.session_state[f"attr_{d}"] = ""
-                if f"desc_{d}" not in st.session_state: st.session_state[f"desc_{d}"] = ""
-                
-                d_keys = [f'img_d_{d}', f'attr_{d}', f'desc_{d}']
-                section_template_manager(d_keys, "PRG", f"Dzien_{d+1}", f"prg_{d}", index=d)
-
-                ud = st.file_uploader(f"Foto D{d+1} (16:9)", key=f"prg_img_{d}")
-                if ud: st.session_state[f"img_d_{d}"] = optimize_img(ud.getvalue())
-                st.text_input(f"Highlights D{d+1}", key=f"attr_{d}")
-                st.text_area(f"Opis D{d+1}", key=f"desc_{d}")
-
-    elif page == "Opis miejsc":
-        day_options_global = build_day_options(
-            st.session_state.get('p_start_dt', date.today()),
-            int(st.session_state.get('num_days', 5))
-        )
-        st.session_state['num_places'] = st.number_input("Liczba miejsc:", 0, 20, value=int(st.session_state.get('num_places', 0)), step=1)
-        for i in range(int(st.session_state.get('num_places', 0))):
-            if f"pmain_{i}" not in st.session_state: st.session_state[f"pmain_{i}"] = ""
-            if f"psub_{i}" not in st.session_state: st.session_state[f"psub_{i}"] = ""
-            if f"pday_{i}" not in st.session_state: st.session_state[f"pday_{i}"] = "Brak przypisania"
-            if f"popis_{i}" not in st.session_state: st.session_state[f"popis_{i}"] = ""
-            if f"pfacts_{i}" not in st.session_state: st.session_state[f"pfacts_{i}"] = "Czas przelotu: 7 h\nRóżnica czasu: +4h 30min\nStolica: Nowe Delhi\nKlimat: zwrotnikowy\nWaluta: rupia indyjska"
-            if f"phide_{i}" not in st.session_state: st.session_state[f"phide_{i}"] = False
-            
-            st.session_state[f"pmain_{i}"] = clean_str(st.session_state.get(f"pmain_{i}"))
-            st.session_state[f"psub_{i}"] = clean_str(st.session_state.get(f"psub_{i}"))
-            st.session_state[f"popis_{i}"] = clean_str(st.session_state.get(f"popis_{i}"))
-            
-            pmain_val = st.session_state[f"pmain_{i}"]
-            
-            with st.expander(f"Miejsce {i+1}"):
-                st.button("POKAŻ PODGLĄD", key=f"btn_show_place_{i}", on_click=set_focus, args=(f"place_{i}",), use_container_width=True)
-                
-                p_keys = [f'phide_{i}', f'pover_{i}', f'pmain_{i}', f'psub_{i}', f'pday_{i}', f'pfacts_{i}', f'popis_{i}', f'pimg1_{i}', f'pimg2_{i}']
-                section_template_manager(p_keys, "MIE", pmain_val if pmain_val else f"Miejsce_{i+1}", f"plc_{i}", index=i)
-
-                st.checkbox("Ukryj ten slajd w PDF", key=f"phide_{i}", on_change=set_focus, args=(f"place_{i}",))
-                st.text_input("Mały nadtytuł:", value=st.session_state.get(f"pover_{i}", "NASZ KIERUNEK"), key=f"pover_{i}", on_change=set_focus, args=(f"place_{i}",))
-                st.text_input("Nazwa (H1):", key=f"pmain_{i}", on_change=set_focus, args=(f"place_{i}",))
-                st.text_input("Podtytuł:", key=f"psub_{i}", on_change=set_focus, args=(f"place_{i}",))
-                
-                curr_day = st.session_state.get(f"pday_{i}", "")
-                d_match = re.search(r'Dzień\s+(\d+)', curr_day)
-                day_idx = 0
-                if d_match:
-                    d_val = int(d_match.group(1))
-                    if 1 <= d_val < len(day_options_global):
-                        day_idx = d_val
-                
-                widget_key = f"pday_{i}"
-                if widget_key in st.session_state and st.session_state[widget_key] not in day_options_global:
-                    st.session_state[widget_key] = day_options_global[0]
-                
-                st.selectbox("Przypisz do dnia:", day_options_global, index=day_idx, key=widget_key, on_change=set_focus, args=(f"place_{i}",))
-                
-                st.text_area("Fakty (niebieska ramka, Format: 'Etykieta: Wartość'):", height=120, key=f"pfacts_{i}", on_change=set_focus, args=(f"place_{i}",))
-                st.text_area("Główny opis:", height=150, key=f"popis_{i}", on_change=set_focus, args=(f"place_{i}",))
-                
-                c1, c2 = st.columns(2)
-                up1 = c1.file_uploader("Foto Pionowe (lewe)", key=f"plc_img1_{i}", on_change=set_focus, args=(f"place_{i}",))
-                if up1: st.session_state[f"pimg1_{i}"] = optimize_img(up1.getvalue())
-                up2 = c2.file_uploader("Foto Kwadrat (środek)", key=f"plc_img2_{i}", on_change=set_focus, args=(f"place_{i}",))
-                if up2: st.session_state[f"pimg2_{i}"] = optimize_img(up2.getvalue())
-
-    elif page == "Opis atrakcji":
-        day_options_global = build_day_options(
-            st.session_state.get('p_start_dt', date.today()),
-            int(st.session_state.get('num_days', 5))
-        )
-        st.session_state['num_attr'] = st.number_input("Ilość atrakcji:", 1, 20, value=int(st.session_state.get('num_attr', 1)), step=1)
-        for i in range(int(st.session_state.get('num_attr', 1))):
-            if f"amain_{i}" not in st.session_state: st.session_state[f"amain_{i}"] = ""
-            if f"asub_{i}" not in st.session_state: st.session_state[f"asub_{i}"] = ""
-            if f"aday_{i}" not in st.session_state: st.session_state[f"aday_{i}"] = "Brak przypisania"
-            if f"atype_{i}" not in st.session_state: st.session_state[f"atype_{i}"] = "Atrakcja"
-            if f"aopis_{i}" not in st.session_state: st.session_state[f"aopis_{i}"] = ""
-            if f"ahide_{i}" not in st.session_state: st.session_state[f"ahide_{i}"] = False
-            
-            st.session_state[f"amain_{i}"] = clean_str(st.session_state.get(f"amain_{i}"))
-            st.session_state[f"asub_{i}"] = clean_str(st.session_state.get(f"asub_{i}"))
-            st.session_state[f"aopis_{i}"] = clean_str(st.session_state.get(f"aopis_{i}"))
-            
-            amain_val = st.session_state[f"amain_{i}"]
-            
-            with st.expander(f"Atrakcja {i+1}"):
-                st.button("POKAŻ PODGLĄD", key=f"btn_show_attr_{i}", on_click=set_focus, args=(f"attr_{i}",), use_container_width=True)
-                
-                a_keys = [f'ahide_{i}', f'amain_{i}', f'asub_{i}', f'aday_{i}', f'atype_{i}', f'aopis_{i}', f'ah_{i}', f'at1_{i}', f'at2_{i}', f'at3_{i}']
-                section_template_manager(a_keys, "ATR", amain_val if amain_val else f"Atrakcja_{i+1}", f"atr_{i}", index=i)
-
-                st.checkbox("Ukryj ten slajd w PDF", key=f"ahide_{i}", on_change=set_focus, args=(f"attr_{i}",))
-                st.text_input("Nazwa:", key=f"amain_{i}", on_change=set_focus, args=(f"attr_{i}",))
-                st.text_input("Podtytuł:", key=f"asub_{i}", on_change=set_focus, args=(f"attr_{i}",))
-                
-                curr_day = st.session_state.get(f"aday_{i}", "")
-                d_match = re.search(r'Dzień\s+(\d+)', curr_day)
-                day_idx = 0
-                if d_match:
-                    d_val = int(d_match.group(1))
-                    if 1 <= d_val < len(day_options_global):
-                        day_idx = d_val
-                
-                widget_key = f"aday_{i}"
-                if widget_key in st.session_state and st.session_state[widget_key] not in day_options_global:
-                    st.session_state[widget_key] = day_options_global[0]
-                
-                st.selectbox("Przypisz do dnia:", day_options_global, index=day_idx, key=widget_key, on_change=set_focus, args=(f"attr_{i}",))
-                st.selectbox("Ikona:", list(icon_map.keys()), key=f"atype_{i}", on_change=set_focus, args=(f"attr_{i}",))
-                st.text_area("Opis:", key=f"aopis_{i}", on_change=set_focus, args=(f"attr_{i}",))
-                
-                upa = st.file_uploader("Foto Główne", key=f"atr_hero_{i}", on_change=set_focus, args=(f"attr_{i}",))
-                if upa: st.session_state[f"ah_{i}"] = optimize_img(upa.getvalue())
-                c1, c2, c3 = st.columns(3)
-                uat1 = c1.file_uploader("Fot. 1", key=f"atr_th1_{i}", on_change=set_focus, args=(f"attr_{i}",))
-                if uat1: st.session_state[f"at1_{i}"] = optimize_img(uat1.getvalue())
-                uat2 = c2.file_uploader("Fot. 2", key=f"atr_th2_{i}", on_change=set_focus, args=(f"attr_{i}",))
-                if uat2: st.session_state[f"at2_{i}"] = optimize_img(uat2.getvalue())
-                uat3 = c3.file_uploader("Fot. 3", key=f"atr_th3_{i}", on_change=set_focus, args=(f"attr_{i}",))
-                if uat3: st.session_state[f"at3_{i}"] = optimize_img(uat3.getvalue())
-
-    elif page == "Aplikacja (Komunikacja)":
-        app_keys = ['app_hide', 'app_overline', 'app_title', 'app_subtitle', 'app_features', 'img_app_bg', 'img_app_screen']
-        section_template_manager(app_keys, "APP", "Aplikacja", "app")
-
-        st.checkbox("Ukryj slajd", key="app_hide")
-        st.text_input("Mały nadtytuł:", key="app_overline")
-        st.text_area("Główny tytuł H1:", key="app_title")
-        st.text_input("Podtytuł:", key="app_subtitle")
-        st.text_area("Punkty na liście:", height=200, key="app_features")
-        
-        c1, c2 = st.columns(2)
-        u_bg = c1.file_uploader("Zdj. tła (Prawa str.)", key="app_bg")
-        if u_bg: st.session_state['img_app_bg'] = optimize_img(u_bg.getvalue())
-        u_sc = c2.file_uploader("Ekran Aplikacji", key="app_sc")
-        if u_sc: st.session_state['img_app_screen'] = optimize_img(u_sc.getvalue())
-
-    elif page == "Materiały Brandingowe":
-        bra_keys = ['brand_hide', 'brand_overline', 'brand_title', 'brand_subtitle', 'brand_features', 'img_brand_1', 'img_brand_2', 'img_brand_3']
-        section_template_manager(bra_keys, "BRA", "Branding", "bra")
-
-        st.checkbox("Ukryj slajd", key="brand_hide")
-        st.text_input("Mały nadtytuł:", key="brand_overline")
-        st.text_area("Główny tytuł H1:", key="brand_title")
-        st.text_input("Podtytuł:", key="brand_subtitle")
-        st.text_area("Punkty na liście (Enter = nowy punkt):", height=300, key="brand_features")
-        
-        c1, c2, c3 = st.columns(3)
-        u1 = c1.file_uploader("Zdj 1 (Lewa góra)", key="bra_img_1")
-        if u1: st.session_state['img_brand_1'] = optimize_img(u1.getvalue())
-        u2 = c2.file_uploader("Zdj 2 (Prawa góra)", key="bra_img_2")
-        if u2: st.session_state['img_brand_2'] = optimize_img(u2.getvalue())
-        u3 = c3.file_uploader("Zdj 3 (Dół - podzielone)", key="bra_img_3")
-        if u3: st.session_state['img_brand_3'] = optimize_img(u3.getvalue())
-
-    elif page == "Wirtualny Asystent":
-        va_keys = ['va_hide', 'va_overline', 'va_title', 'va_subtitle', 'va_text', 'img_va_1', 'img_va_2', 'img_va_3']
-        section_template_manager(va_keys, "VA", "Asystent", "va")
-
-        st.checkbox("Ukryj slajd", key="va_hide")
-        st.text_input("Mały nadtytuł:", key="va_overline")
-        st.text_area("Główny tytuł H1:", key="va_title")
-        st.text_input("Podtytuł:", key="va_subtitle")
-        st.text_area("Treść oferty:", height=300, key="va_text")
-        
-        c1, c2, c3 = st.columns(3)
-        u1 = c1.file_uploader("Zdj 1 (Szerokie)", key="va_img_1")
-        if u1: st.session_state['img_va_1'] = optimize_img(u1.getvalue())
-        u2 = c2.file_uploader("Zdj 2 (Lewy dół)", key="va_img_2")
-        if u2: st.session_state['img_va_2'] = optimize_img(u2.getvalue())
-        u3 = c3.file_uploader("Zdj 3 (Prawy dół)", key="va_img_3")
-        if u3: st.session_state['img_va_3'] = optimize_img(u3.getvalue())
-
-    elif page == "Pillow Gifts":
-        gif_keys = ['pg_hide', 'pg_overline', 'pg_title', 'pg_subtitle', 'pg_text', 'img_pg_1', 'img_pg_2', 'img_pg_3']
-        section_template_manager(gif_keys, "GIF", "Gifts", "gif")
-
-        st.checkbox("Ukryj slajd", key="pg_hide")
-        st.text_input("Mały nadtytuł:", key="pg_overline")
-        st.text_area("Główny tytuł H1:", key="pg_title")
-        st.text_input("Podtytuł:", key="pg_subtitle")
-        st.text_area("Treść oferty (obsługuje HTML):", height=300, key="pg_text")
-        
-        c1, c2, c3 = st.columns(3)
-        u1 = c1.file_uploader("Zdjęcie 1", key="pg_img_1")
-        if u1: st.session_state['img_pg_1'] = optimize_img(u1.getvalue())
-        u2 = c2.file_uploader("Zdjęcie 2 (Pionowe)", key="pg_img_2")
-        if u2: st.session_state['img_pg_2'] = optimize_img(u2.getvalue())
-        u3 = c3.file_uploader("Zdjęcie 3", key="pg_img_3")
-        if u3: st.session_state['img_pg_3'] = optimize_img(u3.getvalue())
-
-    elif page == "Kosztorys":
-        koszt_keys = ['koszt_hide_1', 'koszt_hide_2', 'koszt_title', 'koszt_pax', 'koszt_price', 'koszt_hotel', 'koszt_dbl', 'koszt_sgl', 'koszt_zawiera_1', 'koszt_zawiera_2', 'koszt_nie_zawiera', 'koszt_opcje', 'img_koszt_1', 'img_koszt_2']
-        section_template_manager(koszt_keys, "KOS", "Kosztorys", "koszt")
-        
-        c1, c2 = st.columns(2)
-        c1.checkbox("Ukryj CAŁY Kosztorys (Slajd 1 i 2)", key="koszt_hide_1")
-        c2.checkbox("Ukryj TYLKO Slajd 2 (Ciąg dalszy)", key="koszt_hide_2")
-        
-        st.text_input("Tytuł slajdu:", key="koszt_title")
-        
-        st.markdown("<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; letter-spacing: 1px;'>GŁÓWNE DANE TABELI</div>", unsafe_allow_html=True)
-        c1, c2 = st.columns(2)
-        c1.text_input("Wielkość grupy (np. 25):", key="koszt_pax")
-        c2.text_input("Cena (np. 4.990 zł / os.):", key="koszt_price")
-        st.text_input("Wybrany Hotel / Standard:", key="koszt_hotel")
-        
-        c1, c2 = st.columns(2)
-        c1.text_input("Ilość pokoi DBL (2-os.):", key="koszt_dbl")
-        c2.text_input("Ilość pokoi SGL (1-os.):", key="koszt_sgl")
-
-        st.markdown("<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; letter-spacing: 1px;'>AUTO-UZUPEŁNIANIE</div>", unsafe_allow_html=True)
-        if st.button("GENERUJ LISTĘ KOSZTÓW Z OFERTY", type="primary", use_container_width=True):
-            auto_generate_kosztorys()
-            st.success("Lista kosztów wygenerowana pomyślnie.")
-            st.rerun()
-
-        st.markdown("<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; letter-spacing: 1px;'>TREŚĆ KOSZTORYSU</div>", unsafe_allow_html=True)
-        st.text_area("Cena zawiera (Część 1 - Slajd 1):", height=200, key="koszt_zawiera_1")
-        st.text_area("Cena zawiera (Część 2 - Slajd 2):", height=150, key="koszt_zawiera_2")
-        st.text_area("Nie policzone w cenie:", height=100, key="koszt_nie_zawiera")
-        st.text_area("Koszty opcjonalne (zostaw puste, by ukryć):", height=100, key="koszt_opcje")
-
-        st.markdown("<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; letter-spacing: 1px;'>ZDJĘCIA</div>", unsafe_allow_html=True)
-        c1, c2 = st.columns(2)
-        u1 = c1.file_uploader("Zdjęcie (Slajd 1)", key="koszt_img_1")
-        if u1: st.session_state['img_koszt_1'] = optimize_img(u1.getvalue())
-        u2 = c2.file_uploader("Zdjęcie (Slajd 2)", key="koszt_img_2")
-        if u2: st.session_state['img_koszt_2'] = optimize_img(u2.getvalue())
-
-    elif page == "Co o nas mówią":
-        opi_keys = ['testim_hide', 'testim_overline', 'testim_title', 'testim_subtitle', 'img_testim_main', 'testim_count']
-        for i in range(st.session_state.get('testim_count', 3)):
-            opi_keys.extend([f'testim_img_{i}', f'testim_head_{i}', f'testim_quote_{i}', f'testim_author_{i}', f'testim_role_{i}'])
-        section_template_manager(opi_keys, "OPI", "Opinie", "opi")
-
-        st.checkbox("Ukryj ten slajd w PDF", key="testim_hide")
-        st.text_input("Mały nadtytuł:", key="testim_overline")
-        st.text_area("Główny tytuł H1:", key="testim_title")
-        st.text_area("Podtytuł:", key="testim_subtitle")
-        
-        u_main = st.file_uploader("Zdjęcie główne slajdu (z prawej strony)", key="opi_main")
-        if u_main: st.session_state['img_testim_main'] = optimize_img(u_main.getvalue())
-        
-        st.session_state['testim_count'] = st.number_input("Liczba opinii:", 1, 4, value=int(st.session_state.get('testim_count', 3)), step=1)
-        for i in range(int(st.session_state.get('testim_count', 3))):
-            with st.expander(f"Opinia {i+1}"):
-                if f"testim_head_{i}" not in st.session_state: st.session_state[f"testim_head_{i}"] = ""
-                if f"testim_quote_{i}" not in st.session_state: st.session_state[f"testim_quote_{i}"] = ""
-                if f"testim_author_{i}" not in st.session_state: st.session_state[f"testim_author_{i}"] = ""
-                if f"testim_role_{i}" not in st.session_state: st.session_state[f"testim_role_{i}"] = ""
-                
-                u_testim = st.file_uploader("Zdjęcie / Logo", key=f"opi_img_{i}")
-                if u_testim: st.session_state[f"testim_img_{i}"] = optimize_img(u_testim.getvalue())
-                
-                st.text_input("Nagłówek", key=f"testim_head_{i}")
-                st.text_area("Treść rekomendacji", key=f"testim_quote_{i}")
-                c1, c2 = st.columns(2)
-                c1.text_input("Autor (Pogrubiony)", key=f"testim_author_{i}")
-                c2.text_input("Stanowisko", key=f"testim_role_{i}")
-
-    elif page == "O Nas (Zespół)":
-        nas_keys = ['about_hide', 'about_overline', 'about_title', 'about_sub', 'about_desc', 'about_panel_title', 'about_panel_text', 'team_count', 'img_about_clients']
-        for i in range(st.session_state.get('team_count', 2)):
-            nas_keys.extend([f't_name_{i}', f't_role_{i}', f't_desc_{i}', f't_img_{i}'])
-        section_template_manager(nas_keys, "NAS", "Zespol", "nas")
-
-        st.checkbox("Ukryj ten slajd w PDF", key="about_hide")
-        st.text_input("Mały nadtytuł:", key="about_overline")
-        st.text_area("Główny tytuł H1:", key="about_title")
-        st.text_input("Podtytuł:", key="about_sub")
-        st.text_area("Opis główny:", height=150, key="about_desc")
-        
-        u_clients = st.file_uploader("Zdjęcie prawe (Klienci / Logotypy)", key="nas_clients")
-        if u_clients: st.session_state['img_about_clients'] = optimize_img(u_clients.getvalue())
-        
-        st.session_state['team_count'] = st.number_input("Liczba osób w zespole:", 1, 4, value=int(st.session_state.get('team_count', 2)), step=1)
-        for i in range(int(st.session_state.get('team_count', 2))):
-            with st.expander(f"Osoba {i+1}"):
-                if f"t_name_{i}" not in st.session_state: st.session_state[f"t_name_{i}"] = ""
-                if f"t_role_{i}" not in st.session_state: st.session_state[f"t_role_{i}"] = ""
-                if f"t_desc_{i}" not in st.session_state: st.session_state[f"t_desc_{i}"] = ""
-                
-                st.text_input("Imię i nazwisko", key=f"t_name_{i}")
-                st.text_input("Stanowisko", key=f"t_role_{i}")
-                st.text_area("Krótki opis", key=f"t_desc_{i}")
-                u_team = st.file_uploader("Zdjęcie (okrągłe)", key=f"nas_img_{i}")
-                if u_team: st.session_state[f"t_img_{i}"] = optimize_img(u_team.getvalue())
-
-    elif page == "Wygląd i Kolory":
-        c1, c2, c3 = st.columns([2, 1, 1])
-        c1.selectbox("Czcionka H1", FONTS_LIST, key="font_h1")
-        c2.color_picker("Kolor H1", key="color_h1")
-        c3.number_input("Rozmiar (px)", key="font_size_h1")
-
-        c1, c2, c3 = st.columns([2, 1, 1])
-        c1.selectbox("Czcionka H2", FONTS_LIST, key="font_h2")
-        c2.color_picker("Kolor H2", key="color_h2")
-        c3.number_input("Rozmiar (px)", key="font_size_h2")
-
-        c1, c2, c3 = st.columns([2, 1, 1])
-        c1.selectbox("Czcionka Podt.", FONTS_LIST, key="font_sub")
-        c2.color_picker("Kolor Podt.", key="color_sub")
-        c3.number_input("Rozmiar (px)", key="font_size_sub")
-
-        c1, c2, c3 = st.columns([2, 1, 1])
-        c1.selectbox("Czcionka Tekstu", FONTS_LIST, key="font_text")
-        c2.color_picker("Kolor Tekstu", key="color_text")
-        c3.number_input("Rozmiar (px)", key="font_size_text")
-
-        c1, c2, c3 = st.columns([2, 1, 1])
-        c1.selectbox("Czcionka Wyr.", FONTS_LIST, key="font_metric")
-        c2.color_picker("Kolor Wyr.", key="color_metric")
-        c3.number_input("Rozmiar (px)", key="font_size_metric")
-
-        st.color_picker("Akcent", key="color_accent")
-
-    elif page == "Zapisz / Wczytaj Projekt":
-        proj = {}
-        for k, v in st.session_state.items():
-            if k in ['client_mode', 'scroll_target', 'last_page', 'ready_export_html', 'show_link_info']: continue
-            if k.startswith(('btn_', 'up_', 'uh', 'plc_img', 'atr_hero', 'atr_th', 'bra_img', 'va_img', 'pg_img', 'koszt_img', 'opi_main', 'opi_img', 'nas_clients', 'nas_img', 'kie_hero', 'kie_th', 'tyt_hero', 'tyt_logo', 'lot_hero', 'app_bg', 'app_sc', '_')): continue
-            if "UploadedFile" in str(type(v)): continue
-            
-            if isinstance(v, bytes):
-                proj[k] = base64.b64encode(v).decode('utf-8')
-            elif isinstance(v, (date, datetime)):
-                proj[k] = v.isoformat()
-            elif isinstance(v, (str, int, float, bool, list, dict)):
-                proj[k] = v
-
-        st.download_button("POBIERZ PLIK PROJEKTU (JSON)", json.dumps(proj), get_project_filename(), use_container_width=True)
-        
-        st.markdown("---")
-        st.markdown("**Wczytaj istniejący projekt z dysku (.json)**")
-        upf = st.file_uploader("Wgraj projekt z dysku (.json)", type=['json'], key="up_export", label_visibility="collapsed")
-        if upf and st.button("WCZYTAJ PROJEKT", use_container_width=True, type="primary"):
-            data = json.load(upf)
-            load_project_data(data)
-            st.rerun()
-
-    # --- SZYBKIE AKCJE (ZAWSZE WIDOCZNE NA DOLE PANELU) ---
-    st.divider()
-    st.markdown("<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;'>SZYBKIE AKCJE (CAŁA OFERTA)</div>", unsafe_allow_html=True)
-    
-    if st.button("PRZYGOTUJ OFERTĘ DO POBRANIA", type="secondary", use_container_width=True):
-        with st.spinner("Generowanie ostatecznego pliku oferty..."):
-            export_content = build_presentation(export_mode=True)
-            client_html = f"""<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8"><title>{st.session_state.get('t_main')}</title><style>body{{background:#f4f5f7;margin:0;}} .presentation-wrapper{{height:100vh;overflow-y:auto;scroll-snap-type:y proximity;}} .client-export-btn{{position:fixed;top:20px;left:20px;z-index:9999;background:{st.session_state.get('color_accent')};color:white;border:none;padding:15px 25px;border-radius:4px;font-family:sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.3);}} @media print{{.client-export-btn{{display:none !important;}} .presentation-wrapper{{height:auto !important;overflow:visible !important;}}}}</style>{get_local_css(True)}</head><body><button class="client-export-btn" onclick="window.print()">POBIERZ JAKO PDF</button><div class="presentation-wrapper">{export_content}</div></body></html>"""
-            st.session_state['ready_export_html'] = client_html
-            st.rerun()
-            
-    if st.session_state.get('ready_export_html'):
-        st.download_button(
-            "POBIERZ GOTOWY PLIK HTML", 
-            st.session_state['ready_export_html'], 
-            get_project_filename().replace('.json', '.html'), 
-            "text/html", 
-            type="primary", 
-            use_container_width=True
-        )
-    
-    if st.button("GENERUJ LINK DO OFERTY ONLINE", use_container_width=True):
-        st.session_state['show_link_info'] = not st.session_state.get('show_link_info', False)
-        
-    if st.session_state.get('show_link_info', False):
-        st.info("Wyeksportuj plik HTML za pomocą przycisku wyżej i umieść go na serwerze swojej agencji. Plik jest w pełni autonomiczną stroną WWW – gotowym, bezpiecznym linkiem dla klienta.")
-    
-    if st.button("PODGLĄD PEŁNOEKRANOWY", use_container_width=True): 
-        st.session_state['client_mode'] = True
-        st.rerun()
+    return "".join(hp)
