@@ -1316,28 +1316,34 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     if 'scroll_target' in s:
         s['scroll_target'] = ""
 
-    scroll_js = ""
-    if tid and not s.get('client_mode'):
-        scroll_js = f"""
-        <script>
-        (function() {{
-            var targetId = "{tid}";
-            function doScroll() {{
-                var wrapper = document.getElementById('main-wrapper');
-                var el = document.getElementById(targetId);
-                if (el && wrapper) {{
-                    var offset = el.offsetTop - (wrapper.clientHeight / 2) + (el.offsetHeight / 2);
-                    wrapper.scrollTo({{ top: offset, behavior: 'smooth' }});
-                }}
-            }}
-            doScroll();
-            setTimeout(doScroll, 200);
-            setTimeout(doScroll, 600);
-        }})();
-        </script>"""
-
     css_str = get_local_css(return_str=True)
     slides_html = "".join(hp)
+
+    # Scroll działa w dwóch krokach:
+    # 1. Natychmiast (behavior:'instant') przeskakujemy do celu — brak "flash" na górę
+    # 2. Jeśli użytkownik kliknął konkretną sekcję, robimy smooth scroll do niej
+    # Trick: scroll-behavior:smooth jest na wrapperze, więc najpierw go wyłączamy,
+    # skaczemy natychmiast, potem płynnie do celu (lub zostajemy — to ten sam element).
+    scroll_js = f"""
+    <script>
+    (function() {{
+        var targetId = "{tid if tid else ''}";
+        var wrapper = document.getElementById('main-wrapper');
+        if (!wrapper) return;
+
+        function scrollTo(id, smooth) {{
+            var el = document.getElementById(id);
+            if (!el) return;
+            var offset = el.offsetTop - (wrapper.clientHeight / 2) + (el.offsetHeight / 2);
+            wrapper.scrollTo({{ top: Math.max(0, offset), behavior: smooth ? 'smooth' : 'instant' }});
+        }}
+
+        if (targetId) {{
+            // Kliknięto sekcję — skocz od razu bez animacji
+            scrollTo(targetId, false);
+        }}
+    }})();
+    </script>"""
 
     full_html = f"""<!DOCTYPE html>
 <html>
@@ -1365,10 +1371,4 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
 </body>
 </html>"""
 
-    # Wysokość = 100vh okna przeglądarki — components.html potrzebuje px
-    # Używamy dużej wartości; scrollbar wewnątrz kontenera obsługuje resztę
-    # height musi pokryć całe okno przeglądarki.
-    # Streamlit Community Cloud: components.html jest iframe — dajemy mu
-    # wysokość okna (900px jako bezpieczna wartość dla Full HD).
-    # Wewnętrzny .presentation-wrapper sam scrolluje swoje slajdy.
     components.html(full_html, height=900, scrolling=False)
