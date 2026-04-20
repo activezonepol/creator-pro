@@ -1319,29 +1319,37 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     css_str = get_local_css(return_str=True)
     slides_html = "".join(hp)
 
-    # Scroll działa w dwóch krokach:
-    # 1. Natychmiast (behavior:'instant') przeskakujemy do celu — brak "flash" na górę
-    # 2. Jeśli użytkownik kliknął konkretną sekcję, robimy smooth scroll do niej
-    # Trick: scroll-behavior:smooth jest na wrapperze, więc najpierw go wyłączamy,
-    # skaczemy natychmiast, potem płynnie do celu (lub zostajemy — to ten sam element).
     scroll_js = f"""
     <script>
     (function() {{
         var targetId = "{tid if tid else ''}";
         var wrapper = document.getElementById('main-wrapper');
-        if (!wrapper) return;
+        if (!wrapper || !targetId) return;
 
-        function scrollTo(id, smooth) {{
+        function getOffset(id) {{
             var el = document.getElementById(id);
-            if (!el) return;
-            var offset = el.offsetTop - (wrapper.clientHeight / 2) + (el.offsetHeight / 2);
-            wrapper.scrollTo({{ top: Math.max(0, offset), behavior: smooth ? 'smooth' : 'instant' }});
+            if (!el) return null;
+            return Math.max(0, el.offsetTop - (wrapper.clientHeight / 2) + (el.offsetHeight / 2));
         }}
 
-        if (targetId) {{
-            // Kliknięto sekcję — skocz od razu bez animacji
-            scrollTo(targetId, false);
-        }}
+        // Iframe po rerunie startuje od scrollTop=0 i jest niewidoczny (opacity:0).
+        // 1. Instant skok do slajdu tuż przed celem (jeden slajd wyżej)
+        // 2. Ciało staje się widoczne (opacity:1, transition 0.15s)
+        // 3. Smooth scroll do właściwego slajdu
+        // Efekt: widoczne jest tylko krótkie płynne przewinięcie o jeden slajd.
+        var targetOffset = getOffset(targetId);
+        if (targetOffset === null) return;
+
+        // Skocz instant do pozycji jeden ekran przed celem
+        var slideH = wrapper.clientHeight;
+        wrapper.scrollTo({{ top: Math.max(0, targetOffset - slideH), behavior: 'instant' }});
+
+        // Pokaż ciało i płynnie dojedź do celu
+        document.body.style.transition = 'opacity 0.15s ease';
+        document.body.style.opacity = '1';
+        setTimeout(function() {{
+            wrapper.scrollTo({{ top: targetOffset, behavior: 'smooth' }});
+        }}, 50);
     }})();
     </script>"""
 
@@ -1352,7 +1360,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
 {css_str}
 <style>
   @keyframes fadein {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
-  body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; animation: fadein 0.4s ease; }}
+  body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; opacity: 0; }}
   .presentation-wrapper {{
       height: 100vh;
       overflow-y: auto;
