@@ -750,58 +750,48 @@ def render_quick_actions():
 def render_main_preview():
     s = st.session_state
     
-    # Wstrzykujemy globalny CSS (aby tryb pełnoekranowy ukrywał panele Streamlit)
+    # 1. ZWYKŁY RENDER (Natywny HTML, BEZ ramki iframe)
     css_str = get_local_css(return_str=True)
-    st.markdown(css_str, unsafe_allow_html=True)
-    
-    # Budujemy HTML dla prezentacji
     html_content = build_presentation(current_page=s.get('last_page', 'Strona Tytułowa'))
+    
+    st.markdown(f'{css_str}\n<div class="presentation-wrapper" id="main-wrapper">{html_content}</div>', unsafe_allow_html=True)
 
-    # Logika wyliczania docelowego slajdu (id) do przewinięcia
+    # 2. LOGIKA ZNALEZIENIA ODPOWIEDNIEGO SLAJDU DO PRZEWINIĘCIA
     first_visible_place = next((i for i in range(int(s.get('num_places', 0))) if not s.get(f'phide_{i}')), None)
     pid = f"place_{first_visible_place}" if first_visible_place is not None else "slide-title"
+    
     first_visible_attr = next((i for i in range(int(s.get('num_attr', 1))) if not s.get(f'ahide_{i}')), None)
     fid = f"attr_{first_visible_attr}" if first_visible_attr is not None else "slide-title"
 
-    default_tid = {"Strona Tytułowa":"slide-title","Opis Kierunku":"slide-kierunek","Mapa Podróży":"slide-mapa","Jak lecimy?":"slide-loty","Zakwaterowanie":"slide-hotel-0","Program Wyjazdu":"slide-program","Opis miejsc":pid,"Opis atrakcji":fid,"Kosztorys":"slide-kosztorys-1","Aplikacja (Komunikacja)":"slide-app","Materiały Brandingowe":"slide-branding","Wirtualny Asystent":"slide-virtual-assistant","Pillow Gifts":"slide-pillow-gifts","Co o nas mówią":"slide-testimonials","O Nas (Zespół)":"slide-about"}.get(s.get('last_page', 'Strona Tytułowa'), "")
+    default_tid = {
+        "Strona Tytułowa": "slide-title", "Opis Kierunku": "slide-kierunek", 
+        "Mapa Podróży": "slide-mapa", "Jak lecimy?": "slide-loty", 
+        "Zakwaterowanie": "slide-hotel-0", "Program Wyjazdu": "slide-program", 
+        "Opis miejsc": pid, "Opis atrakcji": fid, 
+        "Kosztorys": "slide-kosztorys-1", "Aplikacja (Komunikacja)": "slide-app", 
+        "Materiały Brandingowe": "slide-branding", "Wirtualny Asystent": "slide-virtual-assistant", 
+        "Pillow Gifts": "slide-pillow-gifts", "Co o nas mówią": "slide-testimonials", 
+        "O Nas (Zespół)": "slide-about"
+    }.get(s.get('last_page', 'Strona Tytułowa'), "")
+    
     tid = s.get('scroll_target') or default_tid
 
-    # === ROZWIĄZANIE DLA CHMURY (STREAMLIT CLOUD) ===
-    # Pakujemy całą prezentację w niezależną ramkę iframe. 
-    # Dzięki temu skrypt przewijania działa na własnym dokumencie i omija blokady CORS przeglądarki!
-    
-    iframe_html = f'''
-    <!DOCTYPE html>
-    <html lang="pl">
-    <head>
-        <meta charset="UTF-8">
-        {css_str}
-        <style>
-            /* Resetujemy marginesy tła ramki */
-            body, html {{ margin: 0; padding: 0; height: 100%; overflow: hidden; }}
-            .presentation-wrapper {{ height: 100vh !important; }}
-        </style>
-    </head>
-    <body>
-        <div class="presentation-wrapper" id="main-wrapper">
-            {html_content}
-        </div>
-        <script>
-            // Czekamy ułamek sekundy na wyrenderowanie wszystkich obrazów i wymuszamy przewinięcie
+    # 3. WYMUSZENIE PRZEWIJANIA (HACK Z OPÓŹNIENIEM DLA CHMURY)
+    if tid and not s.get('client_mode', False):
+        # Skrypt z opóźnieniem 600ms pozwala Streamlitowi dokończyć renderowanie DOM.
+        js_code = f"""
             setTimeout(function() {{
                 var target = document.getElementById('{tid}');
-                if (target) {{
-                    target.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+                if (!target && window.parent) {{
+                    target = window.parent.document.getElementById('{tid}');
                 }}
-            }}, 400);
-        </script>
-    </body>
-    </html>
-    '''
-    
-    # Wyświetlamy hermetyczną ramkę. W trybie pełnoekranowym (dla klienta) dajemy wyższą wysokość.
-    height = 1200 if s.get('client_mode', False) else 850
-    components.html(iframe_html, height=height, scrolling=False)
+                if (target) {{
+                    target.scrollIntoView({{behavior: 'smooth', block: 'center'}});
+                }}
+            }}, 600);
+        """
+        # Bezpieczne wstrzyknięcie JS do bezpośredniego drzewa (DOM) poprzez "ślepy" obrazek
+        st.markdown(f'<img src="brak-url.jpg" onerror="{js_code}" style="display:none;">', unsafe_allow_html=True)
 
 def render_client_mode():
     accent_color = st.session_state.get('color_accent', '#FF6600')
