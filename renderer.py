@@ -1285,7 +1285,13 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         return "".join(hp)
 
     get_local_css()
-    st.markdown(f'<div class="presentation-wrapper" id="main-wrapper">{"".join(hp)}</div>', unsafe_allow_html=True)
+    # Otwieramy wrapper
+    st.markdown('<div class="presentation-wrapper" id="main-wrapper">', unsafe_allow_html=True)
+    # Każdy slajd osobnym st.markdown — unikamy limitu wielkości w Streamlit Cloud
+    for slide in hp:
+        st.markdown(slide, unsafe_allow_html=True)
+    # Zamykamy wrapper
+    st.markdown('</div>', unsafe_allow_html=True)
 
     first_visible_place = next(
         (i for i in range(s.get('num_places', 0)) if not s.get(f'phide_{i}')), None
