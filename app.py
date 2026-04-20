@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import json, base64, re, io, unicodedata
 from datetime import datetime, timedelta, date
 
@@ -169,7 +170,7 @@ def auto_generate_kosztorys():
     dbl, sgl = s.get('koszt_dbl', ''), s.get('koszt_sgl', '')
     part1.append(f"Zakwaterowanie w pokojach dwuosobowych ({dbl}) i jednoosobowych ({sgl})")
     part1.extend(["Wyżywienie wg programu", "Napoje wg programu", "Ubezpieczenie wersja MAX", "Transfery", "Woda podczas wycieczek i transferów", "Opieka profesjonalnego tour leadera Activezone"])
-    for i in range(s.get('num_attr', 1)):
+    for i in range(int(s.get('num_attr', 1))):
         if not s.get(f'ahide_{i}', False):
             name = str(s.get(f'amain_{i}', '')).strip()
             if name: part1.append(name)
@@ -247,7 +248,7 @@ def render_tab_map():
 
     st.markdown("<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; letter-spacing: 1px;'>AUTOMATYCZNY KREATOR MAPY</div>", unsafe_allow_html=True)
     map_zoom = st.slider("Przybliżenie mapy docelowej (Zoom):", 4, 10, key="map_zoom")
-    st.number_input("Liczba punktów na trasie:", 1, 10, step=1, key="num_map_points")
+    st.session_state['num_map_points'] = st.number_input("Liczba punktów na trasie:", 1, 10, value=int(st.session_state.get('num_map_points', 3)), step=1)
     
     points_data = []
     for i in range(int(st.session_state.get('num_map_points', 3))):
@@ -587,7 +588,6 @@ def render_tab_costs():
 
     st.markdown("<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; letter-spacing: 1px;'>AUTO-UZUPEŁNIANIE</div>", unsafe_allow_html=True)
     if st.button("GENERUJ LISTĘ KOSZTÓW Z OFERTY", type="primary", use_container_width=True):
-        from renderer import auto_generate_kosztorys
         auto_generate_kosztorys()
         st.success("Lista kosztów wygenerowana pomyślnie.")
         st.rerun()
@@ -778,7 +778,6 @@ def render_main_preview():
 
     # 3. WYMUSZENIE PRZEWIJANIA (HACK Z OPÓŹNIENIEM DLA CHMURY)
     if tid and not s.get('client_mode', False):
-        # Skrypt z opóźnieniem 600ms pozwala Streamlitowi dokończyć renderowanie DOM.
         js_code = f"""
             setTimeout(function() {{
                 var target = document.getElementById('{tid}');
@@ -790,7 +789,6 @@ def render_main_preview():
                 }}
             }}, 600);
         """
-        # Bezpieczne wstrzyknięcie JS do bezpośredniego drzewa (DOM) poprzez "ślepy" obrazek
         st.markdown(f'<img src="brak-url.jpg" onerror="{js_code}" style="display:none;">', unsafe_allow_html=True)
 
 def render_client_mode():
@@ -808,11 +806,13 @@ def main():
     setup_page()
     init_session_state()
 
+    # Widok pełnoekranowy
     if st.session_state.get('client_mode', False):
         render_main_preview()
         render_client_mode()
         st.stop()
 
+    # Główny panel boczny z nawigacją
     with st.sidebar:
         page = st.radio("WYBIERZ SEKCJĘ DO EDYCJI:", ["Strona Tytułowa", "Opis Kierunku", "Mapa Podróży", "Jak lecimy?", "Zakwaterowanie", "Program Wyjazdu", "Opis miejsc", "Opis atrakcji", "Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent", "Pillow Gifts", "Kosztorys", "Co o nas mówią", "O Nas (Zespół)", "Wygląd i Kolory", "Zapisz / Wczytaj Projekt"])
         
@@ -822,6 +822,7 @@ def main():
             
         st.divider()
 
+        # Nagłówek zakładki
         if page == "Wygląd i Kolory":
             st.markdown("<h2 style='color: #003366; margin-bottom: 0; font-size: 22px; font-weight: 700; font-family: Montserrat, sans-serif;'>KONFIGURACJA WYGLĄDU</h2>", unsafe_allow_html=True)
             st.markdown("<div style='font-size: 13px; color: #64748b; margin-bottom: 15px; font-family: Open Sans, sans-serif;'>Dostosuj kolory i typografię oferty</div>", unsafe_allow_html=True)
@@ -832,6 +833,7 @@ def main():
             st.markdown(f"<h2 style='color: #003366; margin-bottom: 0; font-size: 22px; font-weight: 700; font-family: Montserrat, sans-serif; text-transform: uppercase;'>{page}</h2>", unsafe_allow_html=True)
             st.markdown("<div style='font-size: 13px; color: #64748b; margin-bottom: 15px; font-family: Open Sans, sans-serif;'>Wprowadź dane dla tej sekcji poniżej:</div>", unsafe_allow_html=True)
 
+        # Routing zakładek
         if page == "Strona Tytułowa": render_tab_title()
         elif page == "Opis Kierunku": render_tab_destination()
         elif page == "Mapa Podróży": render_tab_map()
@@ -852,6 +854,7 @@ def main():
 
         render_quick_actions()
 
+    # Wyświetlanie głównego obszaru podglądu
     render_main_preview()
 
 if __name__ == "__main__":
