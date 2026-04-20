@@ -2,6 +2,7 @@ import streamlit as st
 from PIL import Image, ImageOps
 import io, re, base64, math, gc, json
 import urllib.request, urllib.parse
+import unicodedata
 from datetime import datetime, timedelta, date
 
 # --- STAŁE I SŁOWNIKI RENDEROWANIA ---
@@ -145,6 +146,7 @@ def generate_map_data(points, zoom=6, _depth=0):
     pts_min_y, pts_max_y = min([p['py'] for p in pixel_points]), max([p['py'] for p in pixel_points])
     pts_cx, pts_cy = (pts_min_x + pts_max_x) / 2, (pts_min_y + pts_max_y) / 2
     
+    pad = 80
     crop_w = max((pts_max_x - pts_min_x) + 160, 500)
     crop_h = max(crop_w * 0.85, (pts_max_y - pts_min_y) + 160)
     if crop_h == (pts_max_y - pts_min_y) + 160: crop_w = crop_h / 0.85
@@ -403,6 +405,13 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 is_flight = "Przelot" in conn
                 stroke_dash = "8,8" if is_flight else "none"
                 svg_lines += f'<line x1="{x1}%" y1="{y1}%" x2="{x2}%" y2="{y2}%" stroke="{acc}" stroke-width="3" stroke-dasharray="{stroke_dash}" stroke-linecap="round"/>'
+                if is_flight:
+                    dx = x2 - x1
+                    dy = y2 - y1
+                    angle = math.degrees(math.atan2(dy, dx))
+                    rot = angle + 45
+                    mx, my = (x1 + x2)/2, (y1 + y2)/2
+                    html_markers += f'''<div style="position:absolute; top:{my}%; left:{mx}%; z-index:2; transform:translate(-50%, -50%) rotate({rot}deg); color:{acc}; font-size:18px; background:#fff; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 10px rgba(0,0,0,0.2);"><i class="fa-solid fa-plane"></i></div>'''
         ul_points_html = f'<ul class="app-list" style="margin-top:10px;">{"".join(ul_points)}</ul>' if ul_points else ''
         hp.append(shtml(f"""{lhtml()}<div class="premium-layout"><div class="info-col" style="flex: 40; padding-right: 30px; padding-top: 30px; justify-content: flex-start;">
             <div class="app-overline-style"><span>{str(s.get('map_overline', 'TRASA WYJAZDU'))}</span></div>
@@ -438,7 +447,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             <div class="metric-grid">
                 <div><div class="metric-label">Trasa</div><div class="flight-val">{s.get('m_route','')}</div></div>
                 <div><div class="metric-label">Limit bagażu</div><div class="flight-val">{s.get('m_luggage','')}</div></div>
-            </div>{przesiadka_html}
+            </div>
+            {przesiadka_html}
             <table class="flight-table"><tr><th>NR LOTU</th><th>DATA</th><th>TRASA</th><th>GODZINY</th></tr>{rows}</table>{h_e}
             </div></div>{fhtml()}""", "slide-loty"))
 
@@ -474,7 +484,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     <div class="gallery-row" style="padding-top:0; padding-bottom:5px; gap:15px;">
                         <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{f'<img src="data:image/jpeg;base64,{h2}" style="width:100%;height:100%;object-fit:cover;">' if h2 else get_ph('FOT DÓŁ 1')}</div>
                         <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{f'<img src="data:image/jpeg;base64,{h3}" style="width:100%;height:100%;object-fit:cover;">' if h3 else get_ph('FOT DÓŁ 2')}</div>
-                    </div></div></div>{fhtml()}""", f"slide-hotel-{i}"))
+                    </div>
+                </div></div>{fhtml()}""", f"slide-hotel-{i}"))
 
     if not s.get('prg_hide', False):
         nd = int(s.get('num_days', 5))
