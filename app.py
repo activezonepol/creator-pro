@@ -748,21 +748,60 @@ def render_quick_actions():
         st.rerun()
 
 def render_main_preview():
-    html_content = build_presentation(current_page=st.session_state.get('last_page', 'Strona Tytułowa'))
-    st.markdown(f'{get_local_css(True)}\n<div class="presentation-wrapper" id="main-wrapper">{html_content}</div>', unsafe_allow_html=True)
+    s = st.session_state
+    
+    # Wstrzykujemy globalny CSS (aby tryb pełnoekranowy ukrywał panele Streamlit)
+    css_str = get_local_css(return_str=True)
+    st.markdown(css_str, unsafe_allow_html=True)
+    
+    # Budujemy HTML dla prezentacji
+    html_content = build_presentation(current_page=s.get('last_page', 'Strona Tytułowa'))
 
-    first_visible_place = next((i for i in range(int(st.session_state.get('num_places', 0))) if not st.session_state.get(f'phide_{i}')), None)
+    # Logika wyliczania docelowego slajdu (id) do przewinięcia
+    first_visible_place = next((i for i in range(int(s.get('num_places', 0))) if not s.get(f'phide_{i}')), None)
     pid = f"place_{first_visible_place}" if first_visible_place is not None else "slide-title"
-    first_visible_attr = next((i for i in range(int(st.session_state.get('num_attr', 1))) if not st.session_state.get(f'ahide_{i}')), None)
+    first_visible_attr = next((i for i in range(int(s.get('num_attr', 1))) if not s.get(f'ahide_{i}')), None)
     fid = f"attr_{first_visible_attr}" if first_visible_attr is not None else "slide-title"
 
-    default_tid = {"Strona Tytułowa":"slide-title","Opis Kierunku":"slide-kierunek","Mapa Podróży":"slide-mapa","Jak lecimy?":"slide-loty","Zakwaterowanie":"slide-hotel-0","Program Wyjazdu":"slide-program","Opis miejsc":pid,"Opis atrakcji":fid,"Kosztorys":"slide-kosztorys-1","Aplikacja (Komunikacja)":"slide-app","Materiały Brandingowe":"slide-branding","Wirtualny Asystent":"slide-virtual-assistant","Pillow Gifts":"slide-pillow-gifts","Co o nas mówią":"slide-testimonials","O Nas (Zespół)":"slide-about"}.get(st.session_state.get('last_page', 'Strona Tytułowa'), "")
-    tid = st.session_state.get('scroll_target') or default_tid
+    default_tid = {"Strona Tytułowa":"slide-title","Opis Kierunku":"slide-kierunek","Mapa Podróży":"slide-mapa","Jak lecimy?":"slide-loty","Zakwaterowanie":"slide-hotel-0","Program Wyjazdu":"slide-program","Opis miejsc":pid,"Opis atrakcji":fid,"Kosztorys":"slide-kosztorys-1","Aplikacja (Komunikacja)":"slide-app","Materiały Brandingowe":"slide-branding","Wirtualny Asystent":"slide-virtual-assistant","Pillow Gifts":"slide-pillow-gifts","Co o nas mówią":"slide-testimonials","O Nas (Zespół)":"slide-about"}.get(s.get('last_page', 'Strona Tytułowa'), "")
+    tid = s.get('scroll_target') or default_tid
 
-    if tid and not st.session_state.get('client_mode', False):
-        # FIX SCROLLING CORS DLA CHMURY
-        js_scroll = f"var t = window.parent.document.getElementById('{tid}') || document.getElementById('{tid}'); if(t) t.scrollIntoView({{behavior: 'smooth', block: 'center'}});"
-        st.markdown(f'<img src="x" onerror="{js_scroll}" style="display:none;">', unsafe_allow_html=True)
+    # === ROZWIĄZANIE DLA CHMURY (STREAMLIT CLOUD) ===
+    # Pakujemy całą prezentację w niezależną ramkę iframe. 
+    # Dzięki temu skrypt przewijania działa na własnym dokumencie i omija blokady CORS przeglądarki!
+    
+    iframe_html = f'''
+    <!DOCTYPE html>
+    <html lang="pl">
+    <head>
+        <meta charset="UTF-8">
+        {css_str}
+        <style>
+            /* Resetujemy marginesy tła ramki */
+            body, html {{ margin: 0; padding: 0; height: 100%; overflow: hidden; }}
+            .presentation-wrapper {{ height: 100vh !important; }}
+        </style>
+    </head>
+    <body>
+        <div class="presentation-wrapper" id="main-wrapper">
+            {html_content}
+        </div>
+        <script>
+            // Czekamy ułamek sekundy na wyrenderowanie wszystkich obrazów i wymuszamy przewinięcie
+            setTimeout(function() {{
+                var target = document.getElementById('{tid}');
+                if (target) {{
+                    target.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+                }}
+            }}, 400);
+        </script>
+    </body>
+    </html>
+    '''
+    
+    # Wyświetlamy hermetyczną ramkę. W trybie pełnoekranowym (dla klienta) dajemy wyższą wysokość.
+    height = 1200 if s.get('client_mode', False) else 850
+    components.html(iframe_html, height=height, scrolling=False)
 
 def render_client_mode():
     accent_color = st.session_state.get('color_accent', '#FF6600')
