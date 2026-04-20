@@ -117,7 +117,7 @@ defaults = {
     'color_h1': '#003366', 'color_h2': '#003366', 'color_sub': '#FF6600',
     'color_accent': '#FF6600', 'color_text': '#333333', 'color_metric': '#003366',
     'font_size_h1': 48, 'font_size_h2': 36, 'font_size_sub': 26,
-    'font_size_text': 14, 'font_size_metric': 16,
+    'font_size_text': 16, 'font_size_metric': 16,
     't_main': 'BAŁKAŃSKI KLEJNOT', 't_sub': 'MONTENEGRO EXPERIENCE',
     't_klient': 'NAZWA KLIENTA', 't_kierunek': 'CZARNOGÓRA',
     't_date': '1-4.10.2026', 't_pax': '60', 't_hotel': '4* ALL INCLUSIVE',
