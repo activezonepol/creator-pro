@@ -1351,7 +1351,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
 <meta charset="UTF-8">
 {css_str}
 <style>
-  body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; }}
+  @keyframes fadein {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
+  body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; animation: fadein 0.4s ease; }}
   .presentation-wrapper {{
       height: 100vh;
       overflow-y: auto;
