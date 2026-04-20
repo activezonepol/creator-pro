@@ -22,7 +22,6 @@ import unicodedata
 from datetime import datetime, timedelta, date
 
 import streamlit as st
-import streamlit.components.v1 as components
 from PIL import Image, ImageOps
 
 # ---------------------------------------------------------------------------
@@ -1311,7 +1310,18 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
 
     tid = s.get('scroll_target') or default_tid
     if tid and not s.get('client_mode'):
-        components.html(
-            f"<script>var t = window.parent.document.getElementById('{tid}'); if(t) {{ t.scrollIntoView({{behavior: 'smooth', block: 'center'}}); }}</script>",
-            height=0,
+        # CSS anchor scroll — działa na Streamlit Community Cloud (brak dostępu do window.parent)
+        st.markdown(
+            f'<a id="_scroll_anchor" href="#{tid}" style="display:none;"></a>'
+            f'<style>'
+            f'  html {{ scroll-behavior: smooth; }}'
+            f'  #_scroll_anchor {{ position: absolute; top: 0; }}'
+            f'</style>'
+            f'<script>'
+            f'  (function() {{'
+            f'    var el = document.getElementById("{tid}");'
+            f'    if (el) el.scrollIntoView({{behavior: "smooth", block: "center"}});'
+            f'  }})();'
+            f'</script>',
+            unsafe_allow_html=True,
         )
