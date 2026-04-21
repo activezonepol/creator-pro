@@ -177,10 +177,13 @@ def _attr_add():
     """Dodaje nową atrakcję i przechodzi do jej strony."""
     n = st.session_state.get('num_attr', 0)
     st.session_state['num_attr'] = n + 1
-    order = _attr_order()
-    order.append(n)
+    # Pobierz order PRZED zwiększeniem num_attr, żeby nie dodawał n automatycznie
+    order = st.session_state.get('attr_order', list(range(n)))
+    order = [i for i in order if i < n]  # oczyść stare
+    order.append(n)  # dodaj nowy idx na końcu
     st.session_state['attr_order'] = order
-    st.session_state['last_page'] = f"ATTR:{n}:Atrakcja {n + 1}"
+    # last_page koduje idx (nie pos) żeby być odporny na przestawienia
+    st.session_state['last_page'] = f"ATTR:idx:{n}"
     st.session_state['scroll_target'] = ""
 
 def _attr_move(pos, direction):
@@ -193,14 +196,14 @@ def _attr_move(pos, direction):
 
 def _attr_page_name(pos):
     """Nazwa strony nawigacji dla atrakcji na pozycji pos.
-    Używa prefix ATTR: jako wewnętrznego markera — wyświetlany bez niego przez format_func."""
+    Format: ATTR:idx:nazwa — idx to rzeczywisty indeks danych (odporny na przestawienia)."""
     order = _attr_order()
     if pos >= len(order):
         return f"ATTR:{pos}:Atrakcja {pos + 1}"
     idx = order[pos]
     name = str(st.session_state.get(f'amain_{idx}', '')).split('\n')[0][:25].strip()
     label = name or f"Atrakcja {pos + 1}"
-    return f"ATTR:{pos}:{label}"
+    return f"ATTR:{idx}:{label}"
 
 # Wsteczna kompatybilność z renderer.py
 def _get_place_attr_order():
@@ -359,15 +362,14 @@ with st.sidebar:
     _acc = st.session_state.get('color_accent', '#FF6600')
     _h1c = st.session_state.get('color_h1', '#003366')
 
-    # Buduj dynamiczną listę pozycji nawigacji — atrakcje wewnątrz radio
+    # Buduj listę pozycji — atrakcje jako zwykłe strony w radio
     _attr_pages = [_attr_page_name(pos) for pos in range(_attr_count())]
 
     _nav_pages = (
         ["Strona Tytułowa", "Opis Kierunku", "Mapa Podróży", "Jak lecimy?",
          "  ↳ Przerywnik hotel", "Zakwaterowanie",
          "  ↳ Przerywnik program", "Program Wyjazdu",
-         "  ↳ Przerywnik atrakcje",
-         "── Miejsca i atrakcje"] +
+         "  ↳ Przerywnik atrakcje"] +
         _attr_pages +
         ["Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent",
          "Pillow Gifts", "Kosztorys",
@@ -379,12 +381,8 @@ with st.sidebar:
     _default_idx = _nav_pages.index(_last) if _last in _nav_pages else 0
 
     def _fmt_nav(p):
-        """Formatuje etykiety w radio."""
-        if p == "── Miejsca i atrakcje":
-            return "★ DODAJ ATRAKCJE/MIEJSCE"
         if p.startswith("ATTR:"):
-            parts = p.split(":", 2)
-            return parts[2] if len(parts) > 2 else p
+            return "  ★ " + p.split(":", 2)[2]
         return p
 
     page = st.radio("WYBIERZ SEKCJE DO EDYCJI:", _nav_pages,
@@ -394,21 +392,24 @@ with st.sidebar:
         st.session_state['last_page'] = page
         st.session_state['scroll_target'] = ""
 
-    # Strzałki ▲▼ przy atrakcjach (w sidebarze pod radio)
+    # Przycisk dodawania atrakcji — pojawia się zawsze pod radio
+    if st.button(
+        f"＋  ★  DODAJ ATRAKCJE/MIEJSCE",
+        key="attr_add_main_btn",
+        use_container_width=True,
+    ):
+        _attr_add()
+        st.rerun()
+
+    # Strzałki kolejności atrakcji
     _n = _attr_count()
-    if _n > 0:
-        st.markdown(
-            f"<div style='font-size:10px;color:#94a3b8;padding:2px 0 4px 0;"
-            f"text-transform:uppercase;letter-spacing:1px;'>Kolejność atrakcji</div>",
-            unsafe_allow_html=True,
-        )
+    if _n > 1:
         for _ap in range(_n):
-            _alabel = _attr_page_name(_ap)
-            _aname  = _alabel.split(":", 2)[2] if _alabel.startswith("ATTR:") else _alabel
+            _aname = _attr_page_name(_ap).split(":", 2)[2]
             _c1, _c2, _c3 = st.columns([6, 1, 1])
             _c1.markdown(
-                f"<div style='font-size:11px;padding:4px 0;color:#475569;"
-                f"border-left:2px solid {_acc};padding-left:6px;'>{_aname}</div>",
+                f"<div style='font-size:10px;color:#64748b;padding:2px 0 2px 6px;"
+                f"border-left:2px solid {_acc};'>{_aname}</div>",
                 unsafe_allow_html=True,
             )
             if _ap > 0:
@@ -426,11 +427,6 @@ with st.sidebar:
     _inter_pages = {"  ↳ Przerywnik hotel", "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}
     _is_attr_page = page.startswith("ATTR:")
 
-    # Gdy kliknięto "── Miejsca i atrakcje" — dodaj atrakcję
-    if page == "── Miejsca i atrakcje":
-        _attr_add()
-        st.rerun()
-
     if page == "Wygląd i Kolory":
         st.markdown("<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;'>KONFIGURACJA WYGLĄDU</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Dostosuj kolory i typografię oferty</div>", unsafe_allow_html=True)
@@ -444,14 +440,13 @@ with st.sidebar:
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;margin-left:12px;'>Slajd przerywnikowy — edytuj treść i wygląd poniżej.</div>", unsafe_allow_html=True)
     elif _is_attr_page:
         _acc_col = st.session_state.get("color_accent", "#FF6600")
-        _label = page.split(":", 2)[2] if page.startswith("ATTR:") else page.strip().lstrip("↳").strip()
+        _label = page.split(":", 2)[2] if page.startswith("ATTR:") else page
         st.markdown(f"<h2 style='color:{_acc_col};margin-bottom:0;font-size:20px;font-weight:700;font-family:Montserrat,sans-serif;margin-left:12px;border-left:3px solid {_acc_col};padding-left:10px;'>★ {_label}</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;margin-left:12px;'>Edytuj treść slajdu atrakcji poniżej.</div>", unsafe_allow_html=True)
-    elif page == "── Miejsca i atrakcje":
-        pass  # Obsłużono wyżej przez _attr_add
     else:
         st.markdown(f"<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;text-transform:uppercase;'>{page}</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Wprowadź dane dla tej sekcji poniżej:</div>", unsafe_allow_html=True)
+
 
     # -----------------------------------------------------------------------
     # STRONA TYTUŁOWA
@@ -909,13 +904,12 @@ with st.sidebar:
     # -----------------------------------------------------------------------
     elif _is_attr_page:
         # Wyciągnij indeks z nazwy strony np. "  ↳ Atrakcja 1" -> pos=0 -> idx
-        # Wyciągnij pos bezpośrednio z ATTR:pos:nazwa
-        _pos = int(page.split(":")[1]) if page.startswith("ATTR:") else None
-        if _pos is None:
+        # Wyciągnij idx bezpośrednio z ATTR:idx:nazwa (idx = rzeczywisty indeks danych)
+        _i = int(page.split(":")[1]) if page.startswith("ATTR:") else None
+        if _i is None or _i >= _attr_count():
             st.warning("Nie znaleziono atrakcji.")
         else:
-            _order = _attr_order()
-            _i = _order[_pos]
+            _pos = next((p for p, ix in enumerate(_attr_order()) if ix == _i), 0)
             day_options_global = build_day_options(
                 st.session_state.get('p_start_dt', date.today()),
                 int(st.session_state.get('num_days', 5)),
@@ -928,10 +922,8 @@ with st.sidebar:
                 if _dk not in st.session_state:
                     st.session_state[_dk] = _dv
 
-            # Auto-scroll do slajdu przy wejściu na stronę atrakcji
-            if st.session_state.get('_attr_last_shown') != _i:
-                st.session_state['_attr_last_shown'] = _i
-                set_focus(f"attr_{_i}")
+            # Auto-scroll: zawsze skroluj do slajdu tej atrakcji
+            set_focus(f"attr_{_i}")
             a_keys = [f'ahide_{_i}', f'amain_{_i}', f'asub_{_i}',
                       f'aday_{_i}', f'atype_{_i}', f'aopis_{_i}',
                       f'ah_{_i}', f'at1_{_i}', f'at2_{_i}', f'at3_{_i}']
