@@ -389,12 +389,10 @@ with st.sidebar:
             return "  ★ " + p.split(":", 2)[2]
         return p
 
-    # Radio górne
-    _top_last = _last if _last in _nav_top else _nav_top[0]
-    _top_idx  = _nav_top.index(_top_last) if _top_last in _nav_top else None
-
+    # Radio górne — aktywne tylko gdy last_page należy do nav_top
+    _top_idx = _nav_top.index(_last) if _last in _nav_top else None
     page_top = st.radio("WYBIERZ SEKCJE DO EDYCJI:", _nav_top,
-                        index=_top_idx if _top_idx is not None else 0)
+                        index=_top_idx)
 
     # --- SEKCJA ATRAKCJI wbudowana w nawigację ---
     # Przycisk ＋ DODAJ ATRAKCJE/MIEJSCE
@@ -433,40 +431,27 @@ with st.sidebar:
                        on_click=_attr_move, args=(_ap, 1),
                        use_container_width=True)
 
-    # Radio dolne
-    _bot_last = _last if _last in _nav_bot else None
-    _bot_idx  = _nav_bot.index(_bot_last) if _bot_last in _nav_bot else 0
+    # Radio dolne — aktywne tylko gdy last_page należy do nav_bot
+    _bot_idx = _nav_bot.index(_last) if _last in _nav_bot else None
     page_bot = st.radio("", _nav_bot, index=_bot_idx,
                         label_visibility="collapsed")
 
-    # Ustal aktywną stronę
+    # Ustal aktywną stronę — priorytet: kliknięcie atrakcji > zmiana top > zmiana bot
     if page_attr is not None:
         page = page_attr
         st.session_state['last_page'] = page
         st.session_state['scroll_target'] = ""
         st.rerun()
-    elif _last in _nav_top and page_top != _last:
+    elif page_top is not None and page_top != _last:
         page = page_top
         st.session_state['last_page'] = page
         st.session_state['scroll_target'] = ""
-    elif _last in _nav_bot and page_bot != _last:
+    elif page_bot is not None and page_bot != _last:
         page = page_bot
         st.session_state['last_page'] = page
         st.session_state['scroll_target'] = ""
-    elif _last.startswith("ATTR:"):
-        page = _last  # atrakcja aktywna
     else:
-        # Synchronizuj page z radio które się zmieniło
-        if page_top != (_last if _last in _nav_top else _nav_top[0]):
-            page = page_top
-            st.session_state['last_page'] = page
-            st.session_state['scroll_target'] = ""
-        elif page_bot != (_last if _last in _nav_bot else _nav_bot[0]):
-            page = page_bot
-            st.session_state['last_page'] = page
-            st.session_state['scroll_target'] = ""
-        else:
-            page = _last if _last in _nav_all else _nav_top[0]
+        page = _last if _last in (_nav_top + _attr_pages + _nav_bot) else _nav_top[0]
 
     # Nagłówek zakładki
     _inter_pages = {"  ↳ Przerywnik hotel", "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}
