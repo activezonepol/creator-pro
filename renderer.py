@@ -152,7 +152,7 @@ defaults = {
     'h_amenities_0': ["Basen", "SPA", "Wi-Fi", "Restauracja", "Plaża"],
     'h_text_0': 'Zapewniamy zakwaterowanie w starannie wyselekcjonowanym hotelu.',
     'h_advantages_0': 'Położenie tuż przy prywatnej plaży',
-    'prg_hide': False, 'num_days': 4, 'num_places': 0, 'num_attr': 1, 'num_kierunki': 0,
+    'prg_hide': False, 'num_days': 4, 'num_places': 0, 'num_attr': 1,
     'koszt_hide_1': False, 'koszt_hide_2': False, 'koszt_title': 'KOSZTORYS',
     'koszt_pax': '25', 'koszt_price': '4.990 zł / os.',
     'koszt_hotel': 'Iberostar Bellevue 4* all inclusive',
@@ -973,46 +973,55 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     continue
                 label = f'{pa} → {pb}' if pa and pb else (pa or pb)
                 rows_html += f"""
-                <div style="display:flex; align-items:center; justify-content:space-between;
-                            padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.15);">
-                    <div style="font-family:'{f_t}'; font-size:{fs_t}px; color:white;
-                                font-weight:400; flex:1; padding-right:10px; line-height:1.3;">
+                <tr>
+                    <td style="font-family:'{f_t}'; font-size:{fs_t}px; color:white;
+                               font-weight:400; line-height:1.3; padding:7px 10px 7px 0;
+                               border-bottom:1px solid rgba(255,255,255,0.12);
+                               width:50%; max-width:0; overflow:hidden;
+                               text-overflow:ellipsis; white-space:nowrap;">
                         {label}
-                    </div>
-                    <div style="display:flex; gap:10px; flex-shrink:0;">
-                        <div style="text-align:center; min-width:60px;">
-                            <div style="font-family:'{f_h2}'; font-weight:800;
-                                        font-size:{fs_t+3}px; color:white; line-height:1;">
-                                {dist_val} km
-                            </div>
-                            <div style="font-family:'{f_t}'; font-size:{max(9,fs_t-3)}px;
-                                        color:rgba(255,255,255,0.7); margin-top:2px;">
-                                odległość
-                            </div>
+                    </td>
+                    <td style="width:25%; padding:7px 8px; text-align:right;
+                               border-bottom:1px solid rgba(255,255,255,0.12);
+                               white-space:nowrap;">
+                        <div style="font-family:'{f_h2}'; font-weight:800;
+                                    font-size:{fs_t+3}px; color:white; line-height:1;">
+                            {dist_val} km
                         </div>
-                        <div style="width:1px; background:rgba(255,255,255,0.2);"></div>
-                        <div style="text-align:center; min-width:65px;">
-                            <div style="font-family:'{f_h2}'; font-weight:800;
-                                        font-size:{fs_t+3}px; color:{acc}; line-height:1;">
-                                {time_val}
-                            </div>
-                            <div style="font-family:'{f_t}'; font-size:{max(9,fs_t-3)}px;
-                                        color:rgba(255,255,255,0.7); margin-top:2px;">
-                                czas dojazdu
-                            </div>
+                        <div style="font-family:'{f_t}'; font-size:{max(9,fs_t-3)}px;
+                                    color:rgba(255,255,255,0.65); margin-top:2px;">
+                            odległość
                         </div>
-                    </div>
-                </div>"""
+                    </td>
+                    <td style="width:1px; padding:7px 0;
+                               border-bottom:1px solid rgba(255,255,255,0.12);">
+                        <div style="width:1px; background:rgba(255,255,255,0.2); height:100%;"></div>
+                    </td>
+                    <td style="width:25%; padding:7px 0 7px 8px; text-align:right;
+                               border-bottom:1px solid rgba(255,255,255,0.12);
+                               white-space:nowrap;">
+                        <div style="font-family:'{f_h2}'; font-weight:800;
+                                    font-size:{fs_t+3}px; color:{acc}; line-height:1;">
+                            {time_val}
+                        </div>
+                        <div style="font-family:'{f_t}'; font-size:{max(9,fs_t-3)}px;
+                                    color:rgba(255,255,255,0.65); margin-top:2px;">
+                            czas dojazdu
+                        </div>
+                    </td>
+                </tr>"""
             if rows_html:
                 dist_rows_html = f"""
                 <div style="background-color:{c_h2}; border-radius:8px; padding:12px 14px;
                             margin-top:10px; box-shadow:0 4px 12px rgba(0,0,0,0.12);">
                     <div style="font-family:'{f_h2}'; font-weight:800; font-size:{fs_t}px;
                                 color:white; text-transform:uppercase; letter-spacing:1px;
-                                margin-bottom:8px; opacity:0.8;">
+                                margin-bottom:8px; opacity:0.85;">
                         {dist_title}
                     </div>
-                    {rows_html}
+                    <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
+                        {rows_html}
+                    </table>
                 </div>"""
 
         hp.append(_shtml(f"""{lh}
@@ -1178,71 +1187,156 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                              "slide-program" if st_idx == 0 else ""))
 
     # --- Miejsca i atrakcje (posortowane po dniach) ---
-    all_items = []
-    for i in range(s.get('num_places', 0)):
-        if not s.get(f"phide_{i}"):
+    # --- Opisy miejsc, atrakcji, hoteli w kolejności zdefiniowanej przez użytkownika ---
+    # slide_order to lista krotek (typ, indeks) np. [('place',0),('attr',0),('hotel',1)]
+    # Domyślnie: najpierw hotele wg dnia, potem miejsca wg dnia, potem atrakcje wg dnia
+    slide_order = s.get('slide_order', [])
+    # Normalizuj — może być lista list lub lista tuple (zależy od źródła)
+    slide_order = [(str(t), int(i)) for t, i in slide_order] if slide_order else []
+
+    # Zbuduj domyślną kolejność jeśli brak
+    if not slide_order:
+        _tmp = []
+        for i in range(s.get('num_hotels', 1)):
+            _tmp.append(('hotel', i, i))
+        for i in range(s.get('num_places', 0)):
             pday = str(s.get(f"pday_{i}") or "")
             m = re.search(r'Dzień\s+(\d+)', pday)
-            all_items.append(('place', i, int(m.group(1)) if m else 999))
-    for i in range(s.get('num_attr', 1)):
-        if not s.get(f"ahide_{i}"):
+            _tmp.append(('place', i, int(m.group(1)) if m else 999))
+        for i in range(s.get('num_attr', 1)):
             aday = str(s.get(f"aday_{i}") or "")
             m = re.search(r'Dzień\s+(\d+)', aday)
-            all_items.append(('attr', i, int(m.group(1)) if m else 999))
-    all_items.sort(key=lambda x: (x[2], 0 if x[0] == 'place' else 1, x[1]))
+            _tmp.append(('attr', i, int(m.group(1)) if m else 999))
+        slide_order = [(t, idx) for t, idx, _ in _tmp]
 
-    for item_type, i, d_idx in all_items:
-        if item_type == 'place':
-            p1 = get_b64(f'pimg1_{i}', (1, 2.2))
-            p2 = get_b64(f'pimg2_{i}', (1, 1))
-            im1_p = (f'<img src="data:image/jpeg;base64,{p1}" style="width:100%;height:100%;object-fit:cover;">'
-                     if p1 else _get_ph('FOTO PIONOWE'))
-            im2_p = (f'<img src="data:image/jpeg;base64,{p2}" style="width:100%;height:100%;object-fit:cover;">'
-                     if p2 else _get_ph('FOTO'))
-            facts = s.get(f"pfacts_{i}", "")
-            facts_html_lines = []
-            for line in facts.split('\n'):
-                if ':' in line:
-                    k, v = line.split(':', 1)
-                    facts_html_lines.append(f"<div style='margin-bottom:6px;'><strong style='font-weight:700;'>{k.strip()}:</strong> <span style='font-weight:300;'>{v.strip()}</span></div>")
-                elif line.strip():
-                    facts_html_lines.append(f"<div style='margin-bottom:6px;'>{line.strip()}</div>")
-            facts_html = "".join(facts_html_lines) or "Dodaj fakty w panelu..."
-            bb = ""
-            md = re.search(r'Dzień (\d+)', str(s.get(f"pday_{i}") or ""))
-            if md:
-                bb = f"<a href='#program_day_{int(md.group(1)) - 1}' class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
-            hp.append(_shtml(f"""{lh}
-            <div class="premium-layout" id="place_{i}" style="gap: 30px; position:relative;">
-                {bb}
-                <div style="flex: 28; border-radius: 8px; overflow: hidden; border: 1px solid #eee; background-color: #fcfcfc;">{im1_p}</div>
-                <div style="flex: 28; display: flex; flex-direction: column; gap: 30px;">
-                    <div style="background-color: {c_h2}; color: white; padding: 25px 20px; border-radius: 8px; font-family: '{f_t}'; font-size: {max(11,fs_t-1)}px; line-height: 1.4; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">{facts_html}</div>
-                    <div style="flex-grow: 1; border-radius: 8px; overflow: hidden; border: 1px solid #eee; background-color: #fcfcfc;">{im2_p}</div>
+    for item_type, i in slide_order:
+
+        # --- Slajd HOTELU ---
+        if item_type == 'hotel':
+            if s.get(f'h_hide_{i}', False):
+                continue
+            h1 = get_b64(f'img_hotel_1_{i}', (16, 9))
+            h1b = get_b64(f'img_hotel_1b_{i}', (16, 9))
+            h2 = get_b64(f'img_hotel_2_{i}', (16, 9))
+            h3 = get_b64(f'img_hotel_3_{i}', (16, 9))
+            h1_html = (f'<img src="data:image/jpeg;base64,{h1}" style="width:100%; height:100%; object-fit:cover;">' if h1 else _get_ph('ZDJ. LEWE 1'))
+            h1b_html = (f'<img src="data:image/jpeg;base64,{h1b}" style="width:100%; height:100%; object-fit:cover;">' if h1b else _get_ph('ZDJ. LEWE 2'))
+            url_val = str(s.get(f'h_url_{i}', '')).strip()
+            h_url_html = (f'<div style="font-size:{max(10,fs_t-2)}px; color:{c_t}; opacity:0.8; margin-bottom:15px;"><i class="fa-solid fa-globe" style="color:{acc}; margin-right:5px;"></i> {url_val}</div>' if url_val else '')
+            h_amenities = s.get(f'h_amenities_{i}', [])
+            am_items = []
+            book_val = str(s.get(f'h_booking_{i}', '')).strip()
+            if book_val:
+                am_items.append(f'<div style="display:flex; align-items:center; gap:6px; margin-right:10px;"><div style="background:#003580; color:white; padding:3px 8px; border-radius:6px; border-bottom-left-radius:0; font-family:\'Montserrat\', sans-serif; font-weight:800; font-size:{max(12,fs_t)}px;">{book_val}</div><span style="font-family:\'Montserrat\', sans-serif; font-weight:700; color:#003580; font-size:{max(10,fs_t-1)}px;">Booking.com</span></div>')
+            for a in h_amenities:
+                if a in hotel_icons:
+                    am_items.append(f'<div style="display:flex; align-items:center; gap:6px; font-size:{max(10,fs_t-1)}px; font-weight:600; color:{c_t};"><i class="fa-solid {hotel_icons[a]}" style="color:{acc}; font-size:{fs_t+4}px;"></i> {a}</div>')
+            h_am_html = (f'<div style="display:flex; flex-wrap:wrap; align-items:center; gap:15px; margin-bottom:15px; padding:10px 0; border-top:1px solid #eee; border-bottom:1px solid #eee;">{"".join(am_items)}</div>' if am_items else '')
+            advs = [f.strip() for f in s.get(f'h_advantages_{i}', '').split('\n') if f.strip()]
+            adv_html = (f'<ul class="app-list" style="margin-top:0;">{"".join([f"<li>{a}</li>" for a in advs])}</ul>' if advs else '')
+            hp.append(_shtml(f"""{lh}<div class="premium-layout" id="slide-hotel-{i}">
+                <div style="flex:40; display:flex; flex-direction:column; gap:15px;">
+                    <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background-color:#fcfcfc;">{h1_html}</div>
+                    <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background-color:#fcfcfc;">{h1b_html}</div>
                 </div>
-                <div class="info-col" style="flex: 44; padding-left: 20px; padding-top: 15px; justify-content: flex-start;">
-                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 15px; font-family: '{f_met}'; font-size: {max(10,fs_met-2)}px; font-weight: 700; letter-spacing: 4px; color: {acc}; margin-bottom: 20px; text-transform: uppercase;">
-                        <div style="height: 1px; background-color: {acc}; opacity: 0.5; width: 40px;"></div>
-                        <span>{str(s.get(f'pover_{i}','NASZ KIERUNEK'))}</span>
-                        <div style="height: 1px; background-color: {acc}; opacity: 0.5; width: 60px;"></div>
+                <div class="info-col" style="flex:60; padding-left:15px; padding-top:30px; justify-content:flex-start;">
+                    <div class="app-overline-style" style="margin-bottom:5px;"><span>{str(s.get(f'h_overline_{i}','ZAKWATEROWANIE'))}</span></div>
+                    <div class="title-h1" style="margin-bottom:5px; font-size:{max(20,fs_h1_val-6)}px;">{str(s.get(f'h_title_{i}','')).replace(chr(10),'<br>')}</div>
+                    <div class="title-sub" style="color:{acc}; font-size:{max(12,fs_sub_val-4)}px; margin-top:0px; margin-bottom:5px;">{str(s.get(f'h_subtitle_{i}','')).replace(chr(10),'<br>')}</div>
+                    {h_url_html}
+                    <div style="flex-grow:0; font-size:{fs_t}px; line-height:1.4; margin-bottom:10px; color:{c_t};">{str(s.get(f'h_text_{i}','')).replace(chr(10),'<br>')}</div>
+                    {h_am_html}
+                    <div style="flex-grow:1;">{adv_html}</div>
+                    <div class="gallery-row" style="padding-top:0; padding-bottom:5px; gap:15px;">
+                        <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{f'<img src="data:image/jpeg;base64,{h2}" style="width:100%;height:100%;object-fit:cover;">' if h2 else _get_ph('FOT DÓŁ 1')}</div>
+                        <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{f'<img src="data:image/jpeg;base64,{h3}" style="width:100%;height:100%;object-fit:cover;">' if h3 else _get_ph('FOT DÓŁ 2')}</div>
                     </div>
-                    <div class="title-h1" style="margin-bottom:10px; font-size:{max(28,fs_h1_val-6)}px; text-align: right; color:{c_h1};">{str(s.get(f'pmain_{i}','')).replace(chr(10),'<br>')}</div>
-                    <div class="title-sub" style="margin-bottom:30px; text-align: right; color: {c_h2}; font-size:{max(14,fs_sub_val-4)}px; line-height:1.3;">{str(s.get(f'psub_{i}','')).replace(chr(10),'<br>')}</div>
-                    <div style="font-family: '{f_t}'; font-size: {fs_t}px; line-height: 1.6; color: {c_t}; text-align: justify;">{str(s.get(f'popis_{i}') or '').replace(chr(10),'<br>')}</div>
+                </div></div>{fh}""", f"slide-hotel-{i}"))
+
+        # --- Slajd MIEJSCA (nowy układ wg wzoru: foto pionowe + box faktów + tytuł/opis) ---
+        elif item_type == 'place':
+            if s.get(f"phide_{i}"):
+                continue
+            kimg = get_b64(f'pimg1_{i}', (3, 4))
+            img_html_p = (f'<img src="data:image/jpeg;base64,{kimg}" style="width:100%;height:100%;object-fit:cover;">' if kimg else _get_ph('ZDJĘCIE MIEJSCA'))
+
+            # Box faktów
+            pfacts = str(s.get(f"pfacts_{i}") or '')
+            pfacts_title = str(s.get(f"pfacts_title_{i}") or '')
+            pbox_bg  = str(s.get(f'pbox_bg_{i}')  or c_h2)
+            pbox_txt = str(s.get(f'pbox_txt_{i}') or '#ffffff')
+            facts_lines_p = []
+            for line in pfacts.split('\n'):
+                line = line.strip()
+                if not line: continue
+                if ':' in line:
+                    lbl, val = line.split(':', 1)
+                    facts_lines_p.append(f"<div style='margin-bottom:7px; line-height:1.4;'><strong style='font-weight:700; color:{pbox_txt};'>{lbl.strip()}:</strong> <span style='font-weight:300; color:{pbox_txt};'>{val.strip()}</span></div>")
+                else:
+                    facts_lines_p.append(f"<div style='margin-bottom:7px; line-height:1.4; color:{pbox_txt};'>{line}</div>")
+            facts_html_p = ''.join(facts_lines_p) or f"<span style='color:{pbox_txt}; opacity:0.6;'>Dodaj fakty w panelu...</span>"
+
+            facts_title_p = (
+                f"<div style='font-family:{f_h2}; font-weight:800; font-size:{fs_t+2}px; "
+                f"color:{pbox_txt}; text-transform:uppercase; letter-spacing:1px; "
+                f"margin-bottom:12px; padding-bottom:8px; "
+                f"border-bottom:1px solid rgba(255,255,255,0.25);'>{pfacts_title}</div>"
+                if pfacts_title else ''
+            )
+
+            bb_p = ""
+            md_p = re.search(r'Dzień (\d+)', str(s.get(f"pday_{i}") or ""))
+            if md_p:
+                bb_p = f"<a href='#program_day_{int(md_p.group(1)) - 1}' class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
+
+            p_over = str(s.get(f'pover_{i}') or 'NASZ KIERUNEK')
+            p_main = str(s.get(f'pmain_{i}') or '').replace(chr(10), '<br>')
+            p_sub  = str(s.get(f'psub_{i}')  or '').replace(chr(10), '<br>')
+            p_opis = str(s.get(f'popis_{i}') or '').replace(chr(10), '<br>')
+
+            hp.append(_shtml(f"""{lh}
+            <div class="premium-layout" id="place_{i}" style="gap:0; position:relative;">
+                {bb_p}
+                <div style="flex:30; position:relative; margin-right:20px; border-radius:10px; overflow:hidden; border:1px solid #eee; background:#fcfcfc;">
+                    {img_html_p}
+                </div>
+                <div style="flex:26; display:flex; flex-direction:column; margin-right:20px;">
+                    <div style="background-color:{pbox_bg}; padding:22px 18px; border-radius:10px;
+                                font-family:'{f_t}'; font-size:{fs_t}px; line-height:1.5;
+                                box-shadow:0 10px 30px rgba(0,0,0,0.15); flex-grow:1;">
+                        {facts_title_p}
+                        {facts_html_p}
+                    </div>
+                </div>
+                <div class="info-col" style="flex:44; padding-top:20px; justify-content:flex-start;">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+                        <div style="width:32px; height:1px; background:{acc}; opacity:0.6; flex-shrink:0;"></div>
+                        <span style="font-family:'{f_met}'; font-size:{max(9,fs_met-2)}px; font-weight:700;
+                                     letter-spacing:4px; color:{acc}; text-transform:uppercase; white-space:nowrap;">
+                            {p_over}
+                        </span>
+                        <div style="flex:1; height:1px; background:{acc}; opacity:0.6;"></div>
+                    </div>
+                    <div class="title-h1" style="margin-bottom:8px; font-size:{max(28,fs_h1_val-4)}px; line-height:1.05;">{p_main}</div>
+                    <div class="title-sub" style="margin-bottom:20px; font-size:{max(14,fs_sub_val-4)}px; line-height:1.3;">{p_sub}</div>
+                    <div style="font-family:'{f_t}'; font-size:{fs_t}px; line-height:1.7; color:{c_t}; text-align:justify; flex-grow:1;">{p_opis}</div>
                 </div>
             </div>{fh}""", f"place_{i}"))
 
+        # --- Slajd ATRAKCJI ---
         elif item_type == 'attr':
+            if s.get(f"ahide_{i}"):
+                continue
             iah = get_b64(f'ah_{i}', (4, 5))
             a1 = get_b64(f'at1_{i}', (1, 1))
             a2 = get_b64(f'at2_{i}', (1, 1))
             a3 = get_b64(f'at3_{i}', (1, 1))
-            bb = ""
-            md = re.search(r'Dzień (\d+)', str(s.get(f"aday_{i}") or ""))
-            if md:
-                bb = f"<a href='#program_day_{int(md.group(1)) - 1}' class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
+            bb_a = ""
+            md_a = re.search(r'Dzień (\d+)', str(s.get(f"aday_{i}") or ""))
+            if md_a:
+                bb_a = f"<a href='#program_day_{int(md_a.group(1)) - 1}' class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
             hp.append(_shtml(f"""{lh}<div class="premium-layout" id="attr_{i}">
-                <div class="photo-col">{f'<img src="data:image/jpeg;base64,{iah}" style="width:100%;height:100%;object-fit:cover;">' if iah else _get_ph('FOTO GŁÓWNE')}{bb}</div>
+                <div class="photo-col">{f'<img src="data:image/jpeg;base64,{iah}" style="width:100%;height:100%;object-fit:cover;">' if iah else _get_ph('FOTO GŁÓWNE')}{bb_a}</div>
                 <div class="info-col"><div class="type-icon-box">{icon_map.get(s.get(f"atype_{i}","Atrakcja"),"")}</div>
                     <div class="title-h2">{str(s.get(f'amain_{i}','')).replace(chr(10),'<br>')}</div>
                     <div class="title-sub">{str(s.get(f'asub_{i}','')).replace(chr(10),'<br>')}</div>
@@ -1252,103 +1346,6 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                         <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a2}" style="width:100%;height:100%;object-fit:cover;">' if a2 else _get_ph('FOT 2')}</div>
                         <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a3}" style="width:100%;height:100%;object-fit:cover;">' if a3 else _get_ph('FOT 3')}</div>
                     </div></div></div>{fh}""", f"attr_{i}"))
-
-
-    # --- Kierunki (nowy układ: kolaż zdjęć + box faktów + opis) ---
-    for i in range(s.get('num_kierunki', 0)):
-        if s.get(f'khide_{i}'):
-            continue
-
-        # Jedno zdjęcie wyświetlane w dwóch zachodzących na siebie ramkach
-        kimg = get_b64(f'kimg_{i}', (3, 4))
-        img_html = (
-            f'<img src="data:image/jpeg;base64,{kimg}" '
-            f'style="width:100%;height:100%;object-fit:cover;">'
-            if kimg else _get_ph('ZDJĘCIE KIERUNKU')
-        )
-
-        # Box faktów
-        kfacts = str(s.get(f'kfacts_{i}') or '')
-        kfacts_title = str(s.get(f'kfacts_title_{i}') or '')
-        facts_lines = []
-        for line in kfacts.split('\n'):
-            line = line.strip()
-            if not line:
-                continue
-            if ':' in line:
-                lbl, val = line.split(':', 1)
-                facts_lines.append(
-                    f"<div style='margin-bottom:7px; line-height:1.4;'>"
-                    f"<strong style='font-weight:700;'>{lbl.strip()}:</strong> "
-                    f"<span style='font-weight:300;'>{val.strip()}</span></div>"
-                )
-            else:
-                facts_lines.append(
-                    f"<div style='margin-bottom:7px; line-height:1.4;'>{line}</div>"
-                )
-        facts_html_k = ''.join(facts_lines) or 'Dodaj fakty w panelu...'
-
-        # Box faktów — kolory edytowalne per instancja
-        kbox_bg  = str(s.get(f'kbox_bg_{i}')  or c_h2)
-        kbox_txt = str(s.get(f'kbox_txt_{i}') or '#ffffff')
-
-        facts_title_html = (
-            f"<div style='font-family:{f_h2}; font-weight:800; font-size:{fs_t+2}px; "
-            f"color:{kbox_txt}; text-transform:uppercase; letter-spacing:1px; "
-            f"margin-bottom:12px; padding-bottom:8px; "
-            f"border-bottom:1px solid rgba(255,255,255,0.3);'>{kfacts_title}</div>"
-            if kfacts_title else ''
-        )
-
-        # Overline + tytuł + podtytuł + opis
-        k_over = str(s.get(f'kover_{i}') or 'NASZ KIERUNEK')
-        k_main = str(s.get(f'kmain_{i}') or '').replace(chr(10), '<br>')
-        k_sub  = str(s.get(f'ksub_{i}')  or '').replace(chr(10), '<br>')
-        k_opis = str(s.get(f'kopis_{i}') or '').replace(chr(10), '<br>')
-
-        hp.append(_shtml(f"""{lh}
-        <div class="premium-layout" id="kierunek_{i}" style="gap:0; position:relative;">
-            <div style="flex:38; position:relative; margin-right:30px;">
-                <div style="position:absolute; bottom:0; left:0; right:15px; top:30px;
-                            border-radius:12px; overflow:hidden; border:1px solid #eee;
-                            box-shadow:0 8px 24px rgba(0,0,0,0.10);">
-                    {img_html}
-                </div>
-                <div style="position:absolute; top:0; left:15px; right:0; bottom:30px;
-                            border-radius:12px; overflow:hidden; border:3px solid white;
-                            box-shadow:0 4px 16px rgba(0,0,0,0.15); z-index:2;">
-                    {img_html}
-                </div>
-            </div>
-            <div style="flex:28; display:flex; flex-direction:column; margin-right:30px;">
-                <div style="background-color:{kbox_bg}; color:{kbox_txt}; padding:22px 18px;
-                            border-radius:10px; font-family:'{f_t}'; font-size:{fs_t}px;
-                            line-height:1.5; box-shadow:0 10px 30px rgba(0,0,0,0.15);
-                            flex-grow:1;">
-                    {facts_title_html}
-                    {facts_html_k}
-                </div>
-            </div>
-            <div class="info-col" style="flex:34; padding-top:20px; justify-content:flex-start;">
-                <div class="app-overline-style" style="margin-bottom:12px;">
-                    <span>{k_over}</span>
-                </div>
-                <div class="title-h1" style="margin-bottom:8px;
-                     font-size:{max(28,fs_h1_val-4)}px; line-height:1.05;">
-                    {k_main}
-                </div>
-                <div class="title-sub" style="margin-bottom:20px;
-                     font-size:{max(14,fs_sub_val-4)}px; line-height:1.3;">
-                    {k_sub}
-                </div>
-                <div style="font-family:'{f_t}'; font-size:{fs_t}px; line-height:1.7;
-                            color:{c_t}; text-align:justify; flex-grow:1;">
-                    {k_opis}
-                </div>
-            </div>
-
-        </div>{fh}""", f"kierunek_{i}"))
-
     # --- Aplikacja ---
     if not s.get('app_hide', False):
         ibg = s.get('img_app_bg')
@@ -1560,17 +1557,14 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         (i for i in range(s.get('num_attr', 1)) if not s.get(f'ahide_{i}')), None
     )
     fid = f"attr_{first_visible_attr}" if first_visible_attr is not None else "slide-title"
-
-    first_visible_kierunek = next(
-        (i for i in range(s.get('num_kierunki', 0)) if not s.get(f'khide_{i}')), None
-    )
-    kid = f"kierunek_{first_visible_kierunek}" if first_visible_kierunek is not None else "slide-title"
+    # Pierwszy hotel
+    hid = f"slide-hotel-0" if s.get('num_hotels', 1) > 0 and not s.get('h_hide_0') else "slide-title"
 
     default_tid = {
         "Strona Tytułowa": "slide-title", "Opis Kierunku": "slide-kierunek",
         "Mapa Podróży": "slide-mapa", "Jak lecimy?": "slide-loty",
-        "Zakwaterowanie": "slide-hotel-0", "Program Wyjazdu": "slide-program",
-        "Opis miejsc": pid, "Opis kierunków": kid, "Opis atrakcji": fid,
+        "Zakwaterowanie": hid, "Program Wyjazdu": "slide-program",
+        "Opisy miejsc": pid, "Opis atrakcji": fid,
         "Kosztorys": "slide-kosztorys-1", "Aplikacja (Komunikacja)": "slide-app",
         "Materiały Brandingowe": "slide-branding",
         "Wirtualny Asystent": "slide-virtual-assistant",
