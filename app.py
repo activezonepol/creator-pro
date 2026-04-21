@@ -268,9 +268,12 @@ def _build_proj_dict():
     """Serializuje session_state do słownika gotowego do zapisu JSON."""
     proj = {}
     skip_prefixes = ('FormSubmitter', '$$', 'up_', 'fn_', 'dl_', 'btn_', 'sb_', 'pa_add_', 'sek_img_up')
-    # Klucze wewnętrzne które nie powinny trafić do pliku projektu
+    
+    # TUTAJ JEST POPRAWKA: Dodano 'STATE_BACKUP' i 'RAW_STATE_BACKUP'
     internal_keys = {'_session_id', '_ls_loaded', '_ls_restore', '_scroll_pos',
-                     'ready_export_html', 'show_link_info', '_attr_focused'}
+                     'ready_export_html', 'show_link_info', '_attr_focused', 
+                     'STATE_BACKUP', 'RAW_STATE_BACKUP'}
+                     
     skip_keys = {
         'tyt_hero', 'tyt_logo_az', 'tyt_logo_cli',
         'kie_hero', 'kie_th1', 'kie_th2', 'kie_th3', 'lot_hero',
@@ -278,9 +281,7 @@ def _build_proj_dict():
         'va_img_1', 'va_img_2', 'va_img_3',
         'pg_img_1', 'pg_img_2', 'pg_img_3',
         'koszt_img_1', 'koszt_img_2', 'opi_main', 'nas_clients',
-        # file_uploader przerywników (UploadedFile, nie bytes — dane trafiają do sek_*_img)
         'sek_img_up_0', 'sek_img_up_1', 'sek_img_up_2', 'sek_img_up_3',
-        # file_uploader miniatur miejsc
         'plc_img3_0', 'plc_img4_0',
     }
     dyn_skip = re.compile(
