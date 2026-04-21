@@ -284,10 +284,12 @@ def _build_proj_dict():
 
 def section_template_manager(section_keys, file_prefix, default_filename, uploader_key, index=None):
     ATR_KEY_MAP = {"atype": "type", "amain": "main", "asub": "sub", "aopis": "opis"}
+    _acc = st.session_state.get('color_accent', '#FF6600')
+
     st.markdown(
-        "<div style='font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;"
-        "margin-top:15px;margin-bottom:8px;border-bottom:1px solid #e2e8f0;padding-bottom:5px;"
-        "letter-spacing:1px;'>Zarządzanie szablonem sekcji</div>",
+        f"<div style='font-size:10px;font-weight:700;color:{_acc};text-transform:uppercase;"
+        f"margin-top:15px;margin-bottom:10px;letter-spacing:1.5px;'>"
+        f"Zarządzanie szablonem sekcji</div>",
         unsafe_allow_html=True,
     )
 
@@ -309,21 +311,23 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
     cc = st.session_state.get('country_code', 'OTH')
     base_slug = create_slug(default_filename)
     full_filename = f"{cc}-{file_prefix}-{base_slug}.json"
+    _display = default_filename.replace("_", " ").title() if default_filename else "Slajd"
 
-    # RAMKA 1: Upload + Wczytaj
-    st.markdown(
-        "<div style='border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px 6px 12px;"
-        "margin-bottom:8px;background:#fafafa;'>",
-        unsafe_allow_html=True,
-    )
-    _cu, _cw = st.columns(2)
-    with _cu:
+    _cl, _cr = st.columns(2)
+
+    # LEWA KOLUMNA — wczytywanie
+    with _cl:
+        st.markdown(
+            f"<div style='border:1px solid #e2e8f0;border-radius:8px;padding:10px;"
+            f"background:#fff;margin-bottom:4px;'>"
+            f"<div style='font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;"
+            f"letter-spacing:1px;margin-bottom:6px;'>Wczytywanie</div>",
+            unsafe_allow_html=True,
+        )
         uploaded_file = st.file_uploader(
             "max. 200 MB", type=['json'], key=f"up_{uploader_key}",
         )
-    with _cw:
-        st.markdown("<div style='height:22px'></div>", unsafe_allow_html=True)
-        if st.button("⬆ WCZYTAJ", key=f"btn_apply_{uploader_key}",
+        if st.button("↑ WCZYTAJ", key=f"btn_apply_{uploader_key}",
                      use_container_width=True, disabled=not uploaded_file):
             try:
                 data = json.load(uploaded_file)
@@ -340,30 +344,29 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
                 st.rerun()
             except Exception:
                 st.error("Błąd odczytu.")
-    st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
-    # RAMKA 2: Nazwa slajdu + Pobierz
-    st.markdown(
-        "<div style='border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;"
-        "margin-bottom:12px;background:#fafafa;'>",
-        unsafe_allow_html=True,
-    )
-    _cn, _cd = st.columns(2)
-    with _cn:
-        _display = default_filename.replace("_", " ").title() if default_filename else "Slajd"
+    # PRAWA KOLUMNA — pobieranie
+    with _cr:
         st.markdown(
-            f"<div style='background:#fff;border:1px solid #e2e8f0;border-radius:6px;"
-            f"padding:8px 10px;min-height:38px;display:flex;align-items:center;"
-            f"font-family:Montserrat,sans-serif;font-size:12px;font-weight:600;color:#334155;'>"
-            f"{_display}</div>",
+            f"<div style='border:1px solid #e2e8f0;border-radius:8px;padding:10px;"
+            f"background:#fff;margin-bottom:4px;'>"
+            f"<div style='font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;"
+            f"letter-spacing:1px;margin-bottom:6px;'>Pobieranie</div>"
+            f"<div style='background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;"
+            f"padding:8px 10px;margin-bottom:8px;font-family:Montserrat,sans-serif;"
+            f"font-size:12px;font-weight:600;color:#334155;min-height:34px;"
+            f"display:flex;align-items:center;gap:6px;'>"
+            f"<span style='color:{_acc}'>★</span> {_display}</div>",
             unsafe_allow_html=True,
         )
-    with _cd:
         st.download_button(
-            "⬇ POBIERZ", json_str, full_filename,
+            "↓ POBIERZ", json_str, full_filename,
             key=f"dl_{uploader_key}", use_container_width=True,
         )
-    st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("<div style='margin-bottom:8px;'></div>", unsafe_allow_html=True)
 
 
 def _section_header(label):
