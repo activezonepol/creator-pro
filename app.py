@@ -1109,45 +1109,42 @@ with st.sidebar:
     elif page == "Przerywniki sekcji":
         st.markdown(
             "<div style='font-size:12px;color:#64748b;margin-bottom:12px;'>"
-            "Slajdy przerywnikowe pojawiają się przed blokami: Zakwaterowanie, "
-            "Atrakcje/Miejsca i Rekomendacje. Możesz je ukryć lub edytować.</div>",
+            "Trzy slajdy przerywnikowe pojawiają się automatycznie przed: "
+            "Zakwaterowaniem, Atrakcjami/Miejscami i Rekomendacjami. "
+            "Każdy ma tło-zdjęcie z gradientem i duży tytuł.</div>",
             unsafe_allow_html=True,
         )
-        _inter_defs = [
-            ("inter_hotel", "PRZED ZAKWATEROWANIEM", "NASZE HOTELE", "KOMFORT I ELEGANCJA", "ZAKWATEROWANIE"),
-            ("inter_attr",  "PRZED ATRAKCJAMI/MIEJSCAMI", "PROGRAM WYJAZDU", "NIEZAPOMNIANE CHWILE", "ATRAKCJE"),
-            ("inter_testim","PRZED REKOMENDACJAMI", "CO O NAS MÓWIĄ", "NASI KLIENCI", "OPINIE"),
+        _sek_defs = [
+            (0, "PRZED ZAKWATEROWANIEM", "ZAKWATEROWANIE", "NASZE HOTELE"),
+            (1, "PRZED ATRAKCJAMI/MIEJSCAMI", "PROGRAM", "ATRAKCJE I MIEJSCA"),
+            (2, "PRZED REKOMENDACJAMI", "REKOMENDACJE", "CO O NAS MÓWIĄ"),
         ]
-        for _pfx, _label, _def_main, _def_sub, _def_over in _inter_defs:
+        for _si, _label, _def_title, _def_sub in _sek_defs:
+            _sid = f"sek_{_si}"
             with st.expander(f"▪ {_label}", expanded=False):
-                st.checkbox("Ukryj ten slajd", key=f"{_pfx}_hide")
-                st.button("POKAŻ PODGLĄD", key=f"btn_{_pfx}",
-                          on_click=set_focus, args=(f"slide-{_pfx}",),
+                st.checkbox("Ukryj ten slajd", key=f"sek_hide_{_si}")
+                st.button("POKAŻ PODGLĄD", key=f"btn_sek_{_si}",
+                          on_click=set_focus, args=(f"slide-{_sid}",),
                           use_container_width=True)
-                st.text_input("Overline (mały nadtytuł):", key=f"{_pfx}_overline",
-                              value=st.session_state.get(f"{_pfx}_overline", _def_over))
-                st.text_input("Tytuł H1:", key=f"{_pfx}_main",
-                              value=st.session_state.get(f"{_pfx}_main", _def_main))
-                st.text_input("Podtytuł:", key=f"{_pfx}_sub",
-                              value=st.session_state.get(f"{_pfx}_sub", _def_sub))
-                _section_header("BOX Z FAKTAMI (opcjonalny)")
-                for _ck, _cv in [(f"{_pfx}_box_bg", st.session_state.get('color_h1', '#003366')),
-                                  (f"{_pfx}_box_txt", '#ffffff')]:
+                st.text_input("Duży tytuł (H1 uppercase):",
+                              key=f"{_sid}_title",
+                              value=st.session_state.get(f"{_sid}_title", _def_title))
+                st.text_input("Mały nadtytuł (overline):",
+                              key=f"{_sid}_sub",
+                              value=st.session_state.get(f"{_sid}_sub", _def_sub))
+                _section_header("KOLORY")
+                for _ck, _cv in [(f"{_sid}_bg",  st.session_state.get('color_h1', '#003366')),
+                                  (f"{_sid}_txt", '#ffffff')]:
                     _v = st.session_state.get(_ck, _cv)
                     if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
                         st.session_state[_ck] = _cv
                 _cb1, _cb2 = st.columns(2)
-                _cb1.color_picker("Kolor tła boksu", key=f"{_pfx}_box_bg")
-                _cb2.color_picker("Kolor tekstu", key=f"{_pfx}_box_txt")
-                st.text_input("Tytuł boksu:", key=f"{_pfx}_facts_title",
-                              value=st.session_state.get(f"{_pfx}_facts_title", ''))
-                st.text_area("Fakty (Etykieta: Wartość):", height=100,
-                             key=f"{_pfx}_facts",
-                             value=st.session_state.get(f"{_pfx}_facts", ''))
-                _section_header("ZDJĘCIE")
-                _up = st.file_uploader("Zdjęcie:", key=f"{_pfx}_img_up")
+                _cb1.color_picker("Kolor gradientu/tła", key=f"{_sid}_bg")
+                _cb2.color_picker("Kolor tytułu", key=f"{_sid}_txt")
+                _section_header("ZDJĘCIE TŁA (16:9)")
+                _up = st.file_uploader("Zdjęcie tła:", key=f"sek_img_up_{_si}")
                 if _up:
-                    st.session_state[f"{_pfx}_img"] = optimize_img(_up.getvalue())
+                    st.session_state[f"{_sid}_img"] = optimize_img(_up.getvalue())
 
     # -----------------------------------------------------------------------
     # WYGLĄD I KOLORY
