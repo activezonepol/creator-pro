@@ -199,6 +199,16 @@ def _attr_move(pos, direction):
         order[pos], order[new_pos] = order[new_pos], order[pos]
         st.session_state['attr_order'] = order
 
+
+def _attr_delete(pos):
+    """Usuwa atrakcję z listy na pozycji pos."""
+    order = _attr_order()
+    if pos < len(order):
+        order.pop(pos)
+        st.session_state['attr_order'] = order
+        st.session_state['last_page'] = "  ↳ Przerywnik atrakcje"
+        st.session_state['_attr_focused'] = None
+
 def _attr_page_name(pos):
     """Nazwa strony nawigacji dla atrakcji na pozycji pos.
     Format: ATTR:idx — tylko idx, odporny na zmiany nazwy."""
@@ -432,8 +442,7 @@ with st.sidebar:
         _ap_key = _attr_pages[_ap]
         _ap_name = _attr_display_name(_ap)
         _ap_active = (_last == _ap_key)
-        _ca, _cb, _cc = st.columns([7, 1, 1])
-        # Przycisk nawigacji — podświetlony gdy aktywny
+        _ca, _cb, _cc, _cd = st.columns([6, 1, 1, 1])
         _btn_label = f"★ {_attr_display_name(_ap)}"
         if _ca.button(_btn_label, key=f"attr_nav_{_ap}",
                       use_container_width=True,
@@ -447,6 +456,10 @@ with st.sidebar:
             _cc.button("▼", key=f"aord_dn_{_ap}",
                        on_click=_attr_move, args=(_ap, 1),
                        use_container_width=True)
+        _cd.button("✕", key=f"aord_del_{_ap}",
+                   on_click=_attr_delete, args=(_ap,),
+                   use_container_width=True,
+                   help="Usuń atrakcję")
 
     # Radio dolne — aktywne tylko gdy last_page należy do nav_bot
     _bot_idx = _nav_bot.index(_last) if _last in _nav_bot else None
@@ -981,16 +994,7 @@ with st.sidebar:
             section_template_manager(a_keys, "ATR",
                 st.session_state.get(f"amain_{_i}") or f"Atrakcja_{_pos+1}",
                 f"atr_{_i}", index=_i)
-            # Przycisk kasowania atrakcji
-            if st.button("🗑 Usuń tę atrakcję", key=f"attr_del_{_i}",
-                         use_container_width=True):
-                # Usuń z attr_order
-                _ord = _attr_order()
-                _ord = [x for x in _ord if x != _i]
-                st.session_state['attr_order'] = _ord
-                st.session_state['last_page'] = "  ↳ Przerywnik atrakcje"
-                st.session_state['_attr_focused'] = None
-                st.rerun()
+
             st.checkbox("Ukryj ten slajd w PDF", key=f"ahide_{_i}",
                         on_change=set_focus, args=(f"attr_{_i}",))
             st.text_input("Nazwa:", key=f"amain_{_i}",
