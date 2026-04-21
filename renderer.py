@@ -88,6 +88,7 @@ pl_days_map = ["Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobo
 # Klucze obrazów — używane przy zapisie/wczytaniu projektu JSON
 IMAGE_KEYS = {
     'img_hero_t', 'img_hero_k', 'img_hero_l', 'img_map_bg', 'img_map_bg_auto',
+    'inter_hotel_img', 'inter_attr_img', 'inter_testim_img',
     'logo_az', 'logo_cli', 'img_app_bg', 'img_app_screen',
     'img_brand_1', 'img_brand_2', 'img_brand_3',
     'img_va_1', 'img_va_2', 'img_va_3',
@@ -186,6 +187,16 @@ defaults = {
     'pg_title': 'PILLOW\nGIFTS',
     'pg_subtitle': 'Aby wspólne chwile zatrzymać na dłużej',
     'pg_text': 'Upominki pełnią ważną rolę w budowaniu relacji biznesowych.',
+    # Przerywniki sekcji
+    'inter_hotel_hide': False, 'inter_hotel_overline': 'ZAKWATEROWANIE',
+    'inter_hotel_main': 'NASZE HOTELE', 'inter_hotel_sub': 'KOMFORT I ELEGANCJA',
+    'inter_hotel_facts_title': '', 'inter_hotel_facts': '', 'inter_hotel_box_bg': '',
+    'inter_attr_hide': False, 'inter_attr_overline': 'ATRAKCJE',
+    'inter_attr_main': 'PROGRAM WYJAZDU', 'inter_attr_sub': 'NIEZAPOMNIANE CHWILE',
+    'inter_attr_facts_title': '', 'inter_attr_facts': '', 'inter_attr_box_bg': '',
+    'inter_testim_hide': False, 'inter_testim_overline': 'OPINIE',
+    'inter_testim_main': 'CO O NAS MÓWIĄ', 'inter_testim_sub': 'NASI KLIENCI',
+    'inter_testim_facts_title': '', 'inter_testim_facts': '', 'inter_testim_box_bg': '',
     'testim_hide': False, 'testim_overline': 'REKOMENDACJE',
     'testim_title': 'CO O NAS\nMÓWIĄ?',
     'testim_subtitle': '100% NASZYCH KLIENTÓW JEST CAŁKOWICIE ZADOWOLONYCH Z NASZYCH USŁUG.',
@@ -879,6 +890,100 @@ def _get_ph(t):
 # GŁÓWNA FUNKCJA BUDOWANIA PREZENTACJI
 # ---------------------------------------------------------------------------
 
+def _render_interlude(hp, key_prefix, lh, fh, s, get_b64, _get_ph,
+                      fs_t, fs_sub_val, fs_h1_val, fs_met,
+                      f_h1, f_h2, f_met, c_h1, acc):
+    """Renderuje pojedynczy slajd przerywnikowy. key_prefix np. 'inter_hotel'."""
+    if s.get(f'{key_prefix}_hide', False):
+        return
+
+    kimg = get_b64(f'{key_prefix}_img', (1, 1))
+
+    kbox_bg  = str(s.get(f'{key_prefix}_box_bg')  or c_h1)
+    kbox_txt = str(s.get(f'{key_prefix}_box_txt') or '#ffffff')
+
+    facts_title = str(s.get(f'{key_prefix}_facts_title') or '')
+    facts_title_html = (
+        f"<div style=\'font-family:{f_met}; font-weight:700; font-size:{max(10,fs_met-2)}px; "
+        f"color:{kbox_txt}; text-transform:uppercase; letter-spacing:3px; "
+        f"margin-bottom:12px; padding-bottom:10px; "
+        f"border-bottom:1px solid rgba(255,255,255,0.3);\'>{facts_title}</div>"
+        if facts_title else ''
+    )
+
+    kfacts = str(s.get(f'{key_prefix}_facts') or '')
+    facts_lines = []
+    for _ln in kfacts.split('\n'):
+        _ln = _ln.strip()
+        if not _ln: continue
+        if ':' in _ln:
+            _lbl, _val = _ln.split(':', 1)
+            facts_lines.append(
+                f"<div style=\'margin-bottom:7px;line-height:1.4;font-size:{max(11,fs_t-1)}px;\'>"
+                f"<strong style=\'font-weight:700;color:{kbox_txt};\'>{_lbl.strip()}:</strong> "
+                f"<span style=\'font-weight:300;color:{kbox_txt};\'>{_val.strip()}</span></div>"
+            )
+        else:
+            facts_lines.append(
+                f"<div style=\'margin-bottom:7px;line-height:1.4;font-size:{max(11,fs_t-1)}px;"
+                f"color:{kbox_txt};\'>{_ln}</div>"
+            )
+    facts_html = ''.join(facts_lines)
+
+    box_inner = facts_title_html + facts_html
+    if box_inner:
+        box_html = (
+            f"<div style=\'background-color:{kbox_bg};color:{kbox_txt};padding:25px 20px;"
+            f"border-bottom-left-radius:40px;border-top-right-radius:8px;"
+            f"border-top-left-radius:8px;box-shadow:0 10px 20px rgba(0,0,0,0.05);\'>"
+            f"{box_inner}</div>"
+        )
+    else:
+        box_html = (
+            f"<div style=\'background-color:{kbox_bg};height:80px;"
+            f"border-bottom-left-radius:40px;border-top-right-radius:8px;"
+            f"border-top-left-radius:8px;box-shadow:0 10px 20px rgba(0,0,0,0.05);\'></div>"
+        )
+
+    k_over = str(s.get(f'{key_prefix}_overline') or 'NASZ KIERUNEK')
+    k_main = str(s.get(f'{key_prefix}_main') or '').replace(chr(10), '<br>')
+    k_sub  = str(s.get(f'{key_prefix}_sub')  or '').replace(chr(10), '<br>')
+
+    img_left  = (f'<img src="data:image/jpeg;base64,{kimg}" style="position:absolute;top:0;left:0;width:200%;height:100%;object-fit:cover;object-position:left center;">' if kimg else _get_ph('ZDJĘCIE'))
+    img_right = (f'<img src="data:image/jpeg;base64,{kimg}" style="position:absolute;bottom:0;right:0;width:220%;height:140%;object-fit:cover;object-position:right bottom;">' if kimg else _get_ph('ZDJĘCIE'))
+
+    hp.append(_shtml(f"""{lh}
+    <div class="premium-layout" id="slide-{key_prefix}" style="gap:40px; align-items:stretch;">
+        <div style="flex:55; display:flex; gap:15px; height:100%;">
+            <div style="flex:1.2; height:100%; border-radius:8px; overflow:hidden; position:relative; background:#fcfcfc; border:1px solid #eee;">
+                {img_left}
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column; gap:15px; height:100%;">
+                {box_html}
+                <div style="flex-grow:1; border-top-left-radius:40px; border-bottom-left-radius:8px; border-bottom-right-radius:8px; overflow:hidden; position:relative; background:#fcfcfc; border:1px solid #eee;">
+                    {img_right}
+                </div>
+            </div>
+        </div>
+        <div class="info-col" style="flex:45; padding-left:10px; padding-top:15px; justify-content:flex-start;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                <div style="height:1px; background-color:{acc}; opacity:0.5; width:32px; flex-shrink:0;"></div>
+                <span style="font-family:'{f_met}'; font-size:{max(10,fs_met-2)}px; font-weight:700;
+                             letter-spacing:4px; color:{acc}; text-transform:uppercase; white-space:nowrap;">
+                    {k_over}
+                </span>
+                <div style="height:1px; background-color:{acc}; opacity:0.5; flex:1;"></div>
+            </div>
+            <div class="title-h1" style="text-align:left; margin-bottom:5px; font-size:{fs_h1_val}px; color:{c_h1}; line-height:1.1;">
+                {k_main}
+            </div>
+            <div class="title-sub" style="text-align:left; margin-bottom:25px;">
+                {k_sub}
+            </div>
+        </div>
+    </div>{fh}""", f"slide-{key_prefix}"))
+
+
 def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     s = st.session_state
     hp = []
@@ -1195,6 +1300,10 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             <table class="flight-table"><tr><th>NR LOTU</th><th>DATA</th><th>TRASA</th><th>GODZINY</th></tr>{rows}</table>{h_e}
             </div></div>{fh}""", "slide-loty"))
 
+
+    # --- Przerywnik: ZAKWATEROWANIE ---
+    _render_interlude(hp, 'inter_hotel', lh, fh, s, get_b64, _get_ph, fs_t, fs_sub_val, fs_h1_val, fs_met, f_h1, f_h2, f_met, c_h1, acc)
+
     # --- Hotele w kolejności hotel_order ---
     _hotel_order = s.get('hotel_order', [])
     if not _hotel_order:
@@ -1315,6 +1424,10 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 </div>
             </div>
         </div>{fh}""", "place_preview"))
+
+
+    # --- Przerywnik: ATRAKCJE I MIEJSCA ---
+    _render_interlude(hp, 'inter_attr', lh, fh, s, get_b64, _get_ph, fs_t, fs_sub_val, fs_h1_val, fs_met, f_h1, f_h2, f_met, c_h1, acc)
 
     # --- Miejsca i atrakcje (posortowane po dniach) ---
     # --- Miejsca i atrakcje w kolejności place_attr_order ---
@@ -1580,6 +1693,10 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             <div class="photo-col">{imk2}</div>
             </div>{fh}""", "slide-kosztorys-2"))
 
+
+    # --- Przerywnik: CO O NAS MÓWIĄ ---
+    _render_interlude(hp, 'inter_testim', lh, fh, s, get_b64, _get_ph, fs_t, fs_sub_val, fs_h1_val, fs_met, f_h1, f_h2, f_met, c_h1, acc)
+
     # --- Rekomendacje ---
     if not s.get('testim_hide', False):
         t_main_img = get_b64('img_testim_main', (4, 5))
@@ -1668,6 +1785,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         "Wirtualny Asystent": "slide-virtual-assistant",
         "Pillow Gifts": "slide-pillow-gifts",
         "Co o nas mówią": "slide-testimonials", "O Nas (Zespół)": "slide-about",
+        "Przerywniki sekcji": "slide-inter_hotel",
     }.get(current_page, "")
 
     tid = s.get('scroll_target') or default_tid
