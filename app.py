@@ -101,43 +101,34 @@ if '_ls_loaded' not in st.session_state:
 _qp = st.query_params.to_dict()
 if _qp.get('_ls_restore') and not st.session_state.get('_ls_loaded'):
     _ls_val = _qp['_ls_restore']
-    if _ls_val == 'empty':
-        # localStorage był pusty — kontynuuj z defaults
-        st.session_state['_ls_loaded'] = True
-        st.query_params.clear()
-    else:
+    if _ls_val != 'empty':
         try:
             _restored = json.loads(base64.b64decode(_ls_val).decode())
             load_project_data(_restored)
-            st.session_state['_ls_loaded'] = True
-            st.query_params.clear()
-            st.rerun()
         except Exception:
-            st.session_state['_ls_loaded'] = True
-            st.query_params.clear()
+            pass
+    st.session_state['_ls_loaded'] = True
+    st.query_params.clear()
+    st.rerun()
 
 if not st.session_state.get('_ls_loaded'):
-    # Sesja świeża — wyślij JS który spróbuje wczytać z localStorage.
-    # Jeśli znajdzie dane → przekieruje z ?_ls_restore=...
-    # Jeśli nie → kolejny rerun przyjdzie bez parametru i ustawimy _ls_loaded=True
+    # Sesja świeża — wyślij JS żeby odczytał localStorage i przekazał przez URL
     import streamlit.components.v1 as _comp_init
     _comp_init.html(f"""<script>
     (function() {{
-        var data = localStorage.getItem('{_LS_KEY}');
-        if (data) {{
-            try {{
-                var b64 = btoa(unescape(encodeURIComponent(data)));
-                var url = window.parent.location.href.split('?')[0].split('#')[0];
-                window.parent.location.href = url + '?_ls_restore=' + b64;
-                return;
-            }} catch(e) {{ }}
+        try {{
+            var data = localStorage.getItem('{_LS_KEY}');
+            var b64 = data ? btoa(unescape(encodeURIComponent(data))) : 'empty';
+            var url = window.parent.location.href.split('?')[0].split('#')[0];
+            window.parent.location.href = url + '?_ls_restore=' + b64;
+        }} catch(e) {{
+            var url = window.parent.location.href.split('?')[0].split('#')[0];
+            window.parent.location.href = url + '?_ls_restore=empty';
         }}
-        // Brak danych lub błąd — powiadom Pythona przez pusty param
-        var url = window.parent.location.href.split('?')[0].split('#')[0];
-        window.parent.location.href = url + '?_ls_restore=empty';
     }})();
     </script>""", height=0)
-    st.stop()  # Zatrzymaj rendering — czekamy na odpowiedź JS
+    # Renderuj aplikację z defaults podczas oczekiwania na JS
+    # (JS szybko przekieruje zanim user cokolwiek zobaczy)
 
 # ---------------------------------------------------------------------------
 # HELPERY UI
