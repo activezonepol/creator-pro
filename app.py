@@ -291,29 +291,20 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
         unsafe_allow_html=True,
     )
 
-    # Wiersz 1: Upload (lewo) + kafelek z nazwą slajdu (prawo)
-    _c_up, _c_name = st.columns(2)
-    with _c_up:
-        uploaded_file = st.file_uploader(
-            "max. 200 MB", type=['json'],
-            key=f"up_{uploader_key}",
-        )
-    with _c_name:
-        # Kafelek z nazwą — pokazuje nazwę atrakcji/sekcji
-        _display = default_filename.replace("_", " ").title()
-        st.markdown(
-            f"<div style='height:100%;min-height:80px;display:flex;align-items:center;"
-            f"justify-content:center;background:#f8fafc;border:1px solid #e2e8f0;"
-            f"border-radius:6px;padding:10px;margin-top:22px;text-align:center;"
-            f"font-family:Montserrat,sans-serif;font-size:12px;font-weight:600;"
-            f"color:#334155;word-break:break-word;'>"
-            f"Slajd<br><span style='font-size:14px;font-weight:700;color:#1e293b;'>"
-            f"{_display}</span></div>",
-            unsafe_allow_html=True,
-        )
+    # Upload pliku JSON
+    uploaded_file = st.file_uploader(
+        "max. 200 MB", type=['json'], key=f"up_{uploader_key}",
+    )
 
-    # Wiersz 2: Nazwa pliku (lewo) + Pobierz szablon (prawo)
-    # Wiersz 3: Wczytaj szablon (pełna szerokość)
+    # Nazwa pliku do pobrania
+    base_slug = create_slug(default_filename)
+    custom_name = st.text_input(
+        "Nazwa pliku:", value=base_slug,
+        key=f"fn_{uploader_key}", label_visibility="collapsed",
+        placeholder="nazwa pliku...",
+    )
+
+    # Dwa przyciski równej szerokości obok siebie
     export_data = {}
     for k in section_keys:
         save_key = k if index is None else re.sub(f'_{index}$', '', k)
@@ -329,38 +320,31 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
                 export_data[save_key] = val
     json_str = json.dumps(export_data)
     cc = st.session_state.get('country_code', 'OTH')
-    base_slug = create_slug(default_filename)
-    custom_name = st.text_input(
-        "Nazwa pliku:", value=base_slug,
-        key=f"fn_{uploader_key}", label_visibility="collapsed",
-        placeholder="nazwa pliku...",
-    )
     final_slug = create_slug(custom_name)
     full_filename = f"{cc}-{file_prefix}-{final_slug}.json"
 
-    _c_dl, _c_wczytaj = st.columns(2)
-    _c_dl.download_button(
-        "⬇ POBIERZ SZABLON", json_str, full_filename,
+    _cd, _cw = st.columns(2)
+    _cd.download_button(
+        "⬇ POBIERZ", json_str, full_filename,
         key=f"dl_{uploader_key}", use_container_width=True,
     )
-    with _c_wczytaj:
-        if st.button("⬆ WCZYTAJ SZABLON", key=f"btn_apply_{uploader_key}",
-                     use_container_width=True, disabled=not uploaded_file):
-            try:
-                data = json.load(uploaded_file)
-                filtered_data = {}
-                for k in section_keys:
-                    save_key = k
-                    load_key = k if index is None else re.sub(f'_{index}$', '', k)
-                    if file_prefix == "ATR":
-                        load_key = ATR_KEY_MAP.get(load_key, load_key)
-                    if load_key in data:
-                        filtered_data[save_key] = data[load_key]
-                load_project_data(filtered_data)
-                st.success("Szablon wczytany pomyślnie.")
-                st.rerun()
-            except Exception:
-                st.error("Błąd odczytu pliku szablonu.")
+    if _cw.button("⬆ WCZYTAJ", key=f"btn_apply_{uploader_key}",
+                  use_container_width=True, disabled=not uploaded_file):
+        try:
+            data = json.load(uploaded_file)
+            filtered_data = {}
+            for k in section_keys:
+                save_key = k
+                load_key = k if index is None else re.sub(f'_{index}$', '', k)
+                if file_prefix == "ATR":
+                    load_key = ATR_KEY_MAP.get(load_key, load_key)
+                if load_key in data:
+                    filtered_data[save_key] = data[load_key]
+            load_project_data(filtered_data)
+            st.success("Szablon wczytany.")
+            st.rerun()
+        except Exception:
+            st.error("Błąd odczytu pliku.")
     st.markdown("<div style='margin-bottom:12px;'></div>", unsafe_allow_html=True)
 
 
