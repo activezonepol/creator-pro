@@ -378,29 +378,35 @@ with st.sidebar:
     # -----------------------------------------------------------------------
     elif page == "Opis Kierunku":
         k_keys = [
-            'k_hide', 'k_main', 'k_sub', 'k_opis',
-            'kbox_bg_k', 'kbox_txt_k', 'img_hero_k',
+            'k_hide', 'k_overline', 'k_main', 'k_sub', 'k_opis',
+            'k_facts', 'k_facts_title', 'k_box_bg', 'k_box_txt', 'img_hero_k',
         ]
         section_template_manager(k_keys, "KIE", st.session_state.get('k_main', 'czarnogora'), "kie")
         st.checkbox("Ukryj ten slajd w PDF", key="k_hide")
+        st.text_input("Mały nadtytuł (overline):", key="k_overline",
+                      value=st.session_state.get('k_overline', 'NASZ KIERUNEK'))
         st.text_input("Nazwa kierunku (duży tytuł H1):", key="k_main")
-        st.text_input("Podtytuł (przy overline):", key="k_sub",
-                      help="Pojawia się przy poziomej kresce nad tytułem")
+        st.text_input("Podtytuł:", key="k_sub")
+        st.text_area("Opis (prawa kolumna):", height=160, key="k_opis",
+                     help="Główny opis kierunku po prawej stronie slajdu.")
 
-        _section_header("BOX Z FAKTAMI (lewa środkowa kolumna)")
+        _section_header("BOX Z FAKTAMI (lewa kolumna)")
         # Walidacja kolorów boksu
-        for _ck, _cv in [('kbox_bg_k', st.session_state.get('color_h1', '#003366')),
-                         ('kbox_txt_k', '#ffffff')]:
+        for _ck, _cv in [('k_box_bg', st.session_state.get('color_h1', '#003366')),
+                         ('k_box_txt', '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
                 st.session_state[_ck] = _cv
         cb1, cb2 = st.columns(2)
-        cb1.color_picker("Kolor tła boksu", key="kbox_bg_k")
-        cb2.color_picker("Kolor tekstu w boksie", key="kbox_txt_k")
+        cb1.color_picker("Kolor tła boksu", key="k_box_bg")
+        cb2.color_picker("Kolor tekstu w boksie", key="k_box_txt")
+        st.text_input("Tytuł boksu (np. FAKTY):", key="k_facts_title",
+                      value=st.session_state.get('k_facts_title', 'FAKTY'))
         st.text_area(
-            "Fakty / Opis (Format: 'Etykieta: Wartość' lub wolny tekst):",
-            height=180, key="k_opis",
-            help="Każda linia to jeden wpis. Format 'Etykieta: Wartość' pogrubia etykietę.",
+            "Fakty (Format: 'Etykieta: Wartość'):", height=160, key="k_facts",
+            value=st.session_state.get('k_facts',
+                'Stolica: \nWaluta: \nRóżnica czasu: \nTemperatury: '),
+            help="Każda linia = jeden wpis. 'Etykieta: Wartość' pogrubia etykietę.",
         )
 
         _section_header("ZDJĘCIE (jedno zdjęcie w dwóch ramkach)")
