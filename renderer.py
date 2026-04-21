@@ -117,7 +117,7 @@ defaults = {
     'color_h1': '#003366', 'color_h2': '#003366', 'color_sub': '#FF6600',
     'color_accent': '#FF6600', 'color_text': '#333333', 'color_metric': '#003366',
     'font_size_h1': 48, 'font_size_h2': 36, 'font_size_sub': 26,
-    'font_size_text': 16, 'font_size_metric': 16,
+    'font_size_text': 14, 'font_size_metric': 16,
     't_main': 'BAŁKAŃSKI KLEJNOT', 't_sub': 'MONTENEGRO EXPERIENCE',
     't_klient': 'NAZWA KLIENTA', 't_kierunek': 'CZARNOGÓRA',
     't_date': '1-4.10.2026', 't_pax': '60', 't_hotel': '4* ALL INCLUSIVE',
@@ -135,7 +135,7 @@ defaults = {
     'map_hide': False, 'map_overline': 'TRASA WYJAZDU',
     'map_title': 'ZARYS\nPODRÓŻY', 'map_subtitle': 'Kluczowe punkty programu',
     'map_desc': 'Zapraszamy do zapoznania się z poglądową mapą naszego wyjazdu.',
-    'map_zoom': 6, 'num_map_points': 3,
+    'map_zoom': 8, 'num_map_points': 3,
     'map_pt_name_0': 'Warszawa', 'map_conn_0': 'Przelot (Linia przerywana + Samolot)',
     'map_pt_sym_0': True, 'map_pt_x_0': 15, 'map_pt_y_0': 15,
     'map_pt_name_1': 'Podgorica', 'map_conn_1': 'Przejazd (Linia ciągła)',
@@ -308,7 +308,6 @@ def auto_generate_kosztorys():
         "Ubezpieczenie wersja MAX", "Transfery",
         "Woda podczas wycieczek i transferów",
         "Opieka profesjonalnego tour leadera Activezone",
-        "Lokalny przewodnik",
     ]
     for i in range(s.get('num_attr', 1)):
         if not s.get(f'ahide_{i}', False):
@@ -543,6 +542,33 @@ def generate_map_data(points, zoom=6, _depth=0):
         ]
         return None, final_points
 
+    # Auto-zoom: dobierz zoom tak żeby punkty zajmowały rozsądny obszar ekranu.
+    # Cel: wszystkie punkty mieszczą się w ~6x6 kafelkach (optymalny widok).
+    # Ignorujemy punkty symboliczne przy obliczaniu zoom.
+    if len(geo_pts) >= 2 and _depth == 0:
+        lats = [p['lat'] for p in geo_pts]
+        lons = [p['lon'] for p in geo_pts]
+        lat_span = max(lats) - min(lats)
+        lon_span = max(lons) - min(lons)
+        span = max(lat_span, lon_span)
+        # Heurystyka: dobierz zoom na podstawie rozpiętości geograficznej
+        if span < 0.5:
+            zoom = 11
+        elif span < 1.5:
+            zoom = 10
+        elif span < 3:
+            zoom = 9
+        elif span < 6:
+            zoom = 8
+        elif span < 12:
+            zoom = 7
+        elif span < 25:
+            zoom = 6
+        elif span < 50:
+            zoom = 5
+        else:
+            zoom = 4
+
     tiles = []
     for p in geo_pts:
         n = 2.0 ** zoom
@@ -555,14 +581,12 @@ def generate_map_data(points, zoom=6, _depth=0):
     min_ty = int(min(t[1] for t in tiles)) - 1
     max_ty = int(max(t[1] for t in tiles)) + 1
 
-    if (max_tx - min_tx + 1) * (max_ty - min_ty + 1) > 60:
-        if zoom > 2 and _depth < MAX_ZOOM_RECURSION_DEPTH:
-            return generate_map_data(points, zoom - 1, _depth + 1)
-        else:
-            cx = (min_tx + max_tx) // 2
-            cy = (min_ty + max_ty) // 2
-            min_tx, max_tx = cx - 3, cx + 3
-            min_ty, max_ty = cy - 3, cy + 3
+    # Ogranicz do max 9x9 kafelków żeby nie pobierać za dużo
+    if (max_tx - min_tx + 1) * (max_ty - min_ty + 1) > 81:
+        cx = (min_tx + max_tx) // 2
+        cy = (min_ty + max_ty) // 2
+        min_tx, max_tx = cx - 4, cx + 4
+        min_ty, max_ty = cy - 4, cy + 4
 
     w = (max_tx - min_tx + 1) * 256
     h = (max_ty - min_ty + 1) * 256
@@ -1003,7 +1027,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                         <div style="flex:1; height:1px; background:{acc}; opacity:0.6;"></div>
                     </div>
                     <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(s.get('map_title','ZARYS\\nPODRÓŻY')).replace(chr(10),'<br>')}</div>
-                    <div class="title-sub" style="color: {acc}; font-weight: 700; text-transform: none; margin-bottom: 15px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('map_subtitle','')).replace(chr(10),'<br>')}</div>
+                    <div class="title-sub" style="margin-bottom: 15px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('map_subtitle','')).replace(chr(10),'<br>')}</div>
                     <div style="font-family: '{f_t}'; font-size: {fs_t}px; line-height: 1.6; color: {c_t}; margin-bottom: 10px;">{str(s.get('map_desc','')).replace(chr(10),'<br>')}</div>
                     <div style="font-family:'{f_h2}'; font-weight:800; font-size:{fs_t+2}px; color:{c_h2}; margin-bottom:5px; text-transform:uppercase;">PUNKTY NA TRASIE:</div>
                     {ul_points_html}
