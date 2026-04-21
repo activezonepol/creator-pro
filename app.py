@@ -180,7 +180,7 @@ def _attr_add():
     order = _attr_order()
     order.append(n)
     st.session_state['attr_order'] = order
-    st.session_state['last_page'] = f"  ↳ Atrakcja {n + 1}"
+    st.session_state['last_page'] = f"ATTR:{n}:Atrakcja {n + 1}"
     st.session_state['scroll_target'] = ""
 
 def _attr_move(pos, direction):
@@ -192,13 +192,15 @@ def _attr_move(pos, direction):
         st.session_state['attr_order'] = order
 
 def _attr_page_name(pos):
-    """Nazwa strony nawigacji dla atrakcji na pozycji pos."""
+    """Nazwa strony nawigacji dla atrakcji na pozycji pos.
+    Używa prefix ATTR: jako wewnętrznego markera — wyświetlany bez niego przez format_func."""
     order = _attr_order()
     if pos >= len(order):
-        return f"  ↳ Atrakcja {pos + 1}"
+        return f"ATTR:{pos}:Atrakcja {pos + 1}"
     idx = order[pos]
-    name = str(st.session_state.get(f'amain_{idx}', '')).split('\n')[0][:20].strip()
-    return f"  ↳ {name or f'Atrakcja {pos + 1}'}"
+    name = str(st.session_state.get(f'amain_{idx}', '')).split('\n')[0][:25].strip()
+    label = name or f"Atrakcja {pos + 1}"
+    return f"ATTR:{pos}:{label}"
 
 # Wsteczna kompatybilność z renderer.py
 def _get_place_attr_order():
@@ -377,9 +379,12 @@ with st.sidebar:
     _default_idx = _nav_pages.index(_last) if _last in _nav_pages else 0
 
     def _fmt_nav(p):
-        """Formatuje etykiety w radio — nagłówek sekcji wyróżniony."""
+        """Formatuje etykiety w radio."""
         if p == "── Miejsca i atrakcje":
-            return f"★  MIEJSCA I ATRAKCJE — DODAJ ＋"
+            return "★ DODAJ ATRAKCJE/MIEJSCE"
+        if p.startswith("ATTR:"):
+            parts = p.split(":", 2)
+            return parts[2] if len(parts) > 2 else p
         return p
 
     page = st.radio("WYBIERZ SEKCJE DO EDYCJI:", _nav_pages,
@@ -399,7 +404,7 @@ with st.sidebar:
         )
         for _ap in range(_n):
             _alabel = _attr_page_name(_ap)
-            _aname  = _alabel.strip().lstrip('↳').strip()
+            _aname  = _alabel.split(":", 2)[2] if _alabel.startswith("ATTR:") else _alabel
             _c1, _c2, _c3 = st.columns([6, 1, 1])
             _c1.markdown(
                 f"<div style='font-size:11px;padding:4px 0;color:#475569;"
@@ -419,9 +424,9 @@ with st.sidebar:
 
     # Nagłówek zakładki
     _inter_pages = {"  ↳ Przerywnik hotel", "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}
-    _is_attr_page = page.startswith("  ↳ ") and page not in _inter_pages
+    _is_attr_page = page.startswith("ATTR:")
 
-    # Gdy kliknięto nagłówek sekcji "── Miejsca i atrakcje" — dodaj atrakcję i przejdź do niej
+    # Gdy kliknięto "── Miejsca i atrakcje" — dodaj atrakcję
     if page == "── Miejsca i atrakcje":
         _attr_add()
         st.rerun()
@@ -439,7 +444,7 @@ with st.sidebar:
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;margin-left:12px;'>Slajd przerywnikowy — edytuj treść i wygląd poniżej.</div>", unsafe_allow_html=True)
     elif _is_attr_page:
         _acc_col = st.session_state.get("color_accent", "#FF6600")
-        _label = page.strip().lstrip("↳").strip()
+        _label = page.split(":", 2)[2] if page.startswith("ATTR:") else page.strip().lstrip("↳").strip()
         st.markdown(f"<h2 style='color:{_acc_col};margin-bottom:0;font-size:20px;font-weight:700;font-family:Montserrat,sans-serif;margin-left:12px;border-left:3px solid {_acc_col};padding-left:10px;'>★ {_label}</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;margin-left:12px;'>Edytuj treść slajdu atrakcji poniżej.</div>", unsafe_allow_html=True)
     elif page == "── Miejsca i atrakcje":
@@ -904,9 +909,8 @@ with st.sidebar:
     # -----------------------------------------------------------------------
     elif _is_attr_page:
         # Wyciągnij indeks z nazwy strony np. "  ↳ Atrakcja 1" -> pos=0 -> idx
-        _pos = next(
-            (p for p in range(_attr_count()) if _attr_page_name(p) == page), None
-        )
+        # Wyciągnij pos bezpośrednio z ATTR:pos:nazwa
+        _pos = int(page.split(":")[1]) if page.startswith("ATTR:") else None
         if _pos is None:
             st.warning("Nie znaleziono atrakcji.")
         else:
@@ -924,8 +928,10 @@ with st.sidebar:
                 if _dk not in st.session_state:
                     st.session_state[_dk] = _dv
 
-            st.button("POKAŻ PODGLĄD", key=f"btn_at_{_i}",
-                      on_click=set_focus, args=(f"attr_{_i}",), use_container_width=True)
+            # Auto-scroll do slajdu przy wejściu na stronę atrakcji
+            if st.session_state.get('_attr_last_shown') != _i:
+                st.session_state['_attr_last_shown'] = _i
+                set_focus(f"attr_{_i}")
             a_keys = [f'ahide_{_i}', f'amain_{_i}', f'asub_{_i}',
                       f'aday_{_i}', f'atype_{_i}', f'aopis_{_i}',
                       f'ah_{_i}', f'at1_{_i}', f'at2_{_i}', f'at3_{_i}']
