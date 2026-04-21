@@ -10,8 +10,10 @@ import re
 import json
 import base64
 from datetime import date, datetime
+import uuid
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 from renderer import (
     COUNTRIES_DICT, FONTS_LIST, hotel_icons, icon_map, defaults, IMAGE_KEYS,
@@ -26,8 +28,7 @@ from renderer import (
 # ---------------------------------------------------------------------------
 # KONFIGURACJA STRONY
 # ---------------------------------------------------------------------------
-st.set_page_config(layout="wide", page_title="Activezone Oferta",
-                   initial_sidebar_state="expanded")
+st.set_page_config(layout="wide", page_title="Activezone Oferta", initial_sidebar_state="expanded")
 
 st.markdown("""
 <style>
@@ -56,12 +57,12 @@ div[data-testid="stExpander"] {
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
-# INICJALIZACJA SESSION STATE I FILTR UPLOADERÓW
+# INICJALIZACJA SESSION STATE & FILTR UPLOADERÓW
 # ---------------------------------------------------------------------------
 if 'client_mode' not in st.session_state:
     st.session_state['client_mode'] = False
 
-# Identyfikatory uploaderów — NIE MOŻNA ich przywracać z backupu, bo Streamlit wyrzuca błąd
+# Klucze uploaderów, których nie wolno przywracać automatycznie (Streamlit by wyrzucił błąd)
 _UPLOADER_KEYS_EXACT = {
     'tyt_hero', 'tyt_logo_az', 'tyt_logo_cli', 'kie_hero', 'lot_hero',
     'app_bg', 'app_sc', 'bra_img_1', 'bra_img_2', 'bra_img_3',
@@ -79,7 +80,7 @@ def _is_uploader_key(k):
     if _UPLOADER_KEYS_REGEX.match(k): return True
     return False
 
-# 1. TARCZA OCHRONNA (Przywraca stary stan z pominięciem plików, co naprawia błędy)
+# 1. TARCZA OCHRONNA (Przywraca stary stan z pominięciem plików)
 if 'RAW_STATE_BACKUP' in st.session_state:
     for k, v in st.session_state['RAW_STATE_BACKUP'].items():
         if k not in st.session_state and not _is_uploader_key(k):
@@ -113,9 +114,11 @@ for _k, _v in _SIZE_DEFS.items():
         st.session_state[_k] = _v
 
 # ---------------------------------------------------------------------------
-# AUTO-ZAPIS / AUTO-ODCZYT z localStorage przeglądarki
+# AUTO-ZAPIS / AUTO-ODCZYT (Z Zabezpieczeniem Tarczy!)
 # ---------------------------------------------------------------------------
-_LS_KEY = "activezone_project_v1"
+if '_session_id' not in st.session_state:
+    st.session_state['_session_id'] = uuid.uuid4().hex[:12]
+_LS_KEY = f"activezone_{st.session_state['_session_id']}"
 
 if '_ls_loaded' not in st.session_state:
     st.session_state['_ls_loaded'] = False
@@ -126,7 +129,10 @@ if _qp.get('_ls_restore') and not st.session_state.get('_ls_loaded'):
     if _ls_val != 'empty':
         try:
             _restored = json.loads(base64.b64decode(_ls_val).decode())
+            # Zabezpieczamy tarczę przed load_project_data!
+            _safe_backup = st.session_state.get('RAW_STATE_BACKUP', {})
             load_project_data(_restored)
+            st.session_state['RAW_STATE_BACKUP'] = _safe_backup
         except Exception:
             pass
     st.session_state['_ls_loaded'] = True
@@ -152,7 +158,6 @@ if not st.session_state.get('_ls_loaded'):
 # ---------------------------------------------------------------------------
 # HELPERY UI
 # ---------------------------------------------------------------------------
-
 def set_focus(target_id):
     st.session_state['scroll_target'] = target_id
 
@@ -178,93 +183,78 @@ def _move_hotel(idx, direction):
 # -----------------------------------------------------------------------
 # ZARZĄDZANIE LISTĄ OPISÓW ATRAKCJI I MIEJSC (pa_items)
 # -----------------------------------------------------------------------
-def _attr_count():
-    return st.session_state.get('num_attr', 0)
+def _pa_items_get():
+    s = st.session_state
+    items = s.get('pa_items', [])
+    np_ = s.get('num_places', 0)
+    na_ = s.get('num_attr', 0)
+    items = [it for it in items
+             if (it['type'] == 'place' and it['idx'] < np_)
+             or (it['type'] == 'attr'  and it['idx'] < na_)]
+    s['pa_items'] = items
+    return items
 
-def _attr_order():
-    n = _attr_count()
-    raw = st.session_state.get('attr_order', [])
-    seen = set()
-    order = []
-    for i in raw:
-        if i not in seen and i < n:
-            seen.add(i)
-            order.append(i)
-    for i in range(n):
-        if i not in seen:
-            order.append(i)
-    st.session_state['attr_order'] = order
-    return order
+def _pa_items_add(typ):
+    s = st.session_state
+    if typ == 'place':
+        idx = s.get('num_places', 0)
+        s['num_places'] = idx + 1
+    else:
+        idx = s.get('num_attr', 0)
+        s['num_attr'] = idx + 1
+    items = _pa_items_get()
+    items.append({'type': typ, 'idx': idx})
+    s['pa_items'] = items
+    s['last_page'] = f"  ↳ pa_{typ}_{idx}"
+    s['scroll_target'] = ""
+    return idx
 
-def _attr_add():
-    n = st.session_state.get('num_attr', 0)
-    st.session_state['num_attr'] = n + 1
-    order = st.session_state.get('attr_order', list(range(n)))
-    order = [i for i in order if i < n]
-    order.append(n)
-    st.session_state['attr_order'] = order
-    st.session_state['last_page'] = f"ATTR:{n}"
-    st.session_state['scroll_target'] = ""
-
-def _attr_move(pos, direction):
-    order = _attr_order()
+def _pa_items_move(pos, direction):
+    items = _pa_items_get()
     new_pos = pos + direction
-    if 0 <= new_pos < len(order):
-        order[pos], order[new_pos] = order[new_pos], order[pos]
-        st.session_state['attr_order'] = order
+    if 0 <= new_pos < len(items):
+        items[pos], items[new_pos] = items[new_pos], items[pos]
+        st.session_state['pa_items'] = items
 
-def _attr_delete(pos):
-    order = _attr_order()
-    if pos < len(order):
-        order.pop(pos)
-        st.session_state['attr_order'] = order
-        st.session_state['last_page'] = "  ↳ Przerywnik atrakcje"
-        st.session_state['_attr_focused'] = None
+def _pa_items_delete(pos):
+    items = _pa_items_get()
+    if 0 <= pos < len(items):
+        items.pop(pos)
+        st.session_state['pa_items'] = items
+        st.session_state['last_page'] = "Program Wyjazdu"
 
-def _attr_page_name(pos):
-    order = _attr_order()
-    idx = order[pos] if pos < len(order) else pos
-    return f"ATTR:{idx}"
+def _pa_page_name(typ, idx):
+    return f"  ↳ pa_{typ}_{idx}"
 
-def _attr_display_name(pos):
-    order = _attr_order()
-    idx = order[pos] if pos < len(order) else pos
-    name = str(st.session_state.get(f'amain_{idx}', '')).split('\n')[0][:25].strip()
-    return name or f"Atrakcja {pos + 1}"
-
-def _get_place_attr_order():
-    order = _attr_order()
-    return [['attr', i] for i in order]
-
-def _move_place_attr(pos, direction):
-    _attr_move(pos, direction)
+def _pa_display_name(typ, idx):
+    s = st.session_state
+    items = s.get('pa_items', [])
+    type_pos = next(
+        (pos + 1 for pos, it in enumerate([i for i in items if i['type'] == typ])
+         if it['idx'] == idx),
+        idx + 1
+    )
+    if typ == 'place':
+        n = str(s.get(f'pmain_{idx}', '')).split('\n')[0][:25].strip()
+        return n or f'Opis miejsca {type_pos}'
+    else:
+        n = str(s.get(f'amain_{idx}', '')).split('\n')[0][:25].strip()
+        return n or f'Atrakcja {type_pos}'
 
 def _rebuild_slide_order():
     _get_hotel_order()
-    _attr_order()
+    _pa_items_get()
 
 def _build_proj_dict():
     proj = {}
-    skip_prefixes = ('FormSubmitter', '$$', 'up_', 'fn_', 'dl_', 'btn_', 'sb_', 'pa_add_', 'sek_img_up')
-    # Omijamy wszystkie tarcze, żeby się nie zapętlało w JSON
-    internal_keys = {'_session_id', '_ls_loaded', '_ls_restore', '_scroll_pos',
-                     'ready_export_html', 'show_link_info', '_attr_focused', 'STATE_BACKUP', 'RAW_STATE_BACKUP'}
-    skip_keys = {
-        'tyt_hero', 'tyt_logo_az', 'tyt_logo_cli', 'kie_hero', 'kie_th1', 'kie_th2', 'kie_th3', 'lot_hero',
-        'app_bg', 'app_sc', 'bra_img_1', 'bra_img_2', 'bra_img_3', 'va_img_1', 'va_img_2', 'va_img_3',
-        'pg_img_1', 'pg_img_2', 'pg_img_3', 'koszt_img_1', 'koszt_img_2', 'opi_main', 'nas_clients',
-        'sek_img_up_0', 'sek_img_up_1', 'sek_img_up_2', 'sek_img_up_3', 'plc_img3_0', 'plc_img4_0',
-    }
-    dyn_skip = re.compile(
-        r'^(uh1|uh1b|uh2|uh3|prg_img|'
-        r'plc_img1|plc_img2|plc_img3|plc_img4|'
-        r'atr_hero|atr_th1|atr_th2|atr_th3|'
-        r'opi_img|nas_img|sek_img_up)_\d+$'
-    )
+    skip_prefixes = ('FormSubmitter', '$$', 'fn_', 'dl_', 'btn_', 'sb_', 'pa_add_', 'up_', 'sek_img_up')
+    internal_keys = {'_session_id', '_ls_loaded', '_ls_restore', '_scroll_pos', 'ready_export_html', 'show_link_info', 'RAW_STATE_BACKUP'}
+    
     for k, v in st.session_state.items():
         if k in EXCLUDE_EXPORT_KEYS or k in internal_keys: continue
         if any(k.startswith(p) for p in skip_prefixes): continue
-        if k in skip_keys or dyn_skip.match(k): continue
+        if _is_uploader_key(k): continue 
+        
         try:
             if isinstance(v, bytes): proj[k] = base64.b64encode(v).decode()
             elif isinstance(v, (date, datetime)): proj[k] = v.isoformat()
@@ -275,65 +265,53 @@ def _build_proj_dict():
 def section_template_manager(section_keys, file_prefix, default_filename, uploader_key, index=None):
     ATR_KEY_MAP = {"atype": "type", "amain": "main", "asub": "sub", "aopis": "opis"}
     _acc = st.session_state.get('color_accent', '#FF6600')
+    st.markdown(f"<div style='font-size:10px;font-weight:700;color:{_acc};text-transform:uppercase;margin-top:15px;margin-bottom:10px;letter-spacing:1.5px;'>Zarządzanie szablonem sekcji</div>", unsafe_allow_html=True)
+    _cl, _cr = st.columns(2)
 
-    st.markdown(
-        f"<div style='font-size:10px;font-weight:700;color:{_acc};text-transform:uppercase;"
-        f"margin-top:15px;margin-bottom:10px;letter-spacing:1.5px;'>"
-        f"Zarządzanie szablonem sekcji</div>",
-        unsafe_allow_html=True,
-    )
+    with _cl:
+        st.markdown(f"<div style='border:1px solid #e2e8f0;border-radius:8px;padding:10px;background:#fff;margin-bottom:4px;'><div style='font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;'>Wczytywanie</div>", unsafe_allow_html=True)
+        uploaded_file = st.file_uploader("max. 200 MB", type=['json'], key=f"up_{uploader_key}")
+        if st.button("↑ WCZYTAJ", key=f"btn_apply_{uploader_key}", use_container_width=True, disabled=not uploaded_file):
+            try:
+                data = json.load(uploaded_file)
+                filtered_data = {}
+                for k in section_keys:
+                    save_key = k
+                    load_key = k if index is None else re.sub(f'_{index}$', '', k)
+                    if file_prefix == "ATR": load_key = ATR_KEY_MAP.get(load_key, load_key)
+                    if load_key in data: filtered_data[save_key] = data[load_key]
+                
+                # Ochrona tarczy przy wgrywaniu szablonu!
+                _safe_backup = st.session_state.get('RAW_STATE_BACKUP', {})
+                load_project_data(filtered_data)
+                st.session_state['RAW_STATE_BACKUP'] = _safe_backup
+                
+                for k, v in filtered_data.items():
+                    st.session_state['RAW_STATE_BACKUP'][k] = v
+                    
+                st.success("Wczytano.")
+                st.rerun()
+            except Exception: st.error("Błąd odczytu.")
+        st.markdown("</div>", unsafe_allow_html=True)
 
-    export_data = {}
-    for k in section_keys:
-        save_key = k if index is None else re.sub(f'_{index}$', '', k)
-        if file_prefix == "ATR": save_key = ATR_KEY_MAP.get(save_key, save_key)
-        val = st.session_state.get(k)
-        if val is not None:
-            if isinstance(val, bytes): export_data[save_key] = base64.b64encode(val).decode('utf-8')
-            elif isinstance(val, (date, datetime)): export_data[save_key] = val.isoformat()
-            else: export_data[save_key] = val
-            
-    json_str = json.dumps(export_data)
-    cc = st.session_state.get('country_code', 'OTH')
-    base_slug = create_slug(default_filename)
-    full_filename = f"{cc}-{file_prefix}-{base_slug}.json"
-    _display = default_filename.replace("_", " ").title() if default_filename else "Slajd"
-
-    with st.container():
-        st.markdown(
-            f"<div style='border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px 4px 14px;margin-bottom:8px;background:#fff;'>"
-            f"<span style='font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1.5px;'>Pobieranie</span></div>",
-            unsafe_allow_html=True,
-        )
-        _cp1, _cp2 = st.columns(2)
-        with _cp1:
-            st.markdown(f"<div style='border:1px solid #e2e8f0;border-radius:7px;padding:9px 10px;background:#f8fafc;font-family:Montserrat,sans-serif;font-size:12px;font-weight:600;color:#334155;display:flex;align-items:center;gap:6px;min-height:38px;margin-bottom:8px;'><span style='color:{_acc};'>★</span> {_display}</div>", unsafe_allow_html=True)
-        with _cp2:
-            st.download_button("↓ POBIERZ", json_str, full_filename, key=f"dl_{uploader_key}", use_container_width=True)
-
-    with st.container():
-        st.markdown(
-            f"<div style='border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px 4px 14px;margin-bottom:4px;background:#fff;'>"
-            f"<span style='font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1.5px;'>Wczytywanie</span></div>",
-            unsafe_allow_html=True,
-        )
-        _cw1, _cw2 = st.columns(2)
-        with _cw1:
-            uploaded_file = st.file_uploader("JSON", type=['json'], key=f"up_{uploader_key}", label_visibility="collapsed")
-        with _cw2:
-            if st.button("↑ WCZYTAJ", key=f"btn_apply_{uploader_key}", use_container_width=True, disabled=not uploaded_file):
-                try:
-                    data = json.load(uploaded_file)
-                    filtered_data = {}
-                    for k in section_keys:
-                        save_key = k
-                        load_key = k if index is None else re.sub(f'_{index}$', '', k)
-                        if file_prefix == "ATR": load_key = ATR_KEY_MAP.get(load_key, load_key)
-                        if load_key in data: filtered_data[save_key] = data[load_key]
-                    load_project_data(filtered_data)
-                    st.success("Wczytano.")
-                    st.rerun()
-                except Exception: st.error("Błąd odczytu.")
+    with _cr:
+        export_data = {}
+        for k in section_keys:
+            save_key = k if index is None else re.sub(f'_{index}$', '', k)
+            if file_prefix == "ATR": save_key = ATR_KEY_MAP.get(save_key, save_key)
+            val = st.session_state.get(k)
+            if val is not None:
+                if isinstance(val, bytes): export_data[save_key] = base64.b64encode(val).decode('utf-8')
+                elif isinstance(val, (date, datetime)): export_data[save_key] = val.isoformat()
+                else: export_data[save_key] = val
+        json_str = json.dumps(export_data)
+        cc = st.session_state.get('country_code', 'OTH')
+        base_slug = create_slug(default_filename)
+        full_filename = f"{cc}-{file_prefix}-{base_slug}.json"
+        _display = default_filename.replace("_", " ").title() if default_filename else "Slajd"
+        st.markdown(f"<div style='border:1px solid #e2e8f0;border-radius:8px;padding:10px;background:#fff;margin-bottom:4px;'><div style='font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;'>Pobieranie</div><div style='background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:8px 10px;margin-bottom:8px;font-family:Montserrat,sans-serif;font-size:12px;font-weight:600;color:#334155;min-height:34px;display:flex;align-items:center;gap:6px;'><span style='color:{_acc}'>★</span> {_display}</div>", unsafe_allow_html=True)
+        st.download_button("↓ POBIERZ", json_str, full_filename, key=f"dl_{uploader_key}", use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("<div style='margin-bottom:8px;'></div>", unsafe_allow_html=True)
 
 def _section_header(label):
@@ -344,10 +322,7 @@ def _section_header(label):
 # ---------------------------------------------------------------------------
 if st.session_state['client_mode']:
     accent_color = st.session_state.get('color_accent', '#FF6600')
-    st.markdown(
-        f"<style>div.stButton {{ position: fixed !important; top: 20px !important; left: 20px !important; z-index: 999999 !important; width: auto !important; }} div.stButton > button {{ background-color: {accent_color} !important; color: white !important; border: none !important; border-radius: 30px !important; padding: 15px 25px !important; font-family: 'Montserrat', sans-serif !important; font-size: 14px !important; font-weight: 700 !important; box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important; display: flex !important; align-items: center !important; justify-content: center !important; width: auto !important; white-space: nowrap !important; }} div.stButton > button:hover {{ transform: scale(1.02); opacity: 0.9; }}</style>",
-        unsafe_allow_html=True,
-    )
+    st.markdown(f"<style>div.stButton {{ position: fixed !important; top: 20px !important; left: 20px !important; z-index: 999999 !important; width: auto !important; }} div.stButton > button {{ background-color: {accent_color} !important; color: white !important; border: none !important; border-radius: 30px !important; padding: 15px 25px !important; font-family: 'Montserrat', sans-serif !important; font-size: 14px !important; font-weight: 700 !important; box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important; display: flex !important; align-items: center !important; justify-content: center !important; width: auto !important; white-space: nowrap !important; }} div.stButton > button:hover {{ transform: scale(1.02); opacity: 0.9; }}</style>", unsafe_allow_html=True)
     if st.button("ZAKOŃCZ PODGLĄD"):
         st.session_state['client_mode'] = False
         st.rerun()
@@ -355,151 +330,163 @@ if st.session_state['client_mode']:
     st.stop()
 
 # ---------------------------------------------------------------------------
-# SIDEBAR — NAWIGACJA
+# SIDEBAR — ZJEDNOCZONA NAWIGACJA (Z MIEJSCAMI I ATRAKCJAMI)
 # ---------------------------------------------------------------------------
 with st.sidebar:
     _acc = st.session_state.get('color_accent', '#FF6600')
     _h1c = st.session_state.get('color_h1', '#003366')
-    st.markdown(
-        f"<style>section[data-testid='stSidebar'] button[kind='primary']{{background-color:{_acc}!important;border-color:{_acc}!important;color:white!important;}} section[data-testid='stSidebar'] [data-testid='stButton']:has(button[key*='aord_up_']) button, section[data-testid='stSidebar'] [data-testid='stButton']:has(button[key*='aord_dn_']) button{{padding:0!important;min-height:22px!important;font-size:11px!important;background:transparent!important;border:none!important;color:#94a3b8!important;box-shadow:none!important;}} section[data-testid='stSidebar'] [data-testid='stButton']:has(button[key*='aord_del_']) button{{padding:0!important;min-height:22px!important;font-size:11px!important;background-color:#ef4444!important;border-color:#ef4444!important;color:white!important;}}</style>",
-        unsafe_allow_html=True,
-    )
-    _n_attr = _attr_count()
-    _attr_pages = [_attr_page_name(pos) for pos in range(_n_attr)]
-
+    st.markdown(f"<style>section[data-testid='stSidebar'] button[kind='primary']{{background-color:{_acc}!important;border-color:{_acc}!important;color:white!important;}} section[data-testid='stSidebar'] [data-testid='stButton']:has(button[key*='sb_up_']) button, section[data-testid='stSidebar'] [data-testid='stButton']:has(button[key*='sb_dn_']) button{{padding:0!important;min-height:22px!important;font-size:11px!important;background:transparent!important;border:none!important;color:#94a3b8!important;box-shadow:none!important;}} section[data-testid='stSidebar'] [data-testid='stButton']:has(button[key*='sb_del_']) button{{padding:0!important;min-height:22px!important;font-size:11px!important;background-color:#ef4444!important;border-color:#ef4444!important;color:white!important;}}</style>", unsafe_allow_html=True)
+    
+    _pa_nav_items = _pa_items_get()
+    _pa_nav_pages = [_pa_page_name(it['type'], it['idx']) for it in _pa_nav_items]
+    
     _nav_top = ["Strona Tytułowa", "Opis Kierunku", "Mapa Podróży", "Jak lecimy?", "  ↳ Przerywnik hotel", "Zakwaterowanie", "  ↳ Przerywnik program", "Program Wyjazdu", "  ↳ Przerywnik atrakcje"]
     _nav_bot = ["Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent", "Pillow Gifts", "Kosztorys", "  ↳ Przerywnik o nas", "Co o nas mówią", "O Nas (Zespół)", "Wygląd i Kolory", "Zapisz / Wczytaj Projekt"]
-    _nav_all = _nav_top + _attr_pages + _nav_bot
+    
+    # Łączymy wszystko w jedno, potężne menu (to rozwiązuje problem podwójnego klikania)
+    _nav_all = _nav_top + _pa_nav_pages + _nav_bot
+
     _last = st.session_state.get('last_page', _nav_all[0])
+    if _last not in _nav_all:
+        _last = _nav_all[0]
 
-    def _fmt_nav(p):
-        if p.startswith("ATTR:"):
-            idx = int(p.split(":")[1])
-            pos = next((pos for pos, ix in enumerate(_attr_order()) if ix == idx), 0)
-            return "  ★ " + _attr_display_name(pos)
-        return p
+    # Formater nazw (dodaje luksusowe ikonki)
+    def nav_format(page_id):
+        if page_id.startswith("  ↳ pa_"):
+            parts = page_id.strip().lstrip("↳").strip().split("_")
+            typ, idx = parts[1], int(parts[2])
+            icon = "📍" if typ == "place" else "✨"
+            name = _pa_display_name(typ, idx)
+            return f"  ↳ {icon} {name}"
+        return page_id
 
-    _top_idx = _nav_top.index(_last) if _last in _nav_top else None
-    page_top = st.radio("WYBIERZ SEKCJE DO EDYCJI:", _nav_top, index=_top_idx)
-
-    st.markdown(f"<div style='display:flex;align-items:center;gap:6px;padding:3px 0 3px 4px;'><span style='color:{_acc};font-size:13px;font-weight:700;'>★</span><span style='font-size:12px;font-weight:600;color:#334155;font-family:Montserrat,sans-serif;'>DODAJ ATRAKCJE/MIEJSCE</span></div>", unsafe_allow_html=True)
-    if st.button("＋ Dodaj", key="attr_add_main_btn", use_container_width=True):
-        _attr_add()
-        st.rerun()
-
-    page_attr = None
-    for _ap in range(_n_attr):
-        _ap_key = _attr_pages[_ap]
-        _ap_active = (_last == _ap_key)
-        _ca, _cb, _cc, _cd = st.columns([6, 1, 1, 1])
-        if _ca.button(f"★ {_attr_display_name(_ap)}", key=f"attr_nav_{_ap}", use_container_width=True, type="primary" if _ap_active else "secondary"):
-            page_attr = _ap_key
-        if _ap > 0:
-            _cb.button("▲", key=f"aord_up_{_ap}", on_click=_attr_move, args=(_ap, -1), use_container_width=True)
-        if _ap < _n_attr - 1:
-            _cc.button("▼", key=f"aord_dn_{_ap}", on_click=_attr_move, args=(_ap, 1), use_container_width=True)
-        _cd.button("✕", key=f"aord_del_{_ap}", on_click=_attr_delete, args=(_ap,), use_container_width=True)
-
-    st.markdown("""<script>(function() { function styleAttrBtns() { var sidebar = document.querySelector('[data-testid="stSidebar"]'); if (!sidebar) return; sidebar.querySelectorAll('button').forEach(function(btn) { var txt = btn.innerText.trim(); if (txt === '▲' || txt === '▼') { btn.style.cssText += ';min-height:22px!important;height:22px!important;padding:0 2px!important;font-size:11px!important;background:transparent!important;border-color:#e2e8f0!important;color:#94a3b8!important;'; } if (txt === '✕') { btn.style.cssText += ';min-height:22px!important;height:22px!important;padding:0 2px!important;font-size:11px!important;background-color:#dc2626!important;border-color:#dc2626!important;color:white!important;'; } }); } var obs = new MutationObserver(styleAttrBtns); obs.observe(document.body, {childList:true, subtree:true}); styleAttrBtns(); })();</script>""", unsafe_allow_html=True)
-
-    _bot_idx = _nav_bot.index(_last) if _last in _nav_bot else None
-    page_bot = st.radio("", _nav_bot, index=_bot_idx, label_visibility="collapsed")
-
-    if page_attr is not None:
-        page = page_attr
+    # GŁÓWNY, POJEDYNCZY RADIO BUTTON
+    page = st.radio("WYBIERZ SEKCJE DO EDYCJI:", _nav_all, index=_nav_all.index(_last), format_func=nav_format)
+    
+    if page != _last:
         st.session_state['last_page'] = page
         st.session_state['scroll_target'] = ""
         st.rerun()
-    elif page_top is not None and page_top != _last:
-        page = page_top
-        st.session_state['last_page'] = page
-        st.session_state['scroll_target'] = ""
-    elif page_bot is not None and page_bot != _last:
-        page = page_bot
-        st.session_state['last_page'] = page
-        st.session_state['scroll_target'] = ""
-    else:
-        page = _last if _last in (_nav_top + _attr_pages + _nav_bot) else _nav_top[0]
 
+    st.divider()
+
+    # --- SEKCJA KONTROLNA MIEJSC I ATRAKCJI ---
+    st.markdown(f"<div style='display:flex;align-items:center;gap:6px;padding:3px 0 3px 4px;'><span style='color:{_acc};font-size:13px;font-weight:700;'>★</span><span style='font-size:12px;font-weight:600;color:#334155;font-family:Montserrat,sans-serif;'>OPIS ATRAKCJI I MIEJSC</span></div>", unsafe_allow_html=True)
+    _btn_c1, _btn_c2, _btn_c3 = st.columns([5, 5, 2])
+    if _btn_c1.button("＋ Miejsce", key="pa_add_place_btn", use_container_width=True):
+        _pa_items_add('place')
+        st.rerun()
+    if _btn_c2.button("＋ Atrakcja", key="pa_add_attr_btn", use_container_width=True):
+        _pa_items_add('attr')
+        st.rerun()
+
+    if _pa_nav_items:
+        _tc = {'place': '#0f766e', 'attr': _acc}
+        _tl = {'place': '📍', 'attr': '✨'}
+        for _spos, _sit in enumerate(_pa_nav_items):
+            _styp, _sidx = _sit['type'], _sit['idx']
+            _sname = _pa_display_name(_styp, _sidx)
+            _sclr = _tc[_styp]
+            
+            _sc1, _sc2, _sc3, _sc4 = st.columns([6, 1, 1, 1])
+            _sc1.markdown(f"<div style='padding:4px 6px; font-size:11px; color:#1e293b; border-left:2px solid {_sclr}; margin:1px 0;'><span style='color:{_sclr};'>{_tl[_styp]}</span> {_sname}</div>", unsafe_allow_html=True)
+            if _spos > 0:
+                _sc2.button("▲", key=f"sb_up_{_spos}", on_click=_pa_items_move, args=(_spos, -1), use_container_width=True)
+            if _spos < len(_pa_nav_items) - 1:
+                _sc3.button("▼", key=f"sb_dn_{_spos}", on_click=_pa_items_move, args=(_spos, 1), use_container_width=True)
+            _sc4.button("✕", key=f"sb_del_{_spos}", on_click=_pa_items_delete, args=(_spos,), use_container_width=True)
+
+    st.divider()
+
+    # Wyświetlanie nagłówka aktywnej sekcji
     _inter_pages = {"  ↳ Przerywnik hotel", "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}
-    _is_attr_page = page.startswith("ATTR:")
-
+    _is_pa_page = page.startswith("  ↳ pa_")
+    
     if page == "Wygląd i Kolory":
-        st.markdown("<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;'>KONFIGURACJA WYGLĄDU</h2><div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Dostosuj kolory i typografię oferty</div>", unsafe_allow_html=True)
+        st.markdown("<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;'>KONFIGURACJA WYGLĄDU</h2>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Dostosuj kolory i typografię oferty</div>", unsafe_allow_html=True)
     elif page == "Zapisz / Wczytaj Projekt":
-        st.markdown("<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;'>ZARZĄDZANIE PROJEKTEM</h2><div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Eksportuj lub importuj cały plik JSON</div>", unsafe_allow_html=True)
-    elif page in _inter_pages:
+        st.markdown("<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;'>ZARZĄDZANIE PROJEKTEM</h2>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Eksportuj lub importuj cały plik JSON</div>", unsafe_allow_html=True)
+    elif page in _inter_pages or _is_pa_page:
         _h1_col = st.session_state.get("color_h1", "#003366")
-        _page_label = page.strip().lstrip("↳").strip()
-        st.markdown(f"<h2 style='color:{_h1_col};margin-bottom:0;font-size:20px;font-weight:700;font-family:Montserrat,sans-serif;text-transform:uppercase;margin-left:12px;border-left:3px solid {_h1_col};padding-left:10px;'>{_page_label}</h2><div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;margin-left:12px;'>Slajd przerywnikowy — edytuj treść i wygląd poniżej.</div>", unsafe_allow_html=True)
-    elif _is_attr_page:
-        _acc_col = st.session_state.get("color_accent", "#FF6600")
-        _attr_idx = int(page.split(":")[1]) if page.startswith("ATTR:") else 0
-        _attr_pos = next((p for p, ix in enumerate(_attr_order()) if ix == _attr_idx), 0)
-        _label = _attr_display_name(_attr_pos)
-        st.markdown(f"<h2 style='color:{_acc_col};margin-bottom:0;font-size:20px;font-weight:700;font-family:Montserrat,sans-serif;margin-left:12px;border-left:3px solid {_acc_col};padding-left:10px;'>★ {_label}</h2><div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;margin-left:12px;'>Edytuj treść slajdu atrakcji poniżej.</div>", unsafe_allow_html=True)
+        if _is_pa_page:
+            _parts = page.strip().lstrip("↳").strip().split("_")
+            _pa_typ, _pa_idx = _parts[1], int(_parts[2])
+            _pa_label = _pa_display_name(_pa_typ, _pa_idx)
+            _pa_type_label = "📍 Opis miejsca" if _pa_typ == "place" else "✨ Atrakcja"
+            _pa_col = "#0f766e" if _pa_typ == "place" else st.session_state.get("color_accent", "#FF6600")
+            st.markdown(f"<h2 style='color:{_pa_col};margin-bottom:2px;font-size:18px;font-weight:700;font-family:Montserrat,sans-serif;margin-left:12px;border-left:3px solid {_pa_col};padding-left:10px;'>{_pa_type_label}</h2><div style='font-size:15px;font-weight:600;color:#1e293b;font-family:Montserrat,sans-serif;margin-left:25px;margin-bottom:8px;'>{_pa_label}</div>", unsafe_allow_html=True)
+        else:
+            _page_label = page.strip().lstrip("↳").strip()
+            st.markdown(f"<h2 style='color:{_h1_col};margin-bottom:0;font-size:20px;font-weight:700;font-family:Montserrat,sans-serif;text-transform:uppercase;margin-left:12px;border-left:3px solid {_h1_col};padding-left:10px;'>{_page_label}</h2>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;margin-left:12px;'>Slajd przerywnikowy — edytuj treść i wygląd poniżej.</div>", unsafe_allow_html=True)
     else:
-        st.markdown(f"<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;text-transform:uppercase;'>{page}</h2><div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Wprowadź dane dla tej sekcji poniżej:</div>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;text-transform:uppercase;'>{page}</h2>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Wprowadź dane dla tej sekcji poniżej:</div>", unsafe_allow_html=True)
 
+    # -----------------------------------------------------------------------
+    # LOGIKA POSZCZEGÓLNYCH STRON
+    # -----------------------------------------------------------------------
     if page == "  ↳ Przerywnik hotel":
         _bg_default = st.session_state.get('color_h1', '#003366')
         for _ck, _cv in [(f"sek_0_bg", _bg_default), (f"sek_0_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7): st.session_state[_ck] = _cv
-        st.button("POKAŻ PODGLĄD", key=f"btn_sek_0", on_click=set_focus, args=(f"slide-sek_0",), use_container_width=True)
-        st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_0")
-        st.text_input("Duży tytuł (uppercase):", key=f"sek_0_title", value=st.session_state.get(f"sek_0_title", "ZAKWATEROWANIE"))
-        st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_0_sub", value=st.session_state.get(f"sek_0_sub", "NASZE HOTELE"))
+        st.button("POKAŻ PODGLĄD", key="btn_sek_0", on_click=set_focus, args=("slide-sek_0",), use_container_width=True)
+        st.checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_0")
+        st.text_input("Duży tytuł (uppercase):", key="sek_0_title", value=st.session_state.get("sek_0_title", "ZAKWATEROWANIE"))
+        st.text_input("Nadtytuł (overline, kolor akcentu):", key="sek_0_sub", value=st.session_state.get("sek_0_sub", "NASZE HOTELE"))
         _ic1, _ic2 = st.columns(2)
-        _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_0_bg")
-        _ic2.color_picker("Kolor tytułu:", key=f"sek_0_txt")
-        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"sek_img_up_0")
-        if _up_s: st.session_state[f"sek_0_img"] = optimize_img(_up_s.getvalue())
+        _ic1.color_picker("Kolor tła:", key="sek_0_bg")
+        _ic2.color_picker("Kolor tekstu:", key="sek_0_txt")
+        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key="sek_img_up_0")
+        if _up_s: st.session_state["sek_0_img"] = optimize_img(_up_s.getvalue())
 
     elif page == "  ↳ Przerywnik program":
         _bg_default = st.session_state.get('color_h1', '#003366')
         for _ck, _cv in [(f"sek_3_bg", _bg_default), (f"sek_3_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7): st.session_state[_ck] = _cv
-        st.button("POKAŻ PODGLĄD", key=f"btn_sek_3", on_click=set_focus, args=(f"slide-sek_3",), use_container_width=True)
-        st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_3")
-        st.text_input("Duży tytuł (uppercase):", key=f"sek_3_title", value=st.session_state.get(f"sek_3_title", "PROGRAM"))
-        st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_3_sub", value=st.session_state.get(f"sek_3_sub", "NASZ PLAN WYJAZDU"))
+        st.button("POKAŻ PODGLĄD", key="btn_sek_3", on_click=set_focus, args=("slide-sek_3",), use_container_width=True)
+        st.checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_3")
+        st.text_input("Duży tytuł (uppercase):", key="sek_3_title", value=st.session_state.get("sek_3_title", "PROGRAM"))
+        st.text_input("Nadtytuł (overline, kolor akcentu):", key="sek_3_sub", value=st.session_state.get("sek_3_sub", "NASZ PLAN WYJAZDU"))
         _ic1, _ic2 = st.columns(2)
-        _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_3_bg")
-        _ic2.color_picker("Kolor tytułu:", key=f"sek_3_txt")
-        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"sek_img_up_3")
-        if _up_s: st.session_state[f"sek_3_img"] = optimize_img(_up_s.getvalue())
+        _ic1.color_picker("Kolor tła:", key="sek_3_bg")
+        _ic2.color_picker("Kolor tekstu:", key="sek_3_txt")
+        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key="sek_img_up_3")
+        if _up_s: st.session_state["sek_3_img"] = optimize_img(_up_s.getvalue())
 
     elif page == "  ↳ Przerywnik atrakcje":
         _bg_default = st.session_state.get('color_h1', '#003366')
         for _ck, _cv in [(f"sek_1_bg", _bg_default), (f"sek_1_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7): st.session_state[_ck] = _cv
-        st.button("POKAŻ PODGLĄD", key=f"btn_sek_1", on_click=set_focus, args=(f"slide-sek_1",), use_container_width=True)
-        st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_1")
-        st.text_input("Duży tytuł (uppercase):", key=f"sek_1_title", value=st.session_state.get(f"sek_1_title", "ATRAKCJE"))
-        st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_1_sub", value=st.session_state.get(f"sek_1_sub", "PROGRAM WYJAZDU"))
+        st.button("POKAŻ PODGLĄD", key="btn_sek_1", on_click=set_focus, args=("slide-sek_1",), use_container_width=True)
+        st.checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_1")
+        st.text_input("Duży tytuł (uppercase):", key="sek_1_title", value=st.session_state.get("sek_1_title", "ATRAKCJE"))
+        st.text_input("Nadtytuł (overline, kolor akcentu):", key="sek_1_sub", value=st.session_state.get("sek_1_sub", "PROGRAM WYJAZDU"))
         _ic1, _ic2 = st.columns(2)
-        _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_1_bg")
-        _ic2.color_picker("Kolor tytułu:", key=f"sek_1_txt")
-        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"sek_img_up_1")
-        if _up_s: st.session_state[f"sek_1_img"] = optimize_img(_up_s.getvalue())
+        _ic1.color_picker("Kolor tła:", key="sek_1_bg")
+        _ic2.color_picker("Kolor tekstu:", key="sek_1_txt")
+        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key="sek_img_up_1")
+        if _up_s: st.session_state["sek_1_img"] = optimize_img(_up_s.getvalue())
 
     elif page == "  ↳ Przerywnik o nas":
         _bg_default = st.session_state.get('color_h1', '#003366')
         for _ck, _cv in [(f"sek_2_bg", _bg_default), (f"sek_2_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7): st.session_state[_ck] = _cv
-        st.button("POKAŻ PODGLĄD", key=f"btn_sek_2", on_click=set_focus, args=(f"slide-sek_2",), use_container_width=True)
-        st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_2")
-        st.text_input("Duży tytuł (uppercase):", key=f"sek_2_title", value=st.session_state.get(f"sek_2_title", "CO O NAS MÓWIĄ"))
-        st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_2_sub", value=st.session_state.get(f"sek_2_sub", "REKOMENDACJE"))
+        st.button("POKAŻ PODGLĄD", key="btn_sek_2", on_click=set_focus, args=("slide-sek_2",), use_container_width=True)
+        st.checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_2")
+        st.text_input("Duży tytuł (uppercase):", key="sek_2_title", value=st.session_state.get("sek_2_title", "CO O NAS MÓWIĄ"))
+        st.text_input("Nadtytuł (overline, kolor akcentu):", key="sek_2_sub", value=st.session_state.get("sek_2_sub", "REKOMENDACJE"))
         _ic1, _ic2 = st.columns(2)
-        _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_2_bg")
-        _ic2.color_picker("Kolor tytułu:", key=f"sek_2_txt")
-        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"sek_img_up_2")
-        if _up_s: st.session_state[f"sek_2_img"] = optimize_img(_up_s.getvalue())
+        _ic1.color_picker("Kolor tła:", key="sek_2_bg")
+        _ic2.color_picker("Kolor tekstu:", key="sek_2_txt")
+        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key="sek_img_up_2")
+        if _up_s: st.session_state["sek_2_img"] = optimize_img(_up_s.getvalue())
 
     elif page == "Strona Tytułowa":
         tit_keys = ['t_date', 'country_name', 'country_code', 't_main', 't_sub', 't_klient', 't_kierunek', 't_pax', 't_hotel', 't_trans', 'img_hero_t', 'logo_az', 'logo_cli', 'hide_logo_cli']
@@ -519,25 +506,29 @@ with st.sidebar:
         c2.checkbox("Ukryj logo klienta na stronie tytułowej", key="hide_logo_cli")
 
     elif page == "Opis Kierunku":
-        k_keys = ['k_hide', 'k_overline', 'k_main', 'k_sub', 'k_opis', 'k_facts', 'k_facts_title', 'k_box_bg', 'k_box_txt', 'img_hero_k']
+        k_keys = [
+            'k_hide', 'k_overline', 'k_main', 'k_opis',
+            'k_facts', 'k_box_bg', 'k_box_txt', 'img_hero_k',
+        ]
         section_template_manager(k_keys, "KIE", st.session_state.get('k_main', 'czarnogora'), "kie")
+        
         st.checkbox("Ukryj ten slajd w PDF", key="k_hide")
-        st.text_input("Mały nadtytuł (overline):", key="k_overline", value=st.session_state.get('k_overline', 'NASZ KIERUNEK'))
         st.text_input("Nazwa kierunku (duży tytuł H1):", key="k_main")
-        st.text_input("Podtytuł:", key="k_sub")
-        st.text_area("Opis (prawa kolumna):", height=160, key="k_opis", help="Główny opis kierunku po prawej stronie slajdu.")
-        _section_header("BOX Z FAKTAMI (lewa kolumna)")
+        st.text_input("Podtytuł (przy overline):", key="k_overline", value=st.session_state.get('k_overline', 'NASZ KIERUNEK'))
+
+        _section_header("BOX Z FAKTAMI (LEWA ŚRODKOWA KOLUMNA)")
         for _ck, _cv in [('k_box_bg', st.session_state.get('color_h1', '#003366')), ('k_box_txt', '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7): st.session_state[_ck] = _cv
         cb1, cb2 = st.columns(2)
         cb1.color_picker("Kolor tła boksu", key="k_box_bg")
         cb2.color_picker("Kolor tekstu w boksie", key="k_box_txt")
-        st.text_input("Tytuł boksu (np. FAKTY):", key="k_facts_title", value=st.session_state.get('k_facts_title', 'FAKTY'))
-        st.text_area("Fakty (Format: 'Etykieta: Wartość'):", height=160, key="k_facts", value=st.session_state.get('k_facts', 'Stolica: \nWaluta: \nRóżnica czasu: \nTemperatury: '), help="Każda linia = jeden wpis. 'Etykieta: Wartość' pogrubia etykietę.")
-        _section_header("ZDJĘCIE (jedno zdjęcie w dwóch ramkach)")
+        st.text_area("Fakty / Opis (Format: 'Etykieta: Wartość' lub wolny tekst):", height=160, key="k_facts", value=st.session_state.get('k_facts', 'Stolica: \nWaluta: \nRóżnica czasu: \nTemperatury: 16-20 stopni'))
+
+        _section_header("ZDJĘCIE (JEDNO ZDJĘCIE W DWÓCH RAMKACH)")
         u4 = st.file_uploader("Zdjęcie kierunku:", key="kie_hero")
         if u4: st.session_state['img_hero_k'] = optimize_img(u4.getvalue())
+        st.text_area("Treść opisu z prawej strony:", height=100, key="k_opis")
 
     elif page == "Mapa Podróży":
         map_keys = ['map_hide', 'map_overline', 'map_title', 'map_subtitle', 'map_desc', 'img_map_bg', 'map_zoom', 'num_map_points', 'img_map_bg_auto', 'auto_map_points']
@@ -690,43 +681,69 @@ with st.sidebar:
                 st.text_input(f"Highlights D{d+1}", key=f"attr_{d}")
                 st.text_area(f"Opis D{d+1}", key=f"desc_{d}")
 
-    elif _is_attr_page:
-        _i = int(page.split(":")[1]) if page.startswith("ATTR:") else None
-        if _i is None or _i >= _attr_count():
-            st.warning("Nie znaleziono atrakcji.")
-        else:
-            _pos = next((p for p, ix in enumerate(_attr_order()) if ix == _i), 0)
-            day_options_global = build_day_options(
-                st.session_state.get('p_start_dt', date.today()),
-                int(st.session_state.get('num_days', 5)),
-            )
-            for _dk, _dv in [(f"amain_{_i}", ""), (f"asub_{_i}", ""), (f"aday_{_i}", "Brak przypisania"), (f"atype_{_i}", "Atrakcja"), (f"aopis_{_i}", ""), (f"ahide_{_i}", False)]:
-                if _dk not in st.session_state: st.session_state[_dk] = _dv
+    elif _is_pa_page:
+        _parts = page.strip().lstrip("↳").strip().split("_")
+        _e_typ = _parts[1]
+        _e_idx = int(_parts[2])
+        day_options_global = build_day_options(
+            st.session_state.get('p_start_dt', date.today()),
+            int(st.session_state.get('num_days', 5)),
+        )
 
-            if st.session_state.get('_attr_focused') != _i:
-                st.session_state['_attr_focused'] = _i
-                set_focus(f"attr_{_i}")
-                
-            a_keys = [f'ahide_{_i}', f'amain_{_i}', f'asub_{_i}', f'aday_{_i}', f'atype_{_i}', f'aopis_{_i}', f'ah_{_i}', f'at1_{_i}', f'at2_{_i}', f'at3_{_i}']
-            section_template_manager(a_keys, "ATR", st.session_state.get(f"amain_{_i}") or f"Atrakcja_{_pos+1}", f"atr_{_i}", index=_i)
-            
-            st.checkbox("Ukryj ten slajd w PDF", key=f"ahide_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            st.text_input("Nazwa:", key=f"amain_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            st.text_input("Podtytuł:", key=f"asub_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            _curr = st.session_state.get(f"aday_{_i}", day_options_global[0])
-            if _curr not in day_options_global: st.session_state[f"aday_{_i}"] = day_options_global[0]
-            st.selectbox("Przypisz do dnia:", day_options_global, key=f"aday_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            st.selectbox("Ikona:", list(icon_map.keys()), key=f"atype_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            st.text_area("Opis:", key=f"aopis_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            _upa = st.file_uploader("Foto Główne", key=f"atr_hero_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            if _upa: st.session_state[f"ah_{_i}"] = optimize_img(_upa.getvalue())
+        if _e_typ == 'place':
+            for _dk, _dv in [(f"pmain_{_e_idx}", ""), (f"psub_{_e_idx}", ""), (f"pover_{_e_idx}", "NASZ KIERUNEK"), (f"pday_{_e_idx}", "Brak przypisania"), (f"popis_{_e_idx}", ""), (f"phide_{_e_idx}", False)]:
+                if _dk not in st.session_state: st.session_state[_dk] = _dv
+            for _fk in [f"pmain_{_e_idx}", f"psub_{_e_idx}", f"popis_{_e_idx}"]:
+                st.session_state[_fk] = clean_str(st.session_state.get(_fk))
+
+            st.button("POKAŻ PODGLĄD", key=f"btn_pl_{_e_idx}", on_click=set_focus, args=(f"place_{_e_idx}",), use_container_width=True)
+            p_keys = [f'phide_{_e_idx}', f'pover_{_e_idx}', f'pmain_{_e_idx}', f'psub_{_e_idx}', f'pday_{_e_idx}', f'popis_{_e_idx}', f'pimg1_{_e_idx}', f'pimg2_{_e_idx}', f'pimg3_{_e_idx}', f'pimg4_{_e_idx}']
+            section_template_manager(p_keys, "MIE", st.session_state.get(f"pmain_{_e_idx}") or f"Miejsce_{_e_idx+1}", f"plc_{_e_idx}", index=_e_idx)
+            st.checkbox("Ukryj ten slajd w PDF", key=f"phide_{_e_idx}", on_change=set_focus, args=(f"place_{_e_idx}",))
+            st.text_input("Mały nadtytuł:", key=f"pover_{_e_idx}", on_change=set_focus, args=(f"place_{_e_idx}",))
+            st.text_input("Nazwa (H1):", key=f"pmain_{_e_idx}", on_change=set_focus, args=(f"place_{_e_idx}",))
+            st.text_input("Podtytuł:", key=f"psub_{_e_idx}", on_change=set_focus, args=(f"place_{_e_idx}",))
+            _curr = st.session_state.get(f"pday_{_e_idx}", day_options_global[0])
+            if _curr not in day_options_global: st.session_state[f"pday_{_e_idx}"] = day_options_global[0]
+            st.selectbox("Przypisz do dnia:", day_options_global, key=f"pday_{_e_idx}", on_change=set_focus, args=(f"place_{_e_idx}",))
+            st.text_area("Opis miejsca:", height=160, key=f"popis_{_e_idx}", on_change=set_focus, args=(f"place_{_e_idx}",))
+            _section_header("ZDJĘCIA")
+            _u1 = st.file_uploader("Zdjęcie główne (pionowe):", key=f"plc_img1_{_e_idx}", on_change=set_focus, args=(f"place_{_e_idx}",))
+            if _u1: st.session_state[f"pimg1_{_e_idx}"] = optimize_img(_u1.getvalue())
+            _c1, _c2, _c3 = st.columns(3)
+            _u2 = _c1.file_uploader("Miniatura 1", key=f"plc_img2_{_e_idx}", on_change=set_focus, args=(f"place_{_e_idx}",))
+            if _u2: st.session_state[f"pimg2_{_e_idx}"] = optimize_img(_u2.getvalue())
+            _u3 = _c2.file_uploader("Miniatura 2", key=f"plc_img3_{_e_idx}", on_change=set_focus, args=(f"place_{_e_idx}",))
+            if _u3: st.session_state[f"pimg3_{_e_idx}"] = optimize_img(_u3.getvalue())
+            _u4 = _c3.file_uploader("Miniatura 3", key=f"plc_img4_{_e_idx}", on_change=set_focus, args=(f"place_{_e_idx}",))
+            if _u4: st.session_state[f"pimg4_{_e_idx}"] = optimize_img(_u4.getvalue())
+
+        else:
+            for _dk, _dv in [(f"amain_{_e_idx}", ""), (f"asub_{_e_idx}", ""), (f"aday_{_e_idx}", "Brak przypisania"), (f"atype_{_e_idx}", "Atrakcja"), (f"aopis_{_e_idx}", ""), (f"ahide_{_e_idx}", False)]:
+                if _dk not in st.session_state: st.session_state[_dk] = _dv
+            for _fk in [f"amain_{_e_idx}", f"asub_{_e_idx}", f"aopis_{_e_idx}"]:
+                st.session_state[_fk] = clean_str(st.session_state.get(_fk))
+
+            st.button("POKAŻ PODGLĄD", key=f"btn_at_{_e_idx}", on_click=set_focus, args=(f"attr_{_e_idx}",), use_container_width=True)
+            a_keys = [f'ahide_{_e_idx}', f'amain_{_e_idx}', f'asub_{_e_idx}', f'aday_{_e_idx}', f'atype_{_e_idx}', f'aopis_{_e_idx}', f'ah_{_e_idx}', f'at1_{_e_idx}', f'at2_{_e_idx}', f'at3_{_e_idx}']
+            section_template_manager(a_keys, "ATR", st.session_state.get(f"amain_{_e_idx}") or f"Atrakcja_{_e_idx+1}", f"atr_{_e_idx}", index=_e_idx)
+            st.checkbox("Ukryj ten slajd w PDF", key=f"ahide_{_e_idx}", on_change=set_focus, args=(f"attr_{_e_idx}",))
+            st.text_input("Nazwa:", key=f"amain_{_e_idx}", on_change=set_focus, args=(f"attr_{_e_idx}",))
+            st.text_input("Podtytuł:", key=f"asub_{_e_idx}", on_change=set_focus, args=(f"attr_{_e_idx}",))
+            _curr = st.session_state.get(f"aday_{_e_idx}", day_options_global[0])
+            if _curr not in day_options_global: st.session_state[f"aday_{_e_idx}"] = day_options_global[0]
+            st.selectbox("Przypisz do dnia:", day_options_global, key=f"aday_{_e_idx}", on_change=set_focus, args=(f"attr_{_e_idx}",))
+            st.selectbox("Ikona:", list(icon_map.keys()), key=f"atype_{_e_idx}", on_change=set_focus, args=(f"attr_{_e_idx}",))
+            st.text_area("Opis:", key=f"aopis_{_e_idx}", on_change=set_focus, args=(f"attr_{_e_idx}",))
+            _upa = st.file_uploader("Foto Główne", key=f"atr_hero_{_e_idx}", on_change=set_focus, args=(f"attr_{_e_idx}",))
+            if _upa: st.session_state[f"ah_{_e_idx}"] = optimize_img(_upa.getvalue())
             _ac1, _ac2, _ac3 = st.columns(3)
-            _uat1 = _ac1.file_uploader("Fot. 1", key=f"atr_th1_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            if _uat1: st.session_state[f"at1_{_i}"] = optimize_img(_uat1.getvalue())
-            _uat2 = _ac2.file_uploader("Fot. 2", key=f"atr_th2_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            if _uat2: st.session_state[f"at2_{_i}"] = optimize_img(_uat2.getvalue())
-            _uat3 = _ac3.file_uploader("Fot. 3", key=f"atr_th3_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            if _uat3: st.session_state[f"at3_{_i}"] = optimize_img(_uat3.getvalue())
+            _uat1 = _ac1.file_uploader("Fot. 1", key=f"atr_th1_{_e_idx}", on_change=set_focus, args=(f"attr_{_e_idx}",))
+            if _uat1: st.session_state[f"at1_{_e_idx}"] = optimize_img(_uat1.getvalue())
+            _uat2 = _ac2.file_uploader("Fot. 2", key=f"atr_th2_{_e_idx}", on_change=set_focus, args=(f"attr_{_e_idx}",))
+            if _uat2: st.session_state[f"at2_{_e_idx}"] = optimize_img(_uat2.getvalue())
+            _uat3 = _ac3.file_uploader("Fot. 3", key=f"atr_th3_{_e_idx}", on_change=set_focus, args=(f"attr_{_e_idx}",))
+            if _uat3: st.session_state[f"at3_{_e_idx}"] = optimize_img(_uat3.getvalue())
 
     elif page == "Aplikacja (Komunikacja)":
         app_keys = ['app_hide', 'app_overline', 'app_title', 'app_subtitle', 'app_features', 'img_app_bg', 'img_app_screen']
@@ -895,7 +912,12 @@ with st.sidebar:
         upf = st.file_uploader("Wgraj projekt z dysku (.json)", type=['json'], key="up_export")
         if upf and st.button("WCZYTAJ PROJEKT Z PLIKU", use_container_width=True, type="primary"):
             data = json.load(upf)
+            
+            # Bezpieczny załadunek pełnego JSONA!
+            _safe_backup = st.session_state.get('RAW_STATE_BACKUP', {})
             load_project_data(data)
+            st.session_state['RAW_STATE_BACKUP'] = _safe_backup
+            
             st.rerun()
 
     # -----------------------------------------------------------------------
@@ -933,12 +955,9 @@ with st.sidebar:
         st.rerun()
 
 # ---------------------------------------------------------------------------
-# ZAPIS STANÓW WIDŻETÓW (BEZ UPLOADERÓW) - TARCZA OCHRONNA
+# ZAPIS STANÓW WIDŻETÓW (BEZ UPLOADERÓW)
 # ---------------------------------------------------------------------------
-# Tworzymy tarczę tylko raz, jeśli jeszcze jej nie ma
-if 'RAW_STATE_BACKUP' not in st.session_state:
-    st.session_state['RAW_STATE_BACKUP'] = {}
-
+raw_backup = st.session_state.get('RAW_STATE_BACKUP', {})
 for bk, bv in st.session_state.items():
     if bk in ('STATE_BACKUP', 'RAW_STATE_BACKUP'): 
         continue
@@ -947,7 +966,11 @@ for bk, bv in st.session_state.items():
     if type(bv).__name__ == 'UploadedFile' or (isinstance(bv, list) and len(bv) > 0 and type(bv[0]).__name__ == 'UploadedFile'):
         continue
         
-    # AKTUALIZUJEMY pamięć zamiast ją kasować (to jest ten brakujący element!)
-    st.session_state['RAW_STATE_BACKUP'][bk] = bv
+    raw_backup[bk] = bv
     
+st.session_state['RAW_STATE_BACKUP'] = raw_backup
+
+# ---------------------------------------------------------------------------
+# GŁÓWNA ZAWARTOŚĆ — PODGLĄD PREZENTACJI
+# ---------------------------------------------------------------------------
 build_presentation(page)
