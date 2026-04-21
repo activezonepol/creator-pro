@@ -189,10 +189,11 @@ defaults = {
     'pg_title': 'PILLOW\nGIFTS',
     'pg_subtitle': 'Aby wspólne chwile zatrzymać na dłużej',
     'pg_text': 'Upominki pełnią ważną rolę w budowaniu relacji biznesowych.',
-    'num_sekcje': 3,
+    'num_sekcje': 4,
     'sek_0_title': 'ZAKWATEROWANIE', 'sek_0_sub': 'NASZE HOTELE', 'sek_0_hide': False,
     'sek_1_title': 'PROGRAM', 'sek_1_sub': 'ATRAKCJE I MIEJSCA', 'sek_1_hide': False,
     'sek_2_title': 'REKOMENDACJE', 'sek_2_sub': 'CO O NAS MÓWIĄ', 'sek_2_hide': False,
+    'sek_3_title': 'PROGRAM', 'sek_3_sub': 'NASZ PLAN WYJAZDU', 'sek_3_hide': False,
     'testim_hide': False, 'testim_overline': 'REKOMENDACJE',
     'testim_title': 'CO O NAS\nMÓWIĄ?',
     'testim_subtitle': '100% NASZYCH KLIENTÓW JEST CAŁKOWICIE ZADOWOLONYCH Z NASZYCH USŁUG.',
@@ -1303,27 +1304,30 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 if advs else ''
             )
 
-            hp.append(_shtml(f"""{lh}<div class="premium-layout" id="slide-hotel-{i}">
-                <div style="flex:40; display:flex; flex-direction:column; gap:15px; min-height:0;">
-                    <div style="flex:1; min-height:0; border-radius:8px; overflow:hidden; border:1px solid #eee; background-color:#fcfcfc;">{h1_html}</div>
-                    <div style="flex:1; min-height:0; border-radius:8px; overflow:hidden; border:1px solid #eee; background-color:#fcfcfc;">{h1b_html}</div>
+            hp.append(_shtml(f"""{lh}<div class="premium-layout" id="slide-hotel-{i}" style="align-items:stretch;">
+                <div style="flex:40; display:flex; flex-direction:column; gap:12px;">
+                    <div style="flex:3; border-radius:8px; overflow:hidden; border:1px solid #eee; background-color:#fcfcfc;">{h1_html}</div>
+                    <div style="flex:2; border-radius:8px; overflow:hidden; border:1px solid #eee; background-color:#fcfcfc;">{h1b_html}</div>
                 </div>
-                <div class="info-col" style="flex:60; padding-left:15px; padding-top:25px; justify-content:flex-start; min-height:0; overflow:hidden;">
-                    <div class="app-overline-style" style="margin-bottom:4px;"><span>{str(s.get(f'h_overline_{i}','ZAKWATEROWANIE'))}</span></div>
-                    <div class="title-h1" style="margin-bottom:3px; font-size:{max(20,fs_h1_val-6)}px;">{str(s.get(f'h_title_{i}','')).replace(chr(10),'<br>')}</div>
-                    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:8px;">
+                <div style="flex:60; padding-left:15px; padding-top:20px; display:flex; flex-direction:column; min-height:0;">
+                    <div class="app-overline-style" style="margin-bottom:4px; flex-shrink:0;"><span>{str(s.get(f'h_overline_{i}','ZAKWATEROWANIE'))}</span></div>
+                    <div class="title-h1" style="margin-bottom:3px; font-size:{max(20,fs_h1_val-6)}px; flex-shrink:0;">{str(s.get(f'h_title_{i}','')).replace(chr(10),'<br>')}</div>
+                    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:8px; flex-shrink:0;">
                         <div class="title-sub" style="margin:0; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get(f'h_subtitle_{i}','')).replace(chr(10),'<br>')}</div>
                         <div style="flex-shrink:0;">{url_link}</div>
                     </div>
-                    <div style="font-size:{fs_t}px; line-height:1.4; margin-bottom:8px; color:{c_t};">{str(s.get(f'h_text_{i}','')).replace(chr(10),'<br>')}</div>
-                    {h_am_html}
-                    {adv_html}
-                    <div style="flex-grow:1; min-height:0;"></div>
-                    <div style="display:flex; gap:15px; flex-shrink:0; height:120px;">
+                    <div style="font-size:{fs_t}px; line-height:1.4; margin-bottom:8px; color:{c_t}; flex-shrink:0;">{str(s.get(f'h_text_{i}','')).replace(chr(10),'<br>')}</div>
+                    <div style="flex-shrink:0;">{h_am_html}</div>
+                    <div style="flex-shrink:0;">{adv_html}</div>
+                    <div style="flex:1; min-height:8px;"></div>
+                    <div style="display:flex; gap:12px; flex-shrink:0; aspect-ratio:3/1;">
                         <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background:#fcfcfc;">{f'<img src="data:image/jpeg;base64,{h2}" style="width:100%;height:100%;object-fit:cover;">' if h2 else _get_ph('FOT DÓŁ 1')}</div>
                         <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background:#fcfcfc;">{f'<img src="data:image/jpeg;base64,{h3}" style="width:100%;height:100%;object-fit:cover;">' if h3 else _get_ph('FOT DÓŁ 2')}</div>
                     </div>
                 </div></div>{fh}""", f"slide-hotel-{i}"))
+
+    # --- Przerywnik sek_3 (przed programem) ---
+    if 3 < s.get('num_sekcje', 0): _render_sek(3)
 
     # --- Program wyjazdu ---
     if not s.get('prg_hide', False):
