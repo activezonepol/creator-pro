@@ -1271,6 +1271,30 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 <div style="display:flex;gap:25px;flex-grow:1;min-height:0;margin-top:15px;margin-bottom:20px;">{ch}</div>{fh}""",
                              "slide-program" if st_idx == 0 else ""))
 
+    # --- Slajd wzorcowy "Opisy miejsc" (tylko w trybie edycji, gdy brak miejsc) ---
+    # Pojawia się gdy projektant otwiera sekcję Opisy miejsc a num_places=0.
+    # NIE wchodzi do eksportu dla klienta.
+    if (not export_mode
+            and current_page == "Opisy miejsc"
+            and s.get('num_places', 0) == 0):
+        hp.append(_shtml(f"""{lh}<div class="premium-layout" id="place_preview">
+            <div class="photo-col">{_get_ph('FOTO MIEJSCA')}</div>
+            <div class="info-col" style="padding-top:30px; justify-content:flex-start;">
+                <div class="app-overline-style" style="margin-bottom:15px;"><span>NASZ KIERUNEK</span></div>
+                <div class="title-h1" style="margin-bottom:5px; font-size:{fs_h1_val-6}px;">OPIS MIEJSCA</div>
+                <div class="title-sub" style="margin-bottom:15px;">Podtytuł miejsca</div>
+                <div style="flex-grow:1;"><p style="font-size:{fs_t}px; line-height:1.6; color:{c_t}; opacity:0.5;">
+                    Tu pojawi się opis miejsca. Dodaj pierwsze miejsce w panelu po lewej
+                    wpisując liczbę opisów &gt; 0, a następnie wypełnij dane w formularzu.
+                </p></div>
+                <div class="gallery-row" style="padding-top:0; padding-bottom:5px;">
+                    <div class="gallery-thumb">{_get_ph('FOT 1')}</div>
+                    <div class="gallery-thumb">{_get_ph('FOT 2')}</div>
+                    <div class="gallery-thumb">{_get_ph('FOT 3')}</div>
+                </div>
+            </div>
+        </div>{fh}""", "place_preview"))
+
     # --- Miejsca i atrakcje (posortowane po dniach) ---
     # --- Miejsca i atrakcje w kolejności place_attr_order ---
     _pa_order = s.get('place_attr_order', [])
@@ -1604,7 +1628,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     first_visible_place = next(
         (i for i in range(s.get('num_places', 0)) if not s.get(f'phide_{i}')), None
     )
-    pid = f"place_{first_visible_place}" if first_visible_place is not None else "slide-title"
+    # Gdy brak miejsc — scroll do slajdu wzorcowego place_preview (zawsze renderowanego w trybie edycji)
+    pid = f"place_{first_visible_place}" if first_visible_place is not None else "place_preview"
     first_visible_attr = next(
         (i for i in range(s.get('num_attr', 1)) if not s.get(f'ahide_{i}')), None
     )
