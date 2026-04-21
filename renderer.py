@@ -66,6 +66,7 @@ hotel_icons = {
     "Recepcja 24h": "fa-bell-concierge", "Sport": "fa-volleyball",
     "Night club": "fa-champagne-glasses", "Konferencje": "fa-people-roof",
     "Widok na morze": "fa-water",
+    "Top lokalizacja": "fa-location-dot",
 }
 
 icon_map = {
@@ -88,7 +89,6 @@ pl_days_map = ["Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobo
 # Klucze obrazów — używane przy zapisie/wczytaniu projektu JSON
 IMAGE_KEYS = {
     'img_hero_t', 'img_hero_k', 'img_hero_l', 'img_map_bg', 'img_map_bg_auto',
-    'inter_hotel_img', 'inter_attr_img', 'inter_testim_img',
     'logo_az', 'logo_cli', 'img_app_bg', 'img_app_screen',
     'img_brand_1', 'img_brand_2', 'img_brand_3',
     'img_va_1', 'img_va_2', 'img_va_3',
@@ -96,6 +96,8 @@ IMAGE_KEYS = {
     'img_koszt_1', 'img_koszt_2', 'img_testim_main', 'img_about_clients',
     'img_k_th1', 'img_k_th2', 'img_k_th3',
 }
+for _i in range(20):
+    IMAGE_KEYS.add(f'sek_{_i}_img')
 for _i in range(50):
     IMAGE_KEYS.update({
         f'img_hotel_1_{_i}', f'img_hotel_1b_{_i}',
@@ -187,16 +189,10 @@ defaults = {
     'pg_title': 'PILLOW\nGIFTS',
     'pg_subtitle': 'Aby wspólne chwile zatrzymać na dłużej',
     'pg_text': 'Upominki pełnią ważną rolę w budowaniu relacji biznesowych.',
-    # Przerywniki sekcji
-    'inter_hotel_hide': False, 'inter_hotel_overline': 'ZAKWATEROWANIE',
-    'inter_hotel_main': 'NASZE HOTELE', 'inter_hotel_sub': 'KOMFORT I ELEGANCJA',
-    'inter_hotel_facts_title': '', 'inter_hotel_facts': '', 'inter_hotel_box_bg': '',
-    'inter_attr_hide': False, 'inter_attr_overline': 'ATRAKCJE',
-    'inter_attr_main': 'PROGRAM WYJAZDU', 'inter_attr_sub': 'NIEZAPOMNIANE CHWILE',
-    'inter_attr_facts_title': '', 'inter_attr_facts': '', 'inter_attr_box_bg': '',
-    'inter_testim_hide': False, 'inter_testim_overline': 'OPINIE',
-    'inter_testim_main': 'CO O NAS MÓWIĄ', 'inter_testim_sub': 'NASI KLIENCI',
-    'inter_testim_facts_title': '', 'inter_testim_facts': '', 'inter_testim_box_bg': '',
+    'num_sekcje': 3,
+    'sek_0_title': 'ZAKWATEROWANIE', 'sek_0_sub': 'NASZE HOTELE', 'sek_0_hide': False,
+    'sek_1_title': 'PROGRAM', 'sek_1_sub': 'ATRAKCJE I MIEJSCA', 'sek_1_hide': False,
+    'sek_2_title': 'REKOMENDACJE', 'sek_2_sub': 'CO O NAS MÓWIĄ', 'sek_2_hide': False,
     'testim_hide': False, 'testim_overline': 'REKOMENDACJE',
     'testim_title': 'CO O NAS\nMÓWIĄ?',
     'testim_subtitle': '100% NASZYCH KLIENTÓW JEST CAŁKOWICIE ZADOWOLONYCH Z NASZYCH USŁUG.',
@@ -890,99 +886,6 @@ def _get_ph(t):
 # GŁÓWNA FUNKCJA BUDOWANIA PREZENTACJI
 # ---------------------------------------------------------------------------
 
-def _render_interlude(hp, key_prefix, lh, fh, s, get_b64, _get_ph,
-                      fs_t, fs_sub_val, fs_h1_val, fs_met,
-                      f_h1, f_h2, f_met, c_h1, acc):
-    """Renderuje pojedynczy slajd przerywnikowy. key_prefix np. 'inter_hotel'."""
-    if s.get(f'{key_prefix}_hide', False):
-        return
-
-    kimg = get_b64(f'{key_prefix}_img', (1, 1))
-
-    kbox_bg  = str(s.get(f'{key_prefix}_box_bg')  or c_h1)
-    kbox_txt = str(s.get(f'{key_prefix}_box_txt') or '#ffffff')
-
-    facts_title = str(s.get(f'{key_prefix}_facts_title') or '')
-    facts_title_html = (
-        f"<div style=\'font-family:{f_met}; font-weight:700; font-size:{max(10,fs_met-2)}px; "
-        f"color:{kbox_txt}; text-transform:uppercase; letter-spacing:3px; "
-        f"margin-bottom:12px; padding-bottom:10px; "
-        f"border-bottom:1px solid rgba(255,255,255,0.3);\'>{facts_title}</div>"
-        if facts_title else ''
-    )
-
-    kfacts = str(s.get(f'{key_prefix}_facts') or '')
-    facts_lines = []
-    for _ln in kfacts.split('\n'):
-        _ln = _ln.strip()
-        if not _ln: continue
-        if ':' in _ln:
-            _lbl, _val = _ln.split(':', 1)
-            facts_lines.append(
-                f"<div style=\'margin-bottom:7px;line-height:1.4;font-size:{max(11,fs_t-1)}px;\'>"
-                f"<strong style=\'font-weight:700;color:{kbox_txt};\'>{_lbl.strip()}:</strong> "
-                f"<span style=\'font-weight:300;color:{kbox_txt};\'>{_val.strip()}</span></div>"
-            )
-        else:
-            facts_lines.append(
-                f"<div style=\'margin-bottom:7px;line-height:1.4;font-size:{max(11,fs_t-1)}px;"
-                f"color:{kbox_txt};\'>{_ln}</div>"
-            )
-    facts_html = ''.join(facts_lines)
-
-    box_inner = facts_title_html + facts_html
-    if box_inner:
-        box_html = (
-            f"<div style=\'background-color:{kbox_bg};color:{kbox_txt};padding:25px 20px;"
-            f"border-bottom-left-radius:40px;border-top-right-radius:8px;"
-            f"border-top-left-radius:8px;box-shadow:0 10px 20px rgba(0,0,0,0.05);\'>"
-            f"{box_inner}</div>"
-        )
-    else:
-        box_html = (
-            f"<div style=\'background-color:{kbox_bg};height:80px;"
-            f"border-bottom-left-radius:40px;border-top-right-radius:8px;"
-            f"border-top-left-radius:8px;box-shadow:0 10px 20px rgba(0,0,0,0.05);\'></div>"
-        )
-
-    k_over = str(s.get(f'{key_prefix}_overline') or 'NASZ KIERUNEK')
-    k_main = str(s.get(f'{key_prefix}_main') or '').replace(chr(10), '<br>')
-    k_sub  = str(s.get(f'{key_prefix}_sub')  or '').replace(chr(10), '<br>')
-
-    img_left  = (f'<img src="data:image/jpeg;base64,{kimg}" style="position:absolute;top:0;left:0;width:200%;height:100%;object-fit:cover;object-position:left center;">' if kimg else _get_ph('ZDJĘCIE'))
-    img_right = (f'<img src="data:image/jpeg;base64,{kimg}" style="position:absolute;bottom:0;right:0;width:220%;height:140%;object-fit:cover;object-position:right bottom;">' if kimg else _get_ph('ZDJĘCIE'))
-
-    hp.append(_shtml(f"""{lh}
-    <div class="premium-layout" id="slide-{key_prefix}" style="gap:40px; align-items:stretch;">
-        <div style="flex:55; display:flex; gap:15px; height:100%;">
-            <div style="flex:1.2; height:100%; border-radius:8px; overflow:hidden; position:relative; background:#fcfcfc; border:1px solid #eee;">
-                {img_left}
-            </div>
-            <div style="flex:1; display:flex; flex-direction:column; gap:15px; height:100%;">
-                {box_html}
-                <div style="flex-grow:1; border-top-left-radius:40px; border-bottom-left-radius:8px; border-bottom-right-radius:8px; overflow:hidden; position:relative; background:#fcfcfc; border:1px solid #eee;">
-                    {img_right}
-                </div>
-            </div>
-        </div>
-        <div class="info-col" style="flex:45; padding-left:10px; padding-top:15px; justify-content:flex-start;">
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
-                <div style="height:1px; background-color:{acc}; opacity:0.5; width:32px; flex-shrink:0;"></div>
-                <span style="font-family:'{f_met}'; font-size:{max(10,fs_met-2)}px; font-weight:700;
-                             letter-spacing:4px; color:{acc}; text-transform:uppercase; white-space:nowrap;">
-                    {k_over}
-                </span>
-                <div style="height:1px; background-color:{acc}; opacity:0.5; flex:1;"></div>
-            </div>
-            <div class="title-h1" style="text-align:left; margin-bottom:5px; font-size:{fs_h1_val}px; color:{c_h1}; line-height:1.1;">
-                {k_main}
-            </div>
-            <div class="title-sub" style="text-align:left; margin-bottom:25px;">
-                {k_sub}
-            </div>
-        </div>
-    </div>{fh}""", f"slide-{key_prefix}"))
-
 
 def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     s = st.session_state
@@ -1011,6 +914,48 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
 
     lh = _lhtml()
     fh = _fhtml()
+
+    # --- Przerywniki sekcji (nowy styl: pełnoekranowy overlay z gradientem) ---
+    def _render_sek(target_i):
+        """Renderuje slajd przerywnikowy sek_i jeśli nie ukryty."""
+        i = target_i
+        sid = f"sek_{i}"
+        if s.get(f'sek_hide_{i}', False):
+            return
+        title = str(s.get(f'{sid}_title', 'TYTUŁ SEKCJI')).replace(chr(10), '<br>')
+        sub   = str(s.get(f'{sid}_sub',   'Podtytuł sekcji')).replace(chr(10), '<br>')
+        box_bg  = str(s.get(f'{sid}_bg')  or c_h1)
+        box_txt = str(s.get(f'{sid}_txt') or '#ffffff')
+        bg_img  = get_b64(f'{sid}_img', (16, 9))
+        bg_html = (
+            f'<img src="data:image/jpeg;base64,{bg_img}" style="width:100%;height:100%;object-fit:cover;">' 
+            if bg_img else
+            f'<div style="width:100%;height:100%;background:{box_bg};"></div>'
+        )
+        hp.append(_shtml(f"""{lh}
+        <div id="slide-{sid}" style="position:relative; width:100%; height:100%; overflow:hidden; background:{box_bg};">
+            <div style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;">
+                {bg_html}
+            </div>
+            <div style="position:absolute; top:0; left:0; width:65%; height:100%; z-index:2;
+                        background:linear-gradient(to right, {box_bg} 35%, transparent 100%);">
+            </div>
+            <div style="position:absolute; top:50%; left:8%; transform:translateY(-50%); z-index:3; max-width:58%;">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px;">
+                    <div style="width:32px; height:1px; background:{acc}; opacity:0.7; flex-shrink:0;"></div>
+                    <span style="font-family:'{f_met}'; font-weight:700; font-size:{max(10,fs_met-1)}px;
+                                 letter-spacing:4px; color:{acc}; text-transform:uppercase;">
+                        {sub}
+                    </span>
+                </div>
+                <div style="font-family:'{f_h1}'; font-weight:800; font-size:{min(fs_h1_val+32, 96)}px;
+                            color:{box_txt}; line-height:1.0; text-transform:uppercase;
+                            text-shadow:0px 4px 15px rgba(0,0,0,0.15);">
+                    {title}
+                </div>
+            </div>
+        </div>{fh}""", f"slide-{sid}"))
+
 
     # --- Slajd tytułowy ---
     i1 = get_b64('img_hero_t', (4, 5))
@@ -1301,10 +1246,12 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div></div>{fh}""", "slide-loty"))
 
 
-    # --- Przerywnik: ZAKWATEROWANIE ---
-    _render_interlude(hp, 'inter_hotel', lh, fh, s, get_b64, _get_ph, fs_t, fs_sub_val, fs_h1_val, fs_met, f_h1, f_h2, f_met, c_h1, acc)
 
-    # --- Hotele w kolejności hotel_order ---
+
+    # --- Przerywnik sek_0 (przed hotel) ---
+    if 0 < s.get('num_sekcje', 0): _render_sek(0)
+
+        # --- Hotele w kolejności hotel_order ---
     _hotel_order = s.get('hotel_order', [])
     if not _hotel_order:
         _hotel_order = list(range(s.get('num_hotels', 1)))
@@ -1319,8 +1266,18 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             h1b_html = (f'<img src="data:image/jpeg;base64,{h1b}" style="width:100%; height:100%; object-fit:cover;">'
                         if h1b else _get_ph('ZDJ. LEWE 2'))
             url_val = str(s.get(f'h_url_{i}', '')).strip()
-            h_url_html = (f'<div style="font-size:{max(10,fs_t-2)}px; color:{c_t}; opacity:0.8; margin-bottom:15px;"><i class="fa-solid fa-globe" style="color:{acc}; margin-right:5px;"></i> {url_val}</div>'
-                          if url_val else '')
+
+            # POPRAWKA 2: URL w linii z podtytułem (wyrównany do prawej), podlinkowany
+            _url_clean = url_val.replace('https://', '').replace('http://', '') if url_val else ''
+            url_link = (
+                f'<a href="https://{_url_clean}" target="_blank" '
+                f'style="color:{c_t};opacity:0.75;text-decoration:none;'
+                f'font-size:{max(10,fs_t-2)}px;white-space:nowrap;" '
+                f'onmouseover="this.style.color=&quot;{acc}&quot;" '
+                f'onmouseout="this.style.color=&quot;{c_t}&quot;">'
+                f'<i class="fa-solid fa-globe" style="color:{acc};margin-right:4px;"></i>{url_val}</a>'
+                if url_val else ''
+            )
             h_amenities = s.get(f'h_amenities_{i}', [])
             am_items = []
             book_val = str(s.get(f'h_booking_{i}', '')).strip()
@@ -1329,27 +1286,42 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             for a in h_amenities:
                 if a in hotel_icons:
                     am_items.append(f'<div style="display:flex; align-items:center; gap:6px; font-size:{max(10,fs_t-1)}px; font-weight:600; color:{c_t};"><i class="fa-solid {hotel_icons[a]}" style="color:{acc}; font-size:{fs_t+4}px;"></i> {a}</div>')
-            h_am_html = (f'<div style="display:flex; flex-wrap:wrap; align-items:center; gap:15px; margin-bottom:15px; padding:10px 0; border-top:1px solid #eee; border-bottom:1px solid #eee;">{"".join(am_items)}</div>'
+            h_am_html = (f'<div style="display:flex; flex-wrap:wrap; align-items:center; gap:15px; margin-bottom:10px; padding:8px 0; border-top:1px solid #eee; border-bottom:1px solid #eee;">{"".join(am_items)}</div>'
                          if am_items else '')
+
+            # POPRAWKA 1: Atuty jako tagi (jeden wiersz, font overline, kolor akcentu, tło akcentu)
             advs = [f.strip() for f in s.get(f'h_advantages_{i}', '').split('\n') if f.strip()]
-            adv_html = (f'<ul class="app-list" style="margin-top:0;">{"".join([f"<li>{a}</li>" for a in advs])}</ul>'
-                        if advs else '')
+            adv_html = (
+                f'<div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;">' +
+                ''.join([
+                    f'<span style="background:{acc}; color:#fff; padding:3px 10px; border-radius:20px; '
+                    f'font-family:{f_met}; font-size:{max(9,fs_met-3)}px; font-weight:700; '
+                    f'letter-spacing:1px; text-transform:uppercase; white-space:nowrap;">{a}</span>'
+                    for a in advs
+                ]) +
+                '</div>'
+                if advs else ''
+            )
+
             hp.append(_shtml(f"""{lh}<div class="premium-layout" id="slide-hotel-{i}">
-                <div style="flex:40; display:flex; flex-direction:column; gap:15px;">
-                    <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background-color:#fcfcfc;">{h1_html}</div>
-                    <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background-color:#fcfcfc;">{h1b_html}</div>
+                <div style="flex:40; display:flex; flex-direction:column; gap:15px; min-height:0;">
+                    <div style="flex:1; min-height:0; border-radius:8px; overflow:hidden; border:1px solid #eee; background-color:#fcfcfc;">{h1_html}</div>
+                    <div style="flex:1; min-height:0; border-radius:8px; overflow:hidden; border:1px solid #eee; background-color:#fcfcfc;">{h1b_html}</div>
                 </div>
-                <div class="info-col" style="flex:60; padding-left:15px; padding-top:30px; justify-content:flex-start;">
-                    <div class="app-overline-style" style="margin-bottom:5px;"><span>{str(s.get(f'h_overline_{i}','ZAKWATEROWANIE'))}</span></div>
-                    <div class="title-h1" style="margin-bottom:5px; font-size:{max(20,fs_h1_val-6)}px;">{str(s.get(f'h_title_{i}','')).replace(chr(10),'<br>')}</div>
-                    <div class="title-sub" style="color:{acc}; font-size:{max(12,fs_sub_val-4)}px; margin-top:0px; margin-bottom:5px;">{str(s.get(f'h_subtitle_{i}','')).replace(chr(10),'<br>')}</div>
-                    {h_url_html}
-                    <div style="flex-grow:0; font-size:{fs_t}px; line-height:1.4; margin-bottom:10px; color:{c_t};">{str(s.get(f'h_text_{i}','')).replace(chr(10),'<br>')}</div>
+                <div class="info-col" style="flex:60; padding-left:15px; padding-top:25px; justify-content:flex-start; min-height:0; overflow:hidden;">
+                    <div class="app-overline-style" style="margin-bottom:4px;"><span>{str(s.get(f'h_overline_{i}','ZAKWATEROWANIE'))}</span></div>
+                    <div class="title-h1" style="margin-bottom:3px; font-size:{max(20,fs_h1_val-6)}px;">{str(s.get(f'h_title_{i}','')).replace(chr(10),'<br>')}</div>
+                    <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:8px;">
+                        <div class="title-sub" style="margin:0; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get(f'h_subtitle_{i}','')).replace(chr(10),'<br>')}</div>
+                        <div style="flex-shrink:0;">{url_link}</div>
+                    </div>
+                    <div style="font-size:{fs_t}px; line-height:1.4; margin-bottom:8px; color:{c_t};">{str(s.get(f'h_text_{i}','')).replace(chr(10),'<br>')}</div>
                     {h_am_html}
-                    <div style="flex-grow:1;">{adv_html}</div>
-                    <div class="gallery-row" style="padding-top:0; padding-bottom:5px; gap:15px;">
-                        <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{f'<img src="data:image/jpeg;base64,{h2}" style="width:100%;height:100%;object-fit:cover;">' if h2 else _get_ph('FOT DÓŁ 1')}</div>
-                        <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{f'<img src="data:image/jpeg;base64,{h3}" style="width:100%;height:100%;object-fit:cover;">' if h3 else _get_ph('FOT DÓŁ 2')}</div>
+                    {adv_html}
+                    <div style="flex-grow:1; min-height:0;"></div>
+                    <div style="display:flex; gap:15px; flex-shrink:0; height:120px;">
+                        <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background:#fcfcfc;">{f'<img src="data:image/jpeg;base64,{h2}" style="width:100%;height:100%;object-fit:cover;">' if h2 else _get_ph('FOT DÓŁ 1')}</div>
+                        <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background:#fcfcfc;">{f'<img src="data:image/jpeg;base64,{h3}" style="width:100%;height:100%;object-fit:cover;">' if h3 else _get_ph('FOT DÓŁ 2')}</div>
                     </div>
                 </div></div>{fh}""", f"slide-hotel-{i}"))
 
@@ -1426,10 +1398,12 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         </div>{fh}""", "place_preview"))
 
 
-    # --- Przerywnik: ATRAKCJE I MIEJSCA ---
-    _render_interlude(hp, 'inter_attr', lh, fh, s, get_b64, _get_ph, fs_t, fs_sub_val, fs_h1_val, fs_met, f_h1, f_h2, f_met, c_h1, acc)
 
-    # --- Miejsca i atrakcje (posortowane po dniach) ---
+
+    # --- Przerywnik sek_1 (przed attr) ---
+    if 1 < s.get('num_sekcje', 0): _render_sek(1)
+
+        # --- Miejsca i atrakcje (posortowane po dniach) ---
     # --- Miejsca i atrakcje w kolejności place_attr_order ---
     _pa_order = s.get('place_attr_order', [])
     if not _pa_order:
@@ -1694,10 +1668,12 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div>{fh}""", "slide-kosztorys-2"))
 
 
-    # --- Przerywnik: CO O NAS MÓWIĄ ---
-    _render_interlude(hp, 'inter_testim', lh, fh, s, get_b64, _get_ph, fs_t, fs_sub_val, fs_h1_val, fs_met, f_h1, f_h2, f_met, c_h1, acc)
 
-    # --- Rekomendacje ---
+
+    # --- Przerywnik sek_2 (przed testim) ---
+    if 2 < s.get('num_sekcje', 0): _render_sek(2)
+
+        # --- Rekomendacje ---
     if not s.get('testim_hide', False):
         t_main_img = get_b64('img_testim_main', (4, 5))
         t_main_img_html = (f'<img src="data:image/jpeg;base64,{t_main_img}" style="width:100%;height:100%;object-fit:cover;">'
@@ -1785,7 +1761,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         "Wirtualny Asystent": "slide-virtual-assistant",
         "Pillow Gifts": "slide-pillow-gifts",
         "Co o nas mówią": "slide-testimonials", "O Nas (Zespół)": "slide-about",
-        "Przerywniki sekcji": "slide-inter_hotel",
+        "Przerywniki sekcji": "slide-sek_0",
     }.get(current_page, "")
 
     tid = s.get('scroll_target') or default_tid
