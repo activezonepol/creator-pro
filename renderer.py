@@ -111,6 +111,8 @@ for _i in range(50):
 EXCLUDE_EXPORT_KEYS = {
     'client_mode', 'scroll_target', 'last_page',
     'show_link_info', 'ready_export_html', 'auto_map_points',
+    # Klucze przycisków i uploaderów które nigdy nie trafiają do JSON
+    'pa_add_place_btn', 'pa_add_attr_btn',
 }
 
 defaults = {
@@ -189,7 +191,6 @@ defaults = {
     'pg_title': 'PILLOW\nGIFTS',
     'pg_subtitle': 'Aby wspólne chwile zatrzymać na dłużej',
     'pg_text': 'Upominki pełnią ważną rolę w budowaniu relacji biznesowych.',
-    'num_sekcje': 4,
     'sek_0_title': 'ZAKWATEROWANIE', 'sek_0_sub': 'NASZE HOTELE', 'sek_0_hide': False,
     'sek_1_title': 'PROGRAM', 'sek_1_sub': 'ATRAKCJE I MIEJSCA', 'sek_1_hide': False,
     'sek_2_title': 'REKOMENDACJE', 'sek_2_sub': 'CO O NAS MÓWIĄ', 'sek_2_hide': False,
@@ -923,8 +924,10 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         sid = f"sek_{i}"
         if s.get(f'sek_hide_{i}', False):
             return
-        title = str(s.get(f'{sid}_title', 'TYTUŁ SEKCJI')).replace(chr(10), '<br>')
-        sub   = str(s.get(f'{sid}_sub',   'Podtytuł sekcji')).replace(chr(10), '<br>')
+        _title_defs = {0: 'ZAKWATEROWANIE', 1: 'ATRAKCJE', 2: 'REKOMENDACJE', 3: 'PROGRAM'}
+        _sub_defs   = {0: 'NASZE HOTELE', 1: 'PROGRAM WYJAZDU', 2: 'CO O NAS MÓWIĄ', 3: 'NASZ PLAN WYJAZDU'}
+        title = str(s.get(f'{sid}_title', _title_defs.get(i, 'SEKCJA'))).replace(chr(10), '<br>')
+        sub   = str(s.get(f'{sid}_sub',   _sub_defs.get(i, ''))).replace(chr(10), '<br>')
         box_bg  = str(s.get(f'{sid}_bg')  or c_h1)
         box_txt = str(s.get(f'{sid}_txt') or '#ffffff')
         bg_img  = get_b64(f'{sid}_img', (16, 9))
@@ -1250,7 +1253,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
 
 
     # --- Przerywnik sek_0 (przed hotel) ---
-    if 0 < s.get('num_sekcje', 0): _render_sek(0)
+    _render_sek(0)  # Przerywnik przed hotelami
 
         # --- Hotele w kolejności hotel_order ---
     _hotel_order = s.get('hotel_order', [])
@@ -1327,7 +1330,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 </div></div>{fh}""", f"slide-hotel-{i}"))
 
     # --- Przerywnik sek_3 (przed programem) ---
-    if 3 < s.get('num_sekcje', 0): _render_sek(3)
+    _render_sek(3)  # Przerywnik przed programem
 
     # --- Program wyjazdu ---
     if not s.get('prg_hide', False):
@@ -1405,7 +1408,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
 
 
     # --- Przerywnik sek_1 (przed attr) ---
-    if 1 < s.get('num_sekcje', 0): _render_sek(1)
+    _render_sek(1)  # Przerywnik przed atrakcjami
 
         # --- Miejsca i atrakcje (posortowane po dniach) ---
     # --- Miejsca i atrakcje w kolejności place_attr_order ---
@@ -1630,8 +1633,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         zaw1_html = f'<ul class="app-list">{"".join(zaw1_list)}</ul>' if zaw1_list else ''
         hp.append(_shtml(f"""{lh}<div class="premium-layout"><div class="photo-col">{imk1}</div>
             <div class="info-col" style="padding-top:30px; justify-content:flex-start;">
+            <div class="app-overline-style" style="margin-bottom:5px;"><span>{str(s.get('koszt_title','KOSZTORYS'))}</span></div>
             <div class="title-h1" style="margin-bottom:15px; font-size:{fs_h1_val}px;">{str(s.get('koszt_h1_title','KOSZTORYS'))}</div>
-            <div class="app-overline-style" style="margin-bottom:15px;"><span>{str(s.get('koszt_title','KOSZTORYS'))}</span></div>
             <div style="background:{acc}; color:white; padding: 25px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
                 <div style="font-size:{max(10,fs_t-2)}px; font-family:'{f_h2}'; font-weight:700; text-transform:uppercase; margin-bottom:5px; opacity:0.9; letter-spacing:1px;">Grupa {s.get('koszt_pax','')} osób | {s.get('koszt_hotel','')}</div>
                 <div style="font-size:{fs_h1_val-8}px; font-weight:800; font-family:'{f_h1}';">CENA: {s.get('koszt_price','')}</div>
@@ -1675,7 +1678,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
 
 
     # --- Przerywnik sek_2 (przed testim) ---
-    if 2 < s.get('num_sekcje', 0): _render_sek(2)
+    _render_sek(2)  # Przerywnik przed rekomendacjami
 
         # --- Rekomendacje ---
     if not s.get('testim_hide', False):
