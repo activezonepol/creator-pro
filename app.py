@@ -84,21 +84,21 @@ for _k, _v in _COLOR_DEFS.items():
 for _k, _v in _SIZE_DEFS.items():
     _cur = st.session_state.setdefault(_k, _v)
     try:
-        st.session_state[_k] = max(8, int(float(_cur or _v)))
+        _int_val = max(8, int(float(_cur or _v)))
+        if _int_val != _cur:  # Napraw tylko gdy wartość jest błędna
+            st.session_state[_k] = _int_val
     except Exception:
         st.session_state[_k] = _v
 
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # AUTO-ZAPIS / AUTO-ODCZYT z localStorage przeglądarki
 # ---------------------------------------------------------------------------
-# Każda sesja Streamlit dostaje unikalny klucz w localStorage.
-# Dzięki temu dwie osoby (lub dwie karty) nie nadpisują sobie nawzajem projektów.
-import uuid as _uuid
-if '_session_id' not in st.session_state:
-    st.session_state['_session_id'] = _uuid.uuid4().hex[:12]
-_LS_KEY = f"activezone_{st.session_state['_session_id']}"
+# Stały klucz — ta sama przeglądarka zawsze znajdzie swój projekt.
+_LS_KEY = "activezone_project_v1"
 
-# Przy starcie: odczytaj projekt z localStorage przez query_params.
+# Przy starcie sesji: automatycznie wczytaj projekt z localStorage
+# przez komponent JS który wysyła dane przez query_params.
 # _ls_loaded zapobiega wielokrotnemu wczytywaniu przy rerunie.
 if '_ls_loaded' not in st.session_state:
     st.session_state['_ls_loaded'] = False
@@ -114,6 +114,34 @@ if _qp.get('_ls_restore') and not st.session_state.get('_ls_loaded'):
     except Exception:
         st.session_state['_ls_loaded'] = True
         st.query_params.clear()
+
+# Jeśli sesja jest świeża (nie załadowano jeszcze) — wyślij JS który odczyta
+# localStorage i przekaże dane przez query_params → automatyczny restore
+if not st.session_state.get('_ls_loaded'):
+    import streamlit.components.v1 as _comp_init
+    _comp_init.html(f"""
+    <script>
+    (function() {{
+        var data = localStorage.getItem('{_LS_KEY}');
+        if (!data) {{
+            // Brak zapisanego projektu — oznacz jako załadowane
+            var url = window.parent.location.href.split('?')[0];
+            // Nie robimy nic, pozwalamy defaultom działać
+            return;
+        }}
+        try {{
+            var b64 = btoa(unescape(encodeURIComponent(data)));
+            var url = window.parent.location.href.split('?')[0].split('#')[0];
+            window.parent.location.href = url + '?_ls_restore=' + b64;
+        }} catch(e) {{
+            console.log('Auto-restore error:', e);
+        }}
+    }})();
+    </script>
+    """, height=0)
+    # Zatrzymaj rendering do czasu gdy JS nie odpowie
+    # (następny rerun przyjdzie z _ls_restore lub bez)
+    st.session_state['_ls_loaded'] = True  # fallback — kontynuuj z defaults
 
 # ---------------------------------------------------------------------------
 # HELPERY UI
@@ -243,7 +271,7 @@ def _build_proj_dict():
     skip_prefixes = ('FormSubmitter', '$$', 'up_', 'fn_', 'dl_', 'btn_', 'sb_', 'pa_add_', 'sek_img_up')
     # Klucze wewnętrzne które nie powinny trafić do pliku projektu
     internal_keys = {'_session_id', '_ls_loaded', '_ls_restore', '_scroll_pos',
-                     'ready_export_html', 'show_link_info'}
+                     'ready_export_html', 'show_link_info', '_attr_focused'}
     skip_keys = {
         'tyt_hero', 'tyt_logo_az', 'tyt_logo_cli',
         'kie_hero', 'kie_th1', 'kie_th2', 'kie_th3', 'lot_hero',
@@ -1311,7 +1339,9 @@ with st.sidebar:
         for k, v in size_defaults.items():
             val = st.session_state.get(k, v)
             try:
-                st.session_state[k] = int(float(val)) if val else v
+                _int_val = int(float(val)) if val else v
+                if _int_val != val:
+                    st.session_state[k] = _int_val
             except Exception:
                 st.session_state[k] = v
 
