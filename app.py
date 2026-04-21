@@ -61,9 +61,21 @@ div[data-testid="stExpander"] {
 if 'client_mode' not in st.session_state:
     st.session_state['client_mode'] = False
 
+# 1. TARCZA OCHRONNA — przywróć dane z backupu zanim Streamlit załaduje defaults
+# Widget Cleanup usuwa klucze widgetów gdy zakładka jest nieaktywna.
+# STATE_BACKUP nie jest powiązany z żadnym widgetem — Streamlit go nie czyści.
+if 'STATE_BACKUP' in st.session_state:
+    for k, v in st.session_state['STATE_BACKUP'].items():
+        if k not in st.session_state:
+            st.session_state[k] = v
+
+# 2. DOPIERO TERAZ ładuj defaults — nie nadpiszą danych przywróconych z backupu
 for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
+
+# Wymagane dla 4 przerywników zdefiniowanych na sztywno
+st.session_state.setdefault('num_sekcje', 4)
 
 # Wymuszenie poprawnych typów — color_picker wymaga #RRGGBB, number_input wymaga int.
 # Uruchamiane przy każdym starcie żeby naprawić dane wczytane z JSON lub localStorage.
@@ -1576,6 +1588,16 @@ with st.sidebar:
         st.rerun()
 
 # ---------------------------------------------------------------------------
+# AKTUALIZACJA STATE_BACKUP — tarcza ochronna przed Widget Cleanup
+# Zapisuje kompletny stan projektu w jednym kluczu przed zakończeniem rerunu.
+# ---------------------------------------------------------------------------
+_shield_data = _build_proj_dict()
+st.session_state['STATE_BACKUP'] = {
+    k: v for k, v in _shield_data.items()
+    if isinstance(v, (str, int, float, bool, list, dict)) and v is not None
+}
+
+# ---------------------------------------------------------------------------
 # AUTO-ZAPIS przy każdym rerunie (cichy, bez przycisku)
 # ---------------------------------------------------------------------------
 import streamlit.components.v1 as _comp_autosave
@@ -1592,4 +1614,6 @@ _comp_autosave.html(f"""<script>
 # ---------------------------------------------------------------------------
 # GŁÓWNA ZAWARTOŚĆ — PODGLĄD PREZENTACJI
 # ---------------------------------------------------------------------------
+# Cicha kopia stanu tuż przed końcem — chroni dane przy przełączaniu zakładek.
+st.session_state['STATE_BACKUP'] = _build_proj_dict()
 build_presentation(page)
