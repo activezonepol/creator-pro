@@ -1091,9 +1091,11 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             <table class="flight-table"><tr><th>NR LOTU</th><th>DATA</th><th>TRASA</th><th>GODZINY</th></tr>{rows}</table>{h_e}
             </div></div>{fh}""", "slide-loty"))
 
-    # --- Hotele ---
-    num_hotels = s.get('num_hotels', 1)
-    for i in range(num_hotels):
+    # --- Hotele w kolejności hotel_order ---
+    _hotel_order = s.get('hotel_order', [])
+    if not _hotel_order:
+        _hotel_order = list(range(s.get('num_hotels', 1)))
+    for i in _hotel_order:
         if not s.get(f'h_hide_{i}', False):
             h1 = get_b64(f'img_hotel_1_{i}', (16, 9))
             h1b = get_b64(f'img_hotel_1b_{i}', (16, 9))
@@ -1187,31 +1189,29 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                              "slide-program" if st_idx == 0 else ""))
 
     # --- Miejsca i atrakcje (posortowane po dniach) ---
-    # --- Opisy miejsc, atrakcji, hoteli w kolejności zdefiniowanej przez użytkownika ---
-    # slide_order to lista krotek (typ, indeks) np. [('place',0),('attr',0),('hotel',1)]
-    # Domyślnie: najpierw hotele wg dnia, potem miejsca wg dnia, potem atrakcje wg dnia
-    slide_order = s.get('slide_order', [])
-    # Normalizuj — może być lista list lub lista tuple (zależy od źródła)
-    slide_order = [(str(t), int(i)) for t, i in slide_order] if slide_order else []
+    # --- Miejsca i atrakcje w kolejności place_attr_order ---
+    _pa_order = s.get('place_attr_order', [])
+    if not _pa_order:
+        _tmp_p = []
+        for _pi in range(s.get('num_places', 0)):
+            _pday = str(s.get(f"pday_{_pi}") or "")
+            _m = re.search(r'Dzień\s+(\d+)', _pday)
+            _tmp_p.append(('place', _pi, int(_m.group(1)) if _m else 999))
+        _tmp_a = []
+        for _ai in range(s.get('num_attr', 1)):
+            _aday = str(s.get(f"aday_{_ai}") or "")
+            _m = re.search(r'Dzień\s+(\d+)', _aday)
+            _tmp_a.append(('attr', _ai, int(_m.group(1)) if _m else 999))
+        _pa_order = [
+            [t, idx] for t, idx, _ in sorted(
+                _tmp_p + _tmp_a,
+                key=lambda x: (x[2], 0 if x[0] == 'place' else 1, x[1])
+            )
+        ]
 
-    # Zbuduj domyślną kolejność jeśli brak
-    if not slide_order:
-        _tmp = []
-        for i in range(s.get('num_hotels', 1)):
-            _tmp.append(('hotel', i, i))
-        for i in range(s.get('num_places', 0)):
-            pday = str(s.get(f"pday_{i}") or "")
-            m = re.search(r'Dzień\s+(\d+)', pday)
-            _tmp.append(('place', i, int(m.group(1)) if m else 999))
-        for i in range(s.get('num_attr', 1)):
-            aday = str(s.get(f"aday_{i}") or "")
-            m = re.search(r'Dzień\s+(\d+)', aday)
-            _tmp.append(('attr', i, int(m.group(1)) if m else 999))
-        slide_order = [(t, idx) for t, idx, _ in _tmp]
+    for item_type, i in [(str(t), int(idx)) for t, idx in _pa_order]:
 
-    for item_type, i in slide_order:
-
-        # --- Slajd HOTELU ---
+        # --- Slajd HOTELU (zachowany dla kompatybilności) ---
         if item_type == 'hotel':
             if s.get(f'h_hide_{i}', False):
                 continue
