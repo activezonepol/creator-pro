@@ -270,7 +270,7 @@ def _build_proj_dict():
     skip_prefixes = ('FormSubmitter', '$$', 'up_', 'fn_', 'dl_', 'btn_', 'sb_', 'pa_add_', 'sek_img_up')
     # Klucze wewnętrzne które nie powinny trafić do pliku projektu
     internal_keys = {'_session_id', '_ls_loaded', '_ls_restore', '_scroll_pos',
-                     'ready_export_html', 'show_link_info', '_attr_focused'}
+                     'ready_export_html', 'show_link_info', '_attr_focused', 'STATE_BACKUP'}
     skip_keys = {
         'tyt_hero', 'tyt_logo_az', 'tyt_logo_cli',
         'kie_hero', 'kie_th1', 'kie_th2', 'kie_th3', 'lot_hero',
