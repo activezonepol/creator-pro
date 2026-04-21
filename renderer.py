@@ -123,8 +123,10 @@ defaults = {
     't_date': '1-4.10.2026', 't_pax': '60', 't_hotel': '4* ALL INCLUSIVE',
     't_trans': 'SAMOLOT PLL LOT',
     'hide_logo_cli': False,
-    'k_hide': False, 'k_overline': 'OPIS KIERUNKU', 'k_main': 'CZARNOGÓRA',
-    'k_sub': 'BAŁKAŃSKI KLEJNOT', 'k_opis': 'Opisz tutaj <b>piękno</b> kierunku...',
+    'k_hide': False, 'k_overline': 'NASZ KIERUNEK', 'k_main': 'CZARNOGÓRA',
+    'k_sub': 'BAŁKAŃSKI KLEJNOT', 'k_opis': 'Opisz tutaj piękno kierunku...',
+    'k_facts': 'Stolica: \nWaluta: \nRóżnica czasu: \nTemperatury: ',
+    'k_facts_title': 'FAKTY',
     'l_hide': False, 'l_przesiadka': False, 'l_port': 'Monachium (MUC)',
     'l_czas': '3h 20 min', 'l_overline': 'PRZELOT', 'l_main': 'JAK LECIMY?',
     'l_sub': 'NASZA PROPOZYCJA PRZELOTU',
@@ -926,35 +928,36 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             <div><div class="metric-label">Dojazd</div><div class="metric-value">{s.get('t_trans','')}</div></div>
         </div></div></div>{fh}""", "slide-title"))
 
-   # --- Opis kierunku (Pojedynczy Slajd Premium) ---
+    # --- Opis kierunku (Pojedynczy Slajd Premium) ---
     if not s.get('k_hide', False):
         kimg = get_b64('img_hero_k', (1, 1))
 
         # Przetwarzanie boxu z faktami
-        kfacts = str(s.get('k_facts', 'Stolica: \nWaluta: \nRóżnica czasu: \nTemperatury: 16-20 stopni') or '')
+        kfacts = str(s.get('k_facts', 'Stolica: \nWaluta: \nRóżnica czasu: \nTemperatury: ') or '')
         kfacts_title = str(s.get('k_facts_title', 'FAKTY') or '')
         facts_lines = []
         for line in kfacts.split('\n'):
             line = line.strip()
             if not line: continue
+            _ktxt = str(s.get('k_box_txt') or '#ffffff')
             if ':' in line:
                 lbl, val = line.split(':', 1)
                 facts_lines.append(
                     f"<div style='margin-bottom:8px; line-height:1.4; font-size:{max(11, fs_t-1)}px;'>"
-                    f"<strong style='font-family:\"{f_t}\"; font-weight:700;'>{lbl.strip()}:</strong> "
-                    f"<span style='font-family:\"{f_t}\"; font-weight:400;'>{val.strip()}</span></div>"
+                    f"<strong style='font-family:\"{f_t}\"; font-weight:700; color:{_ktxt};'>{lbl.strip()}:</strong> "
+                    f"<span style='font-family:\"{f_t}\"; font-weight:400; color:{_ktxt};'>{val.strip()}</span></div>"
                 )
             else:
                 facts_lines.append(
-                    f"<div style='margin-bottom:8px; line-height:1.4; font-size:{max(11, fs_t-1)}px; font-family:\"{f_t}\";'>{line}</div>"
+                    f"<div style='margin-bottom:8px; line-height:1.4; font-size:{max(11, fs_t-1)}px; "
+                    f"font-family:\"{f_t}\"; color:{_ktxt};'>{line}</div>"
                 )
         facts_html_k = ''.join(facts_lines)
 
-        # Kolory boxu - domyślnie tło to kolor H1
         kbox_bg  = str(s.get('k_box_bg')  or c_h1)
         kbox_txt = str(s.get('k_box_txt') or '#ffffff')
 
-        # Tytuł boxu w stylu nadtytułu
+        # Tytuł boksu w stylu overline
         facts_title_html = (
             f"<div style='font-family:\"{f_met}\"; font-weight:700; font-size:{max(10, fs_met-2)}px; "
             f"color:{kbox_txt}; text-transform:uppercase; letter-spacing:3px; "
@@ -962,15 +965,17 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             f"border-bottom:1px solid rgba(255,255,255,0.3);'>{kfacts_title}</div>"
             if kfacts_title else ''
         )
-        
-        box_html = f"""
-        <div style="background-color: {kbox_bg}; color: {kbox_txt}; padding: 25px 20px; border-bottom-left-radius: 40px; border-top-right-radius: 8px; border-top-left-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.05);">
-            {facts_title_html}
-            {facts_html_k}
-        </div>
-        """ if (facts_html_k or facts_title_html) else f"""
-        <div style="background-color: {kbox_bg}; height: 100px; border-bottom-left-radius: 40px; border-top-right-radius: 8px; border-top-left-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.05);"></div>
-        """
+
+        box_html = (
+            f"<div style='background-color:{kbox_bg}; color:{kbox_txt}; padding:25px 20px; "
+            f"border-bottom-left-radius:40px; border-top-right-radius:8px; "
+            f"border-top-left-radius:8px; box-shadow:0 10px 20px rgba(0,0,0,0.05);'>"
+            f"{facts_title_html}{facts_html_k}</div>"
+            if (facts_html_k or facts_title_html) else
+            f"<div style='background-color:{kbox_bg}; height:100px; "
+            f"border-bottom-left-radius:40px; border-top-right-radius:8px; "
+            f"border-top-left-radius:8px; box-shadow:0 10px 20px rgba(0,0,0,0.05);'></div>"
+        )
 
         k_over = str(s.get('k_overline') or 'NASZ KIERUNEK')
         k_main = str(s.get('k_main') or '').replace(chr(10), '<br>')
@@ -978,42 +983,40 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         k_opis = str(s.get('k_opis') or '').replace(chr(10), '<br>')
 
         hp.append(_shtml(f"""{lh}
-        <div class="premium-layout" id="slide-kierunek" style="gap: 40px; align-items: stretch;">
-            
-            <div style="flex: 55; display: flex; gap: 15px; height: 100%;">
-                <div style="flex: 1.2; height: 100%; border-radius: 8px; overflow: hidden; position: relative; background: #fcfcfc; border: 1px solid #eee;">
-                    {f'<img src="data:image/jpeg;base64,{kimg}" style="position: absolute; top:0; left:0; width: 200%; height: 100%; object-fit: cover; object-position: left center;">' if kimg else _get_ph('ZDJĘCIE')}
+        <div class="premium-layout" id="slide-kierunek" style="gap:40px; align-items:stretch;">
+
+            <div style="flex:55; display:flex; gap:15px; height:100%;">
+                <div style="flex:1.2; height:100%; border-radius:8px; overflow:hidden; position:relative; background:#fcfcfc; border:1px solid #eee;">
+                    {f'<img src="data:image/jpeg;base64,{kimg}" style="position:absolute; top:0; left:0; width:200%; height:100%; object-fit:cover; object-position:left center;">' if kimg else _get_ph('ZDJĘCIE')}
                 </div>
-                <div style="flex: 1; display: flex; flex-direction: column; gap: 15px; height: 100%;">
+                <div style="flex:1; display:flex; flex-direction:column; gap:15px; height:100%;">
                     {box_html}
-                    <div style="flex-grow: 1; border-top-left-radius: 40px; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; overflow: hidden; position: relative; background: #fcfcfc; border: 1px solid #eee;">
-                        {f'<img src="data:image/jpeg;base64,{kimg}" style="position: absolute; bottom:0; right:0; width: 220%; height: 140%; object-fit: cover; object-position: right bottom;">' if kimg else _get_ph('ZDJĘCIE')}
+                    <div style="flex-grow:1; border-top-left-radius:40px; border-bottom-left-radius:8px; border-bottom-right-radius:8px; overflow:hidden; position:relative; background:#fcfcfc; border:1px solid #eee;">
+                        {f'<img src="data:image/jpeg;base64,{kimg}" style="position:absolute; bottom:0; right:0; width:220%; height:140%; object-fit:cover; object-position:right bottom;">' if kimg else _get_ph('ZDJĘCIE')}
                     </div>
                 </div>
             </div>
 
-            <div class="info-col" style="flex: 45; padding-left: 10px; padding-top: 15px; justify-content: flex-start;">
-                
-                <div style="display: flex; align-items: center; justify-content: flex-start; gap: 15px; margin-bottom: 10px;">
-                    <span style="font-family:'{f_met}'; font-size:{max(10,fs_met-2)}px; font-weight:700; letter-spacing:3px; color:{acc}; text-transform:uppercase;">
+            <div class="info-col" style="flex:45; padding-left:10px; padding-top:15px; justify-content:flex-start;">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                    <div style="height:1px; background-color:{acc}; width:30px; flex-shrink:0;"></div>
+                    <span style="font-family:'{f_met}'; font-size:{max(10,fs_met-2)}px; font-weight:700;
+                                 letter-spacing:3px; color:{acc}; text-transform:uppercase; white-space:nowrap;">
                         {k_over}
                     </span>
-                    <div style="height: 1px; background-color: {acc}; width: 60px;"></div>
+                    <div style="height:1px; background-color:{acc}; flex:1;"></div>
                 </div>
-                
-                <div class="title-h1" style="text-align: left; margin-bottom: 5px; font-size:{fs_h1_val}px; color:{c_h1}; line-height: 1.1;">
+                <div class="title-h1" style="text-align:left; margin-bottom:5px; font-size:{fs_h1_val}px; color:{c_h1}; line-height:1.1;">
                     {k_main}
                 </div>
-                
-                <div class="title-sub" style="text-align: left; color: {acc}; font-size:{fs_sub_val}px; margin-bottom: 25px; font-family: '{f_h2}'; font-weight: 300; letter-spacing: 1px; text-transform: uppercase;">
+                <div class="title-sub" style="text-align:left; margin-bottom:25px;">
                     {k_sub}
                 </div>
-                
-                <div style="font-family: '{f_t}'; font-size: {fs_t}px; line-height: 1.7; color: {c_t}; text-align: justify;">
+                <div style="font-family:'{f_t}'; font-size:{fs_t}px; line-height:1.7; color:{c_t}; text-align:justify;">
                     {k_opis}
                 </div>
             </div>
-            
+
         </div>{fh}""", "slide-kierunek"))
 
     # --- Mapa ---
