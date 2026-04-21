@@ -383,11 +383,14 @@ with st.sidebar:
     # CSS: primary button w sidebarze = kolor akcentu (pomarańczowy)
     st.markdown(
         f"<style>"
-        f"section[data-testid='stSidebar'] button[kind='primary'] {{"
-        f"  background-color: {_acc} !important;"
-        f"  border-color: {_acc} !important;"
-        f"  color: white !important;"
-        f"}}"
+        f"section[data-testid='stSidebar'] button[kind='primary']{{background-color:{_acc}!important;border-color:{_acc}!important;color:white!important;}}"
+        f"section[data-testid='stSidebar'] [data-testid='stButton']:has(button[key*='aord_up_']) button,"
+        f"section[data-testid='stSidebar'] [data-testid='stButton']:has(button[key*='aord_dn_']) button"
+        f"{{padding:0!important;min-height:22px!important;font-size:11px!important;"
+        f"background:transparent!important;border:none!important;color:#94a3b8!important;box-shadow:none!important;}}"
+        f"section[data-testid='stSidebar'] [data-testid='stButton']:has(button[key*='aord_del_']) button"
+        f"{{padding:0!important;min-height:22px!important;font-size:11px!important;"
+        f"background-color:#ef4444!important;border-color:#ef4444!important;color:white!important;}}"
         f"</style>",
         unsafe_allow_html=True,
     )
