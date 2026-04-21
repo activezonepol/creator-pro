@@ -430,7 +430,7 @@ with st.sidebar:
     page_attr = None
     for _ap in range(_n_attr):
         _ap_key = _attr_pages[_ap]
-        _ap_name = _ap_key.split(":", 2)[2]
+        _ap_name = _attr_display_name(_ap)
         _ap_active = (_last == _ap_key)
         _ca, _cb, _cc = st.columns([7, 1, 1])
         # Przycisk nawigacji — podświetlony gdy aktywny
@@ -487,7 +487,9 @@ with st.sidebar:
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;margin-left:12px;'>Slajd przerywnikowy — edytuj treść i wygląd poniżej.</div>", unsafe_allow_html=True)
     elif _is_attr_page:
         _acc_col = st.session_state.get("color_accent", "#FF6600")
-        _label = page.split(":", 2)[2] if page.startswith("ATTR:") else page
+        _attr_idx = int(page.split(":")[1]) if page.startswith("ATTR:") else 0
+        _attr_pos = next((p for p, ix in enumerate(_attr_order()) if ix == _attr_idx), 0)
+        _label = _attr_display_name(_attr_pos)
         st.markdown(f"<h2 style='color:{_acc_col};margin-bottom:0;font-size:20px;font-weight:700;font-family:Montserrat,sans-serif;margin-left:12px;border-left:3px solid {_acc_col};padding-left:10px;'>★ {_label}</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;margin-left:12px;'>Edytuj treść slajdu atrakcji poniżej.</div>", unsafe_allow_html=True)
     else:
