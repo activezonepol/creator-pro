@@ -120,51 +120,64 @@ def set_focus(target_id):
     st.session_state['scroll_target'] = target_id
 
 
-def _get_slide_order():
-    """Zwraca aktualną listę (typ, idx) slajdów lub buduje domyślną."""
+def _get_hotel_order():
+    """Zwraca kolejność hoteli — lista indeksów [0,1,2,...]."""
     s = st.session_state
-    order = s.get('slide_order', [])
-    if not order:
-        order = []
-        for i in range(s.get('num_hotels', 1)):
-            order.append(['hotel', i])
-        for i in range(s.get('num_places', 0)):
-            order.append(['place', i])
-        for i in range(s.get('num_attr', 1)):
-            order.append(['attr', i])
-        s['slide_order'] = order
+    n = s.get('num_hotels', 1)
+    order = s.get('hotel_order', [])
+    # Upewnij się że lista jest kompletna i aktualna
+    valid = list(range(n))
+    order = [i for i in order if i in valid]
+    for i in valid:
+        if i not in order:
+            order.append(i)
+    s['hotel_order'] = order
     return order
 
 
-def _move_slide(idx, direction):
-    """Przesuwa slajd w górę (-1) lub w dół (+1) na liście kolejności."""
-    order = _get_slide_order()
+def _move_hotel(idx, direction):
+    """Przesuwa hotel w górę (-1) lub w dół (+1)."""
+    order = _get_hotel_order()
     new_idx = idx + direction
     if 0 <= new_idx < len(order):
         order[idx], order[new_idx] = order[new_idx], order[idx]
-        st.session_state['slide_order'] = order
+        st.session_state['hotel_order'] = order
+
+
+def _get_place_attr_order():
+    """Zwraca kolejność miejsc+atrakcji — lista par [typ, idx]."""
+    s = st.session_state
+    order = s.get('place_attr_order', [])
+    valid_places = {('place', i) for i in range(s.get('num_places', 0))}
+    valid_attrs  = {('attr',  i) for i in range(s.get('num_attr', 1))}
+    valid = valid_places | valid_attrs
+    # Zachowaj istniejące
+    order = [[t, i] for t, i in order if (t, i) in valid]
+    # Dodaj brakujące — najpierw miejsca, potem atrakcje
+    existing = {(t, i) for t, i in order}
+    for t, i in sorted(valid_places) :
+        if (t, i) not in existing:
+            order.append([t, i])
+    for t, i in sorted(valid_attrs):
+        if (t, i) not in existing:
+            order.append([t, i])
+    s['place_attr_order'] = order
+    return order
+
+
+def _move_place_attr(idx, direction):
+    """Przesuwa miejsce/atrakcję w górę (-1) lub w dół (+1)."""
+    order = _get_place_attr_order()
+    new_idx = idx + direction
+    if 0 <= new_idx < len(order):
+        order[idx], order[new_idx] = order[new_idx], order[idx]
+        st.session_state['place_attr_order'] = order
 
 
 def _rebuild_slide_order():
-    """Przebudowuje slide_order gdy zmieniono liczby hoteli/miejsc/atrakcji.
-    Usuwa nieistniejące indeksy, dodaje nowe na końcu."""
-    s = st.session_state
-    order = s.get('slide_order', [])
-    valid = set()
-    for i in range(s.get('num_hotels', 1)):
-        valid.add(('hotel', i))
-    for i in range(s.get('num_places', 0)):
-        valid.add(('place', i))
-    for i in range(s.get('num_attr', 1)):
-        valid.add(('attr', i))
-    # Zachowaj istniejące w oryginalnej kolejności
-    new_order = [[t, i] for t, i in order if (t, i) in valid]
-    # Dodaj nowe których jeszcze nie ma
-    existing = {(t, i) for t, i in new_order}
-    for t, i in sorted(valid, key=lambda x: (x[0], x[1])):
-        if (t, i) not in existing:
-            new_order.append([t, i])
-    s['slide_order'] = new_order
+    """Przebudowuje obie listy kolejności — wywoływana gdy zmieniono liczby."""
+    _get_hotel_order()
+    _get_place_attr_order()
 
 
 def _build_proj_dict():
@@ -305,7 +318,7 @@ with st.sidebar:
         "WYBIERZ SEKCJE DO EDYCJI:",
         [
             "Strona Tytułowa", "Opis Kierunku", "Mapa Podróży", "Jak lecimy?",
-            "Kolejność slajdów", "Zakwaterowanie", "Program Wyjazdu",
+            "Zakwaterowanie", "Program Wyjazdu",
             "Opisy miejsc", "Opis atrakcji",
             "Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent",
             "Pillow Gifts", "Kosztorys", "Co o nas mówią", "O Nas (Zespół)",
@@ -565,52 +578,36 @@ with st.sidebar:
             st.session_state['img_hero_l'] = optimize_img(u5.getvalue())
 
     # -----------------------------------------------------------------------
-    # KOLEJNOŚĆ SLAJDÓW
-    # -----------------------------------------------------------------------
-    elif page == "Kolejność slajdów":
-        st.markdown(
-            "<div style='font-size:12px;color:#64748b;margin-bottom:15px;'>"
-            "Użyj strzałek ▲ ▼ aby zmienić kolejność hoteli, opisów miejsc i atrakcji "
-            "w prezentacji. Kolejność jest zapisywana automatycznie.</div>",
-            unsafe_allow_html=True,
-        )
-        _rebuild_slide_order()
-        order = _get_slide_order()
-        type_labels = {'hotel': '🏨 Hotel', 'place': '📍 Opis miejsca', 'attr': '✨ Atrakcja'}
-        type_colors = {'hotel': '#003366', 'place': '#0f766e', 'attr': '#b45309'}
-
-        for idx, (typ, num) in enumerate(order):
-            # Pobierz nazwę slajdu
-            if typ == 'hotel':
-                name = str(st.session_state.get(f'h_title_{num}', f'Hotel {num+1}')).split('\n')[0][:40]
-            elif typ == 'place':
-                name = str(st.session_state.get(f'pmain_{num}', f'Miejsce {num+1}')).split('\n')[0][:40] or f'Opis miejsca {num+1}'
-            else:
-                name = str(st.session_state.get(f'amain_{num}', f'Atrakcja {num+1}')).split('\n')[0][:40] or f'Atrakcja {num+1}'
-
-            col_label, col_up, col_down = st.columns([8, 1, 1])
-            col_label.markdown(
-                f"<div style='padding:8px 12px; background:#f8fafc; border-radius:6px; "
-                f"border-left:4px solid {type_colors.get(typ,"#888")}; "
-                f"font-size:13px; color:#1e293b; font-family:Open Sans,sans-serif;'>"
-                f"<strong style='color:{type_colors.get(typ,"#888")};font-size:11px;"
-                f"text-transform:uppercase;letter-spacing:1px;'>{type_labels.get(typ,typ)}</strong>"
-                f"<br>{name}</div>",
-                unsafe_allow_html=True,
-            )
-            if idx > 0:
-                col_up.button("▲", key=f"so_up_{idx}",
-                              on_click=_move_slide, args=(idx, -1), use_container_width=True)
-            if idx < len(order) - 1:
-                col_down.button("▼", key=f"so_down_{idx}",
-                                on_click=_move_slide, args=(idx, 1), use_container_width=True)
-
-    # -----------------------------------------------------------------------
     # ZAKWATEROWANIE
     # -----------------------------------------------------------------------
     elif page == "Zakwaterowanie":
-        if st.number_input("Liczba hoteli:", 1, 3, step=1, key="num_hotels"):
-            _rebuild_slide_order()
+        st.number_input("Liczba hoteli:", 1, 3, step=1, key="num_hotels")
+        _rebuild_slide_order()
+        hotel_order = _get_hotel_order()
+
+        # Panel kolejności hoteli
+        if len(hotel_order) > 1:
+            _section_header("KOLEJNOŚĆ HOTELI W PREZENTACJI")
+            for pos, hi in enumerate(hotel_order):
+                name = str(st.session_state.get(f'h_title_{hi}', f'Hotel {hi+1}')).split('\n')[0][:35] or f'Hotel {hi+1}'
+                col_lbl, col_up, col_dn = st.columns([8, 1, 1])
+                col_lbl.markdown(
+                    f"<div style='padding:6px 10px; background:#f1f5f9; border-radius:4px; "
+                    f"border-left:3px solid #003366; font-size:12px; color:#1e293b;'>"
+                    f"<strong style='color:#003366; font-size:10px; text-transform:uppercase; "
+                    f"letter-spacing:1px;'>Hotel {pos+1}</strong><br>{name}</div>",
+                    unsafe_allow_html=True,
+                )
+                if pos > 0:
+                    col_up.button("▲", key=f"ho_up_{pos}",
+                                  on_click=_move_hotel, args=(pos, -1),
+                                  use_container_width=True)
+                if pos < len(hotel_order) - 1:
+                    col_dn.button("▼", key=f"ho_dn_{pos}",
+                                  on_click=_move_hotel, args=(pos, 1),
+                                  use_container_width=True)
+
+        st.divider()
         for i in range(st.session_state['num_hotels']):
             with st.expander(f"Hotel {i+1}" + (f" — {str(st.session_state.get(f'h_title_{i}','')).split(chr(10))[0][:30]}" if st.session_state.get(f'h_title_{i}') else "")):
                 st.button("POKAŻ PODGLĄD", key=f"btn_show_hot_{i}",
@@ -683,8 +680,44 @@ with st.sidebar:
             st.session_state.get('p_start_dt', date.today()),
             int(st.session_state.get('num_days', 5)),
         )
-        if st.number_input("Liczba opisów miejsc:", 0, 20, step=1, key="num_places"):
-            _rebuild_slide_order()
+        st.number_input("Liczba opisów miejsc:", 0, 20, step=1, key="num_places")
+        _rebuild_slide_order()
+
+        # Panel kolejności miejsc i atrakcji przeplatanych
+        pa_order = _get_place_attr_order()
+        if pa_order:
+            _section_header("KOLEJNOŚĆ W PREZENTACJI (MIEJSCA I ATRAKCJE)")
+            st.markdown(
+                "<div style='font-size:11px;color:#64748b;margin-bottom:8px;'>"
+                "Ustaw kolejność slajdów — możesz przeplatać opisy miejsc z atrakcjami.</div>",
+                unsafe_allow_html=True,
+            )
+            _type_colors = {'place': '#0f766e', 'attr': '#b45309'}
+            _type_labels = {'place': 'Opis miejsca', 'attr': 'Atrakcja'}
+            for pos, (typ, num) in enumerate(pa_order):
+                if typ == 'place':
+                    name = str(st.session_state.get(f'pmain_{num}', '')).split('\n')[0][:35] or f'Opis miejsca {num+1}'
+                else:
+                    name = str(st.session_state.get(f'amain_{num}', '')).split('\n')[0][:35] or f'Atrakcja {num+1}'
+                col_lbl, col_up, col_dn = st.columns([8, 1, 1])
+                col_lbl.markdown(
+                    f"<div style='padding:6px 10px; background:#f8fafc; border-radius:4px; "
+                    f"border-left:3px solid {_type_colors[typ]}; font-size:12px; color:#1e293b;'>"
+                    f"<strong style='color:{_type_colors[typ]}; font-size:10px; "
+                    f"text-transform:uppercase; letter-spacing:1px;'>{_type_labels[typ]}</strong>"
+                    f"<br>{name}</div>",
+                    unsafe_allow_html=True,
+                )
+                if pos > 0:
+                    col_up.button("▲", key=f"pa_up_{pos}",
+                                  on_click=_move_place_attr, args=(pos, -1),
+                                  use_container_width=True)
+                if pos < len(pa_order) - 1:
+                    col_dn.button("▼", key=f"pa_dn_{pos}",
+                                  on_click=_move_place_attr, args=(pos, 1),
+                                  use_container_width=True)
+            st.divider()
+
         for i in range(st.session_state['num_places']):
             for dk, dv in [
                 (f"pmain_{i}", ""), (f"psub_{i}", ""),
@@ -761,8 +794,44 @@ with st.sidebar:
             st.session_state.get('p_start_dt', date.today()),
             int(st.session_state.get('num_days', 5)),
         )
-        if st.number_input("Ilość atrakcji:", 1, 20, step=1, key="num_attr"):
-            _rebuild_slide_order()
+        st.number_input("Ilość atrakcji:", 1, 20, step=1, key="num_attr")
+        _rebuild_slide_order()
+
+        # Panel kolejności — taki sam jak w Opisy miejsc
+        pa_order = _get_place_attr_order()
+        if pa_order:
+            _section_header("KOLEJNOŚĆ W PREZENTACJI (MIEJSCA I ATRAKCJE)")
+            st.markdown(
+                "<div style='font-size:11px;color:#64748b;margin-bottom:8px;'>"
+                "Ustaw kolejność slajdów — możesz przeplatać opisy miejsc z atrakcjami.</div>",
+                unsafe_allow_html=True,
+            )
+            _type_colors = {'place': '#0f766e', 'attr': '#b45309'}
+            _type_labels = {'place': 'Opis miejsca', 'attr': 'Atrakcja'}
+            for pos, (typ, num) in enumerate(pa_order):
+                if typ == 'place':
+                    name = str(st.session_state.get(f'pmain_{num}', '')).split('\n')[0][:35] or f'Opis miejsca {num+1}'
+                else:
+                    name = str(st.session_state.get(f'amain_{num}', '')).split('\n')[0][:35] or f'Atrakcja {num+1}'
+                col_lbl, col_up, col_dn = st.columns([8, 1, 1])
+                col_lbl.markdown(
+                    f"<div style='padding:6px 10px; background:#f8fafc; border-radius:4px; "
+                    f"border-left:3px solid {_type_colors[typ]}; font-size:12px; color:#1e293b;'>"
+                    f"<strong style='color:{_type_colors[typ]}; font-size:10px; "
+                    f"text-transform:uppercase; letter-spacing:1px;'>{_type_labels[typ]}</strong>"
+                    f"<br>{name}</div>",
+                    unsafe_allow_html=True,
+                )
+                if pos > 0:
+                    col_up.button("▲", key=f"pa2_up_{pos}",
+                                  on_click=_move_place_attr, args=(pos, -1),
+                                  use_container_width=True)
+                if pos < len(pa_order) - 1:
+                    col_dn.button("▼", key=f"pa2_dn_{pos}",
+                                  on_click=_move_place_attr, args=(pos, 1),
+                                  use_container_width=True)
+            st.divider()
+
         for i in range(st.session_state['num_attr']):
             for dk, dv in [
                 (f"amain_{i}", ""), (f"asub_{i}", ""),
