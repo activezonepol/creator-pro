@@ -313,59 +313,64 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
     full_filename = f"{cc}-{file_prefix}-{base_slug}.json"
     _display = default_filename.replace("_", " ").title() if default_filename else "Slajd"
 
-    _cl, _cr = st.columns(2)
-
-    # LEWA KOLUMNA — wczytywanie
-    with _cl:
+    # ── RAMKA POBIERANIE ──────────────────────────────────────────
+    with st.container():
         st.markdown(
-            f"<div style='border:1px solid #e2e8f0;border-radius:8px;padding:10px;"
-            f"background:#fff;margin-bottom:4px;'>"
-            f"<div style='font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;"
-            f"letter-spacing:1px;margin-bottom:6px;'>Wczytywanie</div>",
+            f"<div style='border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px 4px 14px;"
+            f"margin-bottom:8px;background:#fff;'>"
+            f"<span style='font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;"
+            f"letter-spacing:1.5px;'>Pobieranie</span></div>",
             unsafe_allow_html=True,
         )
-        uploaded_file = st.file_uploader(
-            "max. 200 MB", type=['json'], key=f"up_{uploader_key}",
-        )
-        if st.button("↑ WCZYTAJ", key=f"btn_apply_{uploader_key}",
-                     use_container_width=True, disabled=not uploaded_file):
-            try:
-                data = json.load(uploaded_file)
-                filtered_data = {}
-                for k in section_keys:
-                    save_key = k
-                    load_key = k if index is None else re.sub(f'_{index}$', '', k)
-                    if file_prefix == "ATR":
-                        load_key = ATR_KEY_MAP.get(load_key, load_key)
-                    if load_key in data:
-                        filtered_data[save_key] = data[load_key]
-                load_project_data(filtered_data)
-                st.success("Wczytano.")
-                st.rerun()
-            except Exception:
-                st.error("Błąd odczytu.")
-        st.markdown("</div>", unsafe_allow_html=True)
+        _cp1, _cp2 = st.columns(2)
+        with _cp1:
+            st.markdown(
+                f"<div style='border:1px solid #e2e8f0;border-radius:7px;padding:9px 10px;"
+                f"background:#f8fafc;font-family:Montserrat,sans-serif;font-size:12px;"
+                f"font-weight:600;color:#334155;display:flex;align-items:center;gap:6px;"
+                f"min-height:38px;margin-bottom:8px;'>"
+                f"<span style='color:{_acc};'>★</span> {_display}</div>",
+                unsafe_allow_html=True,
+            )
+        with _cp2:
+            st.download_button(
+                "↓ POBIERZ", json_str, full_filename,
+                key=f"dl_{uploader_key}", use_container_width=True,
+            )
 
-    # PRAWA KOLUMNA — pobieranie
-    with _cr:
+    # ── RAMKA WCZYTYWANIE ─────────────────────────────────────────
+    with st.container():
         st.markdown(
-            f"<div style='border:1px solid #e2e8f0;border-radius:8px;padding:10px;"
-            f"background:#fff;margin-bottom:4px;'>"
-            f"<div style='font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;"
-            f"letter-spacing:1px;margin-bottom:6px;'>Pobieranie</div>"
-            f"<div style='background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;"
-            f"padding:8px 10px;margin-bottom:8px;font-family:Montserrat,sans-serif;"
-            f"font-size:12px;font-weight:600;color:#334155;min-height:34px;"
-            f"display:flex;align-items:center;gap:6px;'>"
-            f"<span style='color:{_acc}'>★</span> {_display}</div>",
+            f"<div style='border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px 4px 14px;"
+            f"margin-bottom:4px;background:#fff;'>"
+            f"<span style='font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;"
+            f"letter-spacing:1.5px;'>Wczytywanie</span></div>",
             unsafe_allow_html=True,
         )
-        st.download_button(
-            "↓ POBIERZ", json_str, full_filename,
-            key=f"dl_{uploader_key}", use_container_width=True,
-        )
-        st.markdown("</div>", unsafe_allow_html=True)
-
+        _cw1, _cw2 = st.columns(2)
+        with _cw1:
+            uploaded_file = st.file_uploader(
+                "JSON", type=['json'], key=f"up_{uploader_key}",
+                label_visibility="collapsed",
+            )
+        with _cw2:
+            if st.button("↑ WCZYTAJ", key=f"btn_apply_{uploader_key}",
+                         use_container_width=True, disabled=not uploaded_file):
+                try:
+                    data = json.load(uploaded_file)
+                    filtered_data = {}
+                    for k in section_keys:
+                        save_key = k
+                        load_key = k if index is None else re.sub(f'_{index}$', '', k)
+                        if file_prefix == "ATR":
+                            load_key = ATR_KEY_MAP.get(load_key, load_key)
+                        if load_key in data:
+                            filtered_data[save_key] = data[load_key]
+                    load_project_data(filtered_data)
+                    st.success("Wczytano.")
+                    st.rerun()
+                except Exception:
+                    st.error("Błąd odczytu.")
     st.markdown("<div style='margin-bottom:8px;'></div>", unsafe_allow_html=True)
 
 
@@ -575,9 +580,9 @@ with st.sidebar:
                   use_container_width=True)
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_0")
         st.text_input("Duży tytuł (uppercase):", key=f"sek_0_title",
-                      value=st.session_state.get(f"sek_0_title", "ZAKWATEROWANIE"))
+)
         st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_0_sub",
-                      value=st.session_state.get(f"sek_0_sub", "NASZE HOTELE"))
+)
         _ic1, _ic2 = st.columns(2)
         _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_0_bg")
         _ic2.color_picker("Kolor tytułu:", key=f"sek_0_txt")
@@ -596,9 +601,9 @@ with st.sidebar:
                   use_container_width=True)
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_3")
         st.text_input("Duży tytuł (uppercase):", key=f"sek_3_title",
-                      value=st.session_state.get(f"sek_3_title", "PROGRAM"))
+)
         st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_3_sub",
-                      value=st.session_state.get(f"sek_3_sub", "NASZ PLAN WYJAZDU"))
+)
         _ic1, _ic2 = st.columns(2)
         _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_3_bg")
         _ic2.color_picker("Kolor tytułu:", key=f"sek_3_txt")
@@ -617,9 +622,9 @@ with st.sidebar:
                   use_container_width=True)
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_1")
         st.text_input("Duży tytuł (uppercase):", key=f"sek_1_title",
-                      value=st.session_state.get(f"sek_1_title", "ATRAKCJE"))
+)
         st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_1_sub",
-                      value=st.session_state.get(f"sek_1_sub", "PROGRAM WYJAZDU"))
+)
         _ic1, _ic2 = st.columns(2)
         _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_1_bg")
         _ic2.color_picker("Kolor tytułu:", key=f"sek_1_txt")
@@ -638,9 +643,9 @@ with st.sidebar:
                   use_container_width=True)
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_2")
         st.text_input("Duży tytuł (uppercase):", key=f"sek_2_title",
-                      value=st.session_state.get(f"sek_2_title", "CO O NAS MÓWIĄ"))
+)
         st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_2_sub",
-                      value=st.session_state.get(f"sek_2_sub", "REKOMENDACJE"))
+)
         _ic1, _ic2 = st.columns(2)
         _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_2_bg")
         _ic2.color_picker("Kolor tytułu:", key=f"sek_2_txt")
@@ -687,7 +692,7 @@ with st.sidebar:
         section_template_manager(k_keys, "KIE", st.session_state.get('k_main', 'czarnogora'), "kie")
         st.checkbox("Ukryj ten slajd w PDF", key="k_hide")
         st.text_input("Mały nadtytuł (overline):", key="k_overline",
-                      value=st.session_state.get('k_overline', 'NASZ KIERUNEK'))
+)
         st.text_input("Nazwa kierunku (duży tytuł H1):", key="k_main")
         st.text_input("Podtytuł:", key="k_sub")
         st.text_area("Opis (prawa kolumna):", height=160, key="k_opis",
@@ -704,11 +709,9 @@ with st.sidebar:
         cb1.color_picker("Kolor tła boksu", key="k_box_bg")
         cb2.color_picker("Kolor tekstu w boksie", key="k_box_txt")
         st.text_input("Tytuł boksu (np. FAKTY):", key="k_facts_title",
-                      value=st.session_state.get('k_facts_title', 'FAKTY'))
+)
         st.text_area(
             "Fakty (Format: 'Etykieta: Wartość'):", height=160, key="k_facts",
-            value=st.session_state.get('k_facts',
-                'Stolica: \nWaluta: \nRóżnica czasu: \nTemperatury: '),
             help="Każda linia = jeden wpis. 'Etykieta: Wartość' pogrubia etykietę.",
         )
 
@@ -1150,14 +1153,16 @@ with st.sidebar:
     elif page == "Pillow Gifts":
         gif_keys = [
             'pg_hide', 'pg_overline', 'pg_title', 'pg_subtitle',
-            'pg_text', 'img_pg_1', 'img_pg_2', 'img_pg_3',
+            'pg_text', 'pg_features', 'img_pg_1', 'img_pg_2', 'img_pg_3',
         ]
         section_template_manager(gif_keys, "GIF", "Gifts", "gif")
         st.checkbox("Ukryj slajd", key="pg_hide")
         st.text_input("Mały nadtytuł:", key="pg_overline")
         st.text_area("Główny tytuł H1:", key="pg_title")
         st.text_input("Podtytuł:", key="pg_subtitle")
-        st.text_area("Treść oferty (obsługuje HTML):", height=300, key="pg_text")
+        st.text_area("Opis (tekst główny):", height=200, key="pg_text")
+        st.text_area("Punktory (każda linia = jeden punkt):", height=150, key="pg_features",
+                     help="Każda linia to jeden punkt z kwadratowym punktorkiem ■")
         c1, c2, c3 = st.columns(3)
         u1 = c1.file_uploader("Zdjęcie 1", key="pg_img_1")
         if u1:
@@ -1183,8 +1188,7 @@ with st.sidebar:
         c1, c2 = st.columns(2)
         c1.checkbox("Ukryj CAŁY Kosztorys (Slajd 1 i 2)", key="koszt_hide_1")
         c2.checkbox("Ukryj TYLKO Slajd 2 (Ciąg dalszy)", key="koszt_hide_2")
-        st.text_input("Tytuł H1 (duży, górna część):", key="koszt_h1_title",
-                      value=st.session_state.get('koszt_h1_title', 'KOSZTORYS'))
+        st.text_input("Tytuł H1 (duży, górna część):", key="koszt_h1_title")
         st.text_input("Overline (mały nadtytuł):", key="koszt_title")
         _section_header("GŁÓWNE DANE TABELI")
         c1, c2 = st.columns(2)
@@ -1553,6 +1557,20 @@ with st.sidebar:
     if st.button("PODGLĄD PEŁNOEKRANOWY", use_container_width=True):
         st.session_state['client_mode'] = True
         st.rerun()
+
+# ---------------------------------------------------------------------------
+# AUTO-ZAPIS przy każdym rerunie (cichy, bez przycisku)
+# ---------------------------------------------------------------------------
+import streamlit.components.v1 as _comp_autosave
+_auto_proj = _build_proj_dict()
+_auto_json = json.dumps(_auto_proj, ensure_ascii=False)
+_comp_autosave.html(f"""<script>
+(function(){{
+    try {{
+        localStorage.setItem('{_LS_KEY}', {_auto_json!r});
+    }} catch(e) {{}}
+}})();
+</script>""", height=0)
 
 # ---------------------------------------------------------------------------
 # GŁÓWNA ZAWARTOŚĆ — PODGLĄD PREZENTACJI
