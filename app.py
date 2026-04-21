@@ -203,15 +203,21 @@ def _pa_items_delete(pos):
 
 
 def _pa_page_name(typ, idx):
-    """Zwraca czytelną nazwę strony dla elementu w nawigacji (max 20 znaków).
-    Format: '  ↳ Atrakcja 1' lub '  ↳ Indie' — ale zakodowane z ID dla parsowania."""
+    """Stały klucz nawigacji: '  ↳ §place§0'. § bezpiecznie parsowany."""
+    return f"  \u21b3 §{typ}§{idx}"
+
+
+def _pa_page_label(page_key):
+    """Zamienia klucz § na czytelną etykietę dla użytkownika."""
+    if "§" not in page_key:
+        return page_key
+    parts = page_key.split("§")
+    typ, idx = parts[1], int(parts[2])
     s = st.session_state
-    # Pobierz nazwę wyświetlaną (max 20 znaków)
     if typ == 'place':
         raw = str(s.get(f'pmain_{idx}', '')).split('\n')[0].strip()
     else:
         raw = str(s.get(f'amain_{idx}', '')).split('\n')[0].strip()
-    # Oblicz numer w obrębie typu
     items = s.get('pa_items', [])
     type_pos = next(
         (pos + 1 for pos, it in enumerate([i for i in items if i['type'] == typ])
@@ -219,12 +225,11 @@ def _pa_page_name(typ, idx):
         idx + 1
     )
     if raw:
-        label = raw[:20] + ('…' if len(raw) > 20 else '')
+        label = raw[:8] + ('…' if len(raw) > 8 else '')
     else:
-        label = ('Opis miejsca' if typ == 'place' else 'Atrakcja') + f' {type_pos}'
-    # Zakoduj ID w niewidocznych znakach (zero-width space + id) żeby można parsować
-    return f"  ↳ {label}​{typ}​{idx}"
-
+        label = ('Miejsce' if typ == 'place' else 'Atrakcja') + f' {type_pos}'
+    prefix = '○' if typ == 'place' else '★'
+    return f"  ↳ {prefix} {label}"
 
 def _pa_display_name(typ, idx):
     """Zwraca wyświetlaną nazwę elementu z numeracją w obrębie typu."""
@@ -401,42 +406,49 @@ if st.session_state['client_mode']:
 # SIDEBAR — NAWIGACJA
 # ---------------------------------------------------------------------------
 with st.sidebar:
-    # Buduj dynamiczną listę stron (pa_items dodaje pozycje drzewka)
+    # Buduj nawigację BEZ elementów pa_ w radio — będą osobno poniżej
     _pa_nav_items = _pa_items_get()
-    _pa_nav_pages = [_pa_page_name(it['type'], it['idx']) for it in _pa_nav_items]
     _nav_pages = (
         ["Strona Tytułowa", "Opis Kierunku", "Mapa Podróży", "Jak lecimy?",
          "  ↳ Przerywnik hotel", "Zakwaterowanie",
          "  ↳ Przerywnik program", "Program Wyjazdu",
-         "  ↳ Przerywnik atrakcje"] +
-        _pa_nav_pages +
-        ["Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent",
+         "  ↳ Przerywnik atrakcje",
+         "Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent",
          "Pillow Gifts", "Kosztorys",
          "  ↳ Przerywnik o nas", "Co o nas mówią", "O Nas (Zespół)",
          "Wygląd i Kolory", "Zapisz / Wczytaj Projekt"]
     )
-    # Po dodaniu elementu last_page wskazuje nową stronę pa_ — ustaw ją jako domyślną
-    _default_page = st.session_state.get('last_page', _nav_pages[0])
-    _default_idx = _nav_pages.index(_default_page) if _default_page in _nav_pages else 0
+    # Sprawdź czy aktywna strona to element pa_ (nie ma go w _nav_pages)
+    _current = st.session_state.get('last_page', _nav_pages[0])
+    _current_is_pa = "§" in _current
+
+    # Indeks dla radio — gdy aktywna strona to pa_, zostaw radio bez zaznaczenia (idx=0)
+    _default_idx = _nav_pages.index(_current) if _current in _nav_pages else 0
+
     page = st.radio("WYBIERZ SEKCJE DO EDYCJI:", _nav_pages, index=_default_idx)
-    if st.session_state.get('last_page') != page:
-        st.session_state['last_page'] = page
-        st.session_state['scroll_target'] = ""
+
+    # Gdy kliknięto pozycję w radio — zaktualizuj last_page
+    if page != _current or not _current_is_pa:
+        if st.session_state.get('last_page') != page:
+            st.session_state['last_page'] = page
+            st.session_state['scroll_target'] = ""
 
     st.divider()
 
-    # --- NAGŁÓWEK SEKCJI "Opis atrakcji i miejsc" z przyciskami + ---
+    # --- SEKCJA: OPIS ATRAKCJI I MIEJSC (poniżej głównej nawigacji) ---
     _h1c = st.session_state.get('color_h1', '#003366')
     _acc = st.session_state.get('color_accent', '#FF6600')
     st.markdown(
         f"<div style='display:flex; align-items:center; justify-content:space-between; "
-        f"margin-bottom:4px; padding:6px 0 2px 0;'>"
+        f"margin-bottom:6px; padding:4px 0 2px 0;'>"
         f"<span style='font-family:Montserrat,sans-serif; font-size:11px; font-weight:700; "
         f"color:{_h1c}; text-transform:uppercase; letter-spacing:1px;'>"
-        f"Opis atrakcji i miejsc</span></div>",
+        f"Opis atrakcji i miejsc</span></div>"
+        f"<div style='font-size:11px; color:#94a3b8; margin-bottom:8px;'>"
+        f"Dodaj atrakcje i miejsca</div>",
         unsafe_allow_html=True,
     )
-    _btn_c1, _btn_c2, _btn_c3 = st.columns([5, 5, 2])
+    _btn_c1, _btn_c2 = st.columns(2)
     if _btn_c1.button("＋ Miejsce", key="pa_add_place_btn", use_container_width=True):
         _pa_items_add('place')
         st.rerun()
@@ -444,22 +456,28 @@ with st.sidebar:
         _pa_items_add('attr')
         st.rerun()
 
-    # Lista elementów ze strzałkami i usuwaniem (w sidebarze)
+    # Lista elementów — klikalnych (ustawiają aktywną stronę)
     _pa_sidebar_list = _pa_items_get()
     if _pa_sidebar_list:
         _tc = {'place': '#0f766e', 'attr': _acc}
-        _tl = {'place': '📍', 'attr': '✨'}
+        _tl = {'place': '○', 'attr': '★'}
         for _spos, _sit in enumerate(_pa_sidebar_list):
             _styp, _sidx = _sit['type'], _sit['idx']
             _sname = _pa_display_name(_styp, _sidx)
             _sclr = _tc[_styp]
-            _sc1, _sc2, _sc3, _sc4 = st.columns([6, 1, 1, 1])
-            _sc1.markdown(
-                f"<div style='padding:4px 6px; font-size:11px; color:#1e293b; "
-                f"border-left:2px solid {_sclr}; margin:1px 0;'>"
-                f"<span style='color:{_sclr};'>{_tl[_styp]}</span> {_sname}</div>",
-                unsafe_allow_html=True,
-            )
+            _spage = _pa_page_name(_styp, _sidx)
+            _is_active = (st.session_state.get('last_page') == _spage)
+            _bg = f"background:{_h1c}10;" if _is_active else ""
+            _sc_ico, _sc1, _sc2, _sc3, _sc4 = st.columns([1, 5, 1, 1, 1])
+            # Kliknięcie nazwy przechodzi do edycji elementu
+            if _sc1.button(
+                f"{_tl[_styp]} {_sname}",
+                key=f"sb_nav_{_spos}",
+                use_container_width=True,
+            ):
+                st.session_state['last_page'] = _spage
+                st.session_state['scroll_target'] = ""
+                st.rerun()
             if _spos > 0:
                 _sc2.button("▲", key=f"sb_up_{_spos}",
                             on_click=_pa_items_move, args=(_spos, -1),
@@ -477,7 +495,11 @@ with st.sidebar:
 
     # Nagłówek zakładki
     _inter_pages = {"  ↳ Przerywnik hotel", "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}
-    _is_pa_page = "​" in page  # strona pa_ zawiera zero-width separator z ID
+    # Jeśli last_page to strona pa_ (§), użyj jej — radio jej nie zawiera
+    _lp = st.session_state.get("last_page", "")
+    if "§" in _lp:
+        page = _lp
+    _is_pa_page = "§" in page  # strona pa_ zawiera § separator z ID
     if page == "Wygląd i Kolory":
         st.markdown("<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;'>KONFIGURACJA WYGLĄDU</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Dostosuj kolory i typografię oferty</div>", unsafe_allow_html=True)
@@ -488,7 +510,7 @@ with st.sidebar:
         _h1_col = st.session_state.get("color_h1", "#003366")
         if _is_pa_page:
             # Wyciągnij typ i idx z nazwy strony "  ↳ pa_place_0"
-            _zw = page.split("​")  # format: "  ↳ Nazwa​typ​idx"
+            _zw = page.split("§")  # format: "  ↳ §typ§idx"
             _pa_typ, _pa_idx = _zw[1], int(_zw[2])
             _pa_label = _pa_display_name(_pa_typ, _pa_idx)
             _pa_type_label = "📍 Opis miejsca" if _pa_typ == "place" else "✨ Atrakcja"
@@ -965,11 +987,11 @@ with st.sidebar:
     # -----------------------------------------------------------------------
     # OPISY MIEJSC (nowy układ wg wzoru)
     # -----------------------------------------------------------------------
-    elif "​" in page and not page.strip().startswith("↳ Przeryw"):
+    elif "§" in page:
         # -----------------------------------------------------------------------
         # EDYCJA KONKRETNEGO ELEMENTU (miejsce lub atrakcja)
         # -----------------------------------------------------------------------
-        _zw = page.split("​")  # format: "  ↳ Nazwa​typ​idx"
+        _zw = page.split("§")  # format: "  ↳ §typ§idx"
         _e_typ = _zw[1]
         _e_idx = int(_zw[2])
         day_options_global = build_day_options(
