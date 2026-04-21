@@ -926,78 +926,94 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             <div><div class="metric-label">Dojazd</div><div class="metric-value">{s.get('t_trans','')}</div></div>
         </div></div></div>{fh}""", "slide-title"))
 
-    # --- Opis kierunku (nowy układ: 2 ramki z jednym zdjęciem + box faktów + opis) ---
+    # --- Opis kierunku (Pojedynczy Slajd Premium) ---
     if not s.get('k_hide', False):
-        kimg_k = get_b64('img_hero_k', (1, 1))
-        img_k  = f'<img src="data:image/jpeg;base64,{kimg_k}" style="position:absolute;top:0;left:0;width:200%;height:100%;object-fit:cover;object-position:left center;">' if kimg_k else _get_ph('ZDJĘCIE KIERUNKU')
-        img_k2 = f'<img src="data:image/jpeg;base64,{kimg_k}" style="position:absolute;bottom:0;right:0;width:220%;height:140%;object-fit:cover;object-position:right bottom;">' if kimg_k else _get_ph('ZDJĘCIE')
+        # Kwadratowe zdjęcie bazowe (skaluje się na 2 ramki)
+        kimg = get_b64('img_hero_k', (1, 1))
 
-        kbox_bg_k  = str(s.get('kbox_bg_k')  or c_h1)
-        kbox_txt_k = str(s.get('kbox_txt_k') or '#ffffff')
-
-        k_facts_raw = str(s.get('k_opis') or '')
-        k_facts_lines = []
-        for _line in k_facts_raw.split('\n'):
-            _line = _line.strip()
-            if not _line: continue
-            if ':' in _line:
-                _lbl, _val = _line.split(':', 1)
-                k_facts_lines.append(
-                    f"<div style='margin-bottom:8px;line-height:1.4;font-size:{max(11,fs_t-1)}px;'>"
-                    f"<strong style='font-family:{f_h2};font-weight:700;color:{kbox_txt_k};'>{_lbl.strip()}:</strong> "
-                    f"<span style='font-family:{f_t};font-weight:300;color:{kbox_txt_k};'>{_val.strip()}</span></div>"
+        # Przetwarzanie boxu z faktami
+        kfacts = str(s.get('k_facts', 'Stolica: \nWaluta: \nRóżnica czasu: \nTemperatury: 16-20 stopni') or '')
+        kfacts_title = str(s.get('k_facts_title', 'FAKTY') or '')
+        facts_lines = []
+        for line in kfacts.split('\n'):
+            line = line.strip()
+            if not line: continue
+            if ':' in line:
+                lbl, val = line.split(':', 1)
+                facts_lines.append(
+                    f"<div style='margin-bottom:8px; line-height:1.4; font-size:{max(11, fs_t-1)}px;'>"
+                    f"<strong style='font-family:\"{f_txt}\"; font-weight:700;'>{lbl.strip()}:</strong> "
+                    f"<span style='font-family:\"{f_txt}\"; font-weight:400;'>{val.strip()}</span></div>"
                 )
             else:
-                k_facts_lines.append(
-                    f"<div style='margin-bottom:8px;line-height:1.4;font-size:{max(11,fs_t-1)}px;"
-                    f"font-family:{f_t};color:{kbox_txt_k};'>{_line}</div>"
+                facts_lines.append(
+                    f"<div style='margin-bottom:8px; line-height:1.4; font-size:{max(11, fs_t-1)}px; font-family:\"{f_txt}\";'>{line}</div>"
                 )
-        k_facts_html = ''.join(k_facts_lines) or f"<span style='color:{kbox_txt_k};opacity:0.6;'>Dodaj opis w panelu...</span>"
+        facts_html_k = ''.join(facts_lines)
 
-        k_facts_title_html = (
-            f"<div style='font-family:{f_h2};font-weight:800;font-size:{fs_t+2}px;"
-            f"color:{kbox_txt_k};text-transform:uppercase;letter-spacing:1px;"
-            f"margin-bottom:12px;padding-bottom:8px;"
-            f"border-bottom:1px solid rgba(255,255,255,0.3);'>{str(s.get('k_overline','OPIS KIERUNKU'))}</div>"
+        # Ustawienia kolorów boxu (domyślnie tło to H1, a tekst jest biały)
+        kbox_bg  = str(s.get('k_box_bg')  or c_h1)
+        kbox_txt = str(s.get('k_box_txt') or '#ffffff')
+
+        facts_title_html = (
+            f"<div style='font-family:\"{f_met}\"; font-weight:700; font-size:{max(10, fs_met-2)}px; "
+            f"color:{kbox_txt}; text-transform:uppercase; letter-spacing:3px; "
+            f"margin-bottom:15px; padding-bottom:10px; "
+            f"border-bottom:1px solid rgba(255,255,255,0.3);'>{kfacts_title}</div>"
+            if kfacts_title else ''
         )
+        
+        box_html = f"""
+        <div style="background-color: {kbox_bg}; color: {kbox_txt}; padding: 25px 20px; border-bottom-left-radius: 40px; border-top-right-radius: 8px; border-top-left-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.05);">
+            {facts_title_html}
+            {facts_html_k}
+        </div>
+        """ if (facts_html_k or facts_title_html) else f"""
+        <div style="background-color: {kbox_bg}; height: 100px; border-bottom-left-radius: 40px; border-top-right-radius: 8px; border-top-left-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.05);"></div>
+        """
+
+        k_over = str(s.get('k_overline') or 'NASZ KIERUNEK')
+        k_main = str(s.get('k_main') or '').replace(chr(10), '<br>')
+        k_sub  = str(s.get('k_sub')  or '').replace(chr(10), '<br>')
+        k_opis = str(s.get('k_opis') or '').replace(chr(10), '<br>')
 
         hp.append(_shtml(f"""{lh}
-        <div class="premium-layout" id="slide-kierunek" style="gap:40px; align-items:stretch;">
-            <div style="flex:42; display:flex; gap:15px; height:100%;">
-                <div style="flex:1.2; height:100%; border-radius:8px; overflow:hidden; position:relative; background:#fcfcfc; border:1px solid #eee;">
-                    {img_k}
+        <div class="premium-layout" id="slide-kierunek" style="gap: 40px; align-items: stretch;">
+            
+            <div style="flex: 48; display: flex; gap: 15px; height: 100%;">
+                <div style="flex: 1.2; height: 100%; border-radius: 8px; overflow: hidden; position: relative; background: #fcfcfc; border: 1px solid #eee;">
+                    {f'<img src="data:image/jpeg;base64,{kimg}" style="position: absolute; top:0; left:0; width: 200%; height: 100%; object-fit: cover; object-position: left center;">' if kimg else _get_ph('ZDJĘCIE')}
                 </div>
-                <div style="flex:1; display:flex; flex-direction:column; gap:15px; height:100%;">
-                    <div style="background-color:{kbox_bg_k}; color:{kbox_txt_k}; padding:25px 20px;
-                                border-bottom-left-radius:40px; border-top-right-radius:8px;
-                                border-top-left-radius:8px; box-shadow:0 10px 20px rgba(0,0,0,0.05);">
-                        {k_facts_title_html}
-                        {k_facts_html}
-                    </div>
-                    <div style="flex-grow:1; border-top-left-radius:40px; border-bottom-left-radius:8px;
-                                border-bottom-right-radius:8px; overflow:hidden; position:relative;
-                                background:#fcfcfc; border:1px solid #eee;">
-                        {img_k2}
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 15px; height: 100%;">
+                    {box_html}
+                    <div style="flex-grow: 1; border-top-left-radius: 40px; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; overflow: hidden; position: relative; background: #fcfcfc; border: 1px solid #eee;">
+                        {f'<img src="data:image/jpeg;base64,{kimg}" style="position: absolute; bottom:0; right:0; width: 220%; height: 140%; object-fit: cover; object-position: right bottom;">' if kimg else _get_ph('ZDJĘCIE')}
                     </div>
                 </div>
             </div>
-            <div class="info-col" style="flex:58; padding-left:10px; padding-top:15px; justify-content:flex-start;">
-                <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
-                    <div style="height:2px; background-color:{acc}; width:40px;"></div>
-                    <span style="font-family:'{f_met}'; font-size:{max(10,fs_met-2)}px; font-weight:700;
-                                 letter-spacing:3px; color:{acc}; text-transform:uppercase;">
-                        {str(s.get('k_sub','BAŁKAŃSKI KLEJNOT'))}
+
+            <div class="info-col" style="flex: 52; padding-left: 10px; padding-top: 15px; justify-content: flex-start;">
+                
+                <div style="display: flex; align-items: center; justify-content: flex-start; gap: 15px; margin-bottom: 20px;">
+                    <span style="font-family:'{f_met}'; font-size:{max(10,fs_met-2)}px; font-weight:700; letter-spacing:3px; color:{acc}; text-transform:uppercase;">
+                        {k_over}
                     </span>
+                    <div style="height: 2px; background-color: {acc}; width: 60px;"></div>
                 </div>
-                <div class="title-h1" style="text-align:left; margin-bottom:10px; font-size:{fs_h1_val}px;
-                     color:{c_h1}; line-height:1.1; border-left:6px solid {acc}; padding-left:20px;">
-                    {str(s.get('k_main','')).replace(chr(10),'<br>')}
+                
+                <div class="title-h1" style="text-align: left; margin-bottom: 10px; font-size:{fs_h1_val}px; color:{c_h1}; line-height: 1.1; border-left: 6px solid {acc}; padding-left: 20px;">
+                    {k_main}
                 </div>
-                <div style="font-family:'{f_t}'; font-size:{fs_t}px; line-height:1.7;
-                            color:{c_t}; text-align:justify; margin-top:20px;">
-                    {str(s.get('k_opis') or '').replace(chr(10),'<br>')}
+                
+                <div class="title-sub" style="text-align: left; color: {c_h1}; font-size:{fs_sub_val}px; margin-bottom: 25px; margin-top: 15px; font-family: '{f_h2}'; font-weight: 400; letter-spacing: 0px; text-transform: uppercase;">
+                    {f'„{k_sub}”' if k_sub else ''}
+                </div>
+                
+                <div style="font-family: '{f_txt}'; font-size: {fs_t}px; line-height: 1.7; color: {c_t}; text-align: justify;">
+                    {k_opis}
                 </div>
             </div>
+            
         </div>{fh}""", "slide-kierunek"))
 
     # --- Mapa ---
