@@ -285,18 +285,66 @@ def _build_proj_dict():
 def section_template_manager(section_keys, file_prefix, default_filename, uploader_key, index=None):
     ATR_KEY_MAP = {"atype": "type", "amain": "main", "asub": "sub", "aopis": "opis"}
     st.markdown(
-        "<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; "
-        "margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; "
-        "letter-spacing: 1px;'>Zarządzanie Szablonem Sekcji</div>",
+        "<div style='font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;"
+        "margin-top:15px;margin-bottom:8px;border-bottom:1px solid #e2e8f0;padding-bottom:5px;"
+        "letter-spacing:1px;'>Zarządzanie szablonem sekcji</div>",
         unsafe_allow_html=True,
     )
-    c1, c2 = st.columns(2)
-    with c1:
+
+    # Wiersz 1: Upload (lewo) + kafelek z nazwą slajdu (prawo)
+    _c_up, _c_name = st.columns(2)
+    with _c_up:
         uploaded_file = st.file_uploader(
-            "Wgraj plik JSON", type=['json'],
-            key=f"up_{uploader_key}", label_visibility="collapsed",
+            "max. 200 MB", type=['json'],
+            key=f"up_{uploader_key}",
         )
-        if st.button("WCZYTAJ SZABLON", key=f"btn_apply_{uploader_key}",
+    with _c_name:
+        # Kafelek z nazwą — pokazuje nazwę atrakcji/sekcji
+        _display = default_filename.replace("_", " ").title()
+        st.markdown(
+            f"<div style='height:100%;min-height:80px;display:flex;align-items:center;"
+            f"justify-content:center;background:#f8fafc;border:1px solid #e2e8f0;"
+            f"border-radius:6px;padding:10px;margin-top:22px;text-align:center;"
+            f"font-family:Montserrat,sans-serif;font-size:12px;font-weight:600;"
+            f"color:#334155;word-break:break-word;'>"
+            f"Slajd<br><span style='font-size:14px;font-weight:700;color:#1e293b;'>"
+            f"{_display}</span></div>",
+            unsafe_allow_html=True,
+        )
+
+    # Wiersz 2: Nazwa pliku (lewo) + Pobierz szablon (prawo)
+    # Wiersz 3: Wczytaj szablon (pełna szerokość)
+    export_data = {}
+    for k in section_keys:
+        save_key = k if index is None else re.sub(f'_{index}$', '', k)
+        if file_prefix == "ATR":
+            save_key = ATR_KEY_MAP.get(save_key, save_key)
+        val = st.session_state.get(k)
+        if val is not None:
+            if isinstance(val, bytes):
+                export_data[save_key] = base64.b64encode(val).decode('utf-8')
+            elif isinstance(val, (date, datetime)):
+                export_data[save_key] = val.isoformat()
+            else:
+                export_data[save_key] = val
+    json_str = json.dumps(export_data)
+    cc = st.session_state.get('country_code', 'OTH')
+    base_slug = create_slug(default_filename)
+    custom_name = st.text_input(
+        "Nazwa pliku:", value=base_slug,
+        key=f"fn_{uploader_key}", label_visibility="collapsed",
+        placeholder="nazwa pliku...",
+    )
+    final_slug = create_slug(custom_name)
+    full_filename = f"{cc}-{file_prefix}-{final_slug}.json"
+
+    _c_dl, _c_wczytaj = st.columns(2)
+    _c_dl.download_button(
+        "⬇ POBIERZ SZABLON", json_str, full_filename,
+        key=f"dl_{uploader_key}", use_container_width=True,
+    )
+    with _c_wczytaj:
+        if st.button("⬆ WCZYTAJ SZABLON", key=f"btn_apply_{uploader_key}",
                      use_container_width=True, disabled=not uploaded_file):
             try:
                 data = json.load(uploaded_file)
@@ -313,34 +361,7 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
                 st.rerun()
             except Exception:
                 st.error("Błąd odczytu pliku szablonu.")
-    with c2:
-        export_data = {}
-        for k in section_keys:
-            save_key = k if index is None else re.sub(f'_{index}$', '', k)
-            if file_prefix == "ATR":
-                save_key = ATR_KEY_MAP.get(save_key, save_key)
-            val = st.session_state.get(k)
-            if val is not None:
-                if isinstance(val, bytes):
-                    export_data[save_key] = base64.b64encode(val).decode('utf-8')
-                elif isinstance(val, (date, datetime)):
-                    export_data[save_key] = val.isoformat()
-                else:
-                    export_data[save_key] = val
-        json_str = json.dumps(export_data)
-        cc = st.session_state.get('country_code', 'OTH')
-        base_slug = create_slug(default_filename)
-        custom_name = st.text_input(
-            "Nazwa pliku:", value=base_slug,
-            key=f"fn_{uploader_key}", label_visibility="collapsed",
-        )
-        final_slug = create_slug(custom_name)
-        full_filename = f"{cc}-{file_prefix}-{final_slug}.json"
-        st.download_button(
-            "POBIERZ SZABLON", json_str, full_filename,
-            key=f"dl_{uploader_key}", use_container_width=True,
-        )
-    st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-bottom:12px;'></div>", unsafe_allow_html=True)
 
 
 def _section_header(label):
@@ -439,15 +460,14 @@ with st.sidebar:
         _attr_add()
         st.rerun()
 
-    # Każda atrakcja jako wiersz: [nazwa klikalny] [▲] [▼]
+    # Każda atrakcja jako wiersz: [nazwa klikalny] [▲] [▼] [✕]
     page_attr = None
+
     for _ap in range(_n_attr):
         _ap_key = _attr_pages[_ap]
-        _ap_name = _attr_display_name(_ap)
         _ap_active = (_last == _ap_key)
         _ca, _cb, _cc, _cd = st.columns([6, 1, 1, 1])
-        _btn_label = f"★ {_attr_display_name(_ap)}"
-        if _ca.button(_btn_label, key=f"attr_nav_{_ap}",
+        if _ca.button(f"★ {_attr_display_name(_ap)}", key=f"attr_nav_{_ap}",
                       use_container_width=True,
                       type="primary" if _ap_active else "secondary"):
             page_attr = _ap_key
@@ -461,8 +481,31 @@ with st.sidebar:
                        use_container_width=True)
         _cd.button("✕", key=f"aord_del_{_ap}",
                    on_click=_attr_delete, args=(_ap,),
-                   use_container_width=True,
-                   help="Usuń atrakcję")
+                   use_container_width=True)
+
+    # JS: pomniejsz strzałki i pokoloruj X na czerwono
+    st.markdown("""
+    <script>
+    (function() {
+        function styleAttrBtns() {
+            var sidebar = document.querySelector('[data-testid="stSidebar"]');
+            if (!sidebar) return;
+            sidebar.querySelectorAll('button').forEach(function(btn) {
+                var txt = btn.innerText.trim();
+                if (txt === '▲' || txt === '▼') {
+                    btn.style.cssText += ';min-height:22px!important;height:22px!important;padding:0 2px!important;font-size:11px!important;background:transparent!important;border-color:#e2e8f0!important;color:#94a3b8!important;';
+                }
+                if (txt === '✕') {
+                    btn.style.cssText += ';min-height:22px!important;height:22px!important;padding:0 2px!important;font-size:11px!important;background-color:#dc2626!important;border-color:#dc2626!important;color:white!important;';
+                }
+            });
+        }
+        var obs = new MutationObserver(styleAttrBtns);
+        obs.observe(document.body, {childList:true, subtree:true});
+        styleAttrBtns();
+    })();
+    </script>
+    """, unsafe_allow_html=True)
 
     # Radio dolne — aktywne tylko gdy last_page należy do nav_bot
     _bot_idx = _nav_bot.index(_last) if _last in _nav_bot else None
