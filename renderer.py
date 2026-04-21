@@ -1765,7 +1765,10 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         "Wirtualny Asystent": "slide-virtual-assistant",
         "Pillow Gifts": "slide-pillow-gifts",
         "Co o nas mówią": "slide-testimonials", "O Nas (Zespół)": "slide-about",
-        "Przerywniki sekcji": "slide-sek_0",
+        "  ↳ Przerywnik hotel":    "slide-sek_0",
+        "  ↳ Przerywnik program":  "slide-sek_3",
+        "  ↳ Przerywnik atrakcje": "slide-sek_1",
+        "  ↳ Przerywnik o nas":    "slide-sek_2",
     }.get(current_page, "")
 
     tid = s.get('scroll_target') or default_tid
