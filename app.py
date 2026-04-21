@@ -382,7 +382,7 @@ with st.sidebar:
         ["Strona Tytułowa", "Opis Kierunku", "Mapa Podróży", "Jak lecimy?",
          "  ↳ Przerywnik hotel", "Zakwaterowanie",
          "  ↳ Przerywnik program", "Program Wyjazdu",
-         "  ↳ Przerywnik atrakcje", "Opis atrakcji i miejsc"] +
+         "  ↳ Przerywnik atrakcje"] +
         _pa_nav_pages +
         ["Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent",
          "Pillow Gifts", "Kosztorys",
@@ -396,6 +396,56 @@ with st.sidebar:
     if st.session_state.get('last_page') != page:
         st.session_state['last_page'] = page
         st.session_state['scroll_target'] = ""
+
+    st.divider()
+
+    # --- NAGŁÓWEK SEKCJI "Opis atrakcji i miejsc" z przyciskami + ---
+    _h1c = st.session_state.get('color_h1', '#003366')
+    _acc = st.session_state.get('color_accent', '#FF6600')
+    st.markdown(
+        f"<div style='display:flex; align-items:center; justify-content:space-between; "
+        f"margin-bottom:4px; padding:6px 0 2px 0;'>"
+        f"<span style='font-family:Montserrat,sans-serif; font-size:11px; font-weight:700; "
+        f"color:{_h1c}; text-transform:uppercase; letter-spacing:1px;'>"
+        f"Opis atrakcji i miejsc</span></div>",
+        unsafe_allow_html=True,
+    )
+    _btn_c1, _btn_c2, _btn_c3 = st.columns([5, 5, 2])
+    if _btn_c1.button("＋ Miejsce", key="pa_add_place_btn", use_container_width=True):
+        _pa_items_add('place')
+        st.rerun()
+    if _btn_c2.button("＋ Atrakcja", key="pa_add_attr_btn", use_container_width=True):
+        _pa_items_add('attr')
+        st.rerun()
+
+    # Lista elementów ze strzałkami i usuwaniem (w sidebarze)
+    _pa_sidebar_list = _pa_items_get()
+    if _pa_sidebar_list:
+        _tc = {'place': '#0f766e', 'attr': _acc}
+        _tl = {'place': '📍', 'attr': '✨'}
+        for _spos, _sit in enumerate(_pa_sidebar_list):
+            _styp, _sidx = _sit['type'], _sit['idx']
+            _sname = _pa_display_name(_styp, _sidx)
+            _sclr = _tc[_styp]
+            _sc1, _sc2, _sc3, _sc4 = st.columns([6, 1, 1, 1])
+            _sc1.markdown(
+                f"<div style='padding:4px 6px; font-size:11px; color:#1e293b; "
+                f"border-left:2px solid {_sclr}; margin:1px 0;'>"
+                f"<span style='color:{_sclr};'>{_tl[_styp]}</span> {_sname}</div>",
+                unsafe_allow_html=True,
+            )
+            if _spos > 0:
+                _sc2.button("▲", key=f"sb_up_{_spos}",
+                            on_click=_pa_items_move, args=(_spos, -1),
+                            use_container_width=True)
+            if _spos < len(_pa_sidebar_list) - 1:
+                _sc3.button("▼", key=f"sb_dn_{_spos}",
+                            on_click=_pa_items_move, args=(_spos, 1),
+                            use_container_width=True)
+            _sc4.button("✕", key=f"sb_del_{_spos}",
+                        on_click=_pa_items_delete, args=(_spos,),
+                        use_container_width=True,
+                        help="Usuń z listy")
 
     st.divider()
 
@@ -889,69 +939,6 @@ with st.sidebar:
     # -----------------------------------------------------------------------
     # OPISY MIEJSC (nowy układ wg wzoru)
     # -----------------------------------------------------------------------
-    elif page == "Opis atrakcji i miejsc":
-        # -----------------------------------------------------------------------
-        # MODUŁ GŁÓWNY — lista elementów + dodawanie
-        # -----------------------------------------------------------------------
-        day_options_global = build_day_options(
-            st.session_state.get('p_start_dt', date.today()),
-            int(st.session_state.get('num_days', 5)),
-        )
-        _pa_list = _pa_items_get()
-
-        st.markdown(
-            "<div style='font-size:12px;color:#64748b;margin-bottom:12px;'>"
-            "Dodaj opisy miejsc i atrakcji. Kliknij element w nawigacji aby go edytować.</div>",
-            unsafe_allow_html=True,
-        )
-
-        # Przycisk dodawania
-        _col_add, _col_info = st.columns([3, 5])
-        _add_typ = _col_add.selectbox("Typ nowego elementu:", ["Opis miejsca", "Atrakcja"],
-                                       label_visibility="collapsed")
-        if _col_add.button("＋ Dodaj", use_container_width=True):
-            _new_typ = 'place' if _add_typ == "Opis miejsca" else 'attr'
-            _new_idx = _pa_items_add(_new_typ)
-            st.rerun()
-
-        if not _pa_list:
-            st.markdown(
-                "<div style='text-align:center;padding:30px 20px;background:#f8fafc;"
-                "border-radius:8px;color:#94a3b8;font-size:13px;margin-top:15px;'>"
-                "Brak elementów. Kliknij ＋ Dodaj aby dodać pierwsze miejsce lub atrakcję.</div>",
-                unsafe_allow_html=True,
-            )
-        else:
-            st.markdown(f"<div style='font-size:12px;color:#64748b;margin-top:10px;margin-bottom:6px;'>"
-                        f"Kolejność w prezentacji ({len(_pa_list)} elementów):</div>",
-                        unsafe_allow_html=True)
-            _type_colors = {'place': '#0f766e', 'attr': st.session_state.get('color_accent', '#FF6600')}
-            _type_labels = {'place': '📍 Miejsce', 'attr': '✨ Atrakcja'}
-            for _pos, _it in enumerate(_pa_list):
-                _typ, _idx = _it['type'], _it['idx']
-                _dname = _pa_display_name(_typ, _idx)
-                _clr = _type_colors[_typ]
-                _col_lbl, _col_up, _col_dn, _col_del = st.columns([7, 1, 1, 1])
-                _col_lbl.markdown(
-                    f"<div style='padding:6px 10px;background:#f8fafc;border-radius:4px;"
-                    f"border-left:3px solid {_clr};font-size:12px;color:#1e293b;cursor:pointer;'>"
-                    f"<strong style='color:{_clr};font-size:10px;text-transform:uppercase;"
-                    f"letter-spacing:1px;'>{_type_labels[_typ]}</strong><br>{_dname}</div>",
-                    unsafe_allow_html=True,
-                )
-                if _pos > 0:
-                    _col_up.button("▲", key=f"pa_mv_up_{_pos}",
-                                   on_click=_pa_items_move, args=(_pos, -1),
-                                   use_container_width=True)
-                if _pos < len(_pa_list) - 1:
-                    _col_dn.button("▼", key=f"pa_mv_dn_{_pos}",
-                                   on_click=_pa_items_move, args=(_pos, 1),
-                                   use_container_width=True)
-                _col_del.button("✕", key=f"pa_del_{_pos}",
-                                on_click=_pa_items_delete, args=(_pos,),
-                                use_container_width=True,
-                                help="Usuń z listy (dane zostaną zachowane)")
-
     elif page.startswith("  ↳ pa_"):
         # -----------------------------------------------------------------------
         # EDYCJA KONKRETNEGO ELEMENTU (miejsce lub atrakcja)
