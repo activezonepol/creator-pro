@@ -318,10 +318,12 @@ with st.sidebar:
         "WYBIERZ SEKCJE DO EDYCJI:",
         [
             "Strona Tytułowa", "Opis Kierunku", "Mapa Podróży", "Jak lecimy?",
-            "Zakwaterowanie", "Program Wyjazdu",
-            "Opisy miejsc", "Opis atrakcji",
+            "  ↳ Przerywnik hotel", "Zakwaterowanie",
+            "  ↳ Przerywnik program", "Program Wyjazdu",
+            "  ↳ Przerywnik atrakcje", "Opisy miejsc", "Opis atrakcji",
             "Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent",
-            "Pillow Gifts", "Kosztorys", "Co o nas mówią", "O Nas (Zespół)",
+            "Pillow Gifts", "Kosztorys",
+            "  ↳ Przerywnik o nas", "Co o nas mówią", "O Nas (Zespół)",
             "Wygląd i Kolory", "Zapisz / Wczytaj Projekt",
         ],
     )
@@ -332,12 +334,18 @@ with st.sidebar:
     st.divider()
 
     # Nagłówek zakładki
+    _inter_pages = {"  ↳ Przerywnik hotel", "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}
     if page == "Wygląd i Kolory":
         st.markdown("<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;'>KONFIGURACJA WYGLĄDU</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Dostosuj kolory i typografię oferty</div>", unsafe_allow_html=True)
     elif page == "Zapisz / Wczytaj Projekt":
         st.markdown("<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;'>ZARZĄDZANIE PROJEKTEM</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Eksportuj lub importuj cały plik JSON</div>", unsafe_allow_html=True)
+    elif page in _inter_pages:
+        _h1_col = st.session_state.get("color_h1", "#003366")
+        _page_label = page.strip().lstrip("↳").strip()
+        st.markdown(f"<h2 style='color:{_h1_col};margin-bottom:0;font-size:20px;font-weight:700;font-family:Montserrat,sans-serif;text-transform:uppercase;margin-left:12px;border-left:3px solid {_h1_col};padding-left:10px;'>{_page_label}</h2>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;margin-left:12px;'>Slajd przerywnikowy — edytuj treść i wygląd poniżej.</div>", unsafe_allow_html=True)
     else:
         st.markdown(f"<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;text-transform:uppercase;'>{page}</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Wprowadź dane dla tej sekcji poniżej:</div>", unsafe_allow_html=True)
@@ -345,7 +353,91 @@ with st.sidebar:
     # -----------------------------------------------------------------------
     # STRONA TYTUŁOWA
     # -----------------------------------------------------------------------
-    if page == "Strona Tytułowa":
+    if page == "  ↳ Przerywnik hotel":
+        _bg_default = st.session_state.get('color_h1', '#003366')
+        for _ck, _cv in [(f"sek_0_bg", _bg_default), (f"sek_0_txt", '#ffffff')]:
+            _v = st.session_state.get(_ck, _cv)
+            if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
+                st.session_state[_ck] = _cv
+        st.button("POKAŻ PODGLĄD", key=f"btn_sek_0",
+                  on_click=set_focus, args=(f"slide-sek_0",),
+                  use_container_width=True)
+        st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_0")
+        st.text_input("Duży tytuł (uppercase):", key=f"sek_0_title",
+                      value=st.session_state.get(f"sek_0_title", "ZAKWATEROWANIE"))
+        st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_0_sub",
+                      value=st.session_state.get(f"sek_0_sub", "NASZE HOTELE"))
+        _ic1, _ic2 = st.columns(2)
+        _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_0_bg")
+        _ic2.color_picker("Kolor tytułu:", key=f"sek_0_txt")
+        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"sek_img_up_0")
+        if _up_s:
+            st.session_state[f"sek_0_img"] = optimize_img(_up_s.getvalue())
+
+    elif page == "  ↳ Przerywnik program":
+        _bg_default = st.session_state.get('color_h1', '#003366')
+        for _ck, _cv in [(f"sek_3_bg", _bg_default), (f"sek_3_txt", '#ffffff')]:
+            _v = st.session_state.get(_ck, _cv)
+            if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
+                st.session_state[_ck] = _cv
+        st.button("POKAŻ PODGLĄD", key=f"btn_sek_3",
+                  on_click=set_focus, args=(f"slide-sek_3",),
+                  use_container_width=True)
+        st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_3")
+        st.text_input("Duży tytuł (uppercase):", key=f"sek_3_title",
+                      value=st.session_state.get(f"sek_3_title", "PROGRAM"))
+        st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_3_sub",
+                      value=st.session_state.get(f"sek_3_sub", "NASZ PLAN WYJAZDU"))
+        _ic1, _ic2 = st.columns(2)
+        _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_3_bg")
+        _ic2.color_picker("Kolor tytułu:", key=f"sek_3_txt")
+        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"sek_img_up_3")
+        if _up_s:
+            st.session_state[f"sek_3_img"] = optimize_img(_up_s.getvalue())
+
+    elif page == "  ↳ Przerywnik atrakcje":
+        _bg_default = st.session_state.get('color_h1', '#003366')
+        for _ck, _cv in [(f"sek_1_bg", _bg_default), (f"sek_1_txt", '#ffffff')]:
+            _v = st.session_state.get(_ck, _cv)
+            if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
+                st.session_state[_ck] = _cv
+        st.button("POKAŻ PODGLĄD", key=f"btn_sek_1",
+                  on_click=set_focus, args=(f"slide-sek_1",),
+                  use_container_width=True)
+        st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_1")
+        st.text_input("Duży tytuł (uppercase):", key=f"sek_1_title",
+                      value=st.session_state.get(f"sek_1_title", "ATRAKCJE"))
+        st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_1_sub",
+                      value=st.session_state.get(f"sek_1_sub", "PROGRAM WYJAZDU"))
+        _ic1, _ic2 = st.columns(2)
+        _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_1_bg")
+        _ic2.color_picker("Kolor tytułu:", key=f"sek_1_txt")
+        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"sek_img_up_1")
+        if _up_s:
+            st.session_state[f"sek_1_img"] = optimize_img(_up_s.getvalue())
+
+    elif page == "  ↳ Przerywnik o nas":
+        _bg_default = st.session_state.get('color_h1', '#003366')
+        for _ck, _cv in [(f"sek_2_bg", _bg_default), (f"sek_2_txt", '#ffffff')]:
+            _v = st.session_state.get(_ck, _cv)
+            if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
+                st.session_state[_ck] = _cv
+        st.button("POKAŻ PODGLĄD", key=f"btn_sek_2",
+                  on_click=set_focus, args=(f"slide-sek_2",),
+                  use_container_width=True)
+        st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_2")
+        st.text_input("Duży tytuł (uppercase):", key=f"sek_2_title",
+                      value=st.session_state.get(f"sek_2_title", "CO O NAS MÓWIĄ"))
+        st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_2_sub",
+                      value=st.session_state.get(f"sek_2_sub", "REKOMENDACJE"))
+        _ic1, _ic2 = st.columns(2)
+        _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_2_bg")
+        _ic2.color_picker("Kolor tytułu:", key=f"sek_2_txt")
+        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"sek_img_up_2")
+        if _up_s:
+            st.session_state[f"sek_2_img"] = optimize_img(_up_s.getvalue())
+
+    elif page == "Strona Tytułowa":
         tit_keys = [
             't_date', 'country_name', 'country_code', 't_main', 't_sub',
             't_klient', 't_kierunek', 't_pax', 't_hotel', 't_trans',
@@ -596,28 +688,6 @@ with st.sidebar:
     # -----------------------------------------------------------------------
     elif page == "Zakwaterowanie":
 
-        _section_header("PRZERYWNIK PRZED TĄ SEKCJĄ")
-        with st.expander("Ustaw slajd przerywnikowy", expanded=False):
-            st.checkbox("Ukryj przerywnik", key="sek_hide_0")
-            st.button("POKAŻ PODGLĄD", key="btn_sek_0",
-                      on_click=set_focus, args=(f"slide-sek_0",),
-                      use_container_width=True)
-            st.text_input("Duży tytuł:", key="sek_0_title",
-                          value=st.session_state.get("sek_0_title", "ZAKWATEROWANIE"))
-            st.text_input("Nadtytuł (overline):", key="sek_0_sub",
-                          value=st.session_state.get("sek_0_sub", "NASZE HOTELE"))
-            _ic1, _ic2 = st.columns(2)
-            for _ck, _cv in [("sek_0_bg", st.session_state.get("color_h1", "#003366")),
-                              ("sek_0_txt", "#ffffff")]:
-                _v = st.session_state.get(_ck, _cv)
-                if not (isinstance(_v, str) and _v.startswith("#") and len(_v) == 7):
-                    st.session_state[_ck] = _cv
-            _ic1.color_picker("Kolor gradientu", key="sek_0_bg")
-            _ic2.color_picker("Kolor tytułu", key="sek_0_txt")
-            _up_sek = st.file_uploader("Zdjęcie tła:", key="sek_img_up_0")
-            if _up_sek:
-                st.session_state["sek_0_img"] = optimize_img(_up_sek.getvalue())
-        st.divider()
         st.number_input("Liczba hoteli:", 1, 3, step=1, key="num_hotels")
         _rebuild_slide_order()
         hotel_order = _get_hotel_order()
@@ -715,28 +785,6 @@ with st.sidebar:
     # -----------------------------------------------------------------------
     elif page == "Program Wyjazdu":
 
-        _section_header("PRZERYWNIK PRZED TĄ SEKCJĄ")
-        with st.expander("Ustaw slajd przerywnikowy", expanded=False):
-            st.checkbox("Ukryj przerywnik", key="sek_hide_3")
-            st.button("POKAŻ PODGLĄD", key="btn_sek_3",
-                      on_click=set_focus, args=(f"slide-sek_3",),
-                      use_container_width=True)
-            st.text_input("Duży tytuł:", key="sek_3_title",
-                          value=st.session_state.get("sek_3_title", "PROGRAM"))
-            st.text_input("Nadtytuł (overline):", key="sek_3_sub",
-                          value=st.session_state.get("sek_3_sub", "NASZ PLAN WYJAZDU"))
-            _ic1, _ic2 = st.columns(2)
-            for _ck, _cv in [("sek_3_bg", st.session_state.get("color_h1", "#003366")),
-                              ("sek_3_txt", "#ffffff")]:
-                _v = st.session_state.get(_ck, _cv)
-                if not (isinstance(_v, str) and _v.startswith("#") and len(_v) == 7):
-                    st.session_state[_ck] = _cv
-            _ic1.color_picker("Kolor gradientu", key="sek_3_bg")
-            _ic2.color_picker("Kolor tytułu", key="sek_3_txt")
-            _up_sek = st.file_uploader("Zdjęcie tła:", key="sek_img_up_3")
-            if _up_sek:
-                st.session_state["sek_3_img"] = optimize_img(_up_sek.getvalue())
-        st.divider()
         st.checkbox("Ukryj CAŁĄ sekcję Programu w PDF", key="prg_hide")
         st.number_input("Ilość dni:", 1, 15, step=1, key="num_days")
         st.date_input("Data startu:", key="p_start_dt")
@@ -758,28 +806,6 @@ with st.sidebar:
     # -----------------------------------------------------------------------
     elif page == "Opisy miejsc":
 
-        _section_header("PRZERYWNIK PRZED TĄ SEKCJĄ")
-        with st.expander("Ustaw slajd przerywnikowy", expanded=False):
-            st.checkbox("Ukryj przerywnik", key="sek_hide_1")
-            st.button("POKAŻ PODGLĄD", key="btn_sek_1",
-                      on_click=set_focus, args=(f"slide-sek_1",),
-                      use_container_width=True)
-            st.text_input("Duży tytuł:", key="sek_1_title",
-                          value=st.session_state.get("sek_1_title", "PROGRAM"))
-            st.text_input("Nadtytuł (overline):", key="sek_1_sub",
-                          value=st.session_state.get("sek_1_sub", "ATRAKCJE I MIEJSCA"))
-            _ic1, _ic2 = st.columns(2)
-            for _ck, _cv in [("sek_1_bg", st.session_state.get("color_h1", "#003366")),
-                              ("sek_1_txt", "#ffffff")]:
-                _v = st.session_state.get(_ck, _cv)
-                if not (isinstance(_v, str) and _v.startswith("#") and len(_v) == 7):
-                    st.session_state[_ck] = _cv
-            _ic1.color_picker("Kolor gradientu", key="sek_1_bg")
-            _ic2.color_picker("Kolor tytułu", key="sek_1_txt")
-            _up_sek = st.file_uploader("Zdjęcie tła:", key="sek_img_up_1")
-            if _up_sek:
-                st.session_state["sek_1_img"] = optimize_img(_up_sek.getvalue())
-        st.divider()
         day_options_global = build_day_options(
             st.session_state.get('p_start_dt', date.today()),
             int(st.session_state.get('num_days', 5)),
@@ -1129,28 +1155,6 @@ with st.sidebar:
     # -----------------------------------------------------------------------
     elif page == "Co o nas mówią":
 
-        _section_header("PRZERYWNIK PRZED TĄ SEKCJĄ")
-        with st.expander("Ustaw slajd przerywnikowy", expanded=False):
-            st.checkbox("Ukryj przerywnik", key="sek_hide_2")
-            st.button("POKAŻ PODGLĄD", key="btn_sek_2",
-                      on_click=set_focus, args=(f"slide-sek_2",),
-                      use_container_width=True)
-            st.text_input("Duży tytuł:", key="sek_2_title",
-                          value=st.session_state.get("sek_2_title", "REKOMENDACJE"))
-            st.text_input("Nadtytuł (overline):", key="sek_2_sub",
-                          value=st.session_state.get("sek_2_sub", "CO O NAS MÓWIĄ"))
-            _ic1, _ic2 = st.columns(2)
-            for _ck, _cv in [("sek_2_bg", st.session_state.get("color_h1", "#003366")),
-                              ("sek_2_txt", "#ffffff")]:
-                _v = st.session_state.get(_ck, _cv)
-                if not (isinstance(_v, str) and _v.startswith("#") and len(_v) == 7):
-                    st.session_state[_ck] = _cv
-            _ic1.color_picker("Kolor gradientu", key="sek_2_bg")
-            _ic2.color_picker("Kolor tytułu", key="sek_2_txt")
-            _up_sek = st.file_uploader("Zdjęcie tła:", key="sek_img_up_2")
-            if _up_sek:
-                st.session_state["sek_2_img"] = optimize_img(_up_sek.getvalue())
-        st.divider()
 
         opi_keys = [
             'testim_hide', 'testim_overline', 'testim_title', 'testim_subtitle',
