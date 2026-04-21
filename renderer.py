@@ -113,6 +113,8 @@ EXCLUDE_EXPORT_KEYS = {
     'show_link_info', 'ready_export_html', 'auto_map_points',
     # Klucze przycisków i uploaderów które nigdy nie trafiają do JSON
     'pa_add_place_btn', 'pa_add_attr_btn',
+    # Klucze wewnętrzne sesji — nie zapisujemy do localStorage
+    '_ls_loaded', '_session_id', '_ls_restore', '_attr_focused',
 }
 
 defaults = {
