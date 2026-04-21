@@ -941,12 +941,12 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 lbl, val = line.split(':', 1)
                 facts_lines.append(
                     f"<div style='margin-bottom:8px; line-height:1.4; font-size:{max(11, fs_t-1)}px;'>"
-                    f"<strong style='font-family:\"{f_txt}\"; font-weight:700;'>{lbl.strip()}:</strong> "
-                    f"<span style='font-family:\"{f_txt}\"; font-weight:400;'>{val.strip()}</span></div>"
+                    f"<strong style='font-family:\"{f_t}\"; font-weight:700;'>{lbl.strip()}:</strong> "
+                    f"<span style='font-family:\"{f_t}\"; font-weight:400;'>{val.strip()}</span></div>"
                 )
             else:
                 facts_lines.append(
-                    f"<div style='margin-bottom:8px; line-height:1.4; font-size:{max(11, fs_t-1)}px; font-family:\"{f_txt}\";'>{line}</div>"
+                    f"<div style='margin-bottom:8px; line-height:1.4; font-size:{max(11, fs_t-1)}px; font-family:\"{f_t}\";'>{line}</div>"
                 )
         facts_html_k = ''.join(facts_lines)
 
@@ -1009,7 +1009,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     {k_sub}
                 </div>
                 
-                <div style="font-family: '{f_txt}'; font-size: {fs_t}px; line-height: 1.7; color: {c_t}; text-align: justify;">
+                <div style="font-family: '{f_t}'; font-size: {fs_t}px; line-height: 1.7; color: {c_t}; text-align: justify;">
                     {k_opis}
                 </div>
             </div>
