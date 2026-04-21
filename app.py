@@ -322,6 +322,7 @@ with st.sidebar:
             "Opisy miejsc", "Opis atrakcji",
             "Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent",
             "Pillow Gifts", "Kosztorys", "Co o nas mówią", "O Nas (Zespół)",
+            "Przerywniki sekcji",
             "Wygląd i Kolory", "Zapisz / Wczytaj Projekt",
         ],
     )
@@ -663,7 +664,7 @@ with st.sidebar:
                 st.multiselect("Udogodnienia (ikonki):", list(hotel_icons.keys()),
                                key=f"h_amenities_{i}", on_change=set_focus,
                                args=(f"slide-hotel-{i}",))
-                st.text_area("Opis hotelu:", height=100, key=f"h_text_{i}",
+                st.text_area("Opis hotelu:", height=200, key=f"h_text_{i}",
                              on_change=set_focus, args=(f"slide-hotel-{i}",))
                 st.text_area("Atuty hotelu:", height=100, key=f"h_advantages_{i}",
                              on_change=set_focus, args=(f"slide-hotel-{i}",))
@@ -1101,6 +1102,52 @@ with st.sidebar:
                 u_team = st.file_uploader("Zdjęcie (okrągłe)", key=f"nas_img_{i}")
                 if u_team:
                     st.session_state[f"t_img_{i}"] = optimize_img(u_team.getvalue())
+
+    # -----------------------------------------------------------------------
+    # WYGLĄD I KOLORY
+    # -----------------------------------------------------------------------
+    elif page == "Przerywniki sekcji":
+        st.markdown(
+            "<div style='font-size:12px;color:#64748b;margin-bottom:12px;'>"
+            "Slajdy przerywnikowe pojawiają się przed blokami: Zakwaterowanie, "
+            "Atrakcje/Miejsca i Rekomendacje. Możesz je ukryć lub edytować.</div>",
+            unsafe_allow_html=True,
+        )
+        _inter_defs = [
+            ("inter_hotel", "PRZED ZAKWATEROWANIEM", "NASZE HOTELE", "KOMFORT I ELEGANCJA", "ZAKWATEROWANIE"),
+            ("inter_attr",  "PRZED ATRAKCJAMI/MIEJSCAMI", "PROGRAM WYJAZDU", "NIEZAPOMNIANE CHWILE", "ATRAKCJE"),
+            ("inter_testim","PRZED REKOMENDACJAMI", "CO O NAS MÓWIĄ", "NASI KLIENCI", "OPINIE"),
+        ]
+        for _pfx, _label, _def_main, _def_sub, _def_over in _inter_defs:
+            with st.expander(f"▪ {_label}", expanded=False):
+                st.checkbox("Ukryj ten slajd", key=f"{_pfx}_hide")
+                st.button("POKAŻ PODGLĄD", key=f"btn_{_pfx}",
+                          on_click=set_focus, args=(f"slide-{_pfx}",),
+                          use_container_width=True)
+                st.text_input("Overline (mały nadtytuł):", key=f"{_pfx}_overline",
+                              value=st.session_state.get(f"{_pfx}_overline", _def_over))
+                st.text_input("Tytuł H1:", key=f"{_pfx}_main",
+                              value=st.session_state.get(f"{_pfx}_main", _def_main))
+                st.text_input("Podtytuł:", key=f"{_pfx}_sub",
+                              value=st.session_state.get(f"{_pfx}_sub", _def_sub))
+                _section_header("BOX Z FAKTAMI (opcjonalny)")
+                for _ck, _cv in [(f"{_pfx}_box_bg", st.session_state.get('color_h1', '#003366')),
+                                  (f"{_pfx}_box_txt", '#ffffff')]:
+                    _v = st.session_state.get(_ck, _cv)
+                    if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
+                        st.session_state[_ck] = _cv
+                _cb1, _cb2 = st.columns(2)
+                _cb1.color_picker("Kolor tła boksu", key=f"{_pfx}_box_bg")
+                _cb2.color_picker("Kolor tekstu", key=f"{_pfx}_box_txt")
+                st.text_input("Tytuł boksu:", key=f"{_pfx}_facts_title",
+                              value=st.session_state.get(f"{_pfx}_facts_title", ''))
+                st.text_area("Fakty (Etykieta: Wartość):", height=100,
+                             key=f"{_pfx}_facts",
+                             value=st.session_state.get(f"{_pfx}_facts", ''))
+                _section_header("ZDJĘCIE")
+                _up = st.file_uploader("Zdjęcie:", key=f"{_pfx}_img_up")
+                if _up:
+                    st.session_state[f"{_pfx}_img"] = optimize_img(_up.getvalue())
 
     # -----------------------------------------------------------------------
     # WYGLĄD I KOLORY
