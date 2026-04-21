@@ -1589,19 +1589,25 @@ with st.sidebar:
 
 # ---------------------------------------------------------------------------
 # AKTUALIZACJA STATE_BACKUP — tarcza ochronna przed Widget Cleanup
-# Zapisuje kompletny stan projektu w jednym kluczu przed zakończeniem rerunu.
+# Zapisuje SUROWY stan projektu przed zakończeniem rerunu.
 # ---------------------------------------------------------------------------
-_shield_data = _build_proj_dict()
-st.session_state['STATE_BACKUP'] = {
-    k: v for k, v in _shield_data.items()
-    if isinstance(v, (str, int, float, bool, list, dict)) and v is not None
-}
+raw_backup = {}
+for bk, bv in st.session_state.items():
+    # Omijamy samą tarcze, żeby nie tworzyć pętli nieskończonej
+    if bk == 'STATE_BACKUP': 
+        continue
+    # Omijamy śmieci, ukryte zmienne systemowe i tymczasowe uploaderów
+    if bk.startswith(('up_', 'btn_', '$$', 'FormSubmitter')): 
+        continue
+    raw_backup[bk] = bv
+    
+st.session_state['STATE_BACKUP'] = raw_backup
 
 # ---------------------------------------------------------------------------
 # AUTO-ZAPIS przy każdym rerunie (cichy, bez przycisku)
 # ---------------------------------------------------------------------------
 import streamlit.components.v1 as _comp_autosave
-_auto_proj = _build_proj_dict()
+_auto_proj = _build_proj_dict() # Tutaj używamy JSON bo to idzie do pamięci przeglądarki
 _auto_json = json.dumps(_auto_proj, ensure_ascii=False)
 _comp_autosave.html(f"""<script>
 (function(){{
@@ -1614,6 +1620,4 @@ _comp_autosave.html(f"""<script>
 # ---------------------------------------------------------------------------
 # GŁÓWNA ZAWARTOŚĆ — PODGLĄD PREZENTACJI
 # ---------------------------------------------------------------------------
-# Cicha kopia stanu tuż przed końcem — chroni dane przy przełączaniu zakładek.
-st.session_state['STATE_BACKUP'] = _build_proj_dict()
 build_presentation(page)
