@@ -995,15 +995,18 @@ with st.sidebar:
     # -----------------------------------------------------------------------
     elif page == "Kosztorys":
         koszt_keys = [
-            'koszt_hide_1', 'koszt_hide_2', 'koszt_title', 'koszt_pax', 'koszt_price',
-            'koszt_hotel', 'koszt_dbl', 'koszt_sgl', 'koszt_zawiera_1', 'koszt_zawiera_2',
-            'koszt_nie_zawiera', 'koszt_opcje', 'img_koszt_1', 'img_koszt_2',
+            'koszt_hide_1', 'koszt_hide_2', 'koszt_h1_title', 'koszt_title',
+            'koszt_pax', 'koszt_price', 'koszt_hotel', 'koszt_dbl', 'koszt_sgl',
+            'koszt_zawiera_1', 'koszt_zawiera_2', 'koszt_nie_zawiera',
+            'koszt_opcje', 'img_koszt_1', 'img_koszt_2',
         ]
         section_template_manager(koszt_keys, "KOS", "Kosztorys", "koszt")
         c1, c2 = st.columns(2)
         c1.checkbox("Ukryj CAŁY Kosztorys (Slajd 1 i 2)", key="koszt_hide_1")
         c2.checkbox("Ukryj TYLKO Slajd 2 (Ciąg dalszy)", key="koszt_hide_2")
-        st.text_input("Tytuł slajdu:", key="koszt_title")
+        st.text_input("Tytuł H1 (duży, górna część):", key="koszt_h1_title",
+                      value=st.session_state.get('koszt_h1_title', 'KOSZTORYS'))
+        st.text_input("Overline (mały nadtytuł):", key="koszt_title")
         _section_header("GŁÓWNE DANE TABELI")
         c1, c2 = st.columns(2)
         c1.text_input("Wielkość grupy:", key="koszt_pax")
