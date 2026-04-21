@@ -127,6 +127,7 @@ defaults = {
     'k_sub': 'BAŁKAŃSKI KLEJNOT', 'k_opis': 'Opisz tutaj piękno kierunku...',
     'k_facts': 'Stolica: \nWaluta: \nRóżnica czasu: \nTemperatury: ',
     'k_facts_title': 'FAKTY',
+    'k_box_bg': '', 'k_box_txt': '#ffffff',
     'l_hide': False, 'l_przesiadka': False, 'l_port': 'Monachium (MUC)',
     'l_czas': '3h 20 min', 'l_overline': 'PRZELOT', 'l_main': 'JAK LECIMY?',
     'l_sub': 'NASZA PROPOZYCJA PRZELOTU',
@@ -156,6 +157,7 @@ defaults = {
     'h_advantages_0': 'Położenie tuż przy prywatnej plaży',
     'prg_hide': False, 'num_days': 4, 'num_places': 0, 'num_attr': 1,
     'koszt_hide_1': False, 'koszt_hide_2': False, 'koszt_title': 'KOSZTORYS',
+    'koszt_h1_title': 'KOSZTORYS',
     'koszt_pax': '25', 'koszt_price': '4.990 zł / os.',
     'koszt_hotel': 'Iberostar Bellevue 4* all inclusive',
     'koszt_dbl': '12', 'koszt_sgl': '1',
@@ -998,13 +1000,13 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div>
 
             <div class="info-col" style="flex:45; padding-left:10px; padding-top:15px; justify-content:flex-start;">
-                <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-                    <div style="height:1px; background-color:{acc}; width:30px; flex-shrink:0;"></div>
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                    <div style="height:1px; background-color:{acc}; opacity:0.5; width:32px; flex-shrink:0;"></div>
                     <span style="font-family:'{f_met}'; font-size:{max(10,fs_met-2)}px; font-weight:700;
-                                 letter-spacing:3px; color:{acc}; text-transform:uppercase; white-space:nowrap;">
+                                 letter-spacing:4px; color:{acc}; text-transform:uppercase; white-space:nowrap;">
                         {k_over}
                     </span>
-                    <div style="height:1px; background-color:{acc}; flex:1;"></div>
+                    <div style="height:1px; background-color:{acc}; opacity:0.5; flex:1;"></div>
                 </div>
                 <div class="title-h1" style="text-align:left; margin-bottom:5px; font-size:{fs_h1_val}px; color:{c_h1}; line-height:1.1;">
                     {k_main}
@@ -1537,7 +1539,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         zaw1_html = f'<ul class="app-list">{"".join(zaw1_list)}</ul>' if zaw1_list else ''
         hp.append(_shtml(f"""{lh}<div class="premium-layout"><div class="photo-col">{imk1}</div>
             <div class="info-col" style="padding-top:30px; justify-content:flex-start;">
-            <i class="fa-solid fa-wallet" style="color:{acc}; font-size:36px; margin-bottom:15px; display:block;"></i>
+            <div class="title-h1" style="margin-bottom:15px; font-size:{fs_h1_val}px;">{str(s.get('koszt_h1_title','KOSZTORYS'))}</div>
             <div class="app-overline-style" style="margin-bottom:15px;"><span>{str(s.get('koszt_title','KOSZTORYS'))}</span></div>
             <div style="background:{acc}; color:white; padding: 25px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
                 <div style="font-size:{max(10,fs_t-2)}px; font-family:'{f_h2}'; font-weight:700; text-transform:uppercase; margin-bottom:5px; opacity:0.9; letter-spacing:1px;">Grupa {s.get('koszt_pax','')} osób | {s.get('koszt_hotel','')}</div>
