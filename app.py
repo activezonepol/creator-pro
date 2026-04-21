@@ -377,9 +377,15 @@ with st.sidebar:
     _default_idx = _nav_pages.index(_last_in_nav)
 
     page = st.radio("WYBIERZ SEKCJE DO EDYCJI:", _nav_pages, index=_default_idx)
+    # Gdy kliknięto pozycję w radio — aktualizuj last_page
     if st.session_state.get('last_page') != page:
         st.session_state['last_page'] = page
         st.session_state['scroll_target'] = ""
+    # Gdy last_page wskazuje na atrakcję (spoza radio) — użyj jej jako aktywnej strony
+    _lp = st.session_state.get('last_page', '')
+    if _lp.startswith("  ↳ ") and _lp not in {"  ↳ Przerywnik hotel",
+            "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}:
+        page = _lp
 
     # --- NAGŁÓWEK "Miejsca i atrakcje" z plusem i strzałkami (po radio) ---
     # Pojawia się między "↳ Przerywnik atrakcje" a "Aplikacja" w sidebarze
