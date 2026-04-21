@@ -153,15 +153,14 @@ def _move_hotel(idx, direction):
 # -----------------------------------------------------------------------
 
 def _pa_items_get():
-    """Zwraca aktualną listę pa_items, walidując indeksy."""
+    """Zwraca aktualną listę pa_items. Nie waliduje przez num_places/num_attr
+    bo te są ustawiane przez _pa_items_add i mogą nie być jeszcze zsynchronizowane."""
     s = st.session_state
     items = s.get('pa_items', [])
-    # Usuń elementy z indeksami poza zakresem
-    np_ = s.get('num_places', 0)
-    na_ = s.get('num_attr', 0)
+    # Zachowaj tylko prawidłowe słowniki z wymaganymi kluczami
     items = [it for it in items
-             if (it['type'] == 'place' and it['idx'] < np_)
-             or (it['type'] == 'attr'  and it['idx'] < na_)]
+             if isinstance(it, dict) and 'type' in it and 'idx' in it
+             and it['type'] in ('place', 'attr')]
     s['pa_items'] = items
     return items
 
@@ -179,7 +178,8 @@ def _pa_items_add(typ):
     items.append({'type': typ, 'idx': idx})
     s['pa_items'] = items
     # Przejdź do strony edycji nowego elementu zamiast skrolować
-    _page_name = f"  ↳ pa_{typ}_{idx}"
+    # Użyj _pa_page_name żeby dostać czytelną nazwę (po dodaniu będzie "Atrakcja 1" itp.)
+    _page_name = _pa_page_name(typ, idx)
     s['last_page'] = _page_name
     s['scroll_target'] = ""  # Nie skroluj — po rerun panel otworzy nowy element
     return idx
@@ -203,8 +203,27 @@ def _pa_items_delete(pos):
 
 
 def _pa_page_name(typ, idx):
-    """Zwraca nazwę strony dla elementu w nawigacji."""
-    return f"  ↳ pa_{typ}_{idx}"
+    """Zwraca czytelną nazwę strony dla elementu w nawigacji (max 20 znaków).
+    Format: '  ↳ Atrakcja 1' lub '  ↳ Indie' — ale zakodowane z ID dla parsowania."""
+    s = st.session_state
+    # Pobierz nazwę wyświetlaną (max 20 znaków)
+    if typ == 'place':
+        raw = str(s.get(f'pmain_{idx}', '')).split('\n')[0].strip()
+    else:
+        raw = str(s.get(f'amain_{idx}', '')).split('\n')[0].strip()
+    # Oblicz numer w obrębie typu
+    items = s.get('pa_items', [])
+    type_pos = next(
+        (pos + 1 for pos, it in enumerate([i for i in items if i['type'] == typ])
+         if it['idx'] == idx),
+        idx + 1
+    )
+    if raw:
+        label = raw[:20] + ('…' if len(raw) > 20 else '')
+    else:
+        label = ('Opis miejsca' if typ == 'place' else 'Atrakcja') + f' {type_pos}'
+    # Zakoduj ID w niewidocznych znakach (zero-width space + id) żeby można parsować
+    return f"  ↳ {label}​{typ}​{idx}"
 
 
 def _pa_display_name(typ, idx):
@@ -458,7 +477,7 @@ with st.sidebar:
 
     # Nagłówek zakładki
     _inter_pages = {"  ↳ Przerywnik hotel", "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}
-    _is_pa_page = page.startswith("  ↳ pa_")
+    _is_pa_page = "​" in page  # strona pa_ zawiera zero-width separator z ID
     if page == "Wygląd i Kolory":
         st.markdown("<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;'>KONFIGURACJA WYGLĄDU</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Dostosuj kolory i typografię oferty</div>", unsafe_allow_html=True)
@@ -469,8 +488,8 @@ with st.sidebar:
         _h1_col = st.session_state.get("color_h1", "#003366")
         if _is_pa_page:
             # Wyciągnij typ i idx z nazwy strony "  ↳ pa_place_0"
-            _parts = page.strip().lstrip("↳").strip().split("_")
-            _pa_typ, _pa_idx = _parts[1], int(_parts[2])
+            _zw = page.split("​")  # format: "  ↳ Nazwa​typ​idx"
+            _pa_typ, _pa_idx = _zw[1], int(_zw[2])
             _pa_label = _pa_display_name(_pa_typ, _pa_idx)
             _pa_type_label = "📍 Opis miejsca" if _pa_typ == "place" else "✨ Atrakcja"
             _pa_col = "#0f766e" if _pa_typ == "place" else st.session_state.get("color_accent", "#FF6600")
@@ -946,13 +965,13 @@ with st.sidebar:
     # -----------------------------------------------------------------------
     # OPISY MIEJSC (nowy układ wg wzoru)
     # -----------------------------------------------------------------------
-    elif page.startswith("  ↳ pa_"):
+    elif "​" in page and not page.strip().startswith("↳ Przeryw"):
         # -----------------------------------------------------------------------
         # EDYCJA KONKRETNEGO ELEMENTU (miejsce lub atrakcja)
         # -----------------------------------------------------------------------
-        _parts = page.strip().lstrip("↳").strip().split("_")
-        _e_typ = _parts[1]
-        _e_idx = int(_parts[2])
+        _zw = page.split("​")  # format: "  ↳ Nazwa​typ​idx"
+        _e_typ = _zw[1]
+        _e_idx = int(_zw[2])
         day_options_global = build_day_options(
             st.session_state.get('p_start_dt', date.today()),
             int(st.session_state.get('num_days', 5)),
