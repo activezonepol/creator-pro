@@ -291,20 +291,7 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
         unsafe_allow_html=True,
     )
 
-    # Upload pliku JSON
-    uploaded_file = st.file_uploader(
-        "max. 200 MB", type=['json'], key=f"up_{uploader_key}",
-    )
-
-    # Nazwa pliku do pobrania
-    base_slug = create_slug(default_filename)
-    custom_name = st.text_input(
-        "Nazwa pliku:", value=base_slug,
-        key=f"fn_{uploader_key}", label_visibility="collapsed",
-        placeholder="nazwa pliku...",
-    )
-
-    # Dwa przyciski równej szerokości obok siebie
+    # Przygotuj dane eksportu
     export_data = {}
     for k in section_keys:
         save_key = k if index is None else re.sub(f'_{index}$', '', k)
@@ -320,32 +307,63 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
                 export_data[save_key] = val
     json_str = json.dumps(export_data)
     cc = st.session_state.get('country_code', 'OTH')
-    final_slug = create_slug(custom_name)
-    full_filename = f"{cc}-{file_prefix}-{final_slug}.json"
+    base_slug = create_slug(default_filename)
+    full_filename = f"{cc}-{file_prefix}-{base_slug}.json"
 
-    _cd, _cw = st.columns(2)
-    _cd.download_button(
-        "⬇ POBIERZ", json_str, full_filename,
-        key=f"dl_{uploader_key}", use_container_width=True,
+    # RAMKA 1: Upload + Wczytaj
+    st.markdown(
+        "<div style='border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px 6px 12px;"
+        "margin-bottom:8px;background:#fafafa;'>",
+        unsafe_allow_html=True,
     )
-    if _cw.button("⬆ WCZYTAJ", key=f"btn_apply_{uploader_key}",
-                  use_container_width=True, disabled=not uploaded_file):
-        try:
-            data = json.load(uploaded_file)
-            filtered_data = {}
-            for k in section_keys:
-                save_key = k
-                load_key = k if index is None else re.sub(f'_{index}$', '', k)
-                if file_prefix == "ATR":
-                    load_key = ATR_KEY_MAP.get(load_key, load_key)
-                if load_key in data:
-                    filtered_data[save_key] = data[load_key]
-            load_project_data(filtered_data)
-            st.success("Szablon wczytany.")
-            st.rerun()
-        except Exception:
-            st.error("Błąd odczytu pliku.")
-    st.markdown("<div style='margin-bottom:12px;'></div>", unsafe_allow_html=True)
+    _cu, _cw = st.columns(2)
+    with _cu:
+        uploaded_file = st.file_uploader(
+            "max. 200 MB", type=['json'], key=f"up_{uploader_key}",
+        )
+    with _cw:
+        st.markdown("<div style='height:22px'></div>", unsafe_allow_html=True)
+        if st.button("⬆ WCZYTAJ", key=f"btn_apply_{uploader_key}",
+                     use_container_width=True, disabled=not uploaded_file):
+            try:
+                data = json.load(uploaded_file)
+                filtered_data = {}
+                for k in section_keys:
+                    save_key = k
+                    load_key = k if index is None else re.sub(f'_{index}$', '', k)
+                    if file_prefix == "ATR":
+                        load_key = ATR_KEY_MAP.get(load_key, load_key)
+                    if load_key in data:
+                        filtered_data[save_key] = data[load_key]
+                load_project_data(filtered_data)
+                st.success("Wczytano.")
+                st.rerun()
+            except Exception:
+                st.error("Błąd odczytu.")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # RAMKA 2: Nazwa slajdu + Pobierz
+    st.markdown(
+        "<div style='border:1px solid #e2e8f0;border-radius:8px;padding:10px 12px;"
+        "margin-bottom:12px;background:#fafafa;'>",
+        unsafe_allow_html=True,
+    )
+    _cn, _cd = st.columns(2)
+    with _cn:
+        _display = default_filename.replace("_", " ").title() if default_filename else "Slajd"
+        st.markdown(
+            f"<div style='background:#fff;border:1px solid #e2e8f0;border-radius:6px;"
+            f"padding:8px 10px;min-height:38px;display:flex;align-items:center;"
+            f"font-family:Montserrat,sans-serif;font-size:12px;font-weight:600;color:#334155;'>"
+            f"{_display}</div>",
+            unsafe_allow_html=True,
+        )
+    with _cd:
+        st.download_button(
+            "⬇ POBIERZ", json_str, full_filename,
+            key=f"dl_{uploader_key}", use_container_width=True,
+        )
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def _section_header(label):
