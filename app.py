@@ -120,6 +120,53 @@ def set_focus(target_id):
     st.session_state['scroll_target'] = target_id
 
 
+def _get_slide_order():
+    """Zwraca aktualną listę (typ, idx) slajdów lub buduje domyślną."""
+    s = st.session_state
+    order = s.get('slide_order', [])
+    if not order:
+        order = []
+        for i in range(s.get('num_hotels', 1)):
+            order.append(['hotel', i])
+        for i in range(s.get('num_places', 0)):
+            order.append(['place', i])
+        for i in range(s.get('num_attr', 1)):
+            order.append(['attr', i])
+        s['slide_order'] = order
+    return order
+
+
+def _move_slide(idx, direction):
+    """Przesuwa slajd w górę (-1) lub w dół (+1) na liście kolejności."""
+    order = _get_slide_order()
+    new_idx = idx + direction
+    if 0 <= new_idx < len(order):
+        order[idx], order[new_idx] = order[new_idx], order[idx]
+        st.session_state['slide_order'] = order
+
+
+def _rebuild_slide_order():
+    """Przebudowuje slide_order gdy zmieniono liczby hoteli/miejsc/atrakcji.
+    Usuwa nieistniejące indeksy, dodaje nowe na końcu."""
+    s = st.session_state
+    order = s.get('slide_order', [])
+    valid = set()
+    for i in range(s.get('num_hotels', 1)):
+        valid.add(('hotel', i))
+    for i in range(s.get('num_places', 0)):
+        valid.add(('place', i))
+    for i in range(s.get('num_attr', 1)):
+        valid.add(('attr', i))
+    # Zachowaj istniejące w oryginalnej kolejności
+    new_order = [[t, i] for t, i in order if (t, i) in valid]
+    # Dodaj nowe których jeszcze nie ma
+    existing = {(t, i) for t, i in new_order}
+    for t, i in sorted(valid, key=lambda x: (x[0], x[1])):
+        if (t, i) not in existing:
+            new_order.append([t, i])
+    s['slide_order'] = new_order
+
+
 def _build_proj_dict():
     """Serializuje session_state do słownika gotowego do zapisu JSON."""
     proj = {}
@@ -258,8 +305,8 @@ with st.sidebar:
         "WYBIERZ SEKCJE DO EDYCJI:",
         [
             "Strona Tytułowa", "Opis Kierunku", "Mapa Podróży", "Jak lecimy?",
-            "Zakwaterowanie", "Program Wyjazdu", "Opis miejsc", "Opis kierunków",
-            "Opis atrakcji",
+            "Kolejność slajdów", "Zakwaterowanie", "Program Wyjazdu",
+            "Opisy miejsc", "Opis atrakcji",
             "Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent",
             "Pillow Gifts", "Kosztorys", "Co o nas mówią", "O Nas (Zespół)",
             "Wygląd i Kolory", "Zapisz / Wczytaj Projekt",
@@ -419,15 +466,28 @@ with st.sidebar:
         _section_header("ODLEGŁOŚCI I CZAS DOJAZDU")
         st.text_input("Tytuł sekcji na slajdzie:", key="map_dist_title")
 
-        st.markdown(
-            "<div style='font-size:11px; color:#64748b; margin-bottom:8px;'>"
-            "Klucz API OpenRouteService — bezpłatny na "
-            "<a href='https://openrouteservice.org/dev/#/signup' target='_blank'>openrouteservice.org</a>"
-            "</div>",
-            unsafe_allow_html=True,
-        )
-        st.text_input("Klucz ORS API:", key="ors_api_key", type="password",
-                      help="Zarejestruj się na openrouteservice.org → Dashboard → API Key")
+        # Klucz ORS — wczytywany z Streamlit Secrets (priorytet) lub wpisany ręcznie
+        _ors_from_secrets = st.secrets.get("ORS_API_KEY", "") if hasattr(st, 'secrets') else ""
+        if _ors_from_secrets and not st.session_state.get('ors_api_key'):
+            st.session_state['ors_api_key'] = _ors_from_secrets
+
+        if _ors_from_secrets:
+            st.markdown(
+                "<div style='font-size:11px; color:#16a34a; margin-bottom:8px; "
+                "padding:6px 10px; background:#f0fdf4; border-radius:4px; "
+                "border-left:3px solid #16a34a;'>"
+                "✓ Klucz API wczytany z konfiguracji aplikacji.</div>",
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                "<div style='font-size:11px; color:#64748b; margin-bottom:8px;'>"
+                "Klucz API OpenRouteService — wpisz ręcznie lub skonfiguruj "
+                "w Streamlit Secrets jako <code>ORS_API_KEY</code>.</div>",
+                unsafe_allow_html=True,
+            )
+            st.text_input("Klucz ORS API:", key="ors_api_key", type="password",
+                          help="Zarejestruj się na openrouteservice.org → Dashboard → API Key")
 
         st.number_input("Liczba par miejscowości:", 0, 10, step=1, key="num_dist_pairs")
 
@@ -447,9 +507,11 @@ with st.sidebar:
 
                 if st.button("POBIERZ ODLEGŁOŚĆ", key=f"btn_dist_{di}",
                              use_container_width=True):
-                    ors_key = st.session_state.get('ors_api_key', '').strip()
+                    # Klucz z Secrets ma priorytet, potem z pola tekstowego
+                    ors_key = (st.secrets.get("ORS_API_KEY", "") if hasattr(st, 'secrets') else "") \
+                              or st.session_state.get('ors_api_key', '').strip()
                     if not ors_key:
-                        st.error("Wpisz klucz ORS API powyżej.")
+                        st.error("Brak klucza ORS API. Skonfiguruj go w Streamlit Secrets.")
                     else:
                         a = st.session_state.get(f'dist_a_{di}', '').strip()
                         b = st.session_state.get(f'dist_b_{di}', '').strip()
@@ -503,12 +565,54 @@ with st.sidebar:
             st.session_state['img_hero_l'] = optimize_img(u5.getvalue())
 
     # -----------------------------------------------------------------------
+    # KOLEJNOŚĆ SLAJDÓW
+    # -----------------------------------------------------------------------
+    elif page == "Kolejność slajdów":
+        st.markdown(
+            "<div style='font-size:12px;color:#64748b;margin-bottom:15px;'>"
+            "Użyj strzałek ▲ ▼ aby zmienić kolejność hoteli, opisów miejsc i atrakcji "
+            "w prezentacji. Kolejność jest zapisywana automatycznie.</div>",
+            unsafe_allow_html=True,
+        )
+        _rebuild_slide_order()
+        order = _get_slide_order()
+        type_labels = {'hotel': '🏨 Hotel', 'place': '📍 Opis miejsca', 'attr': '✨ Atrakcja'}
+        type_colors = {'hotel': '#003366', 'place': '#0f766e', 'attr': '#b45309'}
+
+        for idx, (typ, num) in enumerate(order):
+            # Pobierz nazwę slajdu
+            if typ == 'hotel':
+                name = str(st.session_state.get(f'h_title_{num}', f'Hotel {num+1}')).split('\n')[0][:40]
+            elif typ == 'place':
+                name = str(st.session_state.get(f'pmain_{num}', f'Miejsce {num+1}')).split('\n')[0][:40] or f'Opis miejsca {num+1}'
+            else:
+                name = str(st.session_state.get(f'amain_{num}', f'Atrakcja {num+1}')).split('\n')[0][:40] or f'Atrakcja {num+1}'
+
+            col_label, col_up, col_down = st.columns([8, 1, 1])
+            col_label.markdown(
+                f"<div style='padding:8px 12px; background:#f8fafc; border-radius:6px; "
+                f"border-left:4px solid {type_colors.get(typ,"#888")}; "
+                f"font-size:13px; color:#1e293b; font-family:Open Sans,sans-serif;'>"
+                f"<strong style='color:{type_colors.get(typ,"#888")};font-size:11px;"
+                f"text-transform:uppercase;letter-spacing:1px;'>{type_labels.get(typ,typ)}</strong>"
+                f"<br>{name}</div>",
+                unsafe_allow_html=True,
+            )
+            if idx > 0:
+                col_up.button("▲", key=f"so_up_{idx}",
+                              on_click=_move_slide, args=(idx, -1), use_container_width=True)
+            if idx < len(order) - 1:
+                col_down.button("▼", key=f"so_down_{idx}",
+                                on_click=_move_slide, args=(idx, 1), use_container_width=True)
+
+    # -----------------------------------------------------------------------
     # ZAKWATEROWANIE
     # -----------------------------------------------------------------------
     elif page == "Zakwaterowanie":
-        st.number_input("Liczba hoteli do wyboru:", 1, 3, step=1, key="num_hotels")
+        if st.number_input("Liczba hoteli:", 1, 3, step=1, key="num_hotels"):
+            _rebuild_slide_order()
         for i in range(st.session_state['num_hotels']):
-            with st.expander(f"Hotel {i+1}"):
+            with st.expander(f"Hotel {i+1}" + (f" — {str(st.session_state.get(f'h_title_{i}','')).split(chr(10))[0][:30]}" if st.session_state.get(f'h_title_{i}') else "")):
                 st.button("POKAŻ PODGLĄD", key=f"btn_show_hot_{i}",
                           on_click=set_focus, args=(f"slide-hotel-{i}",), use_container_width=True)
                 for dk, dv in [
@@ -572,59 +676,48 @@ with st.sidebar:
                     st.session_state[f'img_hotel_3_{i}'] = optimize_img(u_h3.getvalue())
 
     # -----------------------------------------------------------------------
-    # PROGRAM WYJAZDU
+    # OPISY MIEJSC (nowy układ wg wzoru)
     # -----------------------------------------------------------------------
-    elif page == "Program Wyjazdu":
-        st.checkbox("Ukryj CAŁĄ sekcję Programu w PDF", key="prg_hide")
-        st.number_input("Ilość dni:", 1, 15, step=1, key="num_days")
-        st.date_input("Data startu:", key="p_start_dt")
-        for d in range(st.session_state['num_days']):
-            with st.expander(f"Dzień {d+1}"):
-                for dk in [f"attr_{d}", f"desc_{d}"]:
-                    if dk not in st.session_state:
-                        st.session_state[dk] = ""
-                d_keys = [f'img_d_{d}', f'attr_{d}', f'desc_{d}']
-                section_template_manager(d_keys, "PRG", f"Dzien_{d+1}", f"prg_{d}", index=d)
-                ud = st.file_uploader(f"Foto D{d+1} (16:9)", key=f"prg_img_{d}")
-                if ud:
-                    st.session_state[f"img_d_{d}"] = optimize_img(ud.getvalue())
-                st.text_input(f"Highlights D{d+1}", key=f"attr_{d}")
-                st.text_area(f"Opis D{d+1}", key=f"desc_{d}")
-
-    # -----------------------------------------------------------------------
-    # OPIS MIEJSC
-    # -----------------------------------------------------------------------
-    elif page == "Opis miejsc":
+    elif page == "Opisy miejsc":
         day_options_global = build_day_options(
             st.session_state.get('p_start_dt', date.today()),
             int(st.session_state.get('num_days', 5)),
         )
-        st.number_input("Liczba miejsc:", 0, 20, step=1, key="num_places")
+        if st.number_input("Liczba opisów miejsc:", 0, 20, step=1, key="num_places"):
+            _rebuild_slide_order()
         for i in range(st.session_state['num_places']):
             for dk, dv in [
                 (f"pmain_{i}", ""), (f"psub_{i}", ""),
+                (f"pover_{i}", "NASZ KIERUNEK"),
                 (f"pday_{i}", "Brak przypisania"), (f"popis_{i}", ""),
-                (f"pfacts_{i}", "Czas przelotu: 7 h\nRóżnica czasu: +4h 30min\nStolica: Nowe Delhi\nKlimat: zwrotnikowy\nWaluta: rupia indyjska"),
+                (f"pfacts_title_{i}", ""),
+                (f"pfacts_{i}", "Czas przelotu: 7 h\nRóżnica czasu: +4h 30min\nStolica: \nKlimat: \nWaluta: "),
+                (f"pbox_bg_{i}", st.session_state.get('color_h2', '#003366')),
+                (f"pbox_txt_{i}", '#ffffff'),
                 (f"phide_{i}", False),
             ]:
                 if dk not in st.session_state:
                     st.session_state[dk] = dv
             for fk in [f"pmain_{i}", f"psub_{i}", f"popis_{i}"]:
                 st.session_state[fk] = clean_str(st.session_state.get(fk))
+
             pmain_val = st.session_state[f"pmain_{i}"]
-            with st.expander(f"Miejsce {i+1}"):
+            label = f"Opis {i+1}" + (f" — {pmain_val[:30]}" if pmain_val else "")
+            with st.expander(label):
                 st.button("POKAŻ PODGLĄD", key=f"btn_show_place_{i}",
                           on_click=set_focus, args=(f"place_{i}",), use_container_width=True)
-                p_keys = [f'phide_{i}', f'pover_{i}', f'pmain_{i}', f'psub_{i}',
-                          f'pday_{i}', f'pfacts_{i}', f'popis_{i}', f'pimg1_{i}', f'pimg2_{i}']
+                p_keys = [
+                    f'phide_{i}', f'pover_{i}', f'pmain_{i}', f'psub_{i}',
+                    f'pday_{i}', f'pfacts_title_{i}', f'pfacts_{i}',
+                    f'pbox_bg_{i}', f'pbox_txt_{i}', f'popis_{i}', f'pimg1_{i}',
+                ]
                 section_template_manager(
                     p_keys, "MIE", pmain_val or f"Miejsce_{i+1}", f"plc_{i}", index=i,
                 )
                 st.checkbox("Ukryj ten slajd w PDF", key=f"phide_{i}",
                             on_change=set_focus, args=(f"place_{i}",))
-                st.text_input("Mały nadtytuł:",
-                              value=st.session_state.get(f"pover_{i}", "NASZ KIERUNEK"),
-                              key=f"pover_{i}", on_change=set_focus, args=(f"place_{i}",))
+                st.text_input("Mały nadtytuł:", key=f"pover_{i}",
+                              on_change=set_focus, args=(f"place_{i}",))
                 st.text_input("Nazwa (H1):", key=f"pmain_{i}",
                               on_change=set_focus, args=(f"place_{i}",))
                 st.text_input("Podtytuł:", key=f"psub_{i}",
@@ -634,93 +727,31 @@ with st.sidebar:
                     st.session_state[f"pday_{i}"] = day_options_global[0]
                 st.selectbox("Przypisz do dnia:", day_options_global, key=f"pday_{i}",
                              on_change=set_focus, args=(f"place_{i}",))
-                st.text_area("Fakty (Format: 'Etykieta: Wartość'):", height=120,
+
+                _section_header("BOX Z FAKTAMI")
+                cb1, cb2 = st.columns(2)
+                # Walidacja kolorów
+                for ck, cv in [(f"pbox_bg_{i}", st.session_state.get('color_h2', '#003366')),
+                               (f"pbox_txt_{i}", '#ffffff')]:
+                    v = st.session_state.get(ck, cv)
+                    if not (isinstance(v, str) and v.startswith('#') and len(v) == 7):
+                        st.session_state[ck] = cv
+                cb1.color_picker("Kolor tła boksu", key=f"pbox_bg_{i}",
+                                 on_change=set_focus, args=(f"place_{i}",))
+                cb2.color_picker("Kolor tekstu w boksie", key=f"pbox_txt_{i}",
+                                 on_change=set_focus, args=(f"place_{i}",))
+                st.text_input("Tytuł boksu (opcjonalnie):", key=f"pfacts_title_{i}",
+                              on_change=set_focus, args=(f"place_{i}",))
+                st.text_area("Fakty (Format: 'Etykieta: Wartość'):", height=140,
                              key=f"pfacts_{i}", on_change=set_focus, args=(f"place_{i}",))
-                st.text_area("Główny opis:", height=150, key=f"popis_{i}",
+
+                _section_header("ZDJĘCIE I OPIS")
+                st.text_area("Opis miejsca:", height=160, key=f"popis_{i}",
                              on_change=set_focus, args=(f"place_{i}",))
-                c1, c2 = st.columns(2)
-                up1 = c1.file_uploader("Foto Pionowe (lewe)", key=f"plc_img1_{i}",
+                up1 = st.file_uploader("Zdjęcie (pionowe):", key=f"plc_img1_{i}",
                                        on_change=set_focus, args=(f"place_{i}",))
                 if up1:
                     st.session_state[f"pimg1_{i}"] = optimize_img(up1.getvalue())
-                up2 = c2.file_uploader("Foto Kwadrat (środek)", key=f"plc_img2_{i}",
-                                       on_change=set_focus, args=(f"place_{i}",))
-                if up2:
-                    st.session_state[f"pimg2_{i}"] = optimize_img(up2.getvalue())
-
-    # -----------------------------------------------------------------------
-    # OPIS ATRAKCJI
-    # -----------------------------------------------------------------------
-    # -----------------------------------------------------------------------
-    # OPIS KIERUNKÓW (nowy układ: kolaż + box faktów + opis)
-    # -----------------------------------------------------------------------
-    elif page == "Opis kierunków":
-        st.number_input("Liczba slajdów kierunków:", 0, 20, step=1, key="num_kierunki")
-        for i in range(st.session_state.get('num_kierunki', 0)):
-            # Inicjalizacja domyślnych wartości
-            for dk, dv in [
-                (f"kmain_{i}", ""), (f"ksub_{i}", ""), (f"kover_{i}", "NASZ KIERUNEK"),
-                (f"kopis_{i}", ""), (f"kfacts_title_{i}", ""),
-                (f"kfacts_{i}", "Czas przelotu: 7 h\nRóżnica czasu: +4h 30min\nStolica: \nKlimat: \nWaluta: "),
-                (f"khide_{i}", False),
-            ]:
-                if dk not in st.session_state:
-                    st.session_state[dk] = dv
-            for fk in [f"kmain_{i}", f"ksub_{i}", f"kopis_{i}"]:
-                st.session_state[fk] = clean_str(st.session_state.get(fk))
-
-            kmain_val = st.session_state[f"kmain_{i}"]
-            with st.expander(f"Kierunek {i+1}" + (f" — {kmain_val}" if kmain_val else "")):
-                st.button("POKAŻ PODGLĄD", key=f"btn_show_kier_{i}",
-                          on_click=set_focus, args=(f"kierunek_{i}",),
-                          use_container_width=True)
-
-                k_keys = [
-                    f'khide_{i}', f'kover_{i}', f'kmain_{i}', f'ksub_{i}',
-                    f'kfacts_title_{i}', f'kfacts_{i}', f'kbox_bg_{i}', f'kbox_txt_{i}',
-                    f'kopis_{i}', f'kimg_{i}',
-                ]
-                section_template_manager(
-                    k_keys, "KIE", kmain_val or f"Kierunek_{i+1}", f"kier_{i}", index=i,
-                )
-
-                st.checkbox("Ukryj ten slajd w PDF", key=f"khide_{i}",
-                            on_change=set_focus, args=(f"kierunek_{i}",))
-                st.text_input("Mały nadtytuł:", key=f"kover_{i}",
-                              on_change=set_focus, args=(f"kierunek_{i}",))
-                st.text_input("Nazwa kierunku (H1):", key=f"kmain_{i}",
-                              on_change=set_focus, args=(f"kierunek_{i}",))
-                st.text_input("Podtytuł:", key=f"ksub_{i}",
-                              on_change=set_focus, args=(f"kierunek_{i}",))
-
-                _section_header("BOX Z FAKTAMI")
-                c_box1, c_box2 = st.columns(2)
-                if f"kbox_bg_{i}" not in st.session_state:
-                    st.session_state[f"kbox_bg_{i}"] = st.session_state.get('color_h2', '#003366')
-                if f"kbox_txt_{i}" not in st.session_state:
-                    st.session_state[f"kbox_txt_{i}"] = '#ffffff'
-                c_box1.color_picker("Kolor tła boksu", key=f"kbox_bg_{i}",
-                                    on_change=set_focus, args=(f"kierunek_{i}",))
-                c_box2.color_picker("Kolor tekstu w boksie", key=f"kbox_txt_{i}",
-                                    on_change=set_focus, args=(f"kierunek_{i}",))
-                st.text_input("Tytuł boxu (opcjonalnie):", key=f"kfacts_title_{i}",
-                              on_change=set_focus, args=(f"kierunek_{i}",))
-                st.text_area(
-                    "Fakty (format: 'Etykieta: Wartość', każdy w nowej linii):",
-                    height=160, key=f"kfacts_{i}",
-                    on_change=set_focus, args=(f"kierunek_{i}",),
-                )
-
-                _section_header("TREŚĆ I ZDJĘCIE")
-                st.text_area("Opis kierunku:", height=180, key=f"kopis_{i}",
-                             on_change=set_focus, args=(f"kierunek_{i}",))
-                uk = st.file_uploader(
-                    "Zdjęcie kierunku (jedno zdjęcie w dwóch ramkach):",
-                    key=f"kier_img_{i}",
-                    on_change=set_focus, args=(f"kierunek_{i}",),
-                )
-                if uk:
-                    st.session_state[f"kimg_{i}"] = optimize_img(uk.getvalue())
 
     # -----------------------------------------------------------------------
     # OPIS ATRAKCJI
@@ -730,7 +761,8 @@ with st.sidebar:
             st.session_state.get('p_start_dt', date.today()),
             int(st.session_state.get('num_days', 5)),
         )
-        st.number_input("Ilość atrakcji:", 1, 20, step=1, key="num_attr")
+        if st.number_input("Ilość atrakcji:", 1, 20, step=1, key="num_attr"):
+            _rebuild_slide_order()
         for i in range(st.session_state['num_attr']):
             for dk, dv in [
                 (f"amain_{i}", ""), (f"asub_{i}", ""),
@@ -742,7 +774,8 @@ with st.sidebar:
             for fk in [f"amain_{i}", f"asub_{i}", f"aopis_{i}"]:
                 st.session_state[fk] = clean_str(st.session_state.get(fk))
             amain_val = st.session_state[f"amain_{i}"]
-            with st.expander(f"Atrakcja {i+1}"):
+            label = f"Atrakcja {i+1}" + (f" — {amain_val[:30]}" if amain_val else "")
+            with st.expander(label):
                 st.button("POKAŻ PODGLĄD", key=f"btn_show_attr_{i}",
                           on_click=set_focus, args=(f"attr_{i}",), use_container_width=True)
                 a_keys = [f'ahide_{i}', f'amain_{i}', f'asub_{i}', f'aday_{i}',
