@@ -161,15 +161,20 @@ def _attr_count():
     return st.session_state.get('num_attr', 0)
 
 def _attr_order():
-    """Kolejność atrakcji — lista indeksów."""
+    """Kolejność atrakcji — lista indeksów. Zawsze unikalna i kompletna."""
     n = _attr_count()
-    order = st.session_state.get('attr_order', list(range(n)))
-    # Upewnij się że lista jest kompletna
-    existing = set(order)
-    for i in range(n):
-        if i not in existing:
+    raw = st.session_state.get('attr_order', [])
+    # Deduplikuj zachowując kolejność (naprawia stare zepsute dane)
+    seen = set()
+    order = []
+    for i in raw:
+        if i not in seen and i < n:
+            seen.add(i)
             order.append(i)
-    order = [i for i in order if i < n]
+    # Dodaj brakujące indeksy na końcu
+    for i in range(n):
+        if i not in seen:
+            order.append(i)
     st.session_state['attr_order'] = order
     return order
 
@@ -361,67 +366,107 @@ if st.session_state['client_mode']:
 with st.sidebar:
     _acc = st.session_state.get('color_accent', '#FF6600')
     _h1c = st.session_state.get('color_h1', '#003366')
+    _n_attr = _attr_count()
+    _attr_pages = [_attr_page_name(pos) for pos in range(_n_attr)]
 
-    # Buduj listę pozycji — atrakcje jako zwykłe strony w radio
-    _attr_pages = [_attr_page_name(pos) for pos in range(_attr_count())]
+    # Nawigacja górna — bez atrakcji
+    _nav_top = ["Strona Tytułowa", "Opis Kierunku", "Mapa Podróży", "Jak lecimy?",
+                "  ↳ Przerywnik hotel", "Zakwaterowanie",
+                "  ↳ Przerywnik program", "Program Wyjazdu",
+                "  ↳ Przerywnik atrakcje"]
+    # Nawigacja dolna — bez atrakcji
+    _nav_bot = ["Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent",
+                "Pillow Gifts", "Kosztorys",
+                "  ↳ Przerywnik o nas", "Co o nas mówią", "O Nas (Zespół)",
+                "Wygląd i Kolory", "Zapisz / Wczytaj Projekt"]
 
-    _nav_pages = (
-        ["Strona Tytułowa", "Opis Kierunku", "Mapa Podróży", "Jak lecimy?",
-         "  ↳ Przerywnik hotel", "Zakwaterowanie",
-         "  ↳ Przerywnik program", "Program Wyjazdu",
-         "  ↳ Przerywnik atrakcje"] +
-        _attr_pages +
-        ["Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent",
-         "Pillow Gifts", "Kosztorys",
-         "  ↳ Przerywnik o nas", "Co o nas mówią", "O Nas (Zespół)",
-         "Wygląd i Kolory", "Zapisz / Wczytaj Projekt"]
-    )
-
-    _last = st.session_state.get('last_page', _nav_pages[0])
-    _default_idx = _nav_pages.index(_last) if _last in _nav_pages else 0
+    _nav_all = _nav_top + _attr_pages + _nav_bot
+    _last = st.session_state.get('last_page', _nav_all[0])
+    _default_idx = _nav_all.index(_last) if _last in _nav_all else 0
 
     def _fmt_nav(p):
         if p.startswith("ATTR:"):
             return "  ★ " + p.split(":", 2)[2]
         return p
 
-    page = st.radio("WYBIERZ SEKCJE DO EDYCJI:", _nav_pages,
-                    index=_default_idx, format_func=_fmt_nav)
+    # Radio górne
+    _top_last = _last if _last in _nav_top else _nav_top[0]
+    _top_idx  = _nav_top.index(_top_last) if _top_last in _nav_top else None
 
-    if st.session_state.get('last_page') != page:
-        st.session_state['last_page'] = page
-        st.session_state['scroll_target'] = ""
+    page_top = st.radio("WYBIERZ SEKCJE DO EDYCJI:", _nav_top,
+                        index=_top_idx if _top_idx is not None else 0)
 
-    # Przycisk dodawania atrakcji — pojawia się zawsze pod radio
-    if st.button(
-        f"＋  ★  DODAJ ATRAKCJE/MIEJSCE",
-        key="attr_add_main_btn",
-        use_container_width=True,
-    ):
+    # --- SEKCJA ATRAKCJI wbudowana w nawigację ---
+    # Przycisk ＋ DODAJ ATRAKCJE/MIEJSCE
+    st.markdown(
+        f"<div style='display:flex;align-items:center;gap:6px;"
+        f"padding:3px 0 3px 4px;'>"
+        f"<span style='color:{_acc};font-size:13px;font-weight:700;'>★</span>"
+        f"<span style='font-size:12px;font-weight:600;color:#334155;"
+        f"font-family:Montserrat,sans-serif;'>"
+        f"DODAJ ATRAKCJE/MIEJSCE</span></div>",
+        unsafe_allow_html=True,
+    )
+    if st.button("＋ Dodaj", key="attr_add_main_btn", use_container_width=True):
         _attr_add()
         st.rerun()
 
-    # Strzałki kolejności atrakcji
-    _n = _attr_count()
-    if _n > 1:
-        for _ap in range(_n):
-            _aname = _attr_page_name(_ap).split(":", 2)[2]
-            _c1, _c2, _c3 = st.columns([6, 1, 1])
-            _c1.markdown(
-                f"<div style='font-size:10px;color:#64748b;padding:2px 0 2px 6px;"
-                f"border-left:2px solid {_acc};'>{_aname}</div>",
-                unsafe_allow_html=True,
-            )
-            if _ap > 0:
-                _c2.button("▲", key=f"aord_up_{_ap}",
-                           on_click=_attr_move, args=(_ap, -1),
-                           use_container_width=True)
-            if _ap < _n - 1:
-                _c3.button("▼", key=f"aord_dn_{_ap}",
-                           on_click=_attr_move, args=(_ap, 1),
-                           use_container_width=True)
+    # Każda atrakcja jako wiersz: [nazwa klikalny] [▲] [▼]
+    page_attr = None
+    for _ap in range(_n_attr):
+        _ap_key = _attr_pages[_ap]
+        _ap_name = _ap_key.split(":", 2)[2]
+        _ap_active = (_last == _ap_key)
+        _ca, _cb, _cc = st.columns([7, 1, 1])
+        # Przycisk nawigacji — podświetlony gdy aktywny
+        _btn_label = f"★ {_ap_name}"
+        if _ca.button(_btn_label, key=f"attr_nav_{_ap}",
+                      use_container_width=True,
+                      type="primary" if _ap_active else "secondary"):
+            page_attr = _ap_key
+        if _ap > 0:
+            _cb.button("▲", key=f"aord_up_{_ap}",
+                       on_click=_attr_move, args=(_ap, -1),
+                       use_container_width=True)
+        if _ap < _n_attr - 1:
+            _cc.button("▼", key=f"aord_dn_{_ap}",
+                       on_click=_attr_move, args=(_ap, 1),
+                       use_container_width=True)
 
-    st.divider()
+    # Radio dolne
+    _bot_last = _last if _last in _nav_bot else None
+    _bot_idx  = _nav_bot.index(_bot_last) if _bot_last in _nav_bot else 0
+    page_bot = st.radio("", _nav_bot, index=_bot_idx,
+                        label_visibility="collapsed")
+
+    # Ustal aktywną stronę
+    if page_attr is not None:
+        page = page_attr
+        st.session_state['last_page'] = page
+        st.session_state['scroll_target'] = ""
+        st.rerun()
+    elif _last in _nav_top and page_top != _last:
+        page = page_top
+        st.session_state['last_page'] = page
+        st.session_state['scroll_target'] = ""
+    elif _last in _nav_bot and page_bot != _last:
+        page = page_bot
+        st.session_state['last_page'] = page
+        st.session_state['scroll_target'] = ""
+    elif _last.startswith("ATTR:"):
+        page = _last  # atrakcja aktywna
+    else:
+        # Synchronizuj page z radio które się zmieniło
+        if page_top != (_last if _last in _nav_top else _nav_top[0]):
+            page = page_top
+            st.session_state['last_page'] = page
+            st.session_state['scroll_target'] = ""
+        elif page_bot != (_last if _last in _nav_bot else _nav_bot[0]):
+            page = page_bot
+            st.session_state['last_page'] = page
+            st.session_state['scroll_target'] = ""
+        else:
+            page = _last if _last in _nav_all else _nav_top[0]
 
     # Nagłówek zakładki
     _inter_pages = {"  ↳ Przerywnik hotel", "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}
