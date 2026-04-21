@@ -933,18 +933,21 @@ with st.sidebar:
         st.rerun()
 
 # ---------------------------------------------------------------------------
-# ZAPIS STANÓW WIDŻETÓW (BEZ UPLOADERÓW)
+# ZAPIS STANÓW WIDŻETÓW (BEZ UPLOADERÓW) - TARCZA OCHRONNA
 # ---------------------------------------------------------------------------
-raw_backup = {}
+# Tworzymy tarczę tylko raz, jeśli jeszcze jej nie ma
+if 'RAW_STATE_BACKUP' not in st.session_state:
+    st.session_state['RAW_STATE_BACKUP'] = {}
+
 for bk, bv in st.session_state.items():
-    if bk == 'RAW_STATE_BACKUP': 
+    if bk in ('STATE_BACKUP', 'RAW_STATE_BACKUP'): 
         continue
-    if bk.startswith(('up_', 'btn_', '$$', 'FormSubmitter')): 
+    if bk.startswith(('up_', 'btn_', '$$', 'FormSubmitter', 'sb_', 'pa_add_')): 
         continue
     if type(bv).__name__ == 'UploadedFile' or (isinstance(bv, list) and len(bv) > 0 and type(bv[0]).__name__ == 'UploadedFile'):
         continue
-    raw_backup[bk] = bv
+        
+    # AKTUALIZUJEMY pamięć zamiast ją kasować (to jest ten brakujący element!)
+    st.session_state['RAW_STATE_BACKUP'][bk] = bv
     
-st.session_state['RAW_STATE_BACKUP'] = raw_backup
-
 build_presentation(page)
