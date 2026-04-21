@@ -1768,6 +1768,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         "  ↳ Przerywnik hotel":    "slide-sek_0",
         "  ↳ Przerywnik program":  "slide-sek_3",
         "  ↳ Przerywnik atrakcje": "slide-sek_1",
+        "Opis atrakcji i miejsc": "slide-sek_1",
         "  ↳ Przerywnik o nas":    "slide-sek_2",
     }.get(current_page, "")
 
