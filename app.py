@@ -188,7 +188,7 @@ def _attr_add():
     order.append(n)  # dodaj nowy idx na końcu
     st.session_state['attr_order'] = order
     # last_page koduje idx (nie pos) żeby być odporny na przestawienia
-    st.session_state['last_page'] = f"ATTR:idx:{n}"
+    st.session_state['last_page'] = f"ATTR:{n}"
     st.session_state['scroll_target'] = ""
 
 def _attr_move(pos, direction):
@@ -201,14 +201,18 @@ def _attr_move(pos, direction):
 
 def _attr_page_name(pos):
     """Nazwa strony nawigacji dla atrakcji na pozycji pos.
-    Format: ATTR:idx:nazwa — idx to rzeczywisty indeks danych (odporny na przestawienia)."""
+    Format: ATTR:idx — tylko idx, odporny na zmiany nazwy."""
     order = _attr_order()
-    if pos >= len(order):
-        return f"ATTR:{pos}:Atrakcja {pos + 1}"
-    idx = order[pos]
+    idx = order[pos] if pos < len(order) else pos
+    return f"ATTR:{idx}"
+
+
+def _attr_display_name(pos):
+    """Wyświetlana nazwa atrakcji na pozycji pos."""
+    order = _attr_order()
+    idx = order[pos] if pos < len(order) else pos
     name = str(st.session_state.get(f'amain_{idx}', '')).split('\n')[0][:25].strip()
-    label = name or f"Atrakcja {pos + 1}"
-    return f"ATTR:{idx}:{label}"
+    return name or f"Atrakcja {pos + 1}"
 
 # Wsteczna kompatybilność z renderer.py
 def _get_place_attr_order():
@@ -366,6 +370,17 @@ if st.session_state['client_mode']:
 with st.sidebar:
     _acc = st.session_state.get('color_accent', '#FF6600')
     _h1c = st.session_state.get('color_h1', '#003366')
+    # CSS: primary button w sidebarze = kolor akcentu (pomarańczowy)
+    st.markdown(
+        f"<style>"
+        f"section[data-testid='stSidebar'] button[kind='primary'] {{"
+        f"  background-color: {_acc} !important;"
+        f"  border-color: {_acc} !important;"
+        f"  color: white !important;"
+        f"}}"
+        f"</style>",
+        unsafe_allow_html=True,
+    )
     _n_attr = _attr_count()
     _attr_pages = [_attr_page_name(pos) for pos in range(_n_attr)]
 
@@ -386,7 +401,9 @@ with st.sidebar:
 
     def _fmt_nav(p):
         if p.startswith("ATTR:"):
-            return "  ★ " + p.split(":", 2)[2]
+            idx = int(p.split(":")[1])
+            pos = next((pos for pos, ix in enumerate(_attr_order()) if ix == idx), 0)
+            return "  ★ " + _attr_display_name(pos)
         return p
 
     # Radio górne — aktywne tylko gdy last_page należy do nav_top
@@ -417,7 +434,7 @@ with st.sidebar:
         _ap_active = (_last == _ap_key)
         _ca, _cb, _cc = st.columns([7, 1, 1])
         # Przycisk nawigacji — podświetlony gdy aktywny
-        _btn_label = f"★ {_ap_name}"
+        _btn_label = f"★ {_attr_display_name(_ap)}"
         if _ca.button(_btn_label, key=f"attr_nav_{_ap}",
                       use_container_width=True,
                       type="primary" if _ap_active else "secondary"):
@@ -952,14 +969,26 @@ with st.sidebar:
                 if _dk not in st.session_state:
                     st.session_state[_dk] = _dv
 
-            # Auto-scroll: zawsze skroluj do slajdu tej atrakcji
-            set_focus(f"attr_{_i}")
+            # Auto-scroll: tylko gdy zmieniono aktywną atrakcję
+            if st.session_state.get('_attr_focused') != _i:
+                st.session_state['_attr_focused'] = _i
+                set_focus(f"attr_{_i}")
             a_keys = [f'ahide_{_i}', f'amain_{_i}', f'asub_{_i}',
                       f'aday_{_i}', f'atype_{_i}', f'aopis_{_i}',
                       f'ah_{_i}', f'at1_{_i}', f'at2_{_i}', f'at3_{_i}']
             section_template_manager(a_keys, "ATR",
                 st.session_state.get(f"amain_{_i}") or f"Atrakcja_{_pos+1}",
                 f"atr_{_i}", index=_i)
+            # Przycisk kasowania atrakcji
+            if st.button("🗑 Usuń tę atrakcję", key=f"attr_del_{_i}",
+                         use_container_width=True):
+                # Usuń z attr_order
+                _ord = _attr_order()
+                _ord = [x for x in _ord if x != _i]
+                st.session_state['attr_order'] = _ord
+                st.session_state['last_page'] = "  ↳ Przerywnik atrakcje"
+                st.session_state['_attr_focused'] = None
+                st.rerun()
             st.checkbox("Ukryj ten slajd w PDF", key=f"ahide_{_i}",
                         on_change=set_focus, args=(f"attr_{_i}",))
             st.text_input("Nazwa:", key=f"amain_{_i}",
