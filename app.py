@@ -76,12 +76,15 @@ _SIZE_DEFS = {
     'font_size_text': 14, 'font_size_metric': 16,
 }
 for _k, _v in _COLOR_DEFS.items():
-    _cur = st.session_state.get(_k, _v)
+    # setdefault: ustaw domyślną TYLKO gdy klucz nie istnieje
+    _cur = st.session_state.setdefault(_k, _v)
+    # Następnie waliduj format — napraw złe wartości (np. po wczytaniu z JSON)
     if not (isinstance(_cur, str) and _cur.startswith('#') and len(_cur) == 7):
         st.session_state[_k] = _v
 for _k, _v in _SIZE_DEFS.items():
+    _cur = st.session_state.setdefault(_k, _v)
     try:
-        st.session_state[_k] = max(8, int(float(st.session_state.get(_k, _v) or _v)))
+        st.session_state[_k] = max(8, int(float(_cur or _v)))
     except Exception:
         st.session_state[_k] = _v
 
@@ -175,8 +178,10 @@ def _pa_items_add(typ):
     items = _pa_items_get()
     items.append({'type': typ, 'idx': idx})
     s['pa_items'] = items
-    # Ustaw scroll na nowy element
-    s['scroll_target'] = f"{'place' if typ=='place' else 'attr'}_{idx}"
+    # Przejdź do strony edycji nowego elementu zamiast skrolować
+    _page_name = f"  ↳ pa_{typ}_{idx}"
+    s['last_page'] = _page_name
+    s['scroll_target'] = ""  # Nie skroluj — po rerun panel otworzy nowy element
     return idx
 
 
@@ -203,14 +208,21 @@ def _pa_page_name(typ, idx):
 
 
 def _pa_display_name(typ, idx):
-    """Zwraca wyświetlaną nazwę elementu."""
+    """Zwraca wyświetlaną nazwę elementu z numeracją w obrębie typu."""
     s = st.session_state
+    # Policz pozycję tego elementu wśród elementów tego samego typu
+    items = s.get('pa_items', [])
+    type_pos = next(
+        (pos + 1 for pos, it in enumerate([i for i in items if i['type'] == typ])
+         if it['idx'] == idx),
+        idx + 1
+    )
     if typ == 'place':
         n = str(s.get(f'pmain_{idx}', '')).split('\n')[0][:30].strip()
-        return n or f'Opis miejsca {idx+1}'
+        return n or f'Opis miejsca {type_pos}'
     else:
         n = str(s.get(f'amain_{idx}', '')).split('\n')[0][:30].strip()
-        return n or f'Atrakcja {idx+1}'
+        return n or f'Atrakcja {type_pos}'
 
 
 def _get_place_attr_order():
@@ -377,7 +389,10 @@ with st.sidebar:
          "  ↳ Przerywnik o nas", "Co o nas mówią", "O Nas (Zespół)",
          "Wygląd i Kolory", "Zapisz / Wczytaj Projekt"]
     )
-    page = st.radio("WYBIERZ SEKCJE DO EDYCJI:", _nav_pages)
+    # Po dodaniu elementu last_page wskazuje nową stronę pa_ — ustaw ją jako domyślną
+    _default_page = st.session_state.get('last_page', _nav_pages[0])
+    _default_idx = _nav_pages.index(_default_page) if _default_page in _nav_pages else 0
+    page = st.radio("WYBIERZ SEKCJE DO EDYCJI:", _nav_pages, index=_default_idx)
     if st.session_state.get('last_page') != page:
         st.session_state['last_page'] = page
         st.session_state['scroll_target'] = ""
