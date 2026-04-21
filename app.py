@@ -378,28 +378,35 @@ with st.sidebar:
     # -----------------------------------------------------------------------
     elif page == "Opis Kierunku":
         k_keys = [
-            'k_hide', 'k_overline', 'k_main', 'k_sub', 'k_opis',
-            'img_hero_k', 'img_k_th1', 'img_k_th2', 'img_k_th3',
+            'k_hide', 'k_main', 'k_sub', 'k_opis',
+            'kbox_bg_k', 'kbox_txt_k', 'img_hero_k',
         ]
         section_template_manager(k_keys, "KIE", st.session_state.get('k_main', 'czarnogora'), "kie")
         st.checkbox("Ukryj ten slajd w PDF", key="k_hide")
-        st.text_input("Mały nadtytuł:", key="k_overline")
-        for k, l in [('k_main', 'Kierunek (Tytuł H2)'), ('k_sub', 'Podtytuł')]:
-            st.text_input(l, key=k)
-        st.text_area("Opis (obsługuje HTML, np. <b>):", height=200, key="k_opis")
-        u4 = st.file_uploader("Zdjęcie lewe", key="kie_hero")
+        st.text_input("Nazwa kierunku (duży tytuł H1):", key="k_main")
+        st.text_input("Podtytuł (przy overline):", key="k_sub",
+                      help="Pojawia się przy poziomej kresce nad tytułem")
+
+        _section_header("BOX Z FAKTAMI (lewa środkowa kolumna)")
+        # Walidacja kolorów boksu
+        for _ck, _cv in [('kbox_bg_k', st.session_state.get('color_h1', '#003366')),
+                         ('kbox_txt_k', '#ffffff')]:
+            _v = st.session_state.get(_ck, _cv)
+            if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
+                st.session_state[_ck] = _cv
+        cb1, cb2 = st.columns(2)
+        cb1.color_picker("Kolor tła boksu", key="kbox_bg_k")
+        cb2.color_picker("Kolor tekstu w boksie", key="kbox_txt_k")
+        st.text_area(
+            "Fakty / Opis (Format: 'Etykieta: Wartość' lub wolny tekst):",
+            height=180, key="k_opis",
+            help="Każda linia to jeden wpis. Format 'Etykieta: Wartość' pogrubia etykietę.",
+        )
+
+        _section_header("ZDJĘCIE (jedno zdjęcie w dwóch ramkach)")
+        u4 = st.file_uploader("Zdjęcie kierunku:", key="kie_hero")
         if u4:
             st.session_state['img_hero_k'] = optimize_img(u4.getvalue())
-        c1, c2, c3 = st.columns(3)
-        ut1 = c1.file_uploader("Fot. 1", key="kie_th1")
-        if ut1:
-            st.session_state['img_k_th1'] = optimize_img(ut1.getvalue())
-        ut2 = c2.file_uploader("Fot. 2", key="kie_th2")
-        if ut2:
-            st.session_state['img_k_th2'] = optimize_img(ut2.getvalue())
-        ut3 = c3.file_uploader("Fot. 3", key="kie_th3")
-        if ut3:
-            st.session_state['img_k_th3'] = optimize_img(ut3.getvalue())
 
     # -----------------------------------------------------------------------
     # MAPA PODRÓŻY
@@ -523,26 +530,27 @@ with st.sidebar:
                     # Klucz z Secrets ma priorytet, potem z pola tekstowego
                     ors_key = (st.secrets.get("ORS_API_KEY", "") if hasattr(st, 'secrets') else "") \
                               or st.session_state.get('ors_api_key', '').strip()
-                    if not ors_key:
-                        st.error("Brak klucza ORS API. Skonfiguruj go w Streamlit Secrets.")
+                    a = st.session_state.get(f'dist_a_{di}', '').strip()
+                    b = st.session_state.get(f'dist_b_{di}', '').strip()
+                    if not a or not b:
+                        st.warning("Wpisz obie nazwy miejscowości.")
                     else:
-                        a = st.session_state.get(f'dist_a_{di}', '').strip()
-                        b = st.session_state.get(f'dist_b_{di}', '').strip()
-                        if not a or not b:
-                            st.warning("Wpisz obie nazwy miejscowości.")
-                        else:
-                            with st.spinner(f"Szukam trasy {a} → {b}..."):
-                                km, mins = get_road_distance(
-                                    a, b, ors_key,
-                                    st.session_state.get('country_name', ''),
-                                )
-                            if km is not None:
-                                st.session_state[f'dist_km_{di}'] = f'{km}'
-                                st.session_state[f'dist_time_{di}'] = format_duration(mins)
-                                st.success(f"Trasa: {km} km, {format_duration(mins)}")
-                                st.rerun()
+                        with st.spinner(f"Szukam trasy {a} → {b}..."):
+                            km, mins, err = get_road_distance(
+                                a, b, ors_key,
+                                st.session_state.get('country_name', ''),
+                            )
+                        if km is not None:
+                            st.session_state[f'dist_km_{di}'] = f'{km}'
+                            st.session_state[f'dist_time_{di}'] = format_duration(mins)
+                            if err:
+                                # Fallback haversine - pokaż ostrzeżenie z wyjaśnieniem
+                                st.warning(f"✓ Zapisano: {km} km, {format_duration(mins)}\n\n⚠️ {err}")
                             else:
-                                st.error("Nie udało się pobrać trasy. Sprawdź klucz API i nazwy miejscowości.")
+                                st.success(f"✓ Trasa drogowa: {km} km, {format_duration(mins)}")
+                            st.rerun()
+                        else:
+                            st.error(f"Nie udało się pobrać trasy.\n\n{err}")
 
                 cd1, cd2 = st.columns(2)
                 cd1.text_input("Odległość (km) — edytowalna:", key=f"dist_km_{di}")
@@ -723,10 +731,6 @@ with st.sidebar:
                 (f"pmain_{i}", ""), (f"psub_{i}", ""),
                 (f"pover_{i}", "NASZ KIERUNEK"),
                 (f"pday_{i}", "Brak przypisania"), (f"popis_{i}", ""),
-                (f"pfacts_title_{i}", ""),
-                (f"pfacts_{i}", "Czas przelotu: 7 h\nRóżnica czasu: +4h 30min\nStolica: \nKlimat: \nWaluta: "),
-                (f"pbox_bg_{i}", st.session_state.get('color_h2', '#003366')),
-                (f"pbox_txt_{i}", '#ffffff'),
                 (f"phide_{i}", False),
             ]:
                 if dk not in st.session_state:
@@ -741,8 +745,8 @@ with st.sidebar:
                           on_click=set_focus, args=(f"place_{i}",), use_container_width=True)
                 p_keys = [
                     f'phide_{i}', f'pover_{i}', f'pmain_{i}', f'psub_{i}',
-                    f'pday_{i}', f'pfacts_title_{i}', f'pfacts_{i}',
-                    f'pbox_bg_{i}', f'pbox_txt_{i}', f'popis_{i}', f'pimg1_{i}',
+                    f'pday_{i}', f'popis_{i}',
+                    f'pimg1_{i}', f'pimg2_{i}', f'pimg3_{i}', f'pimg4_{i}',
                 ]
                 section_template_manager(
                     p_keys, "MIE", pmain_val or f"Miejsce_{i+1}", f"plc_{i}", index=i,
@@ -760,31 +764,28 @@ with st.sidebar:
                     st.session_state[f"pday_{i}"] = day_options_global[0]
                 st.selectbox("Przypisz do dnia:", day_options_global, key=f"pday_{i}",
                              on_change=set_focus, args=(f"place_{i}",))
-
-                _section_header("BOX Z FAKTAMI")
-                cb1, cb2 = st.columns(2)
-                # Walidacja kolorów
-                for ck, cv in [(f"pbox_bg_{i}", st.session_state.get('color_h2', '#003366')),
-                               (f"pbox_txt_{i}", '#ffffff')]:
-                    v = st.session_state.get(ck, cv)
-                    if not (isinstance(v, str) and v.startswith('#') and len(v) == 7):
-                        st.session_state[ck] = cv
-                cb1.color_picker("Kolor tła boksu", key=f"pbox_bg_{i}",
-                                 on_change=set_focus, args=(f"place_{i}",))
-                cb2.color_picker("Kolor tekstu w boksie", key=f"pbox_txt_{i}",
-                                 on_change=set_focus, args=(f"place_{i}",))
-                st.text_input("Tytuł boksu (opcjonalnie):", key=f"pfacts_title_{i}",
-                              on_change=set_focus, args=(f"place_{i}",))
-                st.text_area("Fakty (Format: 'Etykieta: Wartość'):", height=140,
-                             key=f"pfacts_{i}", on_change=set_focus, args=(f"place_{i}",))
-
-                _section_header("ZDJĘCIE I OPIS")
                 st.text_area("Opis miejsca:", height=160, key=f"popis_{i}",
                              on_change=set_focus, args=(f"place_{i}",))
-                up1 = st.file_uploader("Zdjęcie (pionowe):", key=f"plc_img1_{i}",
+
+                _section_header("ZDJĘCIA")
+                up1 = st.file_uploader("Zdjęcie główne (pionowe, lewa strona):",
+                                       key=f"plc_img1_{i}",
                                        on_change=set_focus, args=(f"place_{i}",))
                 if up1:
                     st.session_state[f"pimg1_{i}"] = optimize_img(up1.getvalue())
+                c1, c2, c3 = st.columns(3)
+                up2 = c1.file_uploader("Miniatura 1", key=f"plc_img2_{i}",
+                                       on_change=set_focus, args=(f"place_{i}",))
+                if up2:
+                    st.session_state[f"pimg2_{i}"] = optimize_img(up2.getvalue())
+                up3 = c2.file_uploader("Miniatura 2", key=f"plc_img3_{i}",
+                                       on_change=set_focus, args=(f"place_{i}",))
+                if up3:
+                    st.session_state[f"pimg3_{i}"] = optimize_img(up3.getvalue())
+                up4 = c3.file_uploader("Miniatura 3", key=f"plc_img4_{i}",
+                                       on_change=set_focus, args=(f"place_{i}",))
+                if up4:
+                    st.session_state[f"pimg4_{i}"] = optimize_img(up4.getvalue())
 
     # -----------------------------------------------------------------------
     # OPIS ATRAKCJI
