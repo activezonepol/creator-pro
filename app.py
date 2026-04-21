@@ -91,57 +91,53 @@ for _k, _v in _SIZE_DEFS.items():
         st.session_state[_k] = _v
 
 # ---------------------------------------------------------------------------
-# ---------------------------------------------------------------------------
 # AUTO-ZAPIS / AUTO-ODCZYT z localStorage przeglądarki
 # ---------------------------------------------------------------------------
-# Stały klucz — ta sama przeglądarka zawsze znajdzie swój projekt.
 _LS_KEY = "activezone_project_v1"
 
-# Przy starcie sesji: automatycznie wczytaj projekt z localStorage
-# przez komponent JS który wysyła dane przez query_params.
-# _ls_loaded zapobiega wielokrotnemu wczytywaniu przy rerunie.
 if '_ls_loaded' not in st.session_state:
     st.session_state['_ls_loaded'] = False
 
 _qp = st.query_params.to_dict()
 if _qp.get('_ls_restore') and not st.session_state.get('_ls_loaded'):
-    try:
-        _restored = json.loads(base64.b64decode(_qp['_ls_restore']).decode())
-        load_project_data(_restored)
+    _ls_val = _qp['_ls_restore']
+    if _ls_val == 'empty':
+        # localStorage był pusty — kontynuuj z defaults
         st.session_state['_ls_loaded'] = True
         st.query_params.clear()
-        st.rerun()
-    except Exception:
-        st.session_state['_ls_loaded'] = True
-        st.query_params.clear()
+    else:
+        try:
+            _restored = json.loads(base64.b64decode(_ls_val).decode())
+            load_project_data(_restored)
+            st.session_state['_ls_loaded'] = True
+            st.query_params.clear()
+            st.rerun()
+        except Exception:
+            st.session_state['_ls_loaded'] = True
+            st.query_params.clear()
 
-# Jeśli sesja jest świeża (nie załadowano jeszcze) — wyślij JS który odczyta
-# localStorage i przekaże dane przez query_params → automatyczny restore
 if not st.session_state.get('_ls_loaded'):
+    # Sesja świeża — wyślij JS który spróbuje wczytać z localStorage.
+    # Jeśli znajdzie dane → przekieruje z ?_ls_restore=...
+    # Jeśli nie → kolejny rerun przyjdzie bez parametru i ustawimy _ls_loaded=True
     import streamlit.components.v1 as _comp_init
-    _comp_init.html(f"""
-    <script>
+    _comp_init.html(f"""<script>
     (function() {{
         var data = localStorage.getItem('{_LS_KEY}');
-        if (!data) {{
-            // Brak zapisanego projektu — oznacz jako załadowane
-            var url = window.parent.location.href.split('?')[0];
-            // Nie robimy nic, pozwalamy defaultom działać
-            return;
+        if (data) {{
+            try {{
+                var b64 = btoa(unescape(encodeURIComponent(data)));
+                var url = window.parent.location.href.split('?')[0].split('#')[0];
+                window.parent.location.href = url + '?_ls_restore=' + b64;
+                return;
+            }} catch(e) {{ }}
         }}
-        try {{
-            var b64 = btoa(unescape(encodeURIComponent(data)));
-            var url = window.parent.location.href.split('?')[0].split('#')[0];
-            window.parent.location.href = url + '?_ls_restore=' + b64;
-        }} catch(e) {{
-            console.log('Auto-restore error:', e);
-        }}
+        // Brak danych lub błąd — powiadom Pythona przez pusty param
+        var url = window.parent.location.href.split('?')[0].split('#')[0];
+        window.parent.location.href = url + '?_ls_restore=empty';
     }})();
-    </script>
-    """, height=0)
-    # Zatrzymaj rendering do czasu gdy JS nie odpowie
-    # (następny rerun przyjdzie z _ls_restore lub bez)
-    st.session_state['_ls_loaded'] = True  # fallback — kontynuuj z defaults
+    </script>""", height=0)
+    st.stop()  # Zatrzymaj rendering — czekamy na odpowiedź JS
 
 # ---------------------------------------------------------------------------
 # HELPERY UI
