@@ -926,9 +926,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             <div><div class="metric-label">Dojazd</div><div class="metric-value">{s.get('t_trans','')}</div></div>
         </div></div></div>{fh}""", "slide-title"))
 
-    # --- Opis kierunku (Pojedynczy Slajd Premium) ---
+   # --- Opis kierunku (Pojedynczy Slajd Premium) ---
     if not s.get('k_hide', False):
-        # Kwadratowe zdjęcie bazowe (skaluje się na 2 ramki)
         kimg = get_b64('img_hero_k', (1, 1))
 
         # Przetwarzanie boxu z faktami
@@ -951,14 +950,15 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 )
         facts_html_k = ''.join(facts_lines)
 
-        # Ustawienia kolorów boxu (domyślnie tło to H1, a tekst jest biały)
+        # Kolory boxu - domyślnie tło to kolor H1
         kbox_bg  = str(s.get('k_box_bg')  or c_h1)
         kbox_txt = str(s.get('k_box_txt') or '#ffffff')
 
+        # Tytuł boxu w stylu nadtytułu
         facts_title_html = (
             f"<div style='font-family:\"{f_met}\"; font-weight:700; font-size:{max(10, fs_met-2)}px; "
             f"color:{kbox_txt}; text-transform:uppercase; letter-spacing:3px; "
-            f"margin-bottom:15px; padding-bottom:10px; "
+            f"margin-bottom:12px; padding-bottom:10px; "
             f"border-bottom:1px solid rgba(255,255,255,0.3);'>{kfacts_title}</div>"
             if kfacts_title else ''
         )
@@ -980,7 +980,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         hp.append(_shtml(f"""{lh}
         <div class="premium-layout" id="slide-kierunek" style="gap: 40px; align-items: stretch;">
             
-            <div style="flex: 48; display: flex; gap: 15px; height: 100%;">
+            <div style="flex: 55; display: flex; gap: 15px; height: 100%;">
                 <div style="flex: 1.2; height: 100%; border-radius: 8px; overflow: hidden; position: relative; background: #fcfcfc; border: 1px solid #eee;">
                     {f'<img src="data:image/jpeg;base64,{kimg}" style="position: absolute; top:0; left:0; width: 200%; height: 100%; object-fit: cover; object-position: left center;">' if kimg else _get_ph('ZDJĘCIE')}
                 </div>
@@ -992,21 +992,21 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 </div>
             </div>
 
-            <div class="info-col" style="flex: 52; padding-left: 10px; padding-top: 15px; justify-content: flex-start;">
+            <div class="info-col" style="flex: 45; padding-left: 10px; padding-top: 15px; justify-content: flex-start;">
                 
-                <div style="display: flex; align-items: center; justify-content: flex-start; gap: 15px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; justify-content: flex-start; gap: 15px; margin-bottom: 10px;">
                     <span style="font-family:'{f_met}'; font-size:{max(10,fs_met-2)}px; font-weight:700; letter-spacing:3px; color:{acc}; text-transform:uppercase;">
                         {k_over}
                     </span>
-                    <div style="height: 2px; background-color: {acc}; width: 60px;"></div>
+                    <div style="height: 1px; background-color: {acc}; width: 60px;"></div>
                 </div>
                 
-                <div class="title-h1" style="text-align: left; margin-bottom: 10px; font-size:{fs_h1_val}px; color:{c_h1}; line-height: 1.1; border-left: 6px solid {acc}; padding-left: 20px;">
+                <div class="title-h1" style="text-align: left; margin-bottom: 5px; font-size:{fs_h1_val}px; color:{c_h1}; line-height: 1.1;">
                     {k_main}
                 </div>
                 
-                <div class="title-sub" style="text-align: left; color: {c_h1}; font-size:{fs_sub_val}px; margin-bottom: 25px; margin-top: 15px; font-family: '{f_h2}'; font-weight: 400; letter-spacing: 0px; text-transform: uppercase;">
-                    {f'„{k_sub}”' if k_sub else ''}
+                <div class="title-sub" style="text-align: left; color: {acc}; font-size:{fs_sub_val}px; margin-bottom: 25px; font-family: '{f_h2}'; font-weight: 300; letter-spacing: 1px; text-transform: uppercase;">
+                    {k_sub}
                 </div>
                 
                 <div style="font-family: '{f_txt}'; font-size: {fs_t}px; line-height: 1.7; color: {c_t}; text-align: justify;">
