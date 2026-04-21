@@ -357,87 +357,75 @@ with st.sidebar:
     _acc = st.session_state.get('color_accent', '#FF6600')
     _h1c = st.session_state.get('color_h1', '#003366')
 
-    # Buduj listę stron atrakcji (dynamiczna)
-    _attr_nav = [_attr_page_name(pos) for pos in range(_attr_count())]
+    # Buduj dynamiczną listę pozycji nawigacji — atrakcje wewnątrz radio
+    _attr_pages = [_attr_page_name(pos) for pos in range(_attr_count())]
 
     _nav_pages = (
         ["Strona Tytułowa", "Opis Kierunku", "Mapa Podróży", "Jak lecimy?",
          "  ↳ Przerywnik hotel", "Zakwaterowanie",
          "  ↳ Przerywnik program", "Program Wyjazdu",
          "  ↳ Przerywnik atrakcje",
-         "Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent",
+         "── Miejsca i atrakcje"] +
+        _attr_pages +
+        ["Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent",
          "Pillow Gifts", "Kosztorys",
          "  ↳ Przerywnik o nas", "Co o nas mówią", "O Nas (Zespół)",
          "Wygląd i Kolory", "Zapisz / Wczytaj Projekt"]
     )
 
     _last = st.session_state.get('last_page', _nav_pages[0])
-    # Gdy last_page to atrakcja (spoza radio), nie zmieniaj indeksu radio
-    _last_in_nav = _last if _last in _nav_pages else _nav_pages[0]
-    _default_idx = _nav_pages.index(_last_in_nav)
+    _default_idx = _nav_pages.index(_last) if _last in _nav_pages else 0
 
-    page = st.radio("WYBIERZ SEKCJE DO EDYCJI:", _nav_pages, index=_default_idx)
-    # Gdy kliknięto pozycję w radio — aktualizuj last_page
+    def _fmt_nav(p):
+        """Formatuje etykiety w radio — nagłówek sekcji wyróżniony."""
+        if p == "── Miejsca i atrakcje":
+            return f"★  MIEJSCA I ATRAKCJE — DODAJ ＋"
+        return p
+
+    page = st.radio("WYBIERZ SEKCJE DO EDYCJI:", _nav_pages,
+                    index=_default_idx, format_func=_fmt_nav)
+
     if st.session_state.get('last_page') != page:
         st.session_state['last_page'] = page
         st.session_state['scroll_target'] = ""
-    # Gdy last_page wskazuje na atrakcję (spoza radio) — użyj jej jako aktywnej strony
-    _lp = st.session_state.get('last_page', '')
-    if _lp.startswith("  ↳ ") and _lp not in {"  ↳ Przerywnik hotel",
-            "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}:
-        page = _lp
 
-    # --- NAGŁÓWEK "Miejsca i atrakcje" z plusem i strzałkami (po radio) ---
-    # Pojawia się między "↳ Przerywnik atrakcje" a "Aplikacja" w sidebarze
-    _acc_c = st.session_state.get('color_accent', '#FF6600')
-    _h1_c  = st.session_state.get('color_h1', '#003366')
-    st.markdown(
-        f"<div style='display:flex;align-items:center;justify-content:space-between;"
-        f"padding:8px 0 4px 0;margin-top:4px;border-top:1px solid #e2e8f0;'>"
-        f"<span style='font-family:Montserrat,sans-serif;font-size:11px;font-weight:700;"
-        f"color:{_h1_c};text-transform:uppercase;letter-spacing:1px;'>"
-        f"Miejsca i atrakcje</span></div>",
-        unsafe_allow_html=True,
-    )
-    if st.button("＋ Dodaj atrakcję", key="attr_add_btn",
-                 use_container_width=True, type="secondary"):
-        _attr_add()
-        st.rerun()
-
-    # Strzałki ▲▼ przy każdej atrakcji
-    _n_attr = _attr_count()
-    if _n_attr > 0:
-        _ord = _attr_order()
-        for _ap in range(_n_attr):
-            _ai = _ord[_ap]
+    # Strzałki ▲▼ przy atrakcjach (w sidebarze pod radio)
+    _n = _attr_count()
+    if _n > 0:
+        st.markdown(
+            f"<div style='font-size:10px;color:#94a3b8;padding:2px 0 4px 0;"
+            f"text-transform:uppercase;letter-spacing:1px;'>Kolejność atrakcji</div>",
+            unsafe_allow_html=True,
+        )
+        for _ap in range(_n):
             _alabel = _attr_page_name(_ap)
-            _is_active = (st.session_state.get('last_page') == _alabel)
-            _col_lbl, _col_up, _col_dn = st.columns([7, 1, 1])
-            _btn_style = "primary" if _is_active else "secondary"
-            if _col_lbl.button(
-                f"★ {_alabel.strip().lstrip('↳').strip()}",
-                key=f"attr_nav_{_ap}",
-                use_container_width=True,
-                type=_btn_style,
-            ):
-                st.session_state['last_page'] = _alabel
-                st.session_state['scroll_target'] = ""
-                st.rerun()
+            _aname  = _alabel.strip().lstrip('↳').strip()
+            _c1, _c2, _c3 = st.columns([6, 1, 1])
+            _c1.markdown(
+                f"<div style='font-size:11px;padding:4px 0;color:#475569;"
+                f"border-left:2px solid {_acc};padding-left:6px;'>{_aname}</div>",
+                unsafe_allow_html=True,
+            )
             if _ap > 0:
-                _col_up.button("▲", key=f"attr_up_{_ap}",
-                               on_click=_attr_move, args=(_ap, -1),
-                               use_container_width=True)
-            if _ap < _n_attr - 1:
-                _col_dn.button("▼", key=f"attr_dn_{_ap}",
-                               on_click=_attr_move, args=(_ap, 1),
-                               use_container_width=True)
-
+                _c2.button("▲", key=f"aord_up_{_ap}",
+                           on_click=_attr_move, args=(_ap, -1),
+                           use_container_width=True)
+            if _ap < _n - 1:
+                _c3.button("▼", key=f"aord_dn_{_ap}",
+                           on_click=_attr_move, args=(_ap, 1),
+                           use_container_width=True)
 
     st.divider()
 
     # Nagłówek zakładki
     _inter_pages = {"  ↳ Przerywnik hotel", "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}
     _is_attr_page = page.startswith("  ↳ ") and page not in _inter_pages
+
+    # Gdy kliknięto nagłówek sekcji "── Miejsca i atrakcje" — dodaj atrakcję i przejdź do niej
+    if page == "── Miejsca i atrakcje":
+        _attr_add()
+        st.rerun()
+
     if page == "Wygląd i Kolory":
         st.markdown("<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;'>KONFIGURACJA WYGLĄDU</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Dostosuj kolory i typografię oferty</div>", unsafe_allow_html=True)
@@ -454,6 +442,8 @@ with st.sidebar:
         _label = page.strip().lstrip("↳").strip()
         st.markdown(f"<h2 style='color:{_acc_col};margin-bottom:0;font-size:20px;font-weight:700;font-family:Montserrat,sans-serif;margin-left:12px;border-left:3px solid {_acc_col};padding-left:10px;'>★ {_label}</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;margin-left:12px;'>Edytuj treść slajdu atrakcji poniżej.</div>", unsafe_allow_html=True)
+    elif page == "── Miejsca i atrakcje":
+        pass  # Obsłużono wyżej przez _attr_add
     else:
         st.markdown(f"<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;text-transform:uppercase;'>{page}</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Wprowadź dane dla tej sekcji poniżej:</div>", unsafe_allow_html=True)
