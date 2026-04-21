@@ -160,7 +160,7 @@ defaults = {
     'h_amenities_0': ["Basen", "SPA", "Wi-Fi", "Restauracja", "Plaża"],
     'h_text_0': 'Zapewniamy zakwaterowanie w starannie wyselekcjonowanym hotelu.',
     'h_advantages_0': 'Położenie tuż przy prywatnej plaży',
-    'prg_hide': False, 'num_days': 4, 'num_places': 0, 'num_attr': 1,
+    'prg_hide': False, 'num_days': 4, 'num_places': 0, 'num_attr': 0,
     'koszt_hide_1': False, 'koszt_hide_2': False, 'koszt_title': 'KOSZTORYS',
     'koszt_h1_title': 'KOSZTORYS',
     'koszt_pax': '25', 'koszt_price': '4.990 zł / os.',
@@ -172,25 +172,55 @@ defaults = {
     'app_hide': False, 'app_overline': 'KOMUNIKACJA',
     'app_title': 'APLIKACJA\nNA WYJAZD',
     'app_subtitle': 'Dedykowana na wyjazd aplikacja dla uczestników',
-    'app_features': 'Intuicyjna obsługa\nWygoda i nowoczesność',
+    'app_features': ('Intuicyjna obsługa\n'
+                     'Wygoda i nowoczesność / branding\n'
+                     'Po pobraniu działa offline\n'
+                     'Zawiera program i wszystkie ważne informacje\n'
+                     'Formularz danych: dieta, zakwaterowanie, ubezpieczenie\n'
+                     'Możliwość dodawania zdjęć i filmów przez uczestników\n'
+                     'Możliwość przeprowadzania konkursów\n'
+                     'Komunikacja SMS\n'
+                     'Komunikacja "push" w aplikacji\n'
+                     'Czat w aplikacji dla uczestników'),
     'brand_hide': False, 'brand_overline': 'IDENTYFIKACJA',
     'brand_title': 'MATERIAŁY\nBRANDINGOWE',
     'brand_subtitle': 'Komunikacja przed, w trakcie i po wyjeździe',
     'brand_features': (
         'Komunikacja SMS, e-mail, push w aplikacji przed i w trakcie wyjazdu\n'
         'Atrakcyjne zaproszenie elektroniczne\n'
-        'Program i materiały, w tym koperta na bilet z logo\n'
+        'Newsletter dla uczestników, program i materiały oraz koperty z logo na bilety i dokumenty\n'
         'Strona www i aplikacja mobilna z formularzem uczestnika\n'
-        'Stanowisko na lotnisku z logo'
+        'Stanowisko na lotnisku z logo\n'
+        'Zawieszka imienna z logo na bagaż\n'
+        'Menu na posiłki z logo\n'
+        'Zróżnicowanie posiłków do preferencji\n'
+        'List powitalny w hotelu\n'
+        'Oprawa marketingowa wyjazdu\n'
+        'Cztery pillow gifty z opisem i logo (w tym strój)\n'
+        'Taśma zabezpieczająca na walizkę z logo (opcja)'
     ),
     'va_hide': False, 'va_overline': 'SPRAWNA ORGANIZACJA',
     'va_title': 'WIRTUALNY\nASYSTENT',
     'va_subtitle': 'Sprawna organizacja i wygoda',
-    'va_text': 'Nowatorski system do zarządzania grupami.',
+    'va_text': ('Nowatorski system do zarządzania grupami. Składa się z aplikacji, identyfikatorów '
+                'z chipem, naklejek z chipem lub kodem z danymi uczestników (np. do naklejenia na walizkę). '
+                'System może zawierać dane uczestników, m.in.: imię i nazwisko, numer pokoju, wskazania '
+                'dietetyczne, nr telefonu, przydział do grup. Dane z chipa są czytane przy użyciu systemu '
+                'NFC przez aplikację telefonu opiekunów grupy. Po zbliżeniu telefonu komórkowego do '
+                'bransoletki uczestnika lub oznakowanej walizki aplikacja odnotowuje jego obecność. '
+                'Kod na walizce pozwala więc błyskawicznie odnaleźć jej właściciela lub odnotować '
+                'zapakowanie walizki do autokaru. Wirtualny asystent umożliwia także łatwy kontakt '
+                'z uczestnikami: wysyłkę SMS-ów, ankiety, formularze, czat, konkursy w aplikacji.'),
     'pg_hide': False, 'pg_overline': 'PILLOW GIFTS',
     'pg_title': 'PILLOW\nGIFTS',
     'pg_subtitle': 'Aby wspólne chwile zatrzymać na dłużej',
-    'pg_text': 'Upominki pełnią ważną rolę w budowaniu relacji biznesowych.',
+    'pg_text': ('Upominki pełnią ważną rolę w budowaniu relacji biznesowych. '
+                'Wręczanie podarunków jest podziękowaniem za współpracę, ale także ułatwia '
+                'poznanie partnera biznesowego. Przy wręczaniu upominku ważna nie jest jego '
+                'wartość, ale pamięć o drugiej stronie i włożenie wysiłku w wybranie prezentu. '
+                'Każdy pillow gift będzie miał elegancką fiszkę z opisem i Państwa logo. '
+                'Wśród upominków związanych z miejscem wyjazdu lub podróżowaniem proponujemy do wyboru:'),
+    'pg_features': '',
     'sek_0_title': 'ZAKWATEROWANIE', 'sek_0_sub': 'NASZE HOTELE', 'sek_0_hide': False,
     'sek_1_title': 'PROGRAM', 'sek_1_sub': 'ATRAKCJE I MIEJSCA', 'sek_1_hide': False,
     'sek_2_title': 'REKOMENDACJE', 'sek_2_sub': 'CO O NAS MÓWIĄ', 'sek_2_hide': False,
@@ -322,7 +352,7 @@ def auto_generate_kosztorys():
         "Woda podczas wycieczek i transferów",
         "Opieka profesjonalnego tour leadera Activezone",
     ]
-    for i in range(s.get('num_attr', 1)):
+    for i in range(s.get('num_attr', 0)):
         if not s.get(f'ahide_{i}', False):
             name = str(s.get(f'amain_{i}', '')).strip()
             if name:
@@ -798,8 +828,8 @@ def get_local_css(return_str=False):
         .app-overline-style::before, .app-overline-style::after {{ content: ""; height: 1px; background-color: {acc}; opacity: 0.5; flex-shrink: 0; }}
         .app-overline-style::before {{ width: 32px; }}
         .app-overline-style::after {{ flex: 1; }}
-        .app-list {{ list-style: none; padding: 0; margin-top: 15px; margin-bottom: 15px; }}
-        .app-list li {{ position: relative; padding-left: 20px; margin-bottom: 10px; font-family: '{f_txt}'; font-size: {fs_t}px; line-height: 1.4; color: {c_t}; font-weight: 400; }}
+        .app-list {{ list-style: none; padding: 0; margin-top: 10px; margin-bottom: 10px; }}
+        .app-list li {{ position: relative; padding-left: 18px; margin-bottom: 7px; font-family: '{f_txt}'; font-size: {max(10, fs_t-1)}px; line-height: 1.3; color: {c_t}; font-weight: 400; }}
         .app-list li::before {{ content: '■'; position: absolute; left: 0; top: 1px; color: {c_h2}; font-size: 0.7em; }}
         .app-list li.sub-item {{ padding-left: 35px; margin-bottom: 6px; font-size: 0.95em; color: {c_t}; font-weight: 300; }}
         .app-list li.sub-item::before {{ content: '○'; left: 18px; top: 3px; font-size: 0.6em; color: {c_h2}; }}
@@ -1353,7 +1383,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                                 mh += f"<div><div style='display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600; color:{c_t}; margin-bottom:5px;'><span style='font-size:18px; color:{acc};'><i class='fa-solid fa-map-location-dot'></i></span> <span>{nm}</span></div></div>"
                             else:
                                 mh += f"<div><a href='#place_{pi}' style='text-decoration:none; color:{acc}; display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600; margin-bottom:5px;'><span style='font-size:18px;'><i class='fa-solid fa-map-location-dot'></i></span> <span>{nm} <span style='font-size:12px; font-weight:400; opacity:0.8;'>(zobacz)</span></span></a></div>"
-                    for ai in range(s.get('num_attr', 1)):
+                    for ai in range(s.get('num_attr', 0)):
                         a_day = str(s.get(f"aday_{ai}") or "")
                         d_match = re.search(r'Dzień\s+(\d+)', a_day)
                         if d_match and int(d_match.group(1)) == di + 1:
@@ -1420,7 +1450,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             _m = re.search(r'Dzień\s+(\d+)', _pday)
             _tmp_p.append(('place', _pi, int(_m.group(1)) if _m else 999))
         _tmp_a = []
-        for _ai in range(s.get('num_attr', 1)):
+        for _ai in range(s.get('num_attr', 0)):
             _aday = str(s.get(f"aday_{_ai}") or "")
             _m = re.search(r'Dzień\s+(\d+)', _aday)
             _tmp_a.append(('attr', _ai, int(_m.group(1)) if _m else 999))
@@ -1547,11 +1577,11 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     if iscr else '<div class="photo-placeholder" style="background:#fff;">EKRAN APP</div>')
         fh_app = "".join([f"<li>{f.strip()}</li>" for f in s.get('app_features', '').split('\n') if f.strip()])
         hp.append(_shtml(f"""{lh}<div style="position:relative;height:100%;width:100%;display:flex; overflow:hidden;">
-            <div style="flex:0 0 46%; max-width:46%; z-index:2; display:flex; flex-direction:column; padding-right:20px; padding-top:30px; justify-content:flex-start;">
+            <div style="flex:0 0 52%; max-width:52%; z-index:2; display:flex; flex-direction:column; padding-right:16px; padding-top:24px; justify-content:flex-start;">
                 <div class="app-overline-style"><span>{str(s.get('app_overline',''))}</span></div>
-                <div class="title-h1" style="margin-bottom:15px; font-size:{fs_h1_val-6}px;">{str(s.get('app_title','')).replace(chr(10),'<br>')}</div>
-                <div class="title-sub" style="margin-bottom:25px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('app_subtitle','')).replace(chr(10),'<br>')}</div>
-                <ul class="app-list">{fh_app}</ul></div>
+                <div class="title-h1" style="margin-bottom:10px; font-size:{fs_h1_val-8}px;">{str(s.get('app_title','')).replace(chr(10),'<br>')}</div>
+                <div class="title-sub" style="margin-bottom:14px; font-size:{max(10,fs_sub_val-6)}px;">{str(s.get('app_subtitle','')).replace(chr(10),'<br>')}</div>
+                <ul class="app-list" style="margin-top:0;">{fh_app}</ul></div>
             <div class="app-image-col" style="top:-30px;right:-45px;bottom:0;">{bg_html}</div>
             <div class="phone-mockup">{scr_html}</div></div>{fh}""", "slide-app"))
 
@@ -1565,11 +1595,11 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         b3h = (f'<img src="data:image/jpeg;base64,{b3}" style="width:100%;height:100%;object-fit:cover;"><div class="brand-gap"></div>' if b3 else _get_ph('ZDJ 3'))
         bfh = "".join([f"<li>{f.strip()}</li>" for f in s.get('brand_features', '').split('\n') if f.strip()])
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
-            <div class="info-col" style="flex: 50; padding-right: 40px; padding-top: 30px; justify-content: flex-start;">
+            <div class="info-col" style="flex: 55; padding-right: 30px; padding-top: 24px; justify-content: flex-start;">
                 <div class="app-overline-style"><span>{str(s.get('brand_overline',''))}</span></div>
-                <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(s.get('brand_title','')).replace(chr(10),'<br>')}</div>
-                <div class="title-sub" style="margin-bottom:25px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('brand_subtitle','')).replace(chr(10),'<br>')}</div>
-                <ul class="app-list">{bfh}</ul>
+                <div class="title-h1" style="margin-bottom: 10px; font-size:{fs_h1_val-8}px;">{str(s.get('brand_title','')).replace(chr(10),'<br>')}</div>
+                <div class="title-sub" style="margin-bottom:14px; font-size:{max(10,fs_sub_val-6)}px;">{str(s.get('brand_subtitle','')).replace(chr(10),'<br>')}</div>
+                <ul class="app-list" style="margin-top:0;">{bfh}</ul>
             </div>
             <div style="flex: 50; position: relative; height: 100%;"><div class="brand-collage">
                 <div class="brand-img-1">{b1h}</div><div class="brand-img-2">{b2h}</div><div class="brand-img-3">{b3h}</div>
@@ -1612,9 +1642,10 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div></div>
             <div class="info-col" style="flex:50;padding-left:40px;padding-top:30px;justify-content:flex-start;">
                 <div class="app-overline-style"><span>{str(s.get('pg_overline',''))}</span></div>
-                <div class="title-h1" style="margin-bottom:15px; font-size:{fs_h1_val-6}px;">{str(s.get('pg_title','')).replace(chr(10),'<br>')}</div>
-                <div class="title-sub" style="margin-bottom:25px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('pg_subtitle','')).replace(chr(10),'<br>')}</div>
-                <div style="font-family:'{f_t}';font-size:{fs_t}px;line-height:1.6;color:{c_t};">{str(s.get('pg_text') or '').replace(chr(10),'<br>')}</div>
+                <div class="title-h1" style="margin-bottom:10px; font-size:{fs_h1_val-8}px;">{str(s.get('pg_title','')).replace(chr(10),'<br>')}</div>
+                <div class="title-sub" style="margin-bottom:12px; font-size:{max(10,fs_sub_val-6)}px;">{str(s.get('pg_subtitle','')).replace(chr(10),'<br>')}</div>
+                <div style="font-family:'{f_t}';font-size:{max(10,fs_t-1)}px;line-height:1.5;color:{c_t};margin-bottom:10px;">{str(s.get('pg_text') or '').replace(chr(10),'<br>')}</div>
+                {f'<ul class="app-list" style="margin-top:0;">{"".join([f"<li>{x.strip()}</li>" for x in str(s.get("pg_features","")).split(chr(10)) if x.strip()])}</ul>' if s.get('pg_features','').strip() else ''}
             </div></div>{fh}""", "slide-pillow-gifts"))
 
     # --- Kosztorys (slajd 1) ---
@@ -1752,7 +1783,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     # Gdy brak miejsc — scroll do slajdu wzorcowego place_preview (zawsze renderowanego w trybie edycji)
     pid = f"place_{first_visible_place}" if first_visible_place is not None else "place_preview"
     first_visible_attr = next(
-        (i for i in range(s.get('num_attr', 1)) if not s.get(f'ahide_{i}')), None
+        (i for i in range(s.get('num_attr', 0)) if not s.get(f'ahide_{i}')), None
     )
     fid = f"attr_{first_visible_attr}" if first_visible_attr is not None else "slide-title"
     # Pierwszy hotel
