@@ -100,7 +100,7 @@ for _i in range(50):
         f'img_hotel_1_{_i}', f'img_hotel_1b_{_i}',
         f'img_hotel_2_{_i}', f'img_hotel_3_{_i}',
         f'img_d_{_i}', f'ah_{_i}', f'at1_{_i}', f'at2_{_i}', f'at3_{_i}',
-        f'pimg1_{_i}', f'pimg2_{_i}',
+        f'pimg1_{_i}', f'pimg2_{_i}', f'pimg3_{_i}', f'pimg4_{_i}',
         f'testim_img_{_i}', f't_img_{_i}',
         f'kimg_{_i}',
     })
@@ -485,36 +485,65 @@ def geocode_place(name, country=None):
 
 def get_road_distance(place_a: str, place_b: str, ors_api_key: str, country: str = ''):
     """
-    Zwraca (dystans_km: float, czas_min: int) dla trasy drogowej A→B.
-    Używa OpenRouteService Directions API (klucz bezpłatny na openrouteservice.org).
-    Przy błędzie zwraca (None, None).
+    Zwraca (dystans_km, czas_min, komunikat) dla trasy A→B.
+    Próbuje ORS (trasy drogowe), przy błędzie fallback na haversine (linia prosta * 1.3).
+    Zwraca (None, None, opis_błędu) przy całkowitym niepowodzeniu.
     """
-    if not ors_api_key or not place_a.strip() or not place_b.strip():
-        return None, None
+    if not place_a.strip() or not place_b.strip():
+        return None, None, "Podaj obie nazwy miejscowości."
+
+    lat_a, lon_a = geocode_place(place_a.strip(), country)
+    lat_b, lon_b = geocode_place(place_b.strip(), country)
+
+    if None in (lat_a, lon_a, lat_b, lon_b):
+        return None, None, f"Nie znaleziono lokalizacji: {'A' if lat_a is None else 'B'}. Sprawdź pisownię."
+
+    # Próba ORS (drogowa)
+    if ors_api_key:
+        try:
+            url = 'https://api.openrouteservice.org/v2/directions/driving-car'
+            body = json.dumps({'coordinates': [[lon_a, lat_a], [lon_b, lat_b]]})
+            req = urllib.request.Request(
+                url,
+                data=body.encode('utf-8'),
+                headers={
+                    'Authorization': ors_api_key,
+                    'Content-Type': 'application/json',
+                },
+                method='POST',
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+            if 'routes' in data and data['routes']:
+                summary = data['routes'][0]['summary']
+                dist_km = int(round(summary['distance'] / 1000, 0))
+                time_min = int(round(summary['duration'] / 60, 0))
+                return dist_km, time_min, None
+            elif 'error' in data:
+                ors_error = data['error'].get('message', str(data['error']))
+            else:
+                ors_error = "Nieznany błąd ORS"
+        except Exception as e:
+            ors_error = str(e)
+    else:
+        ors_error = "Brak klucza ORS API"
+
+    # Fallback: haversine (linia prosta) z przybliżeniem drogowym *1.3
     try:
-        lat_a, lon_a = geocode_place(place_a.strip(), country)
-        lat_b, lon_b = geocode_place(place_b.strip(), country)
-        if None in (lat_a, lon_a, lat_b, lon_b):
-            return None, None
-        url = 'https://api.openrouteservice.org/v2/directions/driving-car'
-        body = json.dumps({'coordinates': [[lon_a, lat_a], [lon_b, lat_b]]})
-        req = urllib.request.Request(
-            url,
-            data=body.encode('utf-8'),
-            headers={
-                'Authorization': ors_api_key,
-                'Content-Type': 'application/json',
-            },
-            method='POST',
-        )
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode('utf-8'))
-        summary = data['routes'][0]['summary']
-        dist_km = round(summary['distance'] / 1000, 0)
-        time_min = round(summary['duration'] / 60, 0)
-        return int(dist_km), int(time_min)
-    except Exception:
-        return None, None
+        import math as _math
+        R = 6371.0
+        φ1, φ2 = _math.radians(lat_a), _math.radians(lat_b)
+        Δφ = _math.radians(lat_b - lat_a)
+        Δλ = _math.radians(lon_b - lon_a)
+        a = _math.sin(Δφ/2)**2 + _math.cos(φ1)*_math.cos(φ2)*_math.sin(Δλ/2)**2
+        straight_km = R * 2 * _math.atan2(_math.sqrt(a), _math.sqrt(1-a))
+        road_km = int(round(straight_km * 1.3, 0))
+        # Szacunkowy czas: 60 km/h średnia
+        time_min = int(round(road_km / 60 * 60, 0))
+        msg = f"Szacunek (linia prosta ×1.3, ORS niedostępny: {ors_error})"
+        return road_km, time_min, msg
+    except Exception as e2:
+        return None, None, f"ORS: {ors_error} | Haversine: {e2}"
 
 
 def format_duration(minutes: int) -> str:
@@ -897,25 +926,79 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             <div><div class="metric-label">Dojazd</div><div class="metric-value">{s.get('t_trans','')}</div></div>
         </div></div></div>{fh}""", "slide-title"))
 
-    # --- Opis kierunku ---
+    # --- Opis kierunku (nowy układ: 2 ramki z jednym zdjęciem + box faktów + opis) ---
     if not s.get('k_hide', False):
-        ik = get_b64('img_hero_k', (4, 5))
-        imk = (f"<img src='data:image/jpeg;base64,{ik}' style='width:100%;height:100%;object-fit:cover;'>"
-               if ik else _get_ph('FOTO KIERUNKU'))
-        tk1 = get_b64('img_k_th1', (1, 1))
-        tk2 = get_b64('img_k_th2', (1, 1))
-        tk3 = get_b64('img_k_th3', (1, 1))
-        hp.append(_shtml(f"""{lh}<div class="premium-layout"><div class="photo-col">{imk}</div>
-            <div class="info-col" style="padding-top:30px; justify-content:flex-start;">
-            <div class="app-overline-style" style="margin-bottom:15px;"><span>{str(s.get('k_overline','OPIS KIERUNKU'))}</span></div>
-            <div class="title-h1" style="margin-bottom:5px; font-size:{fs_h1_val-6}px;">{str(s.get('k_main','')).replace(chr(10),'<br>')}</div>
-            <div class="title-sub" style="margin-bottom:15px;">{str(s.get('k_sub','')).replace(chr(10),'<br>')}</div>
-            <div style="flex-grow:1;"><p>{str(s.get('k_opis') or '').replace(chr(10),'<br>')}</p></div>
-            <div class="gallery-row" style="padding-top:0; padding-bottom:5px;">
-                <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{tk1}" style="width:100%;height:100%;object-fit:cover;">' if tk1 else _get_ph('FOT 1')}</div>
-                <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{tk2}" style="width:100%;height:100%;object-fit:cover;">' if tk2 else _get_ph('FOT 2')}</div>
-                <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{tk3}" style="width:100%;height:100%;object-fit:cover;">' if tk3 else _get_ph('FOT 3')}</div>
-            </div></div></div>{fh}""", "slide-kierunek"))
+        kimg_k = get_b64('img_hero_k', (1, 1))
+        img_k  = f'<img src="data:image/jpeg;base64,{kimg_k}" style="position:absolute;top:0;left:0;width:200%;height:100%;object-fit:cover;object-position:left center;">' if kimg_k else _get_ph('ZDJĘCIE KIERUNKU')
+        img_k2 = f'<img src="data:image/jpeg;base64,{kimg_k}" style="position:absolute;bottom:0;right:0;width:220%;height:140%;object-fit:cover;object-position:right bottom;">' if kimg_k else _get_ph('ZDJĘCIE')
+
+        kbox_bg_k  = str(s.get('kbox_bg_k')  or c_h1)
+        kbox_txt_k = str(s.get('kbox_txt_k') or '#ffffff')
+
+        k_facts_raw = str(s.get('k_opis') or '')
+        k_facts_lines = []
+        for _line in k_facts_raw.split('\n'):
+            _line = _line.strip()
+            if not _line: continue
+            if ':' in _line:
+                _lbl, _val = _line.split(':', 1)
+                k_facts_lines.append(
+                    f"<div style='margin-bottom:8px;line-height:1.4;font-size:{max(11,fs_t-1)}px;'>"
+                    f"<strong style='font-family:{f_h2};font-weight:700;color:{kbox_txt_k};'>{_lbl.strip()}:</strong> "
+                    f"<span style='font-family:{f_t};font-weight:300;color:{kbox_txt_k};'>{_val.strip()}</span></div>"
+                )
+            else:
+                k_facts_lines.append(
+                    f"<div style='margin-bottom:8px;line-height:1.4;font-size:{max(11,fs_t-1)}px;"
+                    f"font-family:{f_t};color:{kbox_txt_k};'>{_line}</div>"
+                )
+        k_facts_html = ''.join(k_facts_lines) or f"<span style='color:{kbox_txt_k};opacity:0.6;'>Dodaj opis w panelu...</span>"
+
+        k_facts_title_html = (
+            f"<div style='font-family:{f_h2};font-weight:800;font-size:{fs_t+2}px;"
+            f"color:{kbox_txt_k};text-transform:uppercase;letter-spacing:1px;"
+            f"margin-bottom:12px;padding-bottom:8px;"
+            f"border-bottom:1px solid rgba(255,255,255,0.3);'>{str(s.get('k_overline','OPIS KIERUNKU'))}</div>"
+        )
+
+        hp.append(_shtml(f"""{lh}
+        <div class="premium-layout" id="slide-kierunek" style="gap:40px; align-items:stretch;">
+            <div style="flex:42; display:flex; gap:15px; height:100%;">
+                <div style="flex:1.2; height:100%; border-radius:8px; overflow:hidden; position:relative; background:#fcfcfc; border:1px solid #eee;">
+                    {img_k}
+                </div>
+                <div style="flex:1; display:flex; flex-direction:column; gap:15px; height:100%;">
+                    <div style="background-color:{kbox_bg_k}; color:{kbox_txt_k}; padding:25px 20px;
+                                border-bottom-left-radius:40px; border-top-right-radius:8px;
+                                border-top-left-radius:8px; box-shadow:0 10px 20px rgba(0,0,0,0.05);">
+                        {k_facts_title_html}
+                        {k_facts_html}
+                    </div>
+                    <div style="flex-grow:1; border-top-left-radius:40px; border-bottom-left-radius:8px;
+                                border-bottom-right-radius:8px; overflow:hidden; position:relative;
+                                background:#fcfcfc; border:1px solid #eee;">
+                        {img_k2}
+                    </div>
+                </div>
+            </div>
+            <div class="info-col" style="flex:58; padding-left:10px; padding-top:15px; justify-content:flex-start;">
+                <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
+                    <div style="height:2px; background-color:{acc}; width:40px;"></div>
+                    <span style="font-family:'{f_met}'; font-size:{max(10,fs_met-2)}px; font-weight:700;
+                                 letter-spacing:3px; color:{acc}; text-transform:uppercase;">
+                        {str(s.get('k_sub','BAŁKAŃSKI KLEJNOT'))}
+                    </span>
+                </div>
+                <div class="title-h1" style="text-align:left; margin-bottom:10px; font-size:{fs_h1_val}px;
+                     color:{c_h1}; line-height:1.1; border-left:6px solid {acc}; padding-left:20px;">
+                    {str(s.get('k_main','')).replace(chr(10),'<br>')}
+                </div>
+                <div style="font-family:'{f_t}'; font-size:{fs_t}px; line-height:1.7;
+                            color:{c_t}; text-align:justify; margin-top:20px;">
+                    {str(s.get('k_opis') or '').replace(chr(10),'<br>')}
+                </div>
+            </div>
+        </div>{fh}""", "slide-kierunek"))
 
     # --- Mapa ---
     if not s.get('map_hide', False):
@@ -1253,36 +1336,17 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     </div>
                 </div></div>{fh}""", f"slide-hotel-{i}"))
 
-        # --- Slajd MIEJSCA (nowy układ wg wzoru: foto pionowe + box faktów + tytuł/opis) ---
+        # --- Slajd MIEJSCA (układ: foto pionowe + opis + 3 miniatury) ---
         elif item_type == 'place':
             if s.get(f"phide_{i}"):
                 continue
-            kimg = get_b64(f'pimg1_{i}', (3, 4))
-            img_html_p = (f'<img src="data:image/jpeg;base64,{kimg}" style="width:100%;height:100%;object-fit:cover;">' if kimg else _get_ph('ZDJĘCIE MIEJSCA'))
 
-            # Box faktów
-            pfacts = str(s.get(f"pfacts_{i}") or '')
-            pfacts_title = str(s.get(f"pfacts_title_{i}") or '')
-            pbox_bg  = str(s.get(f'pbox_bg_{i}')  or c_h2)
-            pbox_txt = str(s.get(f'pbox_txt_{i}') or '#ffffff')
-            facts_lines_p = []
-            for line in pfacts.split('\n'):
-                line = line.strip()
-                if not line: continue
-                if ':' in line:
-                    lbl, val = line.split(':', 1)
-                    facts_lines_p.append(f"<div style='margin-bottom:7px; line-height:1.4;'><strong style='font-weight:700; color:{pbox_txt};'>{lbl.strip()}:</strong> <span style='font-weight:300; color:{pbox_txt};'>{val.strip()}</span></div>")
-                else:
-                    facts_lines_p.append(f"<div style='margin-bottom:7px; line-height:1.4; color:{pbox_txt};'>{line}</div>")
-            facts_html_p = ''.join(facts_lines_p) or f"<span style='color:{pbox_txt}; opacity:0.6;'>Dodaj fakty w panelu...</span>"
-
-            facts_title_p = (
-                f"<div style='font-family:{f_h2}; font-weight:800; font-size:{fs_t+2}px; "
-                f"color:{pbox_txt}; text-transform:uppercase; letter-spacing:1px; "
-                f"margin-bottom:12px; padding-bottom:8px; "
-                f"border-bottom:1px solid rgba(255,255,255,0.25);'>{pfacts_title}</div>"
-                if pfacts_title else ''
-            )
+            ik_p = get_b64(f'pimg1_{i}', (4, 5))
+            imk_p = (f"<img src='data:image/jpeg;base64,{ik_p}' style='width:100%;height:100%;object-fit:cover;'>"
+                     if ik_p else _get_ph('FOTO MIEJSCA'))
+            tk1_p = get_b64(f'pimg2_{i}', (1, 1))
+            tk2_p = get_b64(f'pimg3_{i}', (1, 1))
+            tk3_p = get_b64(f'pimg4_{i}', (1, 1))
 
             bb_p = ""
             md_p = re.search(r'Dzień (\d+)', str(s.get(f"pday_{i}") or ""))
@@ -1294,32 +1358,18 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             p_sub  = str(s.get(f'psub_{i}')  or '').replace(chr(10), '<br>')
             p_opis = str(s.get(f'popis_{i}') or '').replace(chr(10), '<br>')
 
-            hp.append(_shtml(f"""{lh}
-            <div class="premium-layout" id="place_{i}" style="gap:0; position:relative;">
-                {bb_p}
-                <div style="flex:30; position:relative; margin-right:20px; border-radius:10px; overflow:hidden; border:1px solid #eee; background:#fcfcfc;">
-                    {img_html_p}
-                </div>
-                <div style="flex:26; display:flex; flex-direction:column; margin-right:20px;">
-                    <div style="background-color:{pbox_bg}; padding:22px 18px; border-radius:10px;
-                                font-family:'{f_t}'; font-size:{fs_t}px; line-height:1.5;
-                                box-shadow:0 10px 30px rgba(0,0,0,0.15); flex-grow:1;">
-                        {facts_title_p}
-                        {facts_html_p}
+            hp.append(_shtml(f"""{lh}<div class="premium-layout" id="place_{i}">
+                <div class="photo-col">{imk_p}{bb_p}</div>
+                <div class="info-col" style="padding-top:30px; justify-content:flex-start;">
+                    <div class="app-overline-style" style="margin-bottom:15px;"><span>{p_over}</span></div>
+                    <div class="title-h1" style="margin-bottom:5px; font-size:{fs_h1_val-6}px;">{p_main}</div>
+                    <div class="title-sub" style="margin-bottom:15px;">{p_sub}</div>
+                    <div style="flex-grow:1;"><p style="font-size:{fs_t}px; line-height:1.6; color:{c_t};">{p_opis}</p></div>
+                    <div class="gallery-row" style="padding-top:0; padding-bottom:5px;">
+                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{tk1_p}" style="width:100%;height:100%;object-fit:cover;">' if tk1_p else _get_ph('FOT 1')}</div>
+                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{tk2_p}" style="width:100%;height:100%;object-fit:cover;">' if tk2_p else _get_ph('FOT 2')}</div>
+                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{tk3_p}" style="width:100%;height:100%;object-fit:cover;">' if tk3_p else _get_ph('FOT 3')}</div>
                     </div>
-                </div>
-                <div class="info-col" style="flex:44; padding-top:20px; justify-content:flex-start;">
-                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
-                        <div style="width:32px; height:1px; background:{acc}; opacity:0.6; flex-shrink:0;"></div>
-                        <span style="font-family:'{f_met}'; font-size:{max(9,fs_met-2)}px; font-weight:700;
-                                     letter-spacing:4px; color:{acc}; text-transform:uppercase; white-space:nowrap;">
-                            {p_over}
-                        </span>
-                        <div style="flex:1; height:1px; background:{acc}; opacity:0.6;"></div>
-                    </div>
-                    <div class="title-h1" style="margin-bottom:8px; font-size:{max(28,fs_h1_val-4)}px; line-height:1.05;">{p_main}</div>
-                    <div class="title-sub" style="margin-bottom:20px; font-size:{max(14,fs_sub_val-4)}px; line-height:1.3;">{p_sub}</div>
-                    <div style="font-family:'{f_t}'; font-size:{fs_t}px; line-height:1.7; color:{c_t}; text-align:justify; flex-grow:1;">{p_opis}</div>
                 </div>
             </div>{fh}""", f"place_{i}"))
 
@@ -1353,16 +1403,18 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         bg_html = (f'<img src="data:image/jpeg;base64,{ibg_b64}" style="width:100%;height:100%;object-fit:cover;">'
                    if ibg_b64 else '<div class="photo-placeholder">ZDJĘCIE TŁA</div>')
         iscr = get_b64('img_app_screen', (9, 16))
-        scr_html = (f'<img class="phone-screen" src="data:image/jpeg;base64,{iscr}">'
+        # object-fit:contain żeby ekran nie był przycinany, object-position:top żeby góra była widoczna
+        scr_html = (f'<img class="phone-screen" src="data:image/jpeg;base64,{iscr}" style="width:100%;height:100%;object-fit:contain;object-position:top;display:block;background:#fff;">'
                     if iscr else '<div class="photo-placeholder" style="background:#fff;">EKRAN APP</div>')
         fh_app = "".join([f"<li>{f.strip()}</li>" for f in s.get('app_features', '').split('\n') if f.strip()])
-        hp.append(_shtml(f"""{lh}<div style="position:relative;height:100%;width:100%;display:flex;">
+        hp.append(_shtml(f"""{lh}<div style="position:relative;height:100%;width:100%;display:flex; overflow:hidden;">
             <div style="flex:0 0 46%; max-width:46%; z-index:2; display:flex; flex-direction:column; padding-right:20px; padding-top:30px; justify-content:flex-start;">
                 <div class="app-overline-style"><span>{str(s.get('app_overline',''))}</span></div>
                 <div class="title-h1" style="margin-bottom:15px; font-size:{fs_h1_val-6}px;">{str(s.get('app_title','')).replace(chr(10),'<br>')}</div>
-                <div class="title-sub" style="color:{acc};font-weight:700;text-transform:none;margin-bottom:25px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('app_subtitle','')).replace(chr(10),'<br>')}</div>
+                <div class="title-sub" style="margin-bottom:25px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('app_subtitle','')).replace(chr(10),'<br>')}</div>
                 <ul class="app-list">{fh_app}</ul></div>
-            <div class="app-image-col">{bg_html}</div><div class="phone-mockup">{scr_html}</div></div>{fh}""", "slide-app"))
+            <div class="app-image-col" style="top:-30px;right:-45px;bottom:0;">{bg_html}</div>
+            <div class="phone-mockup">{scr_html}</div></div>{fh}""", "slide-app"))
 
     # --- Branding ---
     if not s.get('brand_hide', False):
@@ -1377,7 +1429,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             <div class="info-col" style="flex: 50; padding-right: 40px; padding-top: 30px; justify-content: flex-start;">
                 <div class="app-overline-style"><span>{str(s.get('brand_overline',''))}</span></div>
                 <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(s.get('brand_title','')).replace(chr(10),'<br>')}</div>
-                <div class="title-sub" style="color: {acc}; font-weight: 700; text-transform: none; margin-bottom: 25px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('brand_subtitle','')).replace(chr(10),'<br>')}</div>
+                <div class="title-sub" style="margin-bottom:25px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('brand_subtitle','')).replace(chr(10),'<br>')}</div>
                 <ul class="app-list">{bfh}</ul>
             </div>
             <div style="flex: 50; position: relative; height: 100%;"><div class="brand-collage">
@@ -1401,7 +1453,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             <div class="info-col" style="flex: 55; padding-left: 40px; padding-top: 30px; justify-content: flex-start;">
                 <div class="app-overline-style"><span>{str(s.get('va_overline',''))}</span></div>
                 <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(s.get('va_title','')).replace(chr(10),'<br>')}</div>
-                <div class="title-sub" style="color: {acc}; font-weight: 700; text-transform: none; margin-bottom: 25px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('va_subtitle','')).replace(chr(10),'<br>')}</div>
+                <div class="title-sub" style="margin-bottom:25px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('va_subtitle','')).replace(chr(10),'<br>')}</div>
                 <div style="font-family: '{f_t}'; font-size: {fs_t}px; line-height: 1.6; color: {c_t}; text-align: justify;">{str(s.get('va_text') or '').replace(chr(10),'<br>')}</div>
             </div></div>{fh}""", "slide-virtual-assistant"))
 
@@ -1422,7 +1474,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             <div class="info-col" style="flex:50;padding-left:40px;padding-top:30px;justify-content:flex-start;">
                 <div class="app-overline-style"><span>{str(s.get('pg_overline',''))}</span></div>
                 <div class="title-h1" style="margin-bottom:15px; font-size:{fs_h1_val-6}px;">{str(s.get('pg_title','')).replace(chr(10),'<br>')}</div>
-                <div class="title-sub" style="color:{acc};font-weight:700;text-transform:none;margin-bottom:25px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('pg_subtitle','')).replace(chr(10),'<br>')}</div>
+                <div class="title-sub" style="margin-bottom:25px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('pg_subtitle','')).replace(chr(10),'<br>')}</div>
                 <div style="font-family:'{f_t}';font-size:{fs_t}px;line-height:1.6;color:{c_t};">{str(s.get('pg_text') or '').replace(chr(10),'<br>')}</div>
             </div></div>{fh}""", "slide-pillow-gifts"))
 
@@ -1503,7 +1555,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             <div class="info-col" style="flex: 55; padding-right: 40px; padding-top: 30px; justify-content: flex-start;">
                 <div class="app-overline-style"><span>{str(s.get('testim_overline','REKOMENDACJE'))}</span></div>
                 <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(s.get('testim_title','')).replace(chr(10),'<br>')}</div>
-                <div class="title-sub" style="color: {acc}; font-weight: 700; text-transform: none; margin-bottom: 25px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('testim_subtitle','')).replace(chr(10),'<br>')}</div>
+                <div class="title-sub" style="margin-bottom:25px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('testim_subtitle','')).replace(chr(10),'<br>')}</div>
                 <div style="display: flex; flex-direction: column;">{t_h}</div>
             </div>
             <div class="photo-col" style="flex: 45;">{t_main_img_html}</div>
@@ -1531,7 +1583,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             <div class="info-col" style="flex: 60; padding-right: 40px; padding-top: 30px; justify-content: flex-start; display: flex; flex-direction: column;">
                 <div class="app-overline-style"><span>{str(s.get('about_overline','NASZ ZESPÓŁ'))}</span></div>
                 <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(s.get('about_title','')).replace(chr(10),'<br>')}</div>
-                <div class="title-sub" style="color: {acc}; font-weight: 700; text-transform: none; margin-bottom: 25px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('about_sub','')).replace(chr(10),'<br>')}</div>
+                <div class="title-sub" style="margin-bottom:25px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('about_sub','')).replace(chr(10),'<br>')}</div>
                 <div style="font-family: '{f_t}'; font-size: {fs_t}px; line-height: 1.6; color: {c_t}; text-align: justify; margin-bottom: 15px;">{str(s.get('about_desc') or '').replace(chr(10),'<br>')}</div>
                 <div style="display: grid; grid-template-columns: {grid_cols}; gap: 20px; margin-top: auto; border-top: 1px solid #eee; padding-top: 20px;">{tm_h}</div>
             </div>
