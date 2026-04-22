@@ -102,8 +102,10 @@ if '_loaded_from_supabase' not in st.session_state:
             project_data = result.data[0]['data']
             # DEBUG: pokaż ile kluczy wczytano
             text_keys = [k for k, v in project_data.items() if isinstance(v, str) and k.startswith('t_')]
-            st.session_state['_debug_loaded'] = f"📥 Wczytano {len(project_data)} kluczy, w tym {len(text_keys)} tekstów t_*"
             load_project_data(project_data)
+            # DEBUG: sprawdź czy t_main został wczytany
+            loaded_t_main = st.session_state.get('t_main', '???')
+            st.session_state['_debug_loaded'] = f"📥 Wczytano {len(project_data)} kluczy, w tym {len(text_keys)} tekstów t_* | t_main='{loaded_t_main}'"
             st.session_state['_loaded_from_supabase'] = True
         else:
             # Brak zapisanego projektu — załaduj defaults
@@ -150,6 +152,7 @@ for _k, _v in _SIZE_DEFS.items():
 
 def set_focus(target_id):
     st.session_state['scroll_target'] = target_id
+    st.session_state['_user_edited'] = True  # Użytkownik coś zmienił
 
 
 def _get_hotel_order():
@@ -1465,28 +1468,34 @@ if 'last_supabase_save' not in st.session_state:
     st.session_state['last_supabase_save'] = 0
 
 current_time = time.time()
-if current_time - st.session_state['last_supabase_save'] > 2:  # co 2 sekundy
-    try:
-        project_data = _build_proj_dict()
-        project_name = st.session_state.get('t_main', 'Nowy projekt')
-        
-        # Usuń stary projekt użytkownika
-        supabase.table('projects').delete().eq('user_email', 'default_user').execute()
-        
-        # Wstaw nowy
-        supabase.table('projects').insert({
-            'user_email': 'default_user',
-            'project_name': project_name,
-            'data': project_data,
-            'updated_at': datetime.now().isoformat()
-        }).execute()
-        
-        st.session_state['last_supabase_save'] = current_time
-        # Debug: pokaż przykład zapisanych danych
-        sample_keys = {k: v for k, v in project_data.items() if k in ['t_main', 't_sub', 't_klient']}
-        st.session_state['last_save_status'] = f"✅ Zapisano {datetime.now().strftime('%H:%M:%S')} | Dane: {sample_keys}"
-    except Exception as e:
-        st.session_state['last_save_status'] = f"❌ Błąd: {str(e)[:100]}"
+# Zapisuj tylko jeśli upłynęło 2s ORA użytkownik coś edytował
+if current_time - st.session_state['last_supabase_save'] > 2:
+    # Sprawdź czy są jakieś zmiany od ostatniego load
+    should_save = st.session_state.get('_user_edited', False)
+    
+    if should_save:
+        try:
+            project_data = _build_proj_dict()
+            project_name = st.session_state.get('t_main', 'Nowy projekt')
+            
+            # Usuń stary projekt użytkownika
+            supabase.table('projects').delete().eq('user_email', 'default_user').execute()
+            
+            # Wstaw nowy
+            supabase.table('projects').insert({
+                'user_email': 'default_user',
+                'project_name': project_name,
+                'data': project_data,
+                'updated_at': datetime.now().isoformat()
+            }).execute()
+            
+            st.session_state['last_supabase_save'] = current_time
+            st.session_state['_user_edited'] = False  # Reset flagi
+            # Debug: pokaż przykład zapisanych danych
+            sample_keys = {k: v for k, v in project_data.items() if k in ['t_main', 't_sub', 't_klient']}
+            st.session_state['last_save_status'] = f"✅ Zapisano {datetime.now().strftime('%H:%M:%S')} | Dane: {sample_keys}"
+        except Exception as e:
+            st.session_state['last_save_status'] = f"❌ Błąd: {str(e)[:100]}"
 
 # Pokaż status zapisu i load w sidebarze (debug)
 if 'last_save_status' in st.session_state:
