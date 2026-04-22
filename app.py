@@ -1445,13 +1445,13 @@ with st.sidebar:
 
 
 # ---------------------------------------------------------------------------
-# AUTO-SAVE DO SUPABASE co 5 sekund
+# AUTO-SAVE DO SUPABASE co 2 sekundy
 # ---------------------------------------------------------------------------
 if 'last_supabase_save' not in st.session_state:
     st.session_state['last_supabase_save'] = 0
 
 current_time = time.time()
-if current_time - st.session_state['last_supabase_save'] > 5:
+if current_time - st.session_state['last_supabase_save'] > 2:  # co 2 sekundy
     try:
         project_data = _build_proj_dict()
         project_name = st.session_state.get('t_main', 'Nowy projekt')
