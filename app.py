@@ -10,8 +10,10 @@ import re
 import json
 import base64
 from datetime import date, datetime
+import time
 
 import streamlit as st
+from supabase import create_client, Client
 
 from renderer import (
     COUNTRIES_DICT, FONTS_LIST, hotel_icons, icon_map, defaults, IMAGE_KEYS,
@@ -22,6 +24,18 @@ from renderer import (
     get_road_distance, format_duration,
     get_local_css, build_presentation,
 )
+
+# ---------------------------------------------------------------------------
+# SUPABASE CONNECTION
+# ---------------------------------------------------------------------------
+@st.cache_resource
+def init_supabase() -> Client:
+    """Inicjalizacja połączenia z Supabase - wykonuje się raz na session."""
+    url = st.secrets["supabase"]["url"]
+    key = st.secrets["supabase"]["key"]
+    return create_client(url, key)
+
+supabase = init_supabase()
 
 # ---------------------------------------------------------------------------
 # KONFIGURACJA STRONY
@@ -61,15 +75,28 @@ div[data-testid="stExpander"] {
 if 'client_mode' not in st.session_state:
     st.session_state['client_mode'] = False
 
-# 1. TARCZA OCHRONNA — przywróć dane z backupu zanim Streamlit załaduje defaults
-# Widget Cleanup usuwa klucze widgetów gdy zakładka jest nieaktywna.
-# STATE_BACKUP nie jest powiązany z żadnym widgetem — Streamlit go nie czyści.
-if 'STATE_BACKUP' in st.session_state:
-    for k, v in st.session_state['STATE_BACKUP'].items():
-        if k not in st.session_state:
-            st.session_state[k] = v
+# ---------------------------------------------------------------------------
+# AUTO-LOAD Z SUPABASE przy starcie sesji
+# ---------------------------------------------------------------------------
+if '_loaded_from_supabase' not in st.session_state:
+    try:
+        # Pobierz najnowszy projekt
+        result = supabase.table('projects').select('data').eq(
+            'user_email', 'default_user'
+        ).order('updated_at', desc=True).limit(1).execute()
+        
+        if result.data and result.data[0].get('data'):
+            project_data = result.data[0]['data']
+            load_project_data(project_data)
+            st.session_state['_loaded_from_supabase'] = True
+        else:
+            # Brak zapisanego projektu — załaduj defaults
+            st.session_state['_loaded_from_supabase'] = True
+    except Exception as e:
+        # Błąd połączenia — kontynuuj z defaults
+        st.session_state['_loaded_from_supabase'] = True
 
-# 2. DOPIERO TERAZ ładuj defaults — nie nadpiszą danych przywróconych z backupu
+# Ładuj defaults dla kluczy których nie ma w bazie
 for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
@@ -78,7 +105,6 @@ for k, v in defaults.items():
 st.session_state.setdefault('num_sekcje', 4)
 
 # Wymuszenie poprawnych typów — color_picker wymaga #RRGGBB, number_input wymaga int.
-# Uruchamiane przy każdym starcie żeby naprawić dane wczytane z JSON lub localStorage.
 _COLOR_DEFS = {
     'color_h1': '#003366', 'color_h2': '#003366', 'color_sub': '#FF6600',
     'color_accent': '#FF6600', 'color_text': '#333333', 'color_metric': '#003366',
@@ -88,59 +114,17 @@ _SIZE_DEFS = {
     'font_size_text': 14, 'font_size_metric': 16,
 }
 for _k, _v in _COLOR_DEFS.items():
-    # setdefault: ustaw domyślną TYLKO gdy klucz nie istnieje
     _cur = st.session_state.setdefault(_k, _v)
-    # Następnie waliduj format — napraw złe wartości (np. po wczytaniu z JSON)
     if not (isinstance(_cur, str) and _cur.startswith('#') and len(_cur) == 7):
         st.session_state[_k] = _v
 for _k, _v in _SIZE_DEFS.items():
     _cur = st.session_state.setdefault(_k, _v)
     try:
         _int_val = max(8, int(float(_cur or _v)))
-        if _int_val != _cur:  # Napraw tylko gdy wartość jest błędna
+        if _int_val != _cur:
             st.session_state[_k] = _int_val
     except Exception:
         st.session_state[_k] = _v
-
-# ---------------------------------------------------------------------------
-# AUTO-ZAPIS / AUTO-ODCZYT z localStorage przeglądarki
-# ---------------------------------------------------------------------------
-_LS_KEY = "activezone_project_v1"
-
-if '_ls_loaded' not in st.session_state:
-    st.session_state['_ls_loaded'] = False
-
-_qp = st.query_params.to_dict()
-if _qp.get('_ls_restore') and not st.session_state.get('_ls_loaded'):
-    _ls_val = _qp['_ls_restore']
-    if _ls_val != 'empty':
-        try:
-            _restored = json.loads(base64.b64decode(_ls_val).decode())
-            load_project_data(_restored)
-        except Exception:
-            pass
-    st.session_state['_ls_loaded'] = True
-    st.query_params.clear()
-    st.rerun()
-
-if not st.session_state.get('_ls_loaded'):
-    # Sesja świeża — wyślij JS żeby odczytał localStorage i przekazał przez URL
-    import streamlit.components.v1 as _comp_init
-    _comp_init.html(f"""<script>
-    (function() {{
-        try {{
-            var data = localStorage.getItem('{_LS_KEY}');
-            var b64 = data ? btoa(unescape(encodeURIComponent(data))) : 'empty';
-            var url = window.parent.location.href.split('?')[0].split('#')[0];
-            window.parent.location.href = url + '?_ls_restore=' + b64;
-        }} catch(e) {{
-            var url = window.parent.location.href.split('?')[0].split('#')[0];
-            window.parent.location.href = url + '?_ls_restore=empty';
-        }}
-    }})();
-    </script>""", height=0)
-    # Renderuj aplikację z defaults podczas oczekiwania na JS
-    # (JS szybko przekieruje zanim user cokolwiek zobaczy)
 
 # ---------------------------------------------------------------------------
 # HELPERY UI
@@ -1587,33 +1571,31 @@ with st.sidebar:
         st.session_state['client_mode'] = True
         st.rerun()
 
-# ---------------------------------------------------------------------------
-# AKTUALIZACJA STATE_BACKUP — tarcza ochronna przed Widget Cleanup
-# Zapisuje kompletny stan projektu w jednym kluczu przed zakończeniem rerunu.
-# ---------------------------------------------------------------------------
-_shield_data = _build_proj_dict()
-st.session_state['STATE_BACKUP'] = {
-    k: v for k, v in _shield_data.items()
-    if isinstance(v, (str, int, float, bool, list, dict)) and v is not None
-}
 
 # ---------------------------------------------------------------------------
-# AUTO-ZAPIS przy każdym rerunie (cichy, bez przycisku)
+# AUTO-SAVE DO SUPABASE co 5 sekund
 # ---------------------------------------------------------------------------
-import streamlit.components.v1 as _comp_autosave
-_auto_proj = _build_proj_dict()
-_auto_json = json.dumps(_auto_proj, ensure_ascii=False)
-_comp_autosave.html(f"""<script>
-(function(){{
-    try {{
-        localStorage.setItem('{_LS_KEY}', {_auto_json!r});
-    }} catch(e) {{}}
-}})();
-</script>""", height=0)
+if 'last_supabase_save' not in st.session_state:
+    st.session_state['last_supabase_save'] = 0
+
+current_time = time.time()
+if current_time - st.session_state['last_supabase_save'] > 5:
+    try:
+        project_data = _build_proj_dict()
+        project_name = st.session_state.get('t_main', 'Nowy projekt')
+        
+        supabase.table('projects').upsert({
+            'user_email': 'default_user',
+            'project_name': project_name,
+            'data': project_data,
+            'updated_at': datetime.now().isoformat()
+        }, on_conflict='user_email').execute()
+        
+        st.session_state['last_supabase_save'] = current_time
+    except Exception:
+        pass  # Cichy błąd - nie przerywaj renderowania
 
 # ---------------------------------------------------------------------------
 # GŁÓWNA ZAWARTOŚĆ — PODGLĄD PREZENTACJI
 # ---------------------------------------------------------------------------
-# Cicha kopia stanu tuż przed końcem — chroni dane przy przełączaniu zakładek.
-st.session_state['STATE_BACKUP'] = _build_proj_dict()
 build_presentation(page)
