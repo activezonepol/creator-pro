@@ -437,11 +437,6 @@ if st.session_state['client_mode']:
 # ---------------------------------------------------------------------------
 # SIDEBAR — NAWIGACJA
 # ---------------------------------------------------------------------------
-# Funkcje callback dla nawigacji (muszą być poza with st.sidebar)
-def _set_page_nav(page_name):
-    st.session_state['last_page'] = page_name
-    st.session_state['scroll_target'] = ""
-
 with st.sidebar:
     _acc = st.session_state.get('color_accent', '#FF6600')
     _h1c = st.session_state.get('color_h1', '#003366')
@@ -484,14 +479,20 @@ with st.sidebar:
             return "  ★ " + _attr_display_name(pos)
         return p
 
-    # Nawigacja górna — buttony kafelkowe
+    # Nawigacja górna — buttony kafelkowe (bez on_click - użyjemy sprawdzania wartości)
     st.markdown("**WYBIERZ SEKCJE DO EDYCJI:**")
     
+    _clicked_top = None
     for item in _nav_top:
         btn_type = "primary" if item == _last else "secondary"
-        st.button(item, key=f"nav_top_btn_{_nav_top.index(item)}", 
-                 use_container_width=True, type=btn_type,
-                 on_click=_set_page_nav, args=(item,))
+        if st.button(item, key=f"nav_top_btn_{_nav_top.index(item)}", 
+                    use_container_width=True, type=btn_type):
+            _clicked_top = item
+    
+    if _clicked_top:
+        st.session_state['last_page'] = _clicked_top
+        st.session_state['scroll_target'] = ""
+        st.rerun()
     page_top = None
 
     # --- SEKCJA ATRAKCJI wbudowana w nawigację ---
@@ -557,11 +558,17 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     # Nawigacja dolna — buttony kafelkowe
+    _clicked_bot = None
     for item in _nav_bot:
         btn_type = "primary" if item == _last else "secondary"
-        st.button(item, key=f"nav_bot_btn_{_nav_bot.index(item)}", 
-                 use_container_width=True, type=btn_type,
-                 on_click=_set_page_nav, args=(item,))
+        if st.button(item, key=f"nav_bot_btn_{_nav_bot.index(item)}", 
+                    use_container_width=True, type=btn_type):
+            _clicked_bot = item
+    
+    if _clicked_bot:
+        st.session_state['last_page'] = _clicked_bot
+        st.session_state['scroll_target'] = ""
+        st.rerun()
     page_bot = None
 
     # Ustal aktywną stronę — priorytet: kliknięcie atrakcji
@@ -1475,9 +1482,11 @@ if current_time - st.session_state['last_supabase_save'] > 2:  # co 2 sekundy
         }).execute()
         
         st.session_state['last_supabase_save'] = current_time
-        st.session_state['last_save_status'] = f"✅ Zapisano {datetime.now().strftime('%H:%M:%S')}"
+        # Debug: pokaż przykład zapisanych danych
+        sample_keys = {k: v for k, v in project_data.items() if k in ['t_main', 't_sub', 't_klient']}
+        st.session_state['last_save_status'] = f"✅ Zapisano {datetime.now().strftime('%H:%M:%S')} | Dane: {sample_keys}"
     except Exception as e:
-        st.session_state['last_save_status'] = f"❌ Błąd: {str(e)[:50]}"
+        st.session_state['last_save_status'] = f"❌ Błąd: {str(e)[:100]}"
 
 # Pokaż status zapisu i load w sidebarze (debug)
 if 'last_save_status' in st.session_state:
