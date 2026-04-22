@@ -461,16 +461,26 @@ with st.sidebar:
             return "  ★ " + _attr_display_name(pos)
         return p
 
-    # Radio górne — aktywne tylko gdy last_page należy do nav_top
-    _top_idx = _nav_top.index(_last) if _last in _nav_top else 0
-    
-    # Callback dla górnego radio
-    def _on_top_change():
-        st.session_state['_radio_changed'] = 'top'
-    
-    page_top = st.radio("WYBIERZ SEKCJE DO EDYCJI:", _nav_top,
-                        index=_top_idx, key="nav_top_radio",
-                        on_change=_on_top_change)
+    # Radio górne — renderuj TYLKO gdy last_page należy do nav_top
+    if _last in _nav_top:
+        _top_idx = _nav_top.index(_last)
+        
+        def _on_top_change():
+            st.session_state['_radio_changed'] = 'top'
+        
+        page_top = st.radio("WYBIERZ SEKCJE DO EDYCJI:", _nav_top,
+                            index=_top_idx, key="nav_top_radio",
+                            on_change=_on_top_change)
+    else:
+        # Wyświetl tekst bez radio gdy strona jest poza nav_top
+        st.markdown("**WYBIERZ SEKCJE DO EDYCJI:**")
+        for item in _nav_top:
+            if st.button(item, key=f"nav_top_btn_{_nav_top.index(item)}", 
+                        use_container_width=True, type="secondary"):
+                st.session_state['last_page'] = item
+                st.session_state['_radio_changed'] = 'top'
+                st.rerun()
+        page_top = None
 
     # --- SEKCJA ATRAKCJI wbudowana w nawigację ---
     # Przycisk ＋ DODAJ ATRAKCJE/MIEJSCE
@@ -534,16 +544,25 @@ with st.sidebar:
     </script>
     """, unsafe_allow_html=True)
 
-    # Radio dolne — aktywne tylko gdy last_page należy do nav_bot
-    _bot_idx = _nav_bot.index(_last) if _last in _nav_bot else 0
-    
-    # Callback dla dolnego radio
-    def _on_bot_change():
-        st.session_state['_radio_changed'] = 'bot'
-    
-    page_bot = st.radio("", _nav_bot, index=_bot_idx,
-                        label_visibility="collapsed", key="nav_bot_radio",
-                        on_change=_on_bot_change)
+    # Radio dolne — renderuj TYLKO gdy last_page należy do nav_bot
+    if _last in _nav_bot:
+        _bot_idx = _nav_bot.index(_last)
+        
+        def _on_bot_change():
+            st.session_state['_radio_changed'] = 'bot'
+        
+        page_bot = st.radio("", _nav_bot, index=_bot_idx,
+                            label_visibility="collapsed", key="nav_bot_radio",
+                            on_change=_on_bot_change)
+    else:
+        # Wyświetl buttony gdy strona jest poza nav_bot
+        for item in _nav_bot:
+            if st.button(item, key=f"nav_bot_btn_{_nav_bot.index(item)}", 
+                        use_container_width=True, type="secondary"):
+                st.session_state['last_page'] = item
+                st.session_state['_radio_changed'] = 'bot'
+                st.rerun()
+        page_bot = None
 
     # Ustal aktywną stronę — priorytet: kliknięcie atrakcji > zmiana top > zmiana bot
     _radio_changed = st.session_state.get('_radio_changed', None)
