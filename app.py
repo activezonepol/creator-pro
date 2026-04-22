@@ -1087,7 +1087,7 @@ with st.sidebar:
                 st.session_state[f"aday_{_i}"] = day_options_global[0]
             st.selectbox("Przypisz do dnia:", day_options_global, key=f"aday_{_i}",
                          on_change=set_focus, args=(f"attr_{_i}",))
-            st.selectbox("Ikona:", list(icon_map.keys()), key=f"atype_{_i}",
+            st.selectbox("Ikona:", ["Brak"] + list(icon_map.keys()), key=f"atype_{_i}",
                          on_change=set_focus, args=(f"attr_{_i}",))
             st.text_area("Opis:", key=f"aopis_{_i}",
                          on_change=set_focus, args=(f"attr_{_i}",))
