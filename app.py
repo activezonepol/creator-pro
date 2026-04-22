@@ -462,9 +462,9 @@ with st.sidebar:
         return p
 
     # Radio górne — aktywne tylko gdy last_page należy do nav_top
-    _top_idx = _nav_top.index(_last) if _last in _nav_top else None
+    _top_idx = _nav_top.index(_last) if _last in _nav_top else 0
     page_top = st.radio("WYBIERZ SEKCJE DO EDYCJI:", _nav_top,
-                        index=_top_idx)
+                        index=_top_idx, key="nav_top_radio")
 
     # --- SEKCJA ATRAKCJI wbudowana w nawigację ---
     # Przycisk ＋ DODAJ ATRAKCJE/MIEJSCE
@@ -529,9 +529,9 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     # Radio dolne — aktywne tylko gdy last_page należy do nav_bot
-    _bot_idx = _nav_bot.index(_last) if _last in _nav_bot else None
+    _bot_idx = _nav_bot.index(_last) if _last in _nav_bot else 0
     page_bot = st.radio("", _nav_bot, index=_bot_idx,
-                        label_visibility="collapsed")
+                        label_visibility="collapsed", key="nav_bot_radio")
 
     # Ustal aktywną stronę — priorytet: kliknięcie atrakcji > zmiana top > zmiana bot
     if page_attr is not None:
