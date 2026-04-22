@@ -100,13 +100,18 @@ if '_loaded_from_supabase' not in st.session_state:
         
         if result.data and result.data[0].get('data'):
             project_data = result.data[0]['data']
+            # DEBUG: pokaż ile kluczy wczytano
+            text_keys = [k for k, v in project_data.items() if isinstance(v, str) and k.startswith('t_')]
+            st.session_state['_debug_loaded'] = f"📥 Wczytano {len(project_data)} kluczy, w tym {len(text_keys)} tekstów t_*"
             load_project_data(project_data)
             st.session_state['_loaded_from_supabase'] = True
         else:
             # Brak zapisanego projektu — załaduj defaults
+            st.session_state['_debug_loaded'] = "📥 Brak danych w bazie - użyto defaults"
             st.session_state['_loaded_from_supabase'] = True
     except Exception as e:
         # Błąd połączenia — kontynuuj z defaults
+        st.session_state['_debug_loaded'] = f"❌ Błąd load: {str(e)[:50]}"
         st.session_state['_loaded_from_supabase'] = True
 
 # Ładuj defaults dla kluczy których nie ma w bazie
@@ -1472,10 +1477,13 @@ if current_time - st.session_state['last_supabase_save'] > 2:  # co 2 sekundy
     except Exception as e:
         st.session_state['last_save_status'] = f"❌ Błąd: {str(e)[:50]}"
 
-# Pokaż status zapisu w sidebarze (debug)
+# Pokaż status zapisu i load w sidebarze (debug)
 if 'last_save_status' in st.session_state:
     with st.sidebar:
         st.caption(st.session_state['last_save_status'])
+if '_debug_loaded' in st.session_state:
+    with st.sidebar:
+        st.caption(st.session_state['_debug_loaded'])
 
 # ---------------------------------------------------------------------------
 # GŁÓWNA ZAWARTOŚĆ — PODGLĄD PREZENTACJI
