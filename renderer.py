@@ -528,10 +528,10 @@ def geocode_place(name, country=None):
     return None, None
 
 
-def get_road_distance(place_a: str, place_b: str, ors_api_key: str, country: str = ''):
+def get_road_distance(place_a: str, place_b: str, ors_api_key: str = '', country: str = ''):
     """
     Zwraca (dystans_km, czas_min, komunikat) dla trasy A→B.
-    Próbuje ORS (trasy drogowe), przy błędzie fallback na haversine (linia prosta * 1.3).
+    Próbuje kolejno: Google Maps → ORS → Haversine fallback.
     Zwraca (None, None, opis_błędu) przy całkowitym niepowodzeniu.
     """
     if not place_a.strip() or not place_b.strip():
@@ -543,7 +543,33 @@ def get_road_distance(place_a: str, place_b: str, ors_api_key: str, country: str
     if None in (lat_a, lon_a, lat_b, lon_b):
         return None, None, f"Nie znaleziono lokalizacji: {'A' if lat_a is None else 'B'}. Sprawdź pisownię."
 
-    # Próba ORS (drogowa)
+    # 1. Próba Google Maps Distance Matrix (obsługuje cały świat)
+    google_key = st.secrets.get('google', {}).get('maps_api_key')
+    if google_key:
+        try:
+            origin = f"{lat_a},{lon_a}"
+            dest = f"{lat_b},{lon_b}"
+            url = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origin}&destinations={dest}&key={google_key}"
+            
+            with urllib.request.urlopen(url, timeout=10) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+            
+            if data.get('status') == 'OK' and data.get('rows'):
+                element = data['rows'][0]['elements'][0]
+                if element.get('status') == 'OK':
+                    dist_km = int(round(element['distance']['value'] / 1000, 0))
+                    time_min = int(round(element['duration']['value'] / 60, 0))
+                    return dist_km, time_min, None
+                else:
+                    google_error = element.get('status', 'Unknown error')
+            else:
+                google_error = data.get('status', 'Unknown error')
+        except Exception as e:
+            google_error = str(e)
+    else:
+        google_error = "Brak klucza Google Maps"
+
+    # 2. Próba ORS (Europa głównie)
     if ors_api_key:
         try:
             url = 'https://api.openrouteservice.org/v2/directions/driving-car'
@@ -573,7 +599,7 @@ def get_road_distance(place_a: str, place_b: str, ors_api_key: str, country: str
     else:
         ors_error = "Brak klucza ORS API"
 
-    # Fallback: haversine (linia prosta) z przybliżeniem drogowym *1.3
+    # 3. Fallback: haversine (linia prosta) z przybliżeniem drogowym *1.3
     try:
         import math as _math
         R = 6371.0
@@ -583,12 +609,11 @@ def get_road_distance(place_a: str, place_b: str, ors_api_key: str, country: str
         a = _math.sin(Δφ/2)**2 + _math.cos(φ1)*_math.cos(φ2)*_math.sin(Δλ/2)**2
         straight_km = R * 2 * _math.atan2(_math.sqrt(a), _math.sqrt(1-a))
         road_km = int(round(straight_km * 1.3, 0))
-        # Szacunkowy czas: 60 km/h średnia
-        time_min = int(round(road_km / 60 * 60, 0))
-        msg = f"Szacunek (linia prosta ×1.3, ORS niedostępny: {ors_error})"
+        time_min = int(round(road_km / 60 * 60, 0))  # Średnia 60 km/h
+        msg = f"Szacunek (linia prosta ×1.3). Google: {google_error}, ORS: {ors_error}"
         return road_km, time_min, msg
     except Exception as e2:
-        return None, None, f"ORS: {ors_error} | Haversine: {e2}"
+        return None, None, f"Google: {google_error} | ORS: {ors_error} | Haversine: {e2}"
 
 
 def format_duration(minutes: int) -> str:
