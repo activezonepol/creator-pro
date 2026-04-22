@@ -555,12 +555,22 @@ with st.sidebar:
                            index=_nav_bot.index(_last) if _last in _nav_bot else 0,
                            key="nav_bot_select", label_visibility="collapsed")
 
-    # Ustal aktywną stronę — priorytet: kliknięcie atrakcji
+    # Ustal aktywną stronę — priorytet: kliknięcie atrakcji > zmiana selectbox
     if page_attr is not None:
         page = page_attr
         st.session_state['last_page'] = page
         st.session_state['scroll_target'] = ""
         st.rerun()
+    elif page_top is not None and page_top != _last:
+        # Użytkownik wybrał coś z górnego selectbox
+        page = page_top
+        st.session_state['last_page'] = page
+        st.session_state['scroll_target'] = ""
+    elif page_bot is not None and page_bot != _last:
+        # Użytkownik wybrał coś z dolnego selectbox
+        page = page_bot
+        st.session_state['last_page'] = page
+        st.session_state['scroll_target'] = ""
     else:
         page = _last if _last in (_nav_top + _attr_pages + _nav_bot) else _nav_top[0]
 
