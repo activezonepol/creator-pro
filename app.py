@@ -1349,55 +1349,8 @@ with st.sidebar:
         proj = _build_proj_dict()
         proj_json = json.dumps(proj, ensure_ascii=False)
 
-        st.markdown("##### Zapis w przeglądarce")
-        st.markdown(
-            "Projekt jest automatycznie zapisywany w pamięci tej przeglądarki. "
-            "Przeżywa odświeżenie strony. **Nie znika po zamknięciu karty.**",
-            unsafe_allow_html=False,
-        )
-
-        import streamlit.components.v1 as _comp
-        # Widget localStorage: zapisuje projekt przy każdym wyrenderowaniu
-        # i pokazuje status ostatniego zapisu.
-        ls_html = f"""
-        <script>
-        (function() {{
-            var key = '{_LS_KEY}';
-            var data = {proj_json!r};
-            try {{
-                localStorage.setItem(key, data);
-                var ts = new Date().toLocaleTimeString('pl-PL');
-                var el = document.getElementById('ls-status');
-                if (el) el.textContent = 'Zapisano o ' + ts;
-            }} catch(e) {{
-                var el = document.getElementById('ls-status');
-                if (el) el.textContent = 'Błąd zapisu: ' + e.message;
-            }}
-        }})();
-        </script>
-        <div style="font-size:11px; color:#64748b; font-family:sans-serif; padding:6px 0;">
-            <span id="ls-status">Zapisuję...</span>
-        </div>"""
-        _comp.html(ls_html, height=30)
-
-        if st.button("WCZYTAJ Z PRZEGLĄDARKI", use_container_width=True, type="primary",
-                     help="Przywróć ostatnio zapisany projekt z tej przeglądarki"):
-            # Odczyt przez tymczasowy iframe który wysyła dane przez URL
-            restore_html = f"""
-            <script>
-            (function() {{
-                var data = localStorage.getItem('{_LS_KEY}');
-                if (!data) {{ alert('Brak zapisanego projektu w tej przeglądarce.'); return; }}
-                try {{
-                    var b64 = btoa(unescape(encodeURIComponent(data)));
-                    var url = window.parent.location.href.split('?')[0].split('#')[0];
-                    window.parent.location.href = url + '?_ls_restore=' + b64;
-                }} catch(e) {{
-                    alert('Błąd odczytu: ' + e.message);
-                }}
-            }})();
-            </script>"""
-            _comp.html(restore_html, height=0)
+        st.markdown("##### Auto-zapis do bazy danych")
+        st.info("📊 Twój projekt jest automatycznie zapisywany do bazy Supabase co 5 sekund. Dane przeżywają restart aplikacji i są dostępne zawsze.")
 
         st.markdown("---")
         st.markdown("##### Plik JSON na dysk / OneDrive")
@@ -1427,104 +1380,7 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-    # Przycisk ZAPISZ — zapisuje projekt do localStorage przeglądarki
-    import streamlit.components.v1 as _comp_quick
-    _proj_quick = _build_proj_dict()
-    _proj_quick_json = json.dumps(_proj_quick, ensure_ascii=False)
-    _acc = st.session_state.get('color_accent', '#FF6600')
-    _save_html = f"""
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-      .save-btn {{
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        width: 100%;
-        padding: 8px 0;
-        background: transparent;
-        border: 2px solid {_acc};
-        color: {_acc};
-        border-radius: 4px;
-        font-family: 'Montserrat', sans-serif;
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        cursor: pointer;
-        transition: background 0.2s, color 0.2s;
-      }}
-      .save-btn:hover {{ background: {_acc}; color: white; }}
-      .save-btn .tooltip {{
-        visibility: hidden;
-        opacity: 0;
-        position: absolute;
-        bottom: calc(100% + 8px);
-        left: 50%;
-        transform: translateX(-50%);
-        background: #1e293b;
-        color: #f8fafc;
-        font-size: 11px;
-        font-weight: 400;
-        text-transform: none;
-        letter-spacing: 0;
-        line-height: 1.5;
-        white-space: nowrap;
-        padding: 8px 12px;
-        border-radius: 4px;
-        pointer-events: none;
-        transition: opacity 0.2s;
-        z-index: 999;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-      }}
-      .save-btn .tooltip::after {{
-        content: '';
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        border: 5px solid transparent;
-        border-top-color: #1e293b;
-      }}
-      .save-btn:hover .tooltip {{ visibility: visible; opacity: 1; }}
-      #save-msg {{
-        font-size: 10px;
-        color: #64748b;
-        font-family: 'Open Sans', sans-serif;
-        text-align: center;
-        margin-top: 4px;
-        height: 14px;
-        letter-spacing: 0.3px;
-      }}
-    </style>
-    <button class="save-btn" onclick="doSave()">
-      <i class="fa-regular fa-circle-dot" style="font-size:13px;"></i>
-      ZAPISZ
-      <span class="tooltip">
-        Zapisuje projekt w tej przeglądarce.<br>
-        Przeżywa odświeżenie strony.<br>
-        Aby przenieść na inny komputer,<br>
-        pobierz plik JSON poniżej.
-      </span>
-    </button>
-    <div id="save-msg"></div>
-    <script>
-    function doSave() {{
-        try {{
-            localStorage.setItem('{_LS_KEY}', {_proj_quick_json!r});
-            var ts = new Date().toLocaleTimeString('pl-PL');
-            var msg = document.getElementById('save-msg');
-            msg.style.color = '#16a34a';
-            msg.textContent = 'Zapisano o ' + ts;
-        }} catch(e) {{
-            var msg = document.getElementById('save-msg');
-            msg.style.color = '#dc2626';
-            msg.textContent = 'Błąd zapisu';
-        }}
-    }}
-    </script>"""
-    _comp_quick.html(_save_html, height=62)
+    # Auto-zapis do Supabase działa w tle co 5 sekund - brak potrzeby ręcznego zapisu
 
     if st.button("PRZYGOTUJ OFERTĘ DO POBRANIA", type="secondary", use_container_width=True):
         with st.spinner("Generowanie ostatecznego pliku oferty..."):
