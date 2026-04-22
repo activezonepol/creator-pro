@@ -73,6 +73,11 @@ icon_map = {
     "Atrakcja": '<i class="fa-solid fa-camera-retro"></i>',
     "Zwiedzanie / Kultura": '<i class="fa-solid fa-landmark-dome"></i>',
     "Opis miejsca": '<i class="fa-solid fa-map-location-dot"></i>',
+    "Opis miejsca (miasto)": '<i class="fa-solid fa-city"></i>',
+    "Opis miejsca (zamek/zabytek)": '<i class="fa-solid fa-chess-rook"></i>',
+    "Degustacja wina": '<i class="fa-solid fa-wine-glass"></i>',
+    "Rejs stateczkiem": '<i class="fa-solid fa-sailboat"></i>',
+    "Trekking / Wędrówka": '<i class="fa-solid fa-person-hiking"></i>',
     "Przygoda / Active": '<i class="fa-solid fa-compass"></i>',
     "Rejs": '<i class="fa-solid fa-anchor"></i>',
     "Plaża / Relaks": '<i class="fa-solid fa-umbrella-beach"></i>',
@@ -1583,7 +1588,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 bb_a = f"<a href='#program_day_{int(md_a.group(1)) - 1}' class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
             hp.append(_shtml(f"""{lh}<div class="premium-layout" id="attr_{i}">
                 <div class="photo-col">{f'<img src="data:image/jpeg;base64,{iah}" style="width:100%;height:100%;object-fit:cover;">' if iah else _get_ph('FOTO GŁÓWNE')}{bb_a}</div>
-                <div class="info-col"><div class="type-icon-box">{icon_map.get(s.get(f"atype_{i}","Atrakcja"),"")}</div>
+                <div class="info-col">
+                    {f'<div class="type-icon-box">{icon_map.get(s.get(f"atype_{i}",""),"")}</div>' if s.get(f"atype_{i}") and s.get(f"atype_{i}") != "Brak" else ''}
                     <div class="title-h2">{str(s.get(f'amain_{i}','')).replace(chr(10),'<br>')}</div>
                     <div class="title-sub">{str(s.get(f'asub_{i}','')).replace(chr(10),'<br>')}</div>
                     <div style="flex-grow:1;"><p>{str(s.get(f'aopis_{i}') or '').replace(chr(10),'<br>')}</p></div>
