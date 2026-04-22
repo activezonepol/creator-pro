@@ -481,13 +481,16 @@ with st.sidebar:
 
     # Nawigacja górna — buttony kafelkowe
     st.markdown("**WYBIERZ SEKCJE DO EDYCJI:**")
+    
+    def _set_page_top(page_name):
+        st.session_state['last_page'] = page_name
+        st.session_state['scroll_target'] = ""
+    
     for item in _nav_top:
         btn_type = "primary" if item == _last else "secondary"
-        if st.button(item, key=f"nav_top_btn_{_nav_top.index(item)}", 
-                    use_container_width=True, type=btn_type):
-            st.session_state['last_page'] = item
-            st.session_state['scroll_target'] = ""
-            st.rerun()
+        st.button(item, key=f"nav_top_btn_{_nav_top.index(item)}", 
+                 use_container_width=True, type=btn_type,
+                 on_click=_set_page_top, args=(item,))
     page_top = None
 
     # --- SEKCJA ATRAKCJI wbudowana w nawigację ---
@@ -553,13 +556,15 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     # Nawigacja dolna — buttony kafelkowe
+    def _set_page_bot(page_name):
+        st.session_state['last_page'] = page_name
+        st.session_state['scroll_target'] = ""
+    
     for item in _nav_bot:
         btn_type = "primary" if item == _last else "secondary"
-        if st.button(item, key=f"nav_bot_btn_{_nav_bot.index(item)}", 
-                    use_container_width=True, type=btn_type):
-            st.session_state['last_page'] = item
-            st.session_state['scroll_target'] = ""
-            st.rerun()
+        st.button(item, key=f"nav_bot_btn_{_nav_bot.index(item)}", 
+                 use_container_width=True, type=btn_type,
+                 on_click=_set_page_bot, args=(item,))
     page_bot = None
 
     # Ustal aktywną stronę — priorytet: kliknięcie atrakcji
