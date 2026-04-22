@@ -461,26 +461,16 @@ with st.sidebar:
             return "  ★ " + _attr_display_name(pos)
         return p
 
-    # Radio górne — renderuj TYLKO gdy last_page należy do nav_top
-    if _last in _nav_top:
-        _top_idx = _nav_top.index(_last)
-        
-        def _on_top_change():
-            st.session_state['_radio_changed'] = 'top'
-        
-        page_top = st.radio("WYBIERZ SEKCJE DO EDYCJI:", _nav_top,
-                            index=_top_idx, key="nav_top_radio",
-                            on_change=_on_top_change)
-    else:
-        # Wyświetl tekst bez radio gdy strona jest poza nav_top
-        st.markdown("**WYBIERZ SEKCJE DO EDYCJI:**")
-        for item in _nav_top:
-            if st.button(item, key=f"nav_top_btn_{_nav_top.index(item)}", 
-                        use_container_width=True, type="secondary"):
-                st.session_state['last_page'] = item
-                st.session_state['_radio_changed'] = 'top'
-                st.rerun()
-        page_top = None
+    # Nawigacja górna — buttony kafelkowe
+    st.markdown("**WYBIERZ SEKCJE DO EDYCJI:**")
+    for item in _nav_top:
+        btn_type = "primary" if item == _last else "secondary"
+        if st.button(item, key=f"nav_top_btn_{_nav_top.index(item)}", 
+                    use_container_width=True, type=btn_type):
+            st.session_state['last_page'] = item
+            st.session_state['scroll_target'] = ""
+            st.rerun()
+    page_top = None
 
     # --- SEKCJA ATRAKCJI wbudowana w nawigację ---
     # Przycisk ＋ DODAJ ATRAKCJE/MIEJSCE
@@ -544,48 +534,24 @@ with st.sidebar:
     </script>
     """, unsafe_allow_html=True)
 
-    # Radio dolne — renderuj TYLKO gdy last_page należy do nav_bot
-    if _last in _nav_bot:
-        _bot_idx = _nav_bot.index(_last)
-        
-        def _on_bot_change():
-            st.session_state['_radio_changed'] = 'bot'
-        
-        page_bot = st.radio("", _nav_bot, index=_bot_idx,
-                            label_visibility="collapsed", key="nav_bot_radio",
-                            on_change=_on_bot_change)
-    else:
-        # Wyświetl buttony gdy strona jest poza nav_bot
-        for item in _nav_bot:
-            if st.button(item, key=f"nav_bot_btn_{_nav_bot.index(item)}", 
-                        use_container_width=True, type="secondary"):
-                st.session_state['last_page'] = item
-                st.session_state['_radio_changed'] = 'bot'
-                st.rerun()
-        page_bot = None
+    # Nawigacja dolna — buttony kafelkowe
+    for item in _nav_bot:
+        btn_type = "primary" if item == _last else "secondary"
+        if st.button(item, key=f"nav_bot_btn_{_nav_bot.index(item)}", 
+                    use_container_width=True, type=btn_type):
+            st.session_state['last_page'] = item
+            st.session_state['scroll_target'] = ""
+            st.rerun()
+    page_bot = None
 
-    # Ustal aktywną stronę — priorytet: kliknięcie atrakcji > zmiana top > zmiana bot
-    _radio_changed = st.session_state.get('_radio_changed', None)
-    
+    # Ustal aktywną stronę — priorytet: kliknięcie atrakcji
     if page_attr is not None:
         page = page_attr
         st.session_state['last_page'] = page
         st.session_state['scroll_target'] = ""
-        st.session_state['_radio_changed'] = None
         st.rerun()
-    elif _radio_changed == 'top' and page_top != _last:
-        page = page_top
-        st.session_state['last_page'] = page
-        st.session_state['scroll_target'] = ""
-        st.session_state['_radio_changed'] = None
-    elif _radio_changed == 'bot' and page_bot != _last:
-        page = page_bot
-        st.session_state['last_page'] = page
-        st.session_state['scroll_target'] = ""
-        st.session_state['_radio_changed'] = None
     else:
         page = _last if _last in (_nav_top + _attr_pages + _nav_bot) else _nav_top[0]
-        st.session_state['_radio_changed'] = None
 
     # Nagłówek zakładki
     _inter_pages = {"  ↳ Przerywnik hotel", "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}
