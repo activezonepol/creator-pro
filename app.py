@@ -496,59 +496,21 @@ with st.sidebar:
         f"<span style='color:{_acc};font-size:13px;font-weight:700;'>★</span>"
         f"<span style='font-size:12px;font-weight:600;color:#334155;"
         f"font-family:Montserrat,sans-serif;'>"
-        f"DODAJ ATRAKCJE/MIEJSCE</span></div>",
+        f"ATRAKCJE ({_n_attr})</span></div>",
         unsafe_allow_html=True,
     )
-    if st.button("＋ Dodaj", key="attr_add_main_btn", use_container_width=True):
-        _attr_add()
-        st.rerun()
-
-    # Każda atrakcja jako wiersz: [nazwa klikalny] [▲] [▼] [✕]
+    st.caption("💡 Zarządzaj atrakcjami na stronie każdego slajdu atrakcji")
+    
+    # Lista atrakcji tylko do nawigacji (bez buttonów akcji)
     page_attr = None
-
     for _ap in range(_n_attr):
         _ap_key = _attr_pages[_ap]
-        _ap_active = (_last == _ap_key)
-        _ca, _cb, _cc, _cd = st.columns([6, 1, 1, 1])
-        if _ca.button(f"★ {_attr_display_name(_ap)}", key=f"attr_nav_{_ap}",
-                      use_container_width=True,
-                      type="primary" if _ap_active else "secondary"):
-            page_attr = _ap_key
-        if _ap > 0:
-            _cb.button("▲", key=f"aord_up_{_ap}",
-                       on_click=_attr_move, args=(_ap, -1),
-                       use_container_width=True)
-        if _ap < _n_attr - 1:
-            _cc.button("▼", key=f"aord_dn_{_ap}",
-                       on_click=_attr_move, args=(_ap, 1),
-                       use_container_width=True)
-        _cd.button("✕", key=f"aord_del_{_ap}",
-                   on_click=_attr_delete, args=(_ap,),
-                   use_container_width=True)
-
-    # JS: pomniejsz strzałki i pokoloruj X na czerwono
-    st.markdown("""
-    <script>
-    (function() {
-        function styleAttrBtns() {
-            var sidebar = document.querySelector('[data-testid="stSidebar"]');
-            if (!sidebar) return;
-            sidebar.querySelectorAll('button').forEach(function(btn) {
-                var txt = btn.innerText.trim();
-                if (txt === '▲' || txt === '▼') {
-                    btn.style.cssText += ';min-height:22px!important;height:22px!important;padding:0 2px!important;font-size:11px!important;background:transparent!important;border-color:#e2e8f0!important;color:#94a3b8!important;';
-                }
-                if (txt === '✕') {
-                    btn.style.cssText += ';min-height:22px!important;height:22px!important;padding:0 2px!important;font-size:11px!important;background-color:#dc2626!important;border-color:#dc2626!important;color:white!important;';
-                }
-            });
-        }
-        var obs = new MutationObserver(styleAttrBtns);
-        obs.observe(document.body, {childList:true, subtree:true});
-        styleAttrBtns();
-    })();
-    </script>
-    """, unsafe_allow_html=True)
+        if st.button(f"★ {_attr_display_name(_ap)}", key=f"attr_view_{_ap}",
+                    use_container_width=True,
+                    type="primary" if _last == _ap_key else "secondary"):
+            # Ustawienie flagi bez reruna (Streamlit zrobi rerun automatycznie)
+            st.session_state['last_page'] = _ap_key
+            st.session_state['scroll_target'] = ""
 
     # Nawigacja dolna — selectbox
     page_bot = st.selectbox("", _nav_bot,
@@ -578,6 +540,19 @@ with st.sidebar:
     _inter_pages = {"  ↳ Przerywnik hotel", "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}
     _is_attr_page = page.startswith("ATTR:")
 
+# ---------------------------------------------------------------------------
+# OBSŁUGA AKCJI Z SIDEBARA (poza with st.sidebar)
+# ---------------------------------------------------------------------------
+# Sprawdź czy kliknięto "Dodaj atrakcję" - button ustawia swój key w session_state
+# Ale to nie działa w Streamlit w sidebarze... Usuwam obsługę
+# if st.session_state.get('attr_add_trigger', False):
+#     _attr_add()
+#     st.rerun()
+
+# ---------------------------------------------------------------------------
+# NAGŁÓWKI STRON
+# ---------------------------------------------------------------------------
+with st.container():
     if page == "Wygląd i Kolory":
         st.markdown("<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;'>KONFIGURACJA WYGLĄDU</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Dostosuj kolory i typografię oferty</div>", unsafe_allow_html=True)
