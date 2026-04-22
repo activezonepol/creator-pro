@@ -482,21 +482,11 @@ with st.sidebar:
             return "  ★ " + _attr_display_name(pos)
         return p
 
-    # Nawigacja górna — buttony kafelkowe (bez on_click - użyjemy sprawdzania wartości)
+    # Nawigacja górna — selectbox
     st.markdown("**WYBIERZ SEKCJE DO EDYCJI:**")
-    
-    _clicked_top = None
-    for item in _nav_top:
-        btn_type = "primary" if item == _last else "secondary"
-        if st.button(item, key=f"nav_top_btn_{_nav_top.index(item)}", 
-                    use_container_width=True, type=btn_type):
-            _clicked_top = item
-    
-    if _clicked_top:
-        st.session_state['last_page'] = _clicked_top
-        st.session_state['scroll_target'] = ""
-        st.rerun()
-    page_top = None
+    page_top = st.selectbox("", _nav_top, 
+                           index=_nav_top.index(_last) if _last in _nav_top else 0,
+                           key="nav_top_select", label_visibility="collapsed")
 
     # --- SEKCJA ATRAKCJI wbudowana w nawigację ---
     # Przycisk ＋ DODAJ ATRAKCJE/MIEJSCE
@@ -560,19 +550,10 @@ with st.sidebar:
     </script>
     """, unsafe_allow_html=True)
 
-    # Nawigacja dolna — buttony kafelkowe
-    _clicked_bot = None
-    for item in _nav_bot:
-        btn_type = "primary" if item == _last else "secondary"
-        if st.button(item, key=f"nav_bot_btn_{_nav_bot.index(item)}", 
-                    use_container_width=True, type=btn_type):
-            _clicked_bot = item
-    
-    if _clicked_bot:
-        st.session_state['last_page'] = _clicked_bot
-        st.session_state['scroll_target'] = ""
-        st.rerun()
-    page_bot = None
+    # Nawigacja dolna — selectbox
+    page_bot = st.selectbox("", _nav_bot,
+                           index=_nav_bot.index(_last) if _last in _nav_bot else 0,
+                           key="nav_bot_select", label_visibility="collapsed")
 
     # Ustal aktywną stronę — priorytet: kliknięcie atrakcji
     if page_attr is not None:
@@ -1462,45 +1443,33 @@ with st.sidebar:
 
 
 # ---------------------------------------------------------------------------
-# AUTO-SAVE DO SUPABASE co 2 sekundy
+# AUTO-SAVE DO SUPABASE - WYŁĄCZONE (powodowało pętlę rerenderowania)
 # ---------------------------------------------------------------------------
-if 'last_supabase_save' not in st.session_state:
-    st.session_state['last_supabase_save'] = 0
+# if 'last_supabase_save' not in st.session_state:
+#     st.session_state['last_supabase_save'] = 0
+# 
+# current_time = time.time()
+# if current_time - st.session_state['last_supabase_save'] > 2:
+#     should_save = st.session_state.get('_user_edited', False)
+#     if should_save:
+#         try:
+#             project_data = _build_proj_dict()
+#             project_name = st.session_state.get('t_main', 'Nowy projekt')
+#             supabase.table('projects').delete().eq('user_email', 'default_user').execute()
+#             supabase.table('projects').insert({
+#                 'user_email': 'default_user',
+#                 'project_name': project_name,
+#                 'data': project_data,
+#                 'updated_at': datetime.now().isoformat()
+#             }).execute()
+#             st.session_state['last_supabase_save'] = current_time
+#             st.session_state['_user_edited'] = False
+#             sample_keys = {k: v for k, v in project_data.items() if k in ['t_main', 't_sub', 't_klient']}
+#             st.session_state['last_save_status'] = f"✅ Zapisano {datetime.now().strftime('%H:%M:%S')} | Dane: {sample_keys}"
+#         except Exception as e:
+#             st.session_state['last_save_status'] = f"❌ Błąd: {str(e)[:100]}"
 
-current_time = time.time()
-# Zapisuj tylko jeśli upłynęło 2s ORA użytkownik coś edytował
-if current_time - st.session_state['last_supabase_save'] > 2:
-    # Sprawdź czy są jakieś zmiany od ostatniego load
-    should_save = st.session_state.get('_user_edited', False)
-    
-    if should_save:
-        try:
-            project_data = _build_proj_dict()
-            project_name = st.session_state.get('t_main', 'Nowy projekt')
-            
-            # Usuń stary projekt użytkownika
-            supabase.table('projects').delete().eq('user_email', 'default_user').execute()
-            
-            # Wstaw nowy
-            supabase.table('projects').insert({
-                'user_email': 'default_user',
-                'project_name': project_name,
-                'data': project_data,
-                'updated_at': datetime.now().isoformat()
-            }).execute()
-            
-            st.session_state['last_supabase_save'] = current_time
-            st.session_state['_user_edited'] = False  # Reset flagi
-            # Debug: pokaż przykład zapisanych danych
-            sample_keys = {k: v for k, v in project_data.items() if k in ['t_main', 't_sub', 't_klient']}
-            st.session_state['last_save_status'] = f"✅ Zapisano {datetime.now().strftime('%H:%M:%S')} | Dane: {sample_keys}"
-        except Exception as e:
-            st.session_state['last_save_status'] = f"❌ Błąd: {str(e)[:100]}"
-
-# Pokaż status zapisu i load w sidebarze (debug)
-if 'last_save_status' in st.session_state:
-    with st.sidebar:
-        st.caption(st.session_state['last_save_status'])
+# Pokaż status load w sidebarze (debug)
 if '_debug_loaded' in st.session_state:
     with st.sidebar:
         st.caption(st.session_state['_debug_loaded'])
