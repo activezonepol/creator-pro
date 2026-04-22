@@ -45,6 +45,19 @@ st.set_page_config(layout="wide", page_title="Activezone Oferta",
 
 st.markdown("""
 <style>
+/* Buttony nawigacyjne w sidebarze - kompaktowe */
+[data-testid="stSidebar"] div.stButton > button {
+    border-radius: 4px !important;
+    font-family: 'Montserrat', sans-serif !important;
+    text-transform: uppercase !important;
+    font-size: 10px !important;
+    letter-spacing: 0.5px !important;
+    font-weight: 600 !important;
+    padding: 6px 8px !important;
+    min-height: 28px !important;
+    height: 28px !important;
+}
+/* Pozostałe buttony (poza sidearem) - normalne */
 div.stButton > button {
     border-radius: 4px !important;
     font-family: 'Montserrat', sans-serif !important;
