@@ -1456,16 +1456,26 @@ if current_time - st.session_state['last_supabase_save'] > 5:
         project_data = _build_proj_dict()
         project_name = st.session_state.get('t_main', 'Nowy projekt')
         
-        supabase.table('projects').upsert({
+        # Usuń stary projekt użytkownika
+        supabase.table('projects').delete().eq('user_email', 'default_user').execute()
+        
+        # Wstaw nowy
+        supabase.table('projects').insert({
             'user_email': 'default_user',
             'project_name': project_name,
             'data': project_data,
             'updated_at': datetime.now().isoformat()
-        }, on_conflict='user_email').execute()
+        }).execute()
         
         st.session_state['last_supabase_save'] = current_time
-    except Exception:
-        pass  # Cichy błąd - nie przerywaj renderowania
+        st.session_state['last_save_status'] = f"✅ Zapisano {datetime.now().strftime('%H:%M:%S')}"
+    except Exception as e:
+        st.session_state['last_save_status'] = f"❌ Błąd: {str(e)[:50]}"
+
+# Pokaż status zapisu w sidebarze (debug)
+if 'last_save_status' in st.session_state:
+    with st.sidebar:
+        st.caption(st.session_state['last_save_status'])
 
 # ---------------------------------------------------------------------------
 # GŁÓWNA ZAWARTOŚĆ — PODGLĄD PREZENTACJI
