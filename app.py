@@ -437,6 +437,11 @@ if st.session_state['client_mode']:
 # ---------------------------------------------------------------------------
 # SIDEBAR — NAWIGACJA
 # ---------------------------------------------------------------------------
+# Funkcje callback dla nawigacji (muszą być poza with st.sidebar)
+def _set_page_nav(page_name):
+    st.session_state['last_page'] = page_name
+    st.session_state['scroll_target'] = ""
+
 with st.sidebar:
     _acc = st.session_state.get('color_accent', '#FF6600')
     _h1c = st.session_state.get('color_h1', '#003366')
@@ -482,15 +487,11 @@ with st.sidebar:
     # Nawigacja górna — buttony kafelkowe
     st.markdown("**WYBIERZ SEKCJE DO EDYCJI:**")
     
-    def _set_page_top(page_name):
-        st.session_state['last_page'] = page_name
-        st.session_state['scroll_target'] = ""
-    
     for item in _nav_top:
         btn_type = "primary" if item == _last else "secondary"
         st.button(item, key=f"nav_top_btn_{_nav_top.index(item)}", 
                  use_container_width=True, type=btn_type,
-                 on_click=_set_page_top, args=(item,))
+                 on_click=_set_page_nav, args=(item,))
     page_top = None
 
     # --- SEKCJA ATRAKCJI wbudowana w nawigację ---
@@ -556,15 +557,11 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     # Nawigacja dolna — buttony kafelkowe
-    def _set_page_bot(page_name):
-        st.session_state['last_page'] = page_name
-        st.session_state['scroll_target'] = ""
-    
     for item in _nav_bot:
         btn_type = "primary" if item == _last else "secondary"
         st.button(item, key=f"nav_bot_btn_{_nav_bot.index(item)}", 
                  use_container_width=True, type=btn_type,
-                 on_click=_set_page_bot, args=(item,))
+                 on_click=_set_page_nav, args=(item,))
     page_bot = None
 
     # Ustal aktywną stronę — priorytet: kliknięcie atrakcji
