@@ -296,6 +296,13 @@ def parse_date_and_days():
     except Exception:
         pass
 
+def build_day_options(start_date, num_days):
+    """Pomocnicza funkcja do budowania listy opcji przypisania dnia do miejsca/atrakcji."""
+    opts = ["Brak przypisania"]
+    for i in range(num_days):
+        dt = start_date + timedelta(days=i)
+        opts.append(f"Dzień {i+1} ({dt.strftime('%d.%m.%Y')})")
+    return opts
 
 def auto_generate_kosztorys():
     """Automatycznie generuje listę 'Cena zawiera' na podstawie wprowadzonych danych."""
@@ -787,15 +794,6 @@ def generate_map_data(points, zoom=6, _depth=0):
     final_img.close()
     return img_b64, final_points
 
-
-def build_day_options(start_date, num_days):
-    """Pomocnicza funkcja do budowania listy opcji przypisania dnia do miejsca/atrakcji."""
-    opts = ["Brak przypisania"]
-    for i in range(num_days):
-        dt = start_date + timedelta(days=i)
-        opts.append(f"Dzień {i+1} ({dt.strftime('%d.%m.%Y')})")
-    return opts
-
 # ---------------------------------------------------------------------------
 # CSS
 # ---------------------------------------------------------------------------
@@ -860,8 +858,8 @@ def get_local_css(return_str=False):
         .slide-page {{ width: 297mm !important; height: 210mm !important; min-width: 297mm !important; min-height: 210mm !important; margin: auto; box-sizing: border-box !important; background-color: white; box-shadow: 0 15px 45px rgba(0,0,0,0.08); padding: 30px 45px 15px 45px; position: relative; overflow: hidden; display: flex; flex-direction: column; font-family: '{f_txt}', sans-serif; color: {c_t}; transition: transform 0.3s ease, box-shadow 0.3s ease; }}
         @media screen and (max-height: 950px) {{ .slide-page {{ zoom: 0.90; }} }}
         @media screen and (max-height: 800px) {{ .slide-page {{ zoom: 0.80; }} }}
-        .title-h1 {{ font-family: '{f_h1}'; font-weight: 800; font-size: {fs_h1}px; line-height: 1.1; text-transform: uppercase; color: {c_h1}; margin-bottom: 5px; }}
-        .title-h2 {{ font-family: '{f_h2}'; font-weight: 800; font-size: {fs_h2}px; line-height: 1.1; text-transform: uppercase; color: {c_h2}; margin-bottom: 5px; }}
+        .title-h1 {{ font-family: '{f_h1}'; font-weight: 800; font-size: {fs_h1}px; line-height: 1.1; text-transform: uppercase; color: {c_h1}; margin-bottom: 5px; word-wrap: break-word; overflow-wrap: break-word; }}
+        .title-h2 {{ font-family: '{f_h2}'; font-weight: 800; font-size: {fs_h2}px; line-height: 1.1; text-transform: uppercase; color: {c_h2}; margin-bottom: 5px; word-wrap: break-word; overflow-wrap: break-word; }}
         .title-sub {{ font-family: '{f_sub}'; font-weight: 300; font-size: {fs_sub}px; color: {c_sub}; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px; }}
         .type-icon-box {{ color: transparent; -webkit-text-stroke: 1.5px {acc}; font-size: {fs_h2}px; margin-bottom: 5px; display: inline-block; }}
         .metric-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }}
@@ -874,7 +872,7 @@ def get_local_css(return_str=False):
         .premium-layout {{ display: flex; gap: 40px; flex-grow: 1; min-height: 0; width: 100%; margin-bottom: 20px; overflow: hidden; }}
         .photo-col {{ flex: 45; position: relative; height: 100%; border-radius: 8px; overflow: hidden; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; background-color: #fcfcfc; }}
         .photo-col img {{ width: 100%; height: 100%; object-fit: cover; }}
-        .info-col {{ flex: 55; display: flex; flex-direction: column; height: 100%; }}
+        .info-col {{ flex: 55; display: flex; flex-direction: column; height: 100%; min-width: 0; }}
         .info-col p {{ font-size: {fs_t}px; line-height: 1.5; }}
         .floating-btn {{ position: absolute; bottom: 25px; left: 25px; background: {acc}; color: white !important; padding: 12px 24px; border-radius: 40px; text-decoration: none !important; font-family: '{f_h2}'; font-weight: 700; font-size: 10px; text-transform: uppercase; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 10; transition: opacity 0.2s; opacity: 0.9; }}
         .floating-btn:hover {{ opacity: 1; }}
