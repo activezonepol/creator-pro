@@ -909,7 +909,7 @@ raw_backup = st.session_state.get('RAW_STATE_BACKUP', {})
 for bk, bv in st.session_state.items():
     if bk in ('STATE_BACKUP', 'RAW_STATE_BACKUP'): 
         continue
-    if bk.startswith(('up_', 'btn_', 'dl_', '$$', 'FormSubmitter', 'sb_', 'pa_add_', 'ho_up_', 'ho_dn_', 'aord_', 'attrnav_')): 
+    if bk.startswith(('up_', 'btn_', 'dl_', '$$', 'FormSubmitter', 'sb_', 'pa_add_', 'ho_up_', 'ho_dn_', 'aord_', 'attrnav_')) or bk.endswith('_btn'): 
         continue
     if _is_uploader_key(bk):
         continue
@@ -919,6 +919,14 @@ for bk, bv in st.session_state.items():
     raw_backup[bk] = bv
     
 st.session_state['RAW_STATE_BACKUP'] = raw_backup
+
+# ---------------------------------------------------------------------------
+# GŁÓWNA ZAWARTOŚĆ — PODGLĄD PREZENTACJI
+# ---------------------------------------------------------------------------
+with col_preview:
+    _acc = st.session_state.get('color_accent', '#FF6600')
+    st.markdown(f"<h3 style='color:{_acc};font-size:16px;margin-bottom:20px;'>PODGLĄD SLAJDU</h3>", unsafe_allow_html=True)
+    build_presentation(page)
 
 # ---------------------------------------------------------------------------
 # GŁÓWNA ZAWARTOŚĆ — PODGLĄD PREZENTACJI
