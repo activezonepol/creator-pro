@@ -606,6 +606,13 @@ with st.container():
         st.markdown(f"<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;text-transform:uppercase;'>{page}</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Wprowadź dane dla tej sekcji poniżej:</div>", unsafe_allow_html=True)
 
+# ---------------------------------------------------------------------------
+# LAYOUT 2 KOLUMNY: Formularz edycji | Podgląd slajdu
+# ---------------------------------------------------------------------------
+col_form, col_preview = st.columns([0.4, 0.6], gap="medium")
+
+with col_form:
+    st.markdown("### 📝 Dane slajdu")
 
     # -----------------------------------------------------------------------
     # STRONA TYTUŁOWA
@@ -1491,7 +1498,8 @@ if '_debug_loaded' in st.session_state:
         st.caption(st.session_state['_debug_loaded'])
 
 # ---------------------------------------------------------------------------
-# ---------------------------------------------------------------------------
 # GŁÓWNA ZAWARTOŚĆ — PODGLĄD PREZENTACJI
 # ---------------------------------------------------------------------------
-build_presentation(page)
+with col_preview:
+    st.markdown("### 👁️ Podgląd slajdu")
+    build_presentation(page)
