@@ -565,13 +565,13 @@ with st.sidebar:
     
     _top_index = _nav_top.index(_last) if _last in _nav_top else 0
     st.radio(
-        "Nawigacja górna",
-        _nav_top,
-        index=_top_index,
-        key="nav_top_radio",
-        label_visibility="collapsed",
-        on_change=lambda: st.session_state.update({'last_page': st.session_state['nav_top_radio']})
-    )
+    "Nawigacja górna",
+    _nav_top,
+    index=_top_index,
+    key="nav_top_radio",
+    label_visibility="collapsed",
+    on_change=_nav_change_top,
+)
 
     # --- SEKCJA ATRAKCJI wbudowana w nawigację ---
     # Przycisk ＋ DODAJ ATRAKCJE/MIEJSCE
