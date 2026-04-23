@@ -543,6 +543,60 @@ if st.session_state['client_mode']:
 # SIDEBAR — NAWIGACJA
 # ---------------------------------------------------------------------------
 with st.sidebar:
+    # ---------------------------------------------------------------------------
+    # STATUS AUTO-SAVE (na samej górze - zawsze widoczny)
+    # ---------------------------------------------------------------------------
+    save_status = st.session_state.get('last_save_status', '⏳ Czekam na zmiany...')
+    save_count = st.session_state.get('last_save_count', 0)
+    
+    st.markdown(
+        f"<div style='background:#f0f9ff;border-left:3px solid #0ea5e9;padding:8px 12px;margin-bottom:15px;border-radius:4px;'>"
+        f"<div style='font-size:11px;font-weight:600;color:#0369a1;margin-bottom:4px;'>AUTO-ZAPIS (co 10s)</div>"
+        f"<div style='font-size:10px;color:#64748b;'>{save_status}</div>"
+        f"<div style='font-size:9px;color:#94a3b8;margin-top:2px;'>{save_count} pól w bazie</div>"
+        f"</div>",
+        unsafe_allow_html=True
+    )
+    
+    # Przycisk ręcznego zapisu (dla pewności)
+    if st.button("💾 ZAPISZ TERAZ", use_container_width=True, type="primary", key="manual_save_btn"):
+        try:
+            project_data = _build_proj_dict()
+            project_name = st.session_state.get('t_main', 'Nowy projekt')
+            
+            existing = supabase.table('projects').select('id').eq(
+                'user_email', 'default_user'
+            ).order('updated_at', desc=True).limit(1).execute()
+            
+            if existing.data:
+                project_id = existing.data[0]['id']
+                supabase.table('projects').update({
+                    'project_name': project_name,
+                    'data': project_data,
+                    'updated_at': datetime.now().isoformat()
+                }).eq('id', project_id).execute()
+            else:
+                supabase.table('projects').insert({
+                    'user_email': 'default_user',
+                    'project_name': project_name,
+                    'data': project_data,
+                    'updated_at': datetime.now().isoformat()
+                }).execute()
+            
+            save_time = datetime.now().strftime('%H:%M:%S')
+            st.session_state['last_save_status'] = f"✅ Zapisano ręcznie {save_time}"
+            st.session_state['last_save_count'] = len(project_data)
+            st.session_state['last_supabase_save'] = time.time()
+            st.success("✅ Projekt zapisany!")
+            st.rerun()
+        except Exception as e:
+            st.error(f"❌ Błąd zapisu: {str(e)[:100]}")
+    
+    st.markdown("---")
+    
+    # ---------------------------------------------------------------------------
+    # RESZTA SIDEBARA
+    # ---------------------------------------------------------------------------
     _acc = st.session_state.get('color_accent', '#FF6600')
     _h1c = st.session_state.get('color_h1', '#003366')
     # CSS: primary button w sidebarze = kolor akcentu (pomarańczowy)
@@ -609,31 +663,31 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
     
-    # Selectbox dla wyboru atrakcji (bez modyfikacji session_state)
+    # Lista atrakcji z buttonami zarządzania (bez if st.button - zapisujemy wartości)
     if _n_attr > 0:
-        attr_options = [_attr_display_name(pos) for pos in range(_n_attr)]
-        current_attr_idx = None
-        for pos in range(_n_attr):
-            if _attr_pages[pos] == _last:
-                current_attr_idx = pos
-                break
-        
-        if current_attr_idx is not None:
-            selected_attr_name = st.selectbox(
-                "Wybierz atrakcję",
-                attr_options,
-                index=current_attr_idx,
-                key="attr_select",
-                label_visibility="collapsed"
+        for _ap in range(_n_attr):
+            _ap_key = _attr_pages[_ap]
+            _ap_name = _attr_display_name(_ap)
+            _ap_active = (_last == _ap_key)
+            
+            _ca, _cb, _cc, _cd = st.columns([6, 1, 1, 1])
+            
+            # Button nawigacji
+            _ca.button(
+                f"★ {_ap_name}", 
+                key=f"attrnav_{_ap}",
+                use_container_width=True,
+                type="primary" if _ap_active else "secondary"
             )
-            # Znajdź indeks wybranej atrakcji
-            selected_idx = attr_options.index(selected_attr_name)
-            selected_page = _attr_pages[selected_idx]
-            if selected_page != _last:
-                st.session_state['last_page'] = selected_page
-                st.rerun()
+            
+            # Buttony zarządzania
+            if _ap > 0:
+                _cb.button("▲", key=f"attrup_{_ap}", use_container_width=True)
+            if _ap < _n_attr - 1:
+                _cc.button("▼", key=f"attrdn_{_ap}", use_container_width=True)
+            _cd.button("✕", key=f"attrdel_{_ap}", use_container_width=True)
     
-    st.caption("💡 Zarządzaj atrakcjami na stronie 'Program Wyjazdu' → przypisz do dnia")
+    st.caption("💡 Zarządzaj kolejnością i usuwaj atrakcje przyciskami ▲▼✕")
 
     # Nawigacja dolna — RADIO
     _bot_index = _nav_bot.index(_last) if _last in _nav_bot else 0
@@ -653,14 +707,45 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 # USTALANIE AKTYWNEJ STRONY (po sidebarze)
 # ---------------------------------------------------------------------------
+# Obsługa buttonów atrakcji (sprawdzanie wartości POZA sidebarem)
+for _ap in range(_n_attr):
+    # Nawigacja
+    if st.session_state.get(f'attrnav_{_ap}', False):
+        st.session_state['last_page'] = _attr_pages[_ap]
+        st.rerun()
+    # Move up
+    if st.session_state.get(f'attrup_{_ap}', False):
+        _attr_move(_ap, -1)
+        st.rerun()
+    # Move down
+    if st.session_state.get(f'attrdn_{_ap}', False):
+        _attr_move(_ap, 1)
+        st.rerun()
+    # Delete
+    if st.session_state.get(f'attrdel_{_ap}', False):
+        _attr_delete(_ap)
+        st.rerun()
+
 page = _last
 
 # ---------------------------------------------------------------------------
 # PRZYCISK DODAJ ATRAKCJĘ (POZA sidebarem - może modyfikować session_state)
 # ---------------------------------------------------------------------------
-if st.button("➕ Dodaj nową atrakcję", key="btn_add_attraction_main", type="primary"):
-    _attr_add()
-    st.rerun()
+# Używamy markdown żeby mieć biały plusik
+col_add_btn, col_space = st.columns([1, 3])
+with col_add_btn:
+    if st.button("➕ Dodaj atrakcję", key="btn_add_attraction_main", type="primary", use_container_width=True):
+        _attr_add()
+        st.rerun()
+
+# Custom CSS dla białego emoji w przycisku
+st.markdown("""
+<style>
+button[data-testid="baseButton-primary"] {
+    color: white !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
 # NAGŁÓWKI STRON
@@ -1608,8 +1693,10 @@ if current_time - st.session_state['last_supabase_save'] > 10:
             }).execute()
         
         st.session_state['last_supabase_save'] = current_time
-        # Debug (opcjonalnie)
-        # st.session_state['last_save_status'] = f"✅ {datetime.now().strftime('%H:%M:%S')}"
+        # Status zapisu (widoczny dla użytkownika)
+        save_time = datetime.now().strftime('%H:%M:%S')
+        st.session_state['last_save_status'] = f"✅ Zapisano {save_time}"
+        st.session_state['last_save_count'] = len(project_data)
     except Exception as e:
         # Cichy błąd - nie przerywaj renderowania
         st.session_state['last_save_status'] = f"❌ {str(e)[:50]}"
