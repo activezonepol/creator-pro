@@ -360,7 +360,7 @@ def load_project_data(project_data: dict):
             # (oszczędzamy niepotrzebne rerunowanie widgetów)
             if st.session_state.get(k) != v:
                 st.session_state[k] = v
-
+                
 
 # ---------------------------------------------------------------------------
 # OBSŁUGA OBRAZÓW
