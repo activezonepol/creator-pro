@@ -107,30 +107,35 @@ if 'client_mode' not in st.session_state:
     st.session_state['client_mode'] = False
 
 # ---------------------------------------------------------------------------
-# AUTO-LOAD Z SUPABASE - WERSJA DLA STABILNOŚCI
+# AUTO-LOAD Z SUPABASE (WERSJA STABILNA - JEDNORAZOWE WCZYTANIE)
 # ---------------------------------------------------------------------------
-if '_loaded_from_supabase' not in st.session_state:
-    st.session_state['_loaded_from_supabase'] = False
-
-if not st.session_state['_loaded_from_supabase']:
+if '_data_loaded_once' not in st.session_state:
     try:
+        # Pobieramy dane tylko raz na całą sesję użytkownika
         result = supabase.table('projects').select('data').eq('user_email', 'default_user').order('updated_at', desc=True).limit(1).execute()
         
         if result.data and result.data[0].get('data'):
             project_data = result.data[0]['data']
-            # Ładujemy tylko raz na start sesji
+            # Wczytujemy dane do sesji (renderer.py dba o to, by nic nie nadpisać)
             load_project_data(project_data)
-            st.session_state['_debug_loaded'] = "📥 Dane wczytane z Supabase"
+            st.session_state['_debug_loaded'] = "📥 Dane wczytane z Supabase (start sesji)"
         else:
-            # Tylko jeśli pusto, ładujemy defaults
+            st.session_state['_debug_loaded'] = "📥 Brak danych w bazie - użyto defaults"
+            # Wczytujemy wartości domyślne tylko, jeśli baza jest pusta
             for k, v in defaults.items():
                 if k not in st.session_state:
                     st.session_state[k] = v
         
-        st.session_state['_loaded_from_supabase'] = True
+        # Oznaczamy, że dane zostały już zainicjowane
+        st.session_state['_data_loaded_once'] = True
+        
     except Exception as e:
-        st.error(f"Błąd: {e}")
-        st.session_state['_loaded_from_supabase'] = True
+        st.error(f"❌ Błąd wczytywania bazy: {str(e)[:50]}")
+        # W razie awarii bazy ładujemy defaults, aby nie zepsuć aplikacji
+        for k, v in defaults.items():
+            if k not in st.session_state:
+                st.session_state[k] = v
+        st.session_state['_data_loaded_once'] = True
 
 # ---------------------------------------------------------------------------
 # HELPERY UI
