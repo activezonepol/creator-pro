@@ -798,7 +798,7 @@ with col_form:
         if _up_s:
             st.session_state[f"sek_2_img"] = optimize_img(_up_s.getvalue())
 
-    elif page == "Strona Tytułowa":
+  elif page == "Strona Tytułowa":
         tit_keys = [
             't_date', 'country_name', 'country_code', 't_main', 't_sub',
             't_klient', 't_kierunek', 't_pax', 't_hotel', 't_trans',
@@ -806,20 +806,21 @@ with col_form:
         ]
         section_template_manager(tit_keys, "TYT", "strona-tytulowa", "tit")
         
-        # 1. Termin - jawne value=...
+        # 1. Termin
         st.text_input("Termin:", 
                       value=st.session_state.get("t_date", ""), 
                       key="t_date", 
+                      use_container_width=True,
                       on_change=lambda: (parse_date_and_days(), save_to_supabase()))
         
-        # 2. Kraj - selectbox
+        # 2. Kraj (Selectbox automatycznie dostosowuje szerokość)
         st.selectbox("Kraj docelowy:", 
                      list(COUNTRIES_DICT.keys()), 
                      key="country_name", 
                      on_change=save_to_supabase)
         st.session_state['country_code'] = COUNTRIES_DICT.get(st.session_state['country_name'], 'OTH')
         
-        # 3. Pętla pól tekstowych z jawnym value=...
+        # 3. Pętla głównych pól tekstowych z użyciem use_container_width
         for k, l in [
             ('t_main', 'Tytuł H1'), ('t_sub', 'Podtytuł'), ('t_klient', 'Klient'),
             ('t_kierunek', 'Kierunek'), ('t_pax', 'Liczba osób'),
@@ -828,6 +829,7 @@ with col_form:
             st.text_input(l, 
                           value=st.session_state.get(k, ""), 
                           key=k, 
+                          use_container_width=True,
                           on_change=save_to_supabase)
         
         # 4. Uploadery zdjęć
@@ -847,7 +849,6 @@ with col_form:
             st.session_state['logo_cli'] = optimize_logo(u3.getvalue())
             save_to_supabase()
             
-        # 5. Checkbox z jawnym value
         c2.checkbox("Ukryj logo klienta na stronie tytułowej", 
                     value=st.session_state.get("hide_logo_cli", False),
                     key="hide_logo_cli", 
