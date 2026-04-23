@@ -323,38 +323,38 @@ def load_project_data(project_data: dict):
         'attrnav_', 'attrup_', 'attrdn_', 'attrdel_',
         'btn_', 'dl_', 'up_',
     )
-
+ 
     for k, v in project_data.items():
         # 1. Pomijamy klucze przycisków i widżetów Streamlit
         if k in forbidden_keys:
             continue
         if any(k.startswith(p) for p in forbidden_prefixes):
             continue
-
+ 
         # 2. None — zachowaj lokalny stan
         if v is None:
             continue
-
+ 
         # 3. BEZPIECZNIK: pusty string z bazy vs niepusty lokalnie → zachowaj lokalny.
         # To jest KLUCZOWA zmiana likwidująca "znikanie tekstów".
         if isinstance(v, str) and v == "":
             current = st.session_state.get(k)
             if isinstance(current, str) and current != "":
                 continue
-
+ 
         # 4. Specjalistyczne wczytywanie typów
         if k in IMAGE_KEYS and isinstance(v, str):
             try:
                 st.session_state[k] = base64.b64decode(v)
             except Exception:
                 st.session_state[k] = v
-
+ 
         elif k == 'p_start_dt' and isinstance(v, str):
             try:
                 st.session_state[k] = date.fromisoformat(v)
             except Exception:
                 pass
-
+ 
         else:
             # 5. Nadpisz tylko jeśli wartość faktycznie się różni
             # (oszczędzamy niepotrzebne rerunowanie widgetów)
