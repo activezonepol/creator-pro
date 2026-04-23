@@ -629,23 +629,38 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 # Obsługa buttonów atrakcji (sprawdzanie wartości POZA sidebarem)
 for _ap in range(_n_attr):
-    # Nawigacja
+    # Nawigacja na atrakcję
     if st.session_state.get(f'attrnav_{_ap}', False):
+        try:
+            save_to_supabase()  # ← ZAPISZ STAN PRZED RERUN
+        except Exception:
+            pass
         st.session_state['last_page'] = _attr_pages[_ap]
         st.rerun()
-    # Move up
+    # Przesuń w górę
     if st.session_state.get(f'attrup_{_ap}', False):
+        try:
+            save_to_supabase()
+        except Exception:
+            pass
         _attr_move(_ap, -1)
         st.rerun()
-    # Move down
+    # Przesuń w dół
     if st.session_state.get(f'attrdn_{_ap}', False):
+        try:
+            save_to_supabase()
+        except Exception:
+            pass
         _attr_move(_ap, 1)
         st.rerun()
-    # Delete
+    # Usuń
     if st.session_state.get(f'attrdel_{_ap}', False):
+        try:
+            save_to_supabase()
+        except Exception:
+            pass
         _attr_delete(_ap)
         st.rerun()
-
 page = _last
 
 # ---------------------------------------------------------------------------
