@@ -302,7 +302,6 @@ _SIZE_KEYS = {'font_size_h1', 'font_size_h2', 'font_size_sub', 'font_size_text',
 
 
 # renderer.py
-
 def load_project_data(project_data: dict):
     """
     Wczytuje dane z JSON/Bazy do session_state.
