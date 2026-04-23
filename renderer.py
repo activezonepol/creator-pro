@@ -302,15 +302,6 @@ _SIZE_KEYS = {'font_size_h1', 'font_size_h2', 'font_size_sub', 'font_size_text',
 
 
 # renderer.py
-# W renderer.py
-# ==============================================================================
-# PATCH dla renderer.py
-# ==============================================================================
-# INSTRUKCJA: W pliku renderer.py znajdź funkcję `load_project_data` 
-# (jest około linii 280-310) i ZASTĄP CAŁĄ FUNKCJĘ poniższą wersją.
-# Nic więcej w renderer.py nie zmieniaj.
-# ==============================================================================
-
 
 def load_project_data(project_data: dict):
     """
