@@ -173,11 +173,6 @@ def _move_hotel(idx, direction):
         st.session_state['hotel_order'] = order
 
 
-def on_change_termin():
-    parse_date_and_days()
-    save_to_supabase()
-
-
 # -----------------------------------------------------------------------
 # ZARZĄDZANIE LISTĄ OPISÓW ATRAKCJI I MIEJSC (pa_items)
 # pa_items = lista słowników: {type: 'place'/'attr', idx: int}
@@ -810,54 +805,30 @@ with col_form:
             'img_hero_t', 'logo_az', 'logo_cli', 'hide_logo_cli',
         ]
         section_template_manager(tit_keys, "TYT", "strona-tytulowa", "tit")
-        
-        # 1. Termin - BEZ LAMBDA
-        st.text_input("Termin:", 
-                      value=st.session_state.get("t_date", ""), 
-                      key="t_date", 
-                      use_container_width=True,
-                      on_change=on_change_termin)
-        
-        # 2. Kraj
-        st.selectbox("Kraj docelowy:", 
-                     list(COUNTRIES_DICT.keys()), 
-                     key="country_name", 
-                     on_change=save_to_supabase)
-        st.session_state['country_code'] = COUNTRIES_DICT.get(st.session_state['country_name'], 'OTH')
-        
-        # 3. Pętla pól tekstowych
+        st.text_input("Termin:", key="t_date", on_change=lambda: (parse_date_and_days(), save_to_supabase()))
+        st.selectbox("Kraj docelowy:", list(COUNTRIES_DICT.keys()), key="country_name", on_change=save_to_supabase)
+        st.session_state['country_code'] = COUNTRIES_DICT[st.session_state['country_name']]
         for k, l in [
             ('t_main', 'Tytuł H1'), ('t_sub', 'Podtytuł'), ('t_klient', 'Klient'),
             ('t_kierunek', 'Kierunek'), ('t_pax', 'Liczba osób'),
             ('t_hotel', 'Hotel'), ('t_trans', 'Dojazd'),
         ]:
-            st.text_input(l, 
-                          value=st.session_state.get(k, ""), 
-                          key=k, 
-                          use_container_width=True,
-                          on_change=save_to_supabase)
-        
-        # 4. Uploadery (bez zmian)
+            st.text_input(l, key=k, on_change=save_to_supabase)
         u1 = st.file_uploader("Zdjęcie główne (4:5)", key="tyt_hero")
         if u1:
             st.session_state['img_hero_t'] = optimize_img(u1.getvalue())
             save_to_supabase()
-            
         c1, c2 = st.columns(2)
         u2 = c1.file_uploader("Logo Firmy", key="tyt_logo_az")
         if u2:
             st.session_state['logo_az'] = optimize_logo(u2.getvalue())
             save_to_supabase()
-            
         u3 = c2.file_uploader("Logo Klienta", key="tyt_logo_cli")
         if u3:
             st.session_state['logo_cli'] = optimize_logo(u3.getvalue())
             save_to_supabase()
-            
-        c2.checkbox("Ukryj logo klienta na stronie tytułowej", 
-                    value=st.session_state.get("hide_logo_cli", False),
-                    key="hide_logo_cli", 
-                    on_change=save_to_supabase)
+        c2.checkbox("Ukryj logo klienta na stronie tytułowej", key="hide_logo_cli", on_change=save_to_supabase)
+
     # -----------------------------------------------------------------------
     # OPIS KIERUNKU
     # -----------------------------------------------------------------------
