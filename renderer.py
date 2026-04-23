@@ -297,6 +297,44 @@ def parse_date_and_days():
         pass
 
 
+def auto_generate_kosztorys():
+    """Automatycznie generuje listę 'Cena zawiera' na podstawie wprowadzonych danych."""
+    import streamlit as st
+    
+    zawiera = []
+    
+    # 1. Zbieranie hoteli
+    num_hotels = st.session_state.get('num_hotels', 0)
+    hotele = []
+    for i in range(num_hotels):
+        h_name = str(st.session_state.get(f'h_title_{i}', '')).split('\n')[0].strip()
+        if h_name:
+            hotele.append(h_name)
+    if hotele:
+        zawiera.append(f"Zakwaterowanie w hotelach: {', '.join(hotele)}")
+        
+    # 2. Zbieranie atrakcji
+    num_attr = st.session_state.get('num_attr', 0)
+    atrakcje = []
+    for i in range(num_attr):
+        a_name = str(st.session_state.get(f'amain_{i}', '')).strip()
+        if a_name:
+            atrakcje.append(a_name)
+    if atrakcje:
+        zawiera.append(f"Realizacja programu: {', '.join(atrakcje)}")
+        
+    # 3. Domyślne punkty
+    zawiera.append("Opieka profesjonalnego pilota / rezydenta")
+    zawiera.append("Podstawowe ubezpieczenie KL i NNW")
+    
+    # Formatowanie z punktorem
+    nowe_linie = [f"■ {z}" for z in zawiera]
+    wynik = "\n".join(nowe_linie)
+    
+    # Wpisanie do pola "koszt_zawiera_1" (Slajd 1 Kosztorysu)
+    st.session_state['koszt_zawiera_1'] = wynik
+
+
 def get_project_filename():
     """Generuje przyjazną nazwę pliku dla eksportu projektu."""
     import streamlit as st
@@ -750,6 +788,14 @@ def generate_map_data(points, zoom=6, _depth=0):
     return img_b64, final_points
 
 
+def build_day_options(start_date, num_days):
+    """Pomocnicza funkcja do budowania listy opcji przypisania dnia do miejsca/atrakcji."""
+    opts = ["Brak przypisania"]
+    for i in range(num_days):
+        dt = start_date + timedelta(days=i)
+        opts.append(f"Dzień {i+1} ({dt.strftime('%d.%m.%Y')})")
+    return opts
+
 # ---------------------------------------------------------------------------
 # CSS
 # ---------------------------------------------------------------------------
@@ -1017,7 +1063,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     hide_cli = s.get('hide_logo_cli', False)
     lcli_b64 = get_logo_b64(rcli)
     lcli = (f"<img src='data:image/png;base64,{lcli_b64}' style='max-height:100%;max-width:150px;object-fit:contain;'>"
-            if (lcli_b64 and not hide_cli) else "")
+             if (lcli_b64 and not hide_cli) else "")
     lcli_container = f"<div style='margin-bottom:40px;height:60px;display:flex;align-items:center;justify-content:flex-start;'>{lcli}</div>"
     hp.append(_shtml(f"""{lh}<div class="premium-layout"><div class="photo-col">{im1}</div><div class="info-col">
         {lcli_container}
@@ -1298,12 +1344,10 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div></div>{fh}""", "slide-loty"))
 
 
-
-
     # --- Przerywnik sek_0 (przed hotel) ---
-    _render_sek(0)  # Przerywnik przed hotelami
+    _render_sek(0)  
 
-        # --- Hotele w kolejności hotel_order ---
+    # --- Hotele w kolejności hotel_order ---
     _hotel_order = s.get('hotel_order', [])
     if not _hotel_order:
         _hotel_order = list(range(s.get('num_hotels', 1)))
@@ -1319,7 +1363,6 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                         if h1b else _get_ph('ZDJ. LEWE 2'))
             url_val = str(s.get(f'h_url_{i}', '')).strip()
 
-            # POPRAWKA 2: URL w linii z podtytułem (wyrównany do prawej), podlinkowany
             _url_clean = url_val.replace('https://', '').replace('http://', '') if url_val else ''
             url_link = (
                 f'<a href="https://{_url_clean}" target="_blank" '
@@ -1341,7 +1384,6 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             h_am_html = (f'<div style="display:flex; flex-wrap:wrap; align-items:center; gap:15px; margin-bottom:10px; padding:8px 0; border-top:1px solid #eee; border-bottom:1px solid #eee;">{"".join(am_items)}</div>'
                          if am_items else '')
 
-            # POPRAWKA 1: Atuty jako tagi (jeden wiersz, font overline, kolor akcentu, tło akcentu)
             advs = [f.strip() for f in s.get(f'h_advantages_{i}', '').split('\n') if f.strip()]
             adv_html = (
                 f'<div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;">' +
@@ -1378,7 +1420,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 </div></div>{fh}""", f"slide-hotel-{i}"))
 
     # --- Przerywnik sek_3 (przed programem) ---
-    _render_sek(3)  # Przerywnik przed programem
+    _render_sek(3)  
 
     # --- Program wyjazdu ---
     if not s.get('prg_hide', False):
@@ -1392,15 +1434,6 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     cdt = start_dt_local + timedelta(days=di)
                     id_img = get_b64(f'img_d_{di}', (16, 9))
                     mh = ""
-                    for pi in range(s.get('num_places', 0)):
-                        p_day = str(s.get(f"pday_{pi}") or "")
-                        d_match = re.search(r'Dzień\s+(\d+)', p_day)
-                        if d_match and int(d_match.group(1)) == di + 1:
-                            nm = s.get(f"pmain_{pi}", "")
-                            if s.get(f"phide_{pi}"):
-                                mh += f"<div><div style='display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600; color:{c_t}; margin-bottom:5px;'><span style='font-size:18px; color:{acc};'><i class='fa-solid fa-map-location-dot'></i></span> <span>{nm}</span></div></div>"
-                            else:
-                                mh += f"<div><a href='#place_{pi}' style='text-decoration:none; color:{acc}; display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600; margin-bottom:5px;'><span style='font-size:18px;'><i class='fa-solid fa-map-location-dot'></i></span> <span>{nm} <span style='font-size:12px; font-weight:400; opacity:0.8;'>(zobacz)</span></span></a></div>"
                     for ai in range(s.get('num_attr', 0)):
                         a_day = str(s.get(f"aday_{ai}") or "")
                         d_match = re.search(r'Dzień\s+(\d+)', a_day)
@@ -1428,162 +1461,44 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 <div style="display:flex;gap:25px;flex-grow:1;min-height:0;margin-top:15px;margin-bottom:20px;">{ch}</div>{fh}""",
                              "slide-program" if st_idx == 0 else ""))
 
-    # --- Slajd wzorcowy "Opisy miejsc" (tylko w trybie edycji, gdy brak miejsc) ---
-    # Pojawia się gdy projektant otwiera sekcję Opisy miejsc a num_places=0.
-    # NIE wchodzi do eksportu dla klienta.
-    if (not export_mode
-            and current_page == "Opisy miejsc"
-            and s.get('num_places', 0) == 0):
-        hp.append(_shtml(f"""{lh}<div class="premium-layout" id="place_preview">
-            <div class="photo-col">{_get_ph('FOTO MIEJSCA')}</div>
-            <div class="info-col" style="padding-top:30px; justify-content:flex-start;">
-                <div class="app-overline-style" style="margin-bottom:15px;"><span>NASZ KIERUNEK</span></div>
-                <div class="title-h1" style="margin-bottom:5px; font-size:{fs_h1_val-6}px;">OPIS MIEJSCA</div>
-                <div class="title-sub" style="margin-bottom:15px;">Podtytuł miejsca</div>
-                <div style="flex-grow:1;"><p style="font-size:{fs_t}px; line-height:1.6; color:{c_t}; opacity:0.5;">
-                    Tu pojawi się opis miejsca. Dodaj pierwsze miejsce w panelu po lewej
-                    wpisując liczbę opisów &gt; 0, a następnie wypełnij dane w formularzu.
-                </p></div>
-                <div class="gallery-row" style="padding-top:0; padding-bottom:5px;">
-                    <div class="gallery-thumb">{_get_ph('FOT 1')}</div>
-                    <div class="gallery-thumb">{_get_ph('FOT 2')}</div>
-                    <div class="gallery-thumb">{_get_ph('FOT 3')}</div>
-                </div>
-            </div>
-        </div>{fh}""", "place_preview"))
 
+    # --- Przerywnik sek_1 (przed atrakcjami) ---
+    _render_sek(1)
 
-
-
-    # --- Przerywnik sek_1 (przed attr) ---
-    _render_sek(1)  # Przerywnik przed atrakcjami
-
-        # --- Miejsca i atrakcje (posortowane po dniach) ---
-    # --- Miejsca i atrakcje w kolejności place_attr_order ---
-    _pa_order = s.get('place_attr_order', [])
-    if not _pa_order:
-        _tmp_p = []
-        for _pi in range(s.get('num_places', 0)):
-            _pday = str(s.get(f"pday_{_pi}") or "")
-            _m = re.search(r'Dzień\s+(\d+)', _pday)
-            _tmp_p.append(('place', _pi, int(_m.group(1)) if _m else 999))
+    # --- Atrakcje w kolejności attr_order ---
+    _a_order = s.get('attr_order', [])
+    if not _a_order:
         _tmp_a = []
         for _ai in range(s.get('num_attr', 0)):
             _aday = str(s.get(f"aday_{_ai}") or "")
             _m = re.search(r'Dzień\s+(\d+)', _aday)
             _tmp_a.append(('attr', _ai, int(_m.group(1)) if _m else 999))
-        _pa_order = [
-            [t, idx] for t, idx, _ in sorted(
-                _tmp_p + _tmp_a,
-                key=lambda x: (x[2], 0 if x[0] == 'place' else 1, x[1])
-            )
-        ]
+        _a_order = [idx for t, idx, _ in sorted(_tmp_a, key=lambda x: (x[2], x[1]))]
 
-    for item_type, i in [(str(t), int(idx)) for t, idx in _pa_order]:
+    for i in _a_order:
+        if s.get(f"ahide_{i}"):
+            continue
+        iah = get_b64(f'ah_{i}', (4, 5))
+        a1 = get_b64(f'at1_{i}', (1, 1))
+        a2 = get_b64(f'at2_{i}', (1, 1))
+        a3 = get_b64(f'at3_{i}', (1, 1))
+        bb_a = ""
+        md_a = re.search(r'Dzień (\d+)', str(s.get(f"aday_{i}") or ""))
+        if md_a:
+            bb_a = f"<a href='#program_day_{int(md_a.group(1)) - 1}' class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
+        hp.append(_shtml(f"""{lh}<div class="premium-layout" id="attr_{i}">
+            <div class="photo-col">{f'<img src="data:image/jpeg;base64,{iah}" style="width:100%;height:100%;object-fit:cover;">' if iah else _get_ph('FOTO GŁÓWNE')}{bb_a}</div>
+            <div class="info-col">
+                {f'<div class="type-icon-box">{icon_map.get(s.get(f"atype_{i}",""),"")}</div>' if s.get(f"atype_{i}") and s.get(f"atype_{i}") != "Brak" else ''}
+                <div class="title-h2">{str(s.get(f'amain_{i}','')).replace(chr(10),'<br>')}</div>
+                <div class="title-sub">{str(s.get(f'asub_{i}','')).replace(chr(10),'<br>')}</div>
+                <div style="flex-grow:1;"><p>{str(s.get(f'aopis_{i}') or '').replace(chr(10),'<br>')}</p></div>
+                <div class="gallery-row">
+                    <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a1}" style="width:100%;height:100%;object-fit:cover;">' if a1 else _get_ph('FOT 1')}</div>
+                    <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a2}" style="width:100%;height:100%;object-fit:cover;">' if a2 else _get_ph('FOT 2')}</div>
+                    <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a3}" style="width:100%;height:100%;object-fit:cover;">' if a3 else _get_ph('FOT 3')}</div>
+                </div></div></div>{fh}""", f"attr_{i}"))
 
-        # --- Slajd HOTELU (zachowany dla kompatybilności) ---
-        if item_type == 'hotel':
-            if s.get(f'h_hide_{i}', False):
-                continue
-            h1 = get_b64(f'img_hotel_1_{i}', (16, 9))
-            h1b = get_b64(f'img_hotel_1b_{i}', (16, 9))
-            h2 = get_b64(f'img_hotel_2_{i}', (16, 9))
-            h3 = get_b64(f'img_hotel_3_{i}', (16, 9))
-            h1_html = (f'<img src="data:image/jpeg;base64,{h1}" style="width:100%; height:100%; object-fit:cover;">' if h1 else _get_ph('ZDJ. LEWE 1'))
-            h1b_html = (f'<img src="data:image/jpeg;base64,{h1b}" style="width:100%; height:100%; object-fit:cover;">' if h1b else _get_ph('ZDJ. LEWE 2'))
-            url_val = str(s.get(f'h_url_{i}', '')).strip()
-            h_url_html = (f'<div style="font-size:{max(10,fs_t-2)}px; color:{c_t}; opacity:0.8; margin-bottom:15px;"><i class="fa-solid fa-globe" style="color:{acc}; margin-right:5px;"></i> {url_val}</div>' if url_val else '')
-            h_amenities = s.get(f'h_amenities_{i}', [])
-            am_items = []
-            book_val = str(s.get(f'h_booking_{i}', '')).strip()
-            if book_val:
-                am_items.append(f'<div style="display:flex; align-items:center; gap:6px; margin-right:10px;"><div style="background:#003580; color:white; padding:3px 8px; border-radius:6px; border-bottom-left-radius:0; font-family:\'Montserrat\', sans-serif; font-weight:800; font-size:{max(12,fs_t)}px;">{book_val}</div><span style="font-family:\'Montserrat\', sans-serif; font-weight:700; color:#003580; font-size:{max(10,fs_t-1)}px;">Booking.com</span></div>')
-            for a in h_amenities:
-                if a in hotel_icons:
-                    am_items.append(f'<div style="display:flex; align-items:center; gap:6px; font-size:{max(10,fs_t-1)}px; font-weight:600; color:{c_t};"><i class="fa-solid {hotel_icons[a]}" style="color:{acc}; font-size:{fs_t+4}px;"></i> {a}</div>')
-            h_am_html = (f'<div style="display:flex; flex-wrap:wrap; align-items:center; gap:15px; margin-bottom:15px; padding:10px 0; border-top:1px solid #eee; border-bottom:1px solid #eee;">{"".join(am_items)}</div>' if am_items else '')
-            advs = [f.strip() for f in s.get(f'h_advantages_{i}', '').split('\n') if f.strip()]
-            adv_html = (f'<ul class="app-list" style="margin-top:0;">{"".join([f"<li>{a}</li>" for a in advs])}</ul>' if advs else '')
-            hp.append(_shtml(f"""{lh}<div class="premium-layout" id="slide-hotel-{i}">
-                <div style="flex:40; display:flex; flex-direction:column; gap:15px;">
-                    <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background-color:#fcfcfc;">{h1_html}</div>
-                    <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background-color:#fcfcfc;">{h1b_html}</div>
-                </div>
-                <div class="info-col" style="flex:60; padding-left:15px; padding-top:30px; justify-content:flex-start;">
-                    <div class="app-overline-style" style="margin-bottom:5px;"><span>{str(s.get(f'h_overline_{i}','ZAKWATEROWANIE'))}</span></div>
-                    <div class="title-h1" style="margin-bottom:5px; font-size:{max(20,fs_h1_val-6)}px;">{str(s.get(f'h_title_{i}','')).replace(chr(10),'<br>')}</div>
-                    <div class="title-sub" style="color:{acc}; font-size:{max(12,fs_sub_val-4)}px; margin-top:0px; margin-bottom:5px;">{str(s.get(f'h_subtitle_{i}','')).replace(chr(10),'<br>')}</div>
-                    {h_url_html}
-                    <div style="flex-grow:0; font-size:{fs_t}px; line-height:1.4; margin-bottom:10px; color:{c_t};">{str(s.get(f'h_text_{i}','')).replace(chr(10),'<br>')}</div>
-                    {h_am_html}
-                    <div style="flex-grow:1;">{adv_html}</div>
-                    <div class="gallery-row" style="padding-top:0; padding-bottom:5px; gap:15px;">
-                        <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{f'<img src="data:image/jpeg;base64,{h2}" style="width:100%;height:100%;object-fit:cover;">' if h2 else _get_ph('FOT DÓŁ 1')}</div>
-                        <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{f'<img src="data:image/jpeg;base64,{h3}" style="width:100%;height:100%;object-fit:cover;">' if h3 else _get_ph('FOT DÓŁ 2')}</div>
-                    </div>
-                </div></div>{fh}""", f"slide-hotel-{i}"))
-
-        # --- Slajd MIEJSCA (układ: foto pionowe + opis + 3 miniatury) ---
-        elif item_type == 'place':
-            if s.get(f"phide_{i}"):
-                continue
-
-            ik_p = get_b64(f'pimg1_{i}', (4, 5))
-            imk_p = (f"<img src='data:image/jpeg;base64,{ik_p}' style='width:100%;height:100%;object-fit:cover;'>"
-                     if ik_p else _get_ph('FOTO MIEJSCA'))
-            tk1_p = get_b64(f'pimg2_{i}', (1, 1))
-            tk2_p = get_b64(f'pimg3_{i}', (1, 1))
-            tk3_p = get_b64(f'pimg4_{i}', (1, 1))
-
-            bb_p = ""
-            md_p = re.search(r'Dzień (\d+)', str(s.get(f"pday_{i}") or ""))
-            if md_p:
-                bb_p = f"<a href='#program_day_{int(md_p.group(1)) - 1}' class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
-
-            p_over = str(s.get(f'pover_{i}') or 'NASZ KIERUNEK')
-            p_main = str(s.get(f'pmain_{i}') or '').replace(chr(10), '<br>')
-            p_sub  = str(s.get(f'psub_{i}')  or '').replace(chr(10), '<br>')
-            p_opis = str(s.get(f'popis_{i}') or '').replace(chr(10), '<br>')
-
-            hp.append(_shtml(f"""{lh}<div class="premium-layout" id="place_{i}">
-                <div class="photo-col">{imk_p}{bb_p}</div>
-                <div class="info-col" style="padding-top:30px; justify-content:flex-start;">
-                    <div class="app-overline-style" style="margin-bottom:15px;"><span>{p_over}</span></div>
-                    <div class="title-h1" style="margin-bottom:5px; font-size:{fs_h1_val-6}px;">{p_main}</div>
-                    <div class="title-sub" style="margin-bottom:15px;">{p_sub}</div>
-                    <div style="flex-grow:1;"><p style="font-size:{fs_t}px; line-height:1.6; color:{c_t};">{p_opis}</p></div>
-                    <div class="gallery-row" style="padding-top:0; padding-bottom:5px;">
-                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{tk1_p}" style="width:100%;height:100%;object-fit:cover;">' if tk1_p else _get_ph('FOT 1')}</div>
-                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{tk2_p}" style="width:100%;height:100%;object-fit:cover;">' if tk2_p else _get_ph('FOT 2')}</div>
-                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{tk3_p}" style="width:100%;height:100%;object-fit:cover;">' if tk3_p else _get_ph('FOT 3')}</div>
-                    </div>
-                </div>
-            </div>{fh}""", f"place_{i}"))
-
-        # --- Slajd ATRAKCJI ---
-        elif item_type == 'attr':
-            if s.get(f"ahide_{i}"):
-                continue
-            iah = get_b64(f'ah_{i}', (4, 5))
-            a1 = get_b64(f'at1_{i}', (1, 1))
-            a2 = get_b64(f'at2_{i}', (1, 1))
-            a3 = get_b64(f'at3_{i}', (1, 1))
-            bb_a = ""
-            md_a = re.search(r'Dzień (\d+)', str(s.get(f"aday_{i}") or ""))
-            if md_a:
-                bb_a = f"<a href='#program_day_{int(md_a.group(1)) - 1}' class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
-            hp.append(_shtml(f"""{lh}<div class="premium-layout" id="attr_{i}">
-                <div class="photo-col">{f'<img src="data:image/jpeg;base64,{iah}" style="width:100%;height:100%;object-fit:cover;">' if iah else _get_ph('FOTO GŁÓWNE')}{bb_a}</div>
-                <div class="info-col">
-                    {f'<div class="type-icon-box">{icon_map.get(s.get(f"atype_{i}",""),"")}</div>' if s.get(f"atype_{i}") and s.get(f"atype_{i}") != "Brak" else ''}
-                    <div class="title-h2">{str(s.get(f'amain_{i}','')).replace(chr(10),'<br>')}</div>
-                    <div class="title-sub">{str(s.get(f'asub_{i}','')).replace(chr(10),'<br>')}</div>
-                    <div style="flex-grow:1;"><p>{str(s.get(f'aopis_{i}') or '').replace(chr(10),'<br>')}</p></div>
-                    <div class="gallery-row">
-                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a1}" style="width:100%;height:100%;object-fit:cover;">' if a1 else _get_ph('FOT 1')}</div>
-                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a2}" style="width:100%;height:100%;object-fit:cover;">' if a2 else _get_ph('FOT 2')}</div>
-                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a3}" style="width:100%;height:100%;object-fit:cover;">' if a3 else _get_ph('FOT 3')}</div>
-                    </div></div></div>{fh}""", f"attr_{i}"))
     # --- Aplikacja ---
     if not s.get('app_hide', False):
         ibg = s.get('img_app_bg')
@@ -1591,7 +1506,6 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         bg_html = (f'<img src="data:image/jpeg;base64,{ibg_b64}" style="width:100%;height:100%;object-fit:cover;">'
                    if ibg_b64 else '<div class="photo-placeholder">ZDJĘCIE TŁA</div>')
         iscr = get_b64('img_app_screen', (9, 16))
-        # object-fit:contain żeby ekran nie był przycinany, object-position:top żeby góra była widoczna
         scr_html = (f'<img class="phone-screen" src="data:image/jpeg;base64,{iscr}" style="width:100%;height:100%;object-fit:contain;object-position:top;display:block;background:#fff;">'
                     if iscr else '<div class="photo-placeholder" style="background:#fff;">EKRAN APP</div>')
         fh_app = "".join([f"<li>{f.strip()}</li>" for f in s.get('app_features', '').split('\n') if f.strip()])
@@ -1725,12 +1639,10 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div>{fh}""", "slide-kosztorys-2"))
 
 
-
-
     # --- Przerywnik sek_2 (przed testim) ---
-    _render_sek(2)  # Przerywnik przed rekomendacjami
+    _render_sek(2) 
 
-        # --- Rekomendacje ---
+    # --- Rekomendacje ---
     if not s.get('testim_hide', False):
         t_main_img = get_b64('img_testim_main', (4, 5))
         t_main_img_html = (f'<img src="data:image/jpeg;base64,{t_main_img}" style="width:100%;height:100%;object-fit:cover;">'
@@ -1789,30 +1701,19 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     if export_mode:
         return "".join(hp)
 
-    # Budujemy cały CSS + slajdy + scroll w jednym components.html.
-    # To jedyne podejście działające na Streamlit Community Cloud:
-    # - brak limitu rozmiaru (w przeciwieństwie do st.markdown)
-    # - pełny dostęp do DOM własnego dokumentu (w przeciwieństwie do window.parent)
-    # - scroll działa na .presentation-wrapper który ma własny overflow:auto
     import streamlit.components.v1 as components
 
-    first_visible_place = next(
-        (i for i in range(s.get('num_places', 0)) if not s.get(f'phide_{i}')), None
-    )
-    # Gdy brak miejsc — scroll do slajdu wzorcowego place_preview (zawsze renderowanego w trybie edycji)
-    pid = f"place_{first_visible_place}" if first_visible_place is not None else "place_preview"
     first_visible_attr = next(
         (i for i in range(s.get('num_attr', 0)) if not s.get(f'ahide_{i}')), None
     )
     fid = f"attr_{first_visible_attr}" if first_visible_attr is not None else "slide-title"
-    # Pierwszy hotel
     hid = f"slide-hotel-0" if s.get('num_hotels', 1) > 0 and not s.get('h_hide_0') else "slide-title"
 
     default_tid = {
         "Strona Tytułowa": "slide-title", "Opis Kierunku": "slide-kierunek",
         "Mapa Podróży": "slide-mapa", "Jak lecimy?": "slide-loty",
         "Zakwaterowanie": hid, "Program Wyjazdu": "slide-program",
-        "Opisy miejsc": pid, "Opis atrakcji": fid,
+        "Opis atrakcji": fid,
         "Kosztorys": "slide-kosztorys-1", "Aplikacja (Komunikacja)": "slide-app",
         "Materiały Brandingowe": "slide-branding",
         "Wirtualny Asystent": "slide-virtual-assistant",
@@ -1821,7 +1722,6 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         "  ↳ Przerywnik hotel":    "slide-sek_0",
         "  ↳ Przerywnik program":  "slide-sek_3",
         "  ↳ Przerywnik atrakcje": "slide-sek_1",
-        "Opis atrakcji i miejsc": "slide-sek_1",
         "  ↳ Przerywnik o nas":    "slide-sek_2",
     }.get(current_page, "")
 
@@ -1845,19 +1745,12 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             return Math.max(0, el.offsetTop - (wrapper.clientHeight / 2) + (el.offsetHeight / 2));
         }}
 
-        // Iframe po rerunie startuje od scrollTop=0 i jest niewidoczny (opacity:0).
-        // 1. Instant skok do slajdu tuż przed celem (jeden slajd wyżej)
-        // 2. Ciało staje się widoczne (opacity:1, transition 0.15s)
-        // 3. Smooth scroll do właściwego slajdu
-        // Efekt: widoczne jest tylko krótkie płynne przewinięcie o jeden slajd.
         var targetOffset = getOffset(targetId);
         if (targetOffset === null) return;
 
-        // Skocz instant do pozycji jeden ekran przed celem
         var slideH = wrapper.clientHeight;
         wrapper.scrollTo({{ top: Math.max(0, targetOffset - slideH), behavior: 'instant' }});
 
-        // Pokaż ciało i płynnie dojedź do celu
         document.body.style.transition = 'opacity 0.15s ease';
         document.body.style.opacity = '1';
         setTimeout(function() {{
