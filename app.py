@@ -723,9 +723,9 @@ with col_form:
                   use_container_width=True)
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_0")
         st.text_input("Duży tytuł (uppercase):", value=st.session_state.get(f"sek_0_title", ""), key=f"sek_0_title")
-)
+
         st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_0_sub",
-)
+
         _ic1, _ic2 = st.columns(2)
         _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_0_bg")
         _ic2.color_picker("Kolor tytułu:", key=f"sek_0_txt")
