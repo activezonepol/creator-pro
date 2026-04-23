@@ -259,9 +259,11 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
 
     with st.expander("⚙️ Zarządzanie szablonem sekcji", expanded=False):
         export_data = {}
+        mapped_expected_keys = []
         for k in section_keys:
             save_key = k if index is None else re.sub(f'_{index}$', '', k)
             if file_prefix == "ATR": save_key = ATR_KEY_MAP.get(save_key, save_key)
+            mapped_expected_keys.append(save_key)
             val = st.session_state.get(k)
             if val is not None:
                 if isinstance(val, bytes): export_data[save_key] = base64.b64encode(val).decode('utf-8')
@@ -280,7 +282,8 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
         
         if uploaded_file:
             if st.button("↑ WCZYTAJ SZABLON", key=f"btn_apply_{uploader_key}", use_container_width=True, type="primary"):
-                data, error = _validate_and_load_json(uploaded_file, expected_keys=section_keys)
+                # Przekazujemy zmienione, uniwersalne klucze do walidacji!
+                data, error = _validate_and_load_json(uploaded_file, expected_keys=mapped_expected_keys)
                 if error: st.error(f"❌ {error}")
                 else:
                     try:
@@ -506,11 +509,13 @@ with col_form:
     elif page == "Opis Kierunku":
         k_keys = ['k_hide', 'k_overline', 'k_main', 'k_sub', 'k_opis', 'k_facts', 'k_box_bg', 'k_box_txt', 'img_hero_k']
         section_template_manager(k_keys, "KIE", st.session_state.get('k_main', 'czarnogora'), "kie")
+        
         st.checkbox("Ukryj ten slajd w PDF", key="k_hide")
         st.text_input("Mały nadtytuł (overline):", key="k_overline")
         st.text_input("Nazwa kierunku (duży tytuł H1):", key="k_main")
         st.text_input("Podtytuł:", key="k_sub")
         st.text_area("Opis (prawa kolumna):", height=160, key="k_opis", help="Główny opis kierunku po prawej stronie slajdu.")
+        
         _section_header("BOX Z FAKTAMI (lewa kolumna)")
         for _ck, _cv in [('k_box_bg', st.session_state.get('color_h1', '#003366')), ('k_box_txt', '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
@@ -519,9 +524,11 @@ with col_form:
         cb1.color_picker("Kolor tła boksu", key="k_box_bg")
         cb2.color_picker("Kolor tekstu w boksie", key="k_box_txt")
         st.text_area("Fakty (Format: 'Etykieta: Wartość'):", height=160, key="k_facts", help="Każda linia = jeden wpis.")
+        
         _section_header("ZDJĘCIE (jedno zdjęcie w dwóch ramkach)")
         u4 = st.file_uploader("Zdjęcie kierunku:", key="kie_hero")
-        if u4: st.session_state['img_hero_k'] = optimize_img(u4.getvalue())
+        if u4: 
+            st.session_state['img_hero_k'] = optimize_img(u4.getvalue())
 
     elif page == "Mapa Podróży":
         map_keys = ['map_hide', 'map_overline', 'map_title', 'map_subtitle', 'map_desc', 'img_map_bg', 'map_zoom', 'num_map_points', 'img_map_bg_auto', 'auto_map_points']
@@ -548,7 +555,7 @@ with col_form:
                     c1.slider("Pozycja X %:", 0, 100, key=f"map_pt_x_{i}")
                     c2.slider("Pozycja Y %:", 0, 100, key=f"map_pt_y_{i}")
                 points_data.append({'name': st.session_state[f"map_pt_name_{i}"], 'conn': st.session_state[f"map_conn_{i}"], 'symbolic': st.session_state[f"map_pt_sym_{i}"], 'x': st.session_state[f"map_pt_x_{i}"], 'y': st.session_state[f"map_pt_y_{i}"]})
-        if st.button("GENER MAPĘ", type="primary", use_container_width=True):
+        if st.button("GENERUJ MAPĘ", type="primary", use_container_width=True):
             with st.spinner("Pobieranie danych..."):
                 country = st.session_state.get('country_name', '')
                 valid_pts = []
