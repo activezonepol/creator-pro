@@ -1693,6 +1693,30 @@ if '_debug_loaded' in st.session_state:
         st.caption(st.session_state['_debug_loaded'])
 
 # ---------------------------------------------------------------------------
+# ZAPIS STANÓW WIDŻETÓW DO TARCZY OCHRONNEJ
+# ---------------------------------------------------------------------------
+raw_backup = st.session_state.get('RAW_STATE_BACKUP', {})
+
+for bk, bv in st.session_state.items():
+    if bk in ('STATE_BACKUP', 'RAW_STATE_BACKUP'): 
+        continue
+    # Ignorujemy wszystko, co może wywalić błąd ValueAssignmentNotAllowedError
+    if bk.startswith(('up_', 'btn_', 'dl_', '$$', 'FormSubmitter', 'sb_', 'pa_add_', 'ho_up_', 'ho_dn_', 'aord_', 'attrnav_')): 
+        continue
+    if _is_uploader_key(bk):
+        continue
+    if type(bv).__name__ == 'UploadedFile' or (isinstance(bv, list) and len(bv) > 0 and type(bv[0]).__name__ == 'UploadedFile'):
+        continue
+        
+    raw_backup[bk] = bv
+    
+st.session_state['RAW_STATE_BACKUP'] = raw_backup
+
+# ---------------------------------------------------------------------------
+# GŁÓWNA ZAWARTOŚĆ — PODGLĄD PREZENTACJI
+# ---------------------------------------------------------------------------
+build_presentation(page)
+# ---------------------------------------------------------------------------
 # GŁÓWNA ZAWARTOŚĆ — PODGLĄD PREZENTACJI
 # ---------------------------------------------------------------------------
 with col_preview:
