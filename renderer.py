@@ -297,6 +297,21 @@ def parse_date_and_days():
         pass
 
 
+def get_project_filename():
+    """Generuje przyjazną nazwę pliku dla eksportu projektu."""
+    import streamlit as st
+    from datetime import datetime
+    
+    klient = str(st.session_state.get('t_klient', 'Klient')).strip().replace(' ', '_')
+    kierunek = str(st.session_state.get('k_main', 'Kierunek')).strip().replace(' ', '_')
+    data = datetime.now().strftime("%Y-%m-%d")
+    
+    # Usuwanie znaków specjalnych z nazwy pliku
+    safe_name = "".join([c for c in f"Oferta_{klient}_{kierunek}_{data}" if c.isalpha() or c.isdigit() or c in ('_', '-')]).rstrip()
+    
+    return f"{safe_name}.json"
+
+
 _COLOR_KEYS = {'color_h1', 'color_h2', 'color_sub', 'color_accent', 'color_text', 'color_metric'}
 _SIZE_KEYS = {'font_size_h1', 'font_size_h2', 'font_size_sub', 'font_size_text', 'font_size_metric'}
 
