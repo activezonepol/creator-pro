@@ -109,48 +109,27 @@ if 'client_mode' not in st.session_state:
 # ---------------------------------------------------------------------------
 # AUTO-LOAD Z SUPABASE (NAPRAWIONA WERSJA)
 # ---------------------------------------------------------------------------
+# W app.py - sekcja AUTO-LOAD (zastąp starą sekcję od 'if _loaded_from_supabase' do końca tego bloku)
 if '_loaded_from_supabase' not in st.session_state:
     try:
-        # Pobierz dane z Supabase
-        result = supabase.table('projects').select('data').eq(
-            'user_email', 'default_user'
-        ).order('updated_at', desc=True).limit(1).execute()
+        result = supabase.table('projects').select('data').eq('user_email', 'default_user').order('updated_at', desc=True).limit(1).execute()
         
-        # Klucze, których absolutnie nie wolno wczytywać do session_state,
-        # bo są zarezerwowane dla widgetów Streamlit.
-        forbidden_keys = {
-            'manual_save_btn', 'attr_add_btn', 'nav_top_radio', 'nav_bot_radio',
-            'btn_add_attraction_main', 'last_page', 'up_export'
-        }
-        # Prefiksy, których nie chcemy wczytywać
-        forbidden_prefixes = ('attrnav_', 'attrup_', 'attrdn_', 'attrdel_')
-
         if result.data and result.data[0].get('data'):
-            raw_data = result.data[0]['data']
-            
-            # Filtrujemy dane w pamięci (zanim trafią do session_state)
-            clean_data = {
-                k: v for k, v in raw_data.items() 
-                if k not in forbidden_keys and not k.startswith(forbidden_prefixes)
-            }
-            
-            # Wczytujemy przefiltrowane dane
-            load_project_data(clean_data)
-            st.session_state['_debug_loaded'] = f"📥 Wczytano {len(clean_data)} kluczy z bazy."
+            project_data = result.data[0]['data']
+            load_project_data(project_data) # Teraz ta funkcja sama czyści dane
+            st.session_state['_debug_loaded'] = "📥 Dane wczytane z Supabase"
         else:
             st.session_state['_debug_loaded'] = "📥 Brak danych w bazie - użyto defaults"
             
         st.session_state['_loaded_from_supabase'] = True
-        
     except Exception as e:
-        st.error(f"❌ Błąd połączenia z Supabase: {str(e)[:50]}")
+        st.error(f"❌ Błąd Supabase: {str(e)[:50]}")
         st.session_state['_loaded_from_supabase'] = True
 
-# Zapewnienie, że defaults są w sesji (tylko jeśli czegoś brakuje)
+# UPEWNIJ SIĘ, ŻE TO JEST PO WCZYTANIU Z BAZY:
 for k, v in defaults.items():
     if k not in st.session_state:
-        st.session_state[k] = v
-# ---------------------------------------------------------------------------
+        st.session_state[k] = v# ---------------------------------------------------------------------------
 # HELPERY UI
 # ---------------------------------------------------------------------------
 
@@ -666,45 +645,19 @@ page = _last
 col_save, col_add = st.columns([1, 1])
 
 with col_save:
-    if st.button("💾 ZAPISZ TERAZ", use_container_width=True, type="primary", key="manual_save_btn"):
-        try:
-            project_data = _build_proj_dict()
-            project_name = st.session_state.get('t_main', 'Nowy projekt')
-            
-            existing = supabase.table('projects').select('id').eq(
-                'user_email', 'default_user'
-            ).order('updated_at', desc=True).limit(1).execute()
-            
-            if existing.data:
-                project_id = existing.data[0]['id']
-                supabase.table('projects').update({
-                    'project_name': project_name,
-                    'data': project_data,
-                    'updated_at': datetime.now().isoformat()
-                }).eq('id', project_id).execute()
-            else:
-                supabase.table('projects').insert({
-                    'user_email': 'default_user',
-                    'project_name': project_name,
-                    'data': project_data,
-                    'updated_at': datetime.now().isoformat()
-                }).execute()
-            
-            save_time = datetime.now().strftime('%H:%M:%S')
-            st.session_state['last_save_status'] = f"✅ Zapisano ręcznie {save_time}"
-            st.session_state['last_save_count'] = len(project_data)
-            st.session_state['last_supabase_save'] = time.time()
-            st.success("✅ Projekt zapisany!")
-            st.rerun()
-        except Exception as e:
-            st.error(f"❌ Błąd zapisu: {str(e)[:100]}")
+    if st.button("💾 ZAPISZ TERAZ", use_container_width=True, type="primary"):
+        # Wywołujemy gotową funkcję zapisu
+        save_to_supabase()
+        st.success("✅ Projekt zapisany w chmurze!")
+        st.rerun()
 
 with col_add:
-    if st.button("➕ Dodaj atrakcję", key="btn_add_attraction_main", type="primary", use_container_width=True):
+    # Używamy tylko potrzebnych parametrów, bez zbędnego klucza (key), który powoduje błędy
+    if st.button("➕ Dodaj atrakcję", type="primary", use_container_width=True):
         _attr_add()
         st.rerun()
 
-# Custom CSS dla białego emoji w przycisku
+# Custom CSS dla białego emoji w przycisku (nie usuwaj tego, to zostaje)
 st.markdown("""
 <style>
 button[data-testid="baseButton-primary"] {
@@ -712,7 +665,6 @@ button[data-testid="baseButton-primary"] {
 }
 </style>
 """, unsafe_allow_html=True)
-
 # ---------------------------------------------------------------------------
 # NAGŁÓWKI STRON
 # ---------------------------------------------------------------------------
