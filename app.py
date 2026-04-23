@@ -414,13 +414,13 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
         
         with col2:
             st.download_button(
-                "💾 Zapisz", json_str, full_filename,
+                "↓ ZAPISZ", json_str, full_filename,
                 key=f"dl_{uploader_key}", use_container_width=True,
             )
         
         with col3:
             uploaded_file = st.file_uploader(
-                "📂", type=['json'], key=f"up_{uploader_key}",
+                "↑ WCZYTAJ", type=['json'], key=f"up_{uploader_key}",
                 label_visibility="collapsed",
             )
         
@@ -664,10 +664,11 @@ with st.container():
 # ---------------------------------------------------------------------------
 # LAYOUT 2 KOLUMNY: Formularz edycji | Podgląd slajdu
 # ---------------------------------------------------------------------------
-col_form, col_preview = st.columns([0.4, 0.6], gap="medium")
+col_form, col_preview = st.columns([0.3, 0.7], gap="medium")
 
 with col_form:
-    st.markdown("### 📝 Dane slajdu")
+    _acc = st.session_state.get('color_accent', '#FF6600')
+    st.markdown(f"<h3 style='color:{_acc};font-size:16px;margin-bottom:20px;'>EDYCJA SLAJDU</h3>", unsafe_allow_html=True)
 
     # -----------------------------------------------------------------------
     # STRONA TYTUŁOWA
@@ -1584,5 +1585,6 @@ if '_debug_loaded' in st.session_state:
 # GŁÓWNA ZAWARTOŚĆ — PODGLĄD PREZENTACJI
 # ---------------------------------------------------------------------------
 with col_preview:
-    st.markdown("### 👁️ Podgląd slajdu")
+    _acc = st.session_state.get('color_accent', '#FF6600')
+    st.markdown(f"<h3 style='color:{_acc};font-size:16px;margin-bottom:20px;'>PODGLĄD SLAJDU</h3>", unsafe_allow_html=True)
     build_presentation(page)
