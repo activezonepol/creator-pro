@@ -107,29 +107,40 @@ if 'client_mode' not in st.session_state:
     st.session_state['client_mode'] = False
 
 # ---------------------------------------------------------------------------
-# AUTO-LOAD Z SUPABASE (NAPRAWIONA WERSJA)
+# AUTO-LOAD Z SUPABASE (ZABEZPIECZONA WERSJA)
 # ---------------------------------------------------------------------------
-# W app.py - sekcja AUTO-LOAD (zastąp starą sekcję od 'if _loaded_from_supabase' do końca tego bloku)
 if '_loaded_from_supabase' not in st.session_state:
+    st.session_state['_loaded_from_supabase'] = False
+
+# Ładujemy tylko jeśli jeszcze nie wczytaliśmy danych
+if not st.session_state['_loaded_from_supabase']:
     try:
         result = supabase.table('projects').select('data').eq('user_email', 'default_user').order('updated_at', desc=True).limit(1).execute()
         
         if result.data and result.data[0].get('data'):
             project_data = result.data[0]['data']
-            load_project_data(project_data) # Teraz ta funkcja sama czyści dane
+            load_project_data(project_data)
             st.session_state['_debug_loaded'] = "📥 Dane wczytane z Supabase"
         else:
             st.session_state['_debug_loaded'] = "📥 Brak danych w bazie - użyto defaults"
-            
+            # Tylko tutaj ładujemy defaults, bo baza jest pusta
+            for k, v in defaults.items():
+                if k not in st.session_state:
+                    st.session_state[k] = v
+                    
         st.session_state['_loaded_from_supabase'] = True
     except Exception as e:
         st.error(f"❌ Błąd Supabase: {str(e)[:50]}")
+        # W razie błędu też musimy załadować defaults, żeby aplikacja nie była pusta
+        for k, v in defaults.items():
+            if k not in st.session_state:
+                st.session_state[k] = v
         st.session_state['_loaded_from_supabase'] = True
 
-# UPEWNIJ SIĘ, ŻE TO JEST PO WCZYTANIU Z BAZY:
-for k, v in defaults.items():
-    if k not in st.session_state:
-        st.session_state[k] = v# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# HELPERY UI
+# ---------------------------------------------------------------------------
+# (Reszta Twoich helperów zostaje bez zmian)
 # HELPERY UI
 # ---------------------------------------------------------------------------
 
