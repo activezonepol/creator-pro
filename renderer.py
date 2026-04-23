@@ -1903,8 +1903,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     }.get(current_page, "")
 
     tid = get_data('scroll_target') or default_tid
-    if 'scroll_target' in s:
-        s['scroll_target'] = ""
+    if 'scroll_target' in st.session_state:
+        st.session_state['scroll_target'] = ""
 
     css_str = get_local_css(return_str=True)
     slides_html = "".join(hp)
