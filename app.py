@@ -558,40 +558,6 @@ with st.sidebar:
         unsafe_allow_html=True
     )
     
-    # Przycisk ręcznego zapisu (dla pewności)
-    if st.button("💾 ZAPISZ TERAZ", use_container_width=True, type="primary", key="manual_save_btn"):
-        try:
-            project_data = _build_proj_dict()
-            project_name = st.session_state.get('t_main', 'Nowy projekt')
-            
-            existing = supabase.table('projects').select('id').eq(
-                'user_email', 'default_user'
-            ).order('updated_at', desc=True).limit(1).execute()
-            
-            if existing.data:
-                project_id = existing.data[0]['id']
-                supabase.table('projects').update({
-                    'project_name': project_name,
-                    'data': project_data,
-                    'updated_at': datetime.now().isoformat()
-                }).eq('id', project_id).execute()
-            else:
-                supabase.table('projects').insert({
-                    'user_email': 'default_user',
-                    'project_name': project_name,
-                    'data': project_data,
-                    'updated_at': datetime.now().isoformat()
-                }).execute()
-            
-            save_time = datetime.now().strftime('%H:%M:%S')
-            st.session_state['last_save_status'] = f"✅ Zapisano ręcznie {save_time}"
-            st.session_state['last_save_count'] = len(project_data)
-            st.session_state['last_supabase_save'] = time.time()
-            st.success("✅ Projekt zapisany!")
-            st.rerun()
-        except Exception as e:
-            st.error(f"❌ Błąd zapisu: {str(e)[:100]}")
-    
     st.markdown("---")
     
     # ---------------------------------------------------------------------------
@@ -729,11 +695,45 @@ for _ap in range(_n_attr):
 page = _last
 
 # ---------------------------------------------------------------------------
-# PRZYCISK DODAJ ATRAKCJĘ (POZA sidebarem - może modyfikować session_state)
+# PRZYCISKI: ZAPISZ TERAZ + DODAJ ATRAKCJĘ (POZA sidebarem)
 # ---------------------------------------------------------------------------
-# Używamy markdown żeby mieć biały plusik
-col_add_btn, col_space = st.columns([1, 3])
-with col_add_btn:
+col_save, col_add = st.columns([1, 1])
+
+with col_save:
+    if st.button("💾 ZAPISZ TERAZ", use_container_width=True, type="primary", key="manual_save_btn"):
+        try:
+            project_data = _build_proj_dict()
+            project_name = st.session_state.get('t_main', 'Nowy projekt')
+            
+            existing = supabase.table('projects').select('id').eq(
+                'user_email', 'default_user'
+            ).order('updated_at', desc=True).limit(1).execute()
+            
+            if existing.data:
+                project_id = existing.data[0]['id']
+                supabase.table('projects').update({
+                    'project_name': project_name,
+                    'data': project_data,
+                    'updated_at': datetime.now().isoformat()
+                }).eq('id', project_id).execute()
+            else:
+                supabase.table('projects').insert({
+                    'user_email': 'default_user',
+                    'project_name': project_name,
+                    'data': project_data,
+                    'updated_at': datetime.now().isoformat()
+                }).execute()
+            
+            save_time = datetime.now().strftime('%H:%M:%S')
+            st.session_state['last_save_status'] = f"✅ Zapisano ręcznie {save_time}"
+            st.session_state['last_save_count'] = len(project_data)
+            st.session_state['last_supabase_save'] = time.time()
+            st.success("✅ Projekt zapisany!")
+            st.rerun()
+        except Exception as e:
+            st.error(f"❌ Błąd zapisu: {str(e)[:100]}")
+
+with col_add:
     if st.button("➕ Dodaj atrakcję", key="btn_add_attraction_main", type="primary", use_container_width=True):
         _attr_add()
         st.rerun()
