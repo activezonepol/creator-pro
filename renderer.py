@@ -303,7 +303,11 @@ _SIZE_KEYS = {'font_size_h1', 'font_size_h2', 'font_size_sub', 'font_size_text',
 
 # renderer.py
 # W renderer.py
-def load_project_data(project_data):
+def load_project_data(project_data: dict):
+    """
+    Wczytuje dane z JSON/Bazy do session_state, zabezpieczając przed nadpisywaniem 
+    aktualnie edytowanych przez użytkownika danych.
+    """
     # KLUCZOWE: Te klucze są zarezerwowane dla Streamlit (przyciski/widżety)
     forbidden_keys = {
         'manual_save_btn', 'attr_add_btn', 'nav_top_radio', 'nav_bot_radio', 
@@ -311,19 +315,31 @@ def load_project_data(project_data):
     }
     
     for k, v in project_data.items():
-        # Pomijamy klucze przycisków i prefiksy, które Streamlit sam zarządza
+        # 1. Pomijamy klucze przycisków i prefiksy, którymi Streamlit sam zarządza
         if k in forbidden_keys or k.startswith(('attrnav_', 'attrup_', 'attrdn_', 'attrdel_')):
             continue
             
-        # Bezpieczne ładowanie
+        # 2. LOGIKA OCHRONY DANYCH:
+        # Jeśli klucz już istnieje w sesji i ma wartość, to znaczy, że użytkownik 
+        # mógł już zacząć edycję. Nie nadpisujemy aktywnej pracy danymi z bazy.
+        # Wczytujemy tylko, gdy pole jest puste (None lub puste stringi).
+        if k in st.session_state and st.session_state[k] not in [None, "", [], 0]:
+            # Jeśli dane w sesji są "puste", nadpisujemy je danymi z projektu.
+            # W przeciwnym razie zostawiamy to, co użytkownik wpisał w formularzu.
+            continue
+            
+        # 3. Bezpieczne ładowanie
         if k in IMAGE_KEYS and isinstance(v, str):
-            try: st.session_state[k] = base64.b64decode(v)
-            except: st.session_state[k] = v
+            try: 
+                st.session_state[k] = base64.b64decode(v)
+            except Exception: 
+                st.session_state[k] = v
         elif k == 'p_start_dt' and isinstance(v, str):
-            try: st.session_state[k] = date.fromisoformat(v)
-            except: pass
+            try: 
+                st.session_state[k] = date.fromisoformat(v)
+            except Exception: 
+                pass
         else:
-            # Wczytuj tylko jeśli v nie jest puste (żeby nie nadpisać wpisanych danych)
             if v is not None:
                 st.session_state[k] = v
 
@@ -339,7 +355,6 @@ def get_project_filename():
     tit = re.sub(r'[^A-Za-z0-9_-]', '',
                  str(st.session_state.get('t_main', 'OFERTA')).replace(' ', '_'))
     return f"{yy}-{mm}-{cc}-{cli}-{tit}.json"
-
 
 def auto_generate_kosztorys():
     s = st.session_state
@@ -373,10 +388,10 @@ def auto_generate_kosztorys():
     if not s.get('pg_hide', False):
         part2.append("Pillow gift dla każdego uczestnika na przywitanie")
     part2 += ["Obowiązkowa opłata TFG i TFP", "VAT marża"]
+    
     s['koszt_zawiera_1'] = "\n".join(part1)
     s['koszt_zawiera_2'] = "\n".join(part2)
     s['koszt_nie_zawiera'] = "Napiwki\nWydatki osobiste\nAtrakcje wymienione jako opcje"
-
 
 @st.cache_data
 def build_day_options(start_dt: date, num_days: int) -> list:
