@@ -173,6 +173,11 @@ def _move_hotel(idx, direction):
         st.session_state['hotel_order'] = order
 
 
+def on_change_termin():
+    parse_date_and_days()
+    save_to_supabase()
+
+
 # -----------------------------------------------------------------------
 # ZARZĄDZANIE LISTĄ OPISÓW ATRAKCJI I MIEJSC (pa_items)
 # pa_items = lista słowników: {type: 'place'/'attr', idx: int}
