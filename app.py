@@ -282,7 +282,6 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
         
         if uploaded_file:
             if st.button("↑ WCZYTAJ SZABLON", key=f"btn_apply_{uploader_key}", use_container_width=True, type="primary"):
-                # Przekazujemy zmienione, uniwersalne klucze do walidacji!
                 data, error = _validate_and_load_json(uploaded_file, expected_keys=mapped_expected_keys)
                 if error: st.error(f"❌ {error}")
                 else:
@@ -388,7 +387,7 @@ with st.sidebar:
     if '_debug_loaded' in st.session_state:
         st.caption(st.session_state['_debug_loaded'])
 
-# -----------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # SZYBKIE AKCJE (Eksport HTML / PDF)
     # -----------------------------------------------------------------------
     st.divider()
