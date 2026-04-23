@@ -813,14 +813,14 @@ with col_form:
                       use_container_width=True,
                       on_change=lambda: (parse_date_and_days(), save_to_supabase()))
         
-        # 2. Kraj (Selectbox automatycznie dostosowuje szerokość)
+        # 2. Kraj
         st.selectbox("Kraj docelowy:", 
                      list(COUNTRIES_DICT.keys()), 
                      key="country_name", 
                      on_change=save_to_supabase)
         st.session_state['country_code'] = COUNTRIES_DICT.get(st.session_state['country_name'], 'OTH')
         
-        # 3. Pętla głównych pól tekstowych z użyciem use_container_width
+        # 3. Pętla pól tekstowych
         for k, l in [
             ('t_main', 'Tytuł H1'), ('t_sub', 'Podtytuł'), ('t_klient', 'Klient'),
             ('t_kierunek', 'Kierunek'), ('t_pax', 'Liczba osób'),
