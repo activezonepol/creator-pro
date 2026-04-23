@@ -259,7 +259,6 @@ def clean_str(val, default=""):
         return default
     return str(val)
 
-
 def create_slug(text):
     if not text:
         return "szablon"
@@ -269,7 +268,6 @@ def create_slug(text):
     text = re.sub(r'[^\w\s-]', '', text)
     text = re.sub(r'[-\s]+', '-', text)
     return text.strip('-')
-
 
 def parse_date_and_days():
     d_str = st.session_state.get('t_date', '').strip()
@@ -341,7 +339,6 @@ def auto_generate_kosztorys():
     # Wpisanie do pola "koszt_zawiera_1" (Slajd 1 Kosztorysu)
     st.session_state['koszt_zawiera_1'] = wynik
 
-
 def get_project_filename():
     """Generuje przyjazną nazwę pliku dla eksportu projektu."""
     import streamlit as st
@@ -356,26 +353,17 @@ def get_project_filename():
     
     return f"{safe_name}.json"
 
-
 _COLOR_KEYS = {'color_h1', 'color_h2', 'color_sub', 'color_accent', 'color_text', 'color_metric'}
 _SIZE_KEYS = {'font_size_h1', 'font_size_h2', 'font_size_sub', 'font_size_text', 'font_size_metric'}
 
-
-# renderer.py
 def load_project_data(project_data: dict):
     """
     Wczytuje dane z JSON/Bazy do session_state.
-    
-    POPRAWIONE 2026-04-23: Kluczowa zmiana — jeśli wartość w bazie jest 
-    pustym stringiem, a lokalnie w session_state mamy niepustą wartość,
-    ZACHOWUJEMY lokalną. To likwiduje problem znikania tekstów gdy 
-    auto-save zapisuje niekompletny stan między interakcjami.
+    ZACHOWUJEMY lokalną, jeśli baza podaje pusty string.
     """
-    # Klucze zarezerwowane dla Streamlit (przyciski/widżety) — nie wczytujemy
     forbidden_keys = {
         'manual_save_btn', 'attr_add_btn', 'nav_top_radio', 'nav_bot_radio',
         'btn_add_attraction_main', 'last_page', 'up_export',
-        # Klucze wewnętrzne auto-save/auto-load
         '_data_loaded_once', '_debug_loaded', 'last_supabase_save',
         'last_save_status', 'last_save_count',
     }
@@ -385,42 +373,30 @@ def load_project_data(project_data: dict):
     )
  
     for k, v in project_data.items():
-        # 1. Pomijamy klucze przycisków i widżetów Streamlit
         if k in forbidden_keys:
             continue
         if any(k.startswith(p) for p in forbidden_prefixes):
             continue
- 
-        # 2. None — zachowaj lokalny stan
         if v is None:
             continue
- 
-        # 3. BEZPIECZNIK: pusty string z bazy vs niepusty lokalnie → zachowaj lokalny.
-        # To jest KLUCZOWA zmiana likwidująca "znikanie tekstów".
         if isinstance(v, str) and v == "":
             current = st.session_state.get(k)
             if isinstance(current, str) and current != "":
                 continue
  
-        # 4. Specjalistyczne wczytywanie typów
         if k in IMAGE_KEYS and isinstance(v, str):
             try:
                 st.session_state[k] = base64.b64decode(v)
             except Exception:
                 st.session_state[k] = v
- 
         elif k == 'p_start_dt' and isinstance(v, str):
             try:
                 st.session_state[k] = date.fromisoformat(v)
             except Exception:
                 pass
- 
         else:
-            # 5. Nadpisz tylko jeśli wartość faktycznie się różni
-            # (oszczędzamy niepotrzebne rerunowanie widgetów)
             if st.session_state.get(k) != v:
                 st.session_state[k] = v
-                
 
 # ---------------------------------------------------------------------------
 # OBSŁUGA OBRAZÓW
@@ -443,7 +419,6 @@ def optimize_logo(raw_bytes, max_dim=600):
             return buf.getvalue()
     except Exception:
         return raw_bytes
-
 
 @st.cache_data(max_entries=50)
 def optimize_img(raw_bytes, max_dim=1000):
@@ -471,7 +446,6 @@ def optimize_img(raw_bytes, max_dim=1000):
             return buf.getvalue()
     except Exception:
         return None
-
 
 @st.cache_data(max_entries=200)
 def get_b64_cached(raw_bytes, ratio):
@@ -506,13 +480,11 @@ def get_b64_cached(raw_bytes, ratio):
     except Exception:
         return None
 
-
 def get_b64(key, ratio=(4, 5)):
     r = st.session_state.get(key)
     if not r:
         return None
     return get_b64_cached(r, ratio)
-
 
 @st.cache_data(max_entries=20)
 def get_logo_b64(raw_bytes):
@@ -525,13 +497,11 @@ def get_logo_b64(raw_bytes):
     except Exception:
         return None
 
-
 # ---------------------------------------------------------------------------
 # MAPY OSM
 # ---------------------------------------------------------------------------
 
 MAX_ZOOM_RECURSION_DEPTH = 8
-
 
 @st.cache_data(max_entries=200)
 def get_tile_bytes(z, x, y):
@@ -542,7 +512,6 @@ def get_tile_bytes(z, x, y):
             return response.read()
     except Exception:
         return None
-
 
 @st.cache_data(max_entries=200, show_spinner=False)
 def geocode_place(name, country=None):
@@ -563,13 +532,8 @@ def geocode_place(name, country=None):
         pass
     return None, None
 
-
 def get_road_distance(place_a: str, place_b: str, ors_api_key: str = '', country: str = ''):
-    """
-    Zwraca (dystans_km, czas_min, komunikat) dla trasy A→B.
-    Próbuje kolejno: Google Maps → ORS → Haversine fallback.
-    Zwraca (None, None, opis_błędu) przy całkowitym niepowodzeniu.
-    """
+    """Zwraca (dystans_km, czas_min, komunikat) dla trasy A→B."""
     if not place_a.strip() or not place_b.strip():
         return None, None, "Podaj obie nazwy miejscowości."
 
@@ -579,7 +543,6 @@ def get_road_distance(place_a: str, place_b: str, ors_api_key: str = '', country
     if None in (lat_a, lon_a, lat_b, lon_b):
         return None, None, f"Nie znaleziono lokalizacji: {'A' if lat_a is None else 'B'}. Sprawdź pisownię."
 
-    # 1. Próba Google Maps Distance Matrix (obsługuje cały świat)
     google_key = st.secrets.get('google', {}).get('maps_api_key')
     if google_key:
         try:
@@ -605,7 +568,6 @@ def get_road_distance(place_a: str, place_b: str, ors_api_key: str = '', country
     else:
         google_error = "Brak klucza Google Maps"
 
-    # 2. Próba ORS (Europa głównie)
     if ors_api_key:
         try:
             url = 'https://api.openrouteservice.org/v2/directions/driving-car'
@@ -635,7 +597,6 @@ def get_road_distance(place_a: str, place_b: str, ors_api_key: str = '', country
     else:
         ors_error = "Brak klucza ORS API"
 
-    # 3. Fallback: haversine (linia prosta) z przybliżeniem drogowym *1.3
     try:
         import math as _math
         R = 6371.0
@@ -645,12 +606,11 @@ def get_road_distance(place_a: str, place_b: str, ors_api_key: str = '', country
         a = _math.sin(Δφ/2)**2 + _math.cos(φ1)*_math.cos(φ2)*_math.sin(Δλ/2)**2
         straight_km = R * 2 * _math.atan2(_math.sqrt(a), _math.sqrt(1-a))
         road_km = int(round(straight_km * 1.3, 0))
-        time_min = int(round(road_km / 60 * 60, 0))  # Średnia 60 km/h
+        time_min = int(round(road_km / 60 * 60, 0))
         msg = f"Szacunek (linia prosta ×1.3). Google: {google_error}, ORS: {ors_error}"
         return road_km, time_min, msg
     except Exception as e2:
         return None, None, f"Google: {google_error} | ORS: {ors_error} | Haversine: {e2}"
-
 
 def format_duration(minutes: int) -> str:
     """Formatuje minuty jako 'X h Y min' lub 'Y min'."""
@@ -664,7 +624,6 @@ def format_duration(minutes: int) -> str:
         return f'{h} h'
     return f'{m} min'
 
-
 @st.cache_data(max_entries=20, show_spinner=False)
 def generate_map_data(points, zoom=6, _depth=0):
     if not points:
@@ -677,32 +636,20 @@ def generate_map_data(points, zoom=6, _depth=0):
         ]
         return None, final_points
 
-    # Auto-zoom: dobierz zoom tak żeby punkty zajmowały rozsądny obszar ekranu.
-    # Cel: wszystkie punkty mieszczą się w ~6x6 kafelkach (optymalny widok).
-    # Ignorujemy punkty symboliczne przy obliczaniu zoom.
     if len(geo_pts) >= 2 and _depth == 0:
         lats = [p['lat'] for p in geo_pts]
         lons = [p['lon'] for p in geo_pts]
         lat_span = max(lats) - min(lats)
         lon_span = max(lons) - min(lons)
         span = max(lat_span, lon_span)
-        # Heurystyka: dobierz zoom na podstawie rozpiętości geograficznej
-        if span < 0.5:
-            zoom = 11
-        elif span < 1.5:
-            zoom = 10
-        elif span < 3:
-            zoom = 9
-        elif span < 6:
-            zoom = 8
-        elif span < 12:
-            zoom = 7
-        elif span < 25:
-            zoom = 6
-        elif span < 50:
-            zoom = 5
-        else:
-            zoom = 4
+        if span < 0.5: zoom = 11
+        elif span < 1.5: zoom = 10
+        elif span < 3: zoom = 9
+        elif span < 6: zoom = 8
+        elif span < 12: zoom = 7
+        elif span < 25: zoom = 6
+        elif span < 50: zoom = 5
+        else: zoom = 4
 
     tiles = []
     for p in geo_pts:
@@ -716,7 +663,6 @@ def generate_map_data(points, zoom=6, _depth=0):
     min_ty = int(min(t[1] for t in tiles)) - 1
     max_ty = int(max(t[1] for t in tiles)) + 1
 
-    # Ogranicz do max 9x9 kafelków żeby nie pobierać za dużo
     if (max_tx - min_tx + 1) * (max_ty - min_ty + 1) > 81:
         cx = (min_tx + max_tx) // 2
         cy = (min_ty + max_ty) // 2
@@ -889,7 +835,7 @@ def get_local_css(return_str=False):
         .app-overline-style {{ display: flex; align-items: center; gap: 10px; font-family: '{f_met}'; font-size: {fs_met - 2}px; font-weight: 700; letter-spacing: 4px; color: {acc}; margin-bottom: 10px; text-transform: uppercase; }}
         .app-overline-style::before, .app-overline-style::after {{ content: ""; height: 1px; background-color: {acc}; opacity: 0.5; flex-shrink: 0; }}
         .app-overline-style::before {{ width: 32px; }}
-        .app-overline-style::after {{ flex: 1; }}
+        .app-overline-style::after {{ flex: 1; margin-right: 6%; }}
         .app-list {{ list-style: none; padding: 0; margin-top: 10px; margin-bottom: 10px; }}
         .app-list li {{ position: relative; padding-left: 18px; margin-bottom: 7px; font-family: '{f_txt}'; font-size: {max(10, fs_t-1)}px; line-height: 1.3; color: {c_t}; font-weight: 400; }}
         .app-list li::before {{ content: '■'; position: absolute; left: 0; top: 1px; color: {c_h2}; font-size: 0.7em; }}
@@ -1152,7 +1098,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                                  letter-spacing:4px; color:{acc}; text-transform:uppercase; white-space:nowrap;">
                         {k_over}
                     </span>
-                    <div style="height:1px; background-color:{acc}; opacity:0.5; flex:1;"></div>
+                    <div style="height:1px; background-color:{acc}; opacity:0.5; flex:1; margin-right: 6%;"></div>
                 </div>
                 <div class="title-h1" style="text-align:left; margin-bottom:5px; font-size:{fs_h1_val}px; color:{c_h1}; line-height:1.1;">
                     {k_main}
@@ -1170,8 +1116,14 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     # --- Mapa ---
     if not s.get('map_hide', False):
         m_bg = s.get('img_map_bg_auto')
+        # Dodane dekodowanie base64, jeśli mapa wraca z bazy jako obiekt 'bytes' lub string "b'...'"
+        if isinstance(m_bg, bytes):
+            m_bg = base64.b64encode(m_bg).decode()
+        elif isinstance(m_bg, str) and m_bg.startswith("b'") and m_bg.endswith("'"):
+            m_bg = m_bg[2:-1]
+
         m_bg_html = (
-            f'<img src="data:image/jpeg;base64,{m_bg}" style="width:100%;height:100%;object-fit:fill;opacity:0.85;border-radius:8px;">'
+            f'<img src="data:image/jpeg;base64,{m_bg}" style="width:100%;height:100%;object-fit:cover;opacity:0.85;border-radius:8px;">'
             if m_bg else
             f'<div style="width:100%;height:100%;background:#eef2f5;display:flex;align-items:center;justify-content:center;color:#ccc;font-weight:bold;font-size:14px;text-align:center;border-radius:8px;border:2px dashed {acc};">MAPA ZOSTANIE WYGENEROWANA AUTOMATYCZNIE<br>Wprowadź punkty trasy w panelu sterowania</div>'
         )
@@ -1222,13 +1174,13 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 if not pa and not pb:
                     continue
                 label = f'{pa} → {pb}' if pa and pb else (pa or pb)
+                # Zmieniono white-space:nowrap na normal + word-wrap, ucięto też max-width:0
                 rows_html += f"""
                 <tr>
                     <td style="font-family:'{f_t}'; font-size:{fs_t}px; color:white;
                                font-weight:400; line-height:1.3; padding:7px 10px 7px 0;
                                border-bottom:1px solid rgba(255,255,255,0.12);
-                               width:50%; max-width:0; overflow:hidden;
-                               text-overflow:ellipsis; white-space:nowrap;">
+                               width:45%; white-space:normal; word-wrap:break-word;">
                         {label}
                     </td>
                     <td style="width:25%; padding:7px 8px; text-align:right;
@@ -1283,7 +1235,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                                      letter-spacing:4px; color:{acc}; text-transform:uppercase; white-space:nowrap;">
                             {str(s.get('map_overline','TRASA WYJAZDU'))}
                         </span>
-                        <div style="flex:1; height:1px; background:{acc}; opacity:0.6;"></div>
+                        <div style="flex:1; height:1px; background:{acc}; opacity:0.6; margin-right: 6%;"></div>
                     </div>
                     <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(s.get('map_title','ZARYS\\nPODRÓŻY')).replace(chr(10),'<br>')}</div>
                     <div class="title-sub" style="margin-bottom: 15px; font-size:{max(12,fs_sub_val-4)}px;">{str(s.get('map_subtitle','')).replace(chr(10),'<br>')}</div>
@@ -1329,7 +1281,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                              letter-spacing:4px; color:{acc}; text-transform:uppercase; white-space:nowrap;">
                     {str(s.get('l_overline','PRZELOT'))}
                 </span>
-                <div style="flex:1; height:1px; background:{acc}; opacity:0.6;"></div>
+                <div style="flex:1; height:1px; background:{acc}; opacity:0.6; margin-right: 6%;"></div>
             </div>
             <div class="title-h1" style="margin-bottom:5px; font-size:{fs_h1_val-6}px;">{str(s.get('l_main','JAK LECIMY?')).replace(chr(10),'<br>')}</div>
             <div class="title-sub" style="margin-bottom:15px;">{str(s.get('l_sub','')).replace(chr(10),'<br>')}</div>{h_d}
