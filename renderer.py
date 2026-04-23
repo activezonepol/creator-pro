@@ -305,8 +305,8 @@ _SIZE_KEYS = {'font_size_h1', 'font_size_h2', 'font_size_sub', 'font_size_text',
 # W renderer.py
 def load_project_data(project_data: dict):
     """
-    Wczytuje dane z JSON/Bazy do session_state, zabezpieczając przed nadpisywaniem 
-    aktualnie edytowanych przez użytkownika danych.
+    Wczytuje dane z JSON/Bazy do session_state, zapewniając synchronizację 
+    między bazą a interfejsem Streamlit.
     """
     # KLUCZOWE: Te klucze są zarezerwowane dla Streamlit (przyciski/widżety)
     forbidden_keys = {
@@ -315,33 +315,33 @@ def load_project_data(project_data: dict):
     }
     
     for k, v in project_data.items():
-        # 1. Pomijamy klucze przycisków i prefiksy, którymi Streamlit sam zarządza
+        # 1. Pomijamy klucze przycisków, którymi Streamlit sam zarządza
         if k in forbidden_keys or k.startswith(('attrnav_', 'attrup_', 'attrdn_', 'attrdel_')):
             continue
             
-        # 2. LOGIKA OCHRONY DANYCH:
-        # Jeśli klucz już istnieje w sesji i ma wartość, to znaczy, że użytkownik 
-        # mógł już zacząć edycję. Nie nadpisujemy aktywnej pracy danymi z bazy.
-        # Wczytujemy tylko, gdy pole jest puste (None lub puste stringi).
-        if k in st.session_state and st.session_state[k] not in [None, "", [], 0]:
-            # Jeśli dane w sesji są "puste", nadpisujemy je danymi z projektu.
-            # W przeciwnym razie zostawiamy to, co użytkownik wpisał w formularzu.
+        # 2. Logika wczytywania
+        # Zamiast 'continue', po prostu wczytujemy dane, jeśli w bazie faktycznie coś jest.
+        # Jeśli v jest None, to nie nadpisujemy niczego w session_state.
+        if v is None:
             continue
             
-        # 3. Bezpieczne ładowanie
+        # 3. Specjalistyczne wczytywanie typów
         if k in IMAGE_KEYS and isinstance(v, str):
             try: 
                 st.session_state[k] = base64.b64decode(v)
             except Exception: 
                 st.session_state[k] = v
+        
         elif k == 'p_start_dt' and isinstance(v, str):
             try: 
                 st.session_state[k] = date.fromisoformat(v)
             except Exception: 
                 pass
+        
+        # 4. Nadpisujemy sesję danymi z bazy, ALE tylko jeśli to co mamy w bazie 
+        # jest istotne (v nie jest None). To zapewnia, że baza jest "źródłem prawdy".
         else:
-            if v is not None:
-                st.session_state[k] = v
+            st.session_state[k] = v
 
 def get_project_filename():
     d_str = st.session_state.get('t_date', '')
