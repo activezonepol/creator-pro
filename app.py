@@ -559,19 +559,14 @@ with st.sidebar:
         on_change=lambda: st.session_state.update({'last_page': st.session_state['nav_bot_radio']})
     )
 
-    # Nagłówek zakładki
+    # Nagłówek zakładki (używa _last który jest już zdefiniowany)
     _inter_pages = {"  ↳ Przerywnik hotel", "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}
-    _is_attr_page = page.startswith("ATTR:")
+    _is_attr_page = _last.startswith("ATTR:")
 
 # ---------------------------------------------------------------------------
-# USTALANIE AKTYWNEJ STRONY
+# USTALANIE AKTYWNEJ STRONY (po sidebarze)
 # ---------------------------------------------------------------------------
-page = st.session_state.get('last_page', _nav_top[0])
-# Walidacja - czy strona istnieje
-_nav_all = _nav_top + _attr_pages + _nav_bot
-if page not in _nav_all:
-    page = _nav_top[0]
-    st.session_state['last_page'] = page
+page = _last
 
 # ---------------------------------------------------------------------------
 # NAGŁÓWKI STRON
