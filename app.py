@@ -45,6 +45,21 @@ st.set_page_config(layout="wide", page_title="Activezone Oferta",
 
 st.markdown("""
 <style>
+/* Zmniejszenie sidebara i powiększenie głównej części */
+section[data-testid="stSidebar"] {
+    width: 320px !important;
+    min-width: 320px !important;
+}
+section[data-testid="stSidebar"] > div {
+    width: 320px !important;
+}
+/* Główna część zajmuje resztę */
+.main .block-container {
+    max-width: 100% !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+}
+
 /* Buttony nawigacyjne w sidebarze - kompaktowe */
 [data-testid="stSidebar"] div.stButton > button {
     border-radius: 4px !important;
@@ -1459,6 +1474,7 @@ if '_debug_loaded' in st.session_state:
     with st.sidebar:
         st.caption(st.session_state['_debug_loaded'])
 
+# ---------------------------------------------------------------------------
 # ---------------------------------------------------------------------------
 # GŁÓWNA ZAWARTOŚĆ — PODGLĄD PREZENTACJI
 # ---------------------------------------------------------------------------
