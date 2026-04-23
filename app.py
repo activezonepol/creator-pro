@@ -806,12 +806,12 @@ with col_form:
         ]
         section_template_manager(tit_keys, "TYT", "strona-tytulowa", "tit")
         
-        # 1. Termin
+        # 1. Termin - BEZ LAMBDA
         st.text_input("Termin:", 
                       value=st.session_state.get("t_date", ""), 
                       key="t_date", 
                       use_container_width=True,
-                      on_change=lambda: (parse_date_and_days(), save_to_supabase()))
+                      on_change=on_change_termin)
         
         # 2. Kraj
         st.selectbox("Kraj docelowy:", 
@@ -832,7 +832,7 @@ with col_form:
                           use_container_width=True,
                           on_change=save_to_supabase)
         
-        # 4. Uploadery zdjęć
+        # 4. Uploadery (bez zmian)
         u1 = st.file_uploader("Zdjęcie główne (4:5)", key="tyt_hero")
         if u1:
             st.session_state['img_hero_t'] = optimize_img(u1.getvalue())
