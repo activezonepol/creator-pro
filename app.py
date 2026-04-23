@@ -506,27 +506,22 @@ with col_form:
     elif page == "Opis Kierunku":
         k_keys = ['k_hide', 'k_overline', 'k_main', 'k_sub', 'k_opis', 'k_facts', 'k_box_bg', 'k_box_txt', 'img_hero_k']
         section_template_manager(k_keys, "KIE", st.session_state.get('k_main', 'czarnogora'), "kie")
-        
-        st.checkbox("Ukryj ten slajd w PDF", key="k_hide", on_change=save_to_supabase)
-        st.text_input("Mały nadtytuł (overline):", key="k_overline", on_change=save_to_supabase)
-        st.text_input("Nazwa kierunku (duży tytuł H1):", key="k_main", on_change=save_to_supabase)
-        st.text_input("Podtytuł:", key="k_sub", on_change=save_to_supabase)
-        st.text_area("Opis (prawa kolumna):", height=160, key="k_opis", help="Główny opis kierunku po prawej stronie slajdu.", on_change=save_to_supabase)
-        
+        st.checkbox("Ukryj ten slajd w PDF", key="k_hide")
+        st.text_input("Mały nadtytuł (overline):", key="k_overline")
+        st.text_input("Nazwa kierunku (duży tytuł H1):", key="k_main")
+        st.text_input("Podtytuł:", key="k_sub")
+        st.text_area("Opis (prawa kolumna):", height=160, key="k_opis", help="Główny opis kierunku po prawej stronie slajdu.")
         _section_header("BOX Z FAKTAMI (lewa kolumna)")
         for _ck, _cv in [('k_box_bg', st.session_state.get('color_h1', '#003366')), ('k_box_txt', '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7): st.session_state[_ck] = _cv
         cb1, cb2 = st.columns(2)
-        cb1.color_picker("Kolor tła boksu", key="k_box_bg", on_change=save_to_supabase)
-        cb2.color_picker("Kolor tekstu w boksie", key="k_box_txt", on_change=save_to_supabase)
-        st.text_area("Fakty (Format: 'Etykieta: Wartość'):", height=160, key="k_facts", help="Każda linia = jeden wpis.", on_change=save_to_supabase)
-        
+        cb1.color_picker("Kolor tła boksu", key="k_box_bg")
+        cb2.color_picker("Kolor tekstu w boksie", key="k_box_txt")
+        st.text_area("Fakty (Format: 'Etykieta: Wartość'):", height=160, key="k_facts", help="Każda linia = jeden wpis.")
         _section_header("ZDJĘCIE (jedno zdjęcie w dwóch ramkach)")
         u4 = st.file_uploader("Zdjęcie kierunku:", key="kie_hero")
-        if u4: 
-            st.session_state['img_hero_k'] = optimize_img(u4.getvalue())
-            save_to_supabase()
+        if u4: st.session_state['img_hero_k'] = optimize_img(u4.getvalue())
 
     elif page == "Mapa Podróży":
         map_keys = ['map_hide', 'map_overline', 'map_title', 'map_subtitle', 'map_desc', 'img_map_bg', 'map_zoom', 'num_map_points', 'img_map_bg_auto', 'auto_map_points']
@@ -553,7 +548,7 @@ with col_form:
                     c1.slider("Pozycja X %:", 0, 100, key=f"map_pt_x_{i}")
                     c2.slider("Pozycja Y %:", 0, 100, key=f"map_pt_y_{i}")
                 points_data.append({'name': st.session_state[f"map_pt_name_{i}"], 'conn': st.session_state[f"map_conn_{i}"], 'symbolic': st.session_state[f"map_pt_sym_{i}"], 'x': st.session_state[f"map_pt_x_{i}"], 'y': st.session_state[f"map_pt_y_{i}"]})
-        if st.button("GENERUJ MAPĘ", type="primary", use_container_width=True):
+        if st.button("GENER MAPĘ", type="primary", use_container_width=True):
             with st.spinner("Pobieranie danych..."):
                 country = st.session_state.get('country_name', '')
                 valid_pts = []
@@ -785,7 +780,7 @@ with col_form:
         c1, c2 = st.columns(2)
         c1.checkbox("Ukryj CAŁY Kosztorys", key="koszt_hide_1")
         c2.checkbox("Ukryj Slajd 2", key="koszt_hide_2")
-        st.text_input("Tytuł H1:", key="koszt_h1_title", value=st.session_state.get('koszt_h1_title', 'KOSZTORYS'))
+        st.text_input("Tytuł H1:", key="koszt_h1_title")
         st.text_input("Overline:", key="koszt_title")
         _section_header("GŁÓWNE DANE TABELI")
         c1, c2 = st.columns(2)
