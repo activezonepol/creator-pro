@@ -154,7 +154,7 @@ def _move_hotel(idx, direction):
         st.session_state['hotel_order'] = order
 
 # -----------------------------------------------------------------------
-# ZARZĄDZANIE LISTĄ ATRAKCJI
+# ZARZĄDZANIE LISTĄ ATRAKCJI (Tylko Atrakcje)
 # -----------------------------------------------------------------------
 def _attr_count():
     return st.session_state.get('num_attr', 0)
@@ -335,12 +335,14 @@ with st.sidebar:
     st.markdown(f"<div style='background:#f0f9ff;border-left:3px solid #0ea5e9;padding:8px 12px;margin-bottom:15px;border-radius:4px;'><div style='font-size:11px;font-weight:600;color:#0369a1;margin-bottom:4px;'>AUTO-ZAPIS (co 10s)</div><div style='font-size:10px;color:#64748b;'>{save_status}</div><div style='font-size:9px;color:#94a3b8;margin-top:2px;'>{save_count} pól w bazie</div></div>", unsafe_allow_html=True)
     
     # -----------------------------------------------------------------------
-    # SZYBKIE AKCJE (Eksport HTML / PDF / LINK) wyciagnięte na górę dla wygody
+    # SZYBKIE AKCJE (Eksport HTML / PDF / Zapis JSON) wyciagnięte na górę
     # -----------------------------------------------------------------------
-    st.markdown("<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;'>SZYBKIE AKCJE (CAŁA OFERTA)</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;'>Eksport dla klienta</div>", unsafe_allow_html=True)
 
-    if st.button("PRZYGOTUJ OFERTĘ DO POBRANIA", type="secondary", use_container_width=True):
-        with st.spinner("Generowanie ostatecznego pliku oferty..."):
+    st.info("Pobraną ofertę (plik HTML) możesz wysłać jako załącznik, umieścić na serwerze jako stronę WWW lub po jej otwarciu zapisać jako PDF używając systemowego okna drukowania.")
+
+    if st.button("1. PRZYGOTUJ OFERTĘ (HTML)", type="secondary", use_container_width=True):
+        with st.spinner("Trwa generowanie ostatecznego pliku oferty..."):
             export_content = build_presentation(export_mode=True)
             acc = st.session_state.get('color_accent', '#FF6600')
             t_main = st.session_state.get('t_main', 'Oferta')
@@ -363,7 +365,7 @@ with st.sidebar:
 
     if st.session_state.get('ready_export_html'):
         st.download_button(
-            "POBIERZ GOTOWY PLIK HTML",
+            "2. POBIERZ OFERTĘ (HTML)",
             st.session_state['ready_export_html'],
             get_project_filename().replace('.json', '.html'),
             "text/html",
@@ -371,12 +373,12 @@ with st.sidebar:
             use_container_width=True,
         )
 
-    if st.button("GENERUJ LINK DO OFERTY ONLINE", use_container_width=True):
-        st.session_state['show_link_info'] = not st.session_state.get('show_link_info', False)
-    if st.session_state.get('show_link_info', False):
-        st.info("Wyeksportuj plik HTML za pomocą przycisku wyżej i umieść go na serwerze swojej agencji. Plik jest w pełni autonomiczną stroną WWW.")
+    st.markdown("<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-top: 15px; margin-bottom: 10px; letter-spacing: 1px;'>Zapisz kopię roboczą na dysku</div>", unsafe_allow_html=True)
+    proj = _build_proj_dict()
+    proj_json = json.dumps(proj, ensure_ascii=False)
+    st.download_button("💾 ZAPISZ CAŁĄ OFERTĘ NA DYSK (.json)", proj_json, get_project_filename(), use_container_width=True)
 
-    if st.button("PODGLĄD PEŁNOEKRANOWY", use_container_width=True):
+    if st.button("👁️ PODGLĄD PEŁNOEKRANOWY", use_container_width=True):
         st.session_state['client_mode'] = True
         st.rerun()
 
@@ -451,7 +453,7 @@ with col_form:
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Dostosuj kolory i typografię oferty</div>", unsafe_allow_html=True)
     elif page == "Zapisz / Wczytaj Projekt":
         st.markdown("<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;'>ZARZĄDZANIE PROJEKTEM</h2>", unsafe_allow_html=True)
-        st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Eksportuj lub importuj cały plik JSON</div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Wczytuj i aktualizuj projekty z plików .json</div>", unsafe_allow_html=True)
     elif page in _inter_pages:
         _h1_col = st.session_state.get("color_h1", "#003366")
         _page_label = page.strip().lstrip("↳").strip()
@@ -910,14 +912,9 @@ with col_form:
         st.color_picker("Akcent", key="color_accent")
 
     elif page == "Zapisz / Wczytaj Projekt":
-        proj = _build_proj_dict()
-        proj_json = json.dumps(proj, ensure_ascii=False)
-        st.markdown("##### Auto-zapis do bazy danych")
-        st.info("📊 Twój projekt jest automatycznie zapisywany do bazy Supabase co 10 sekund. Dane przeżywają restart aplikacji i są dostępne zawsze.")
-        st.markdown("---")
-        st.markdown("##### Plik JSON na dysk")
-        st.download_button("POBIERZ PLIK PROJEKTU (JSON)", proj_json, get_project_filename(), use_container_width=True)
-        st.markdown("---")
+        st.markdown("<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;'>ZARZĄDZANIE PROJEKTEM</h2>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Wczytuj z dysku całe projekty .json do dalszej pracy.</div>", unsafe_allow_html=True)
+        st.markdown("##### Wczytaj projekt .json")
         upf = st.file_uploader("Wgraj projekt z dysku (.json)", type=['json'], key="up_export")
         if upf and st.button("WCZYTAJ PROJEKT Z PLIKU", use_container_width=True, type="primary"):
             data, error = _validate_and_load_json(upf)
