@@ -329,6 +329,53 @@ def _build_proj_dict():
     return proj
 
 
+def _validate_and_load_json(uploaded_file, expected_keys=None):
+    """
+    Bezpiecznie ładuje i waliduje JSON z uploaded file.
+    
+    Args:
+        uploaded_file: Plik z st.file_uploader
+        expected_keys: Lista opcjonalnych kluczy do sprawdzenia (None = pomiń walidację)
+    
+    Returns:
+        dict: Załadowane dane lub None w przypadku błędu
+        str: Komunikat błędu lub None jeśli OK
+    """
+    if not uploaded_file:
+        return None, "Brak pliku"
+    
+    try:
+        # 1. Sprawdź czy to JSON
+        uploaded_file.seek(0)  # Reset pozycji pliku
+        content = uploaded_file.read()
+        
+        # 2. Sprawdź czy nie jest pusty
+        if not content or len(content.strip()) == 0:
+            return None, "Plik jest pusty"
+        
+        # 3. Parsuj JSON
+        try:
+            data = json.loads(content)
+        except json.JSONDecodeError as e:
+            return None, f"Nieprawidłowy format JSON: {str(e)[:100]}"
+        
+        # 4. Sprawdź czy to słownik (nie lista, string, etc)
+        if not isinstance(data, dict):
+            return None, f"Plik musi zawierać obiekt JSON ({{}}), znaleziono: {type(data).__name__}"
+        
+        # 5. Walidacja kluczy (opcjonalna)
+        if expected_keys:
+            found_keys = set(data.keys())
+            expected_set = set(expected_keys)
+            if not found_keys.intersection(expected_set):
+                return None, f"Brak oczekiwanych kluczy. Znaleziono: {', '.join(list(found_keys)[:5])}"
+        
+        return data, None
+        
+    except Exception as e:
+        return None, f"Błąd odczytu: {str(e)[:100]}"
+
+
 def section_template_manager(section_keys, file_prefix, default_filename, uploader_key, index=None):
     ATR_KEY_MAP = {"atype": "type", "amain": "main", "asub": "sub", "aopis": "opis"}
     _acc = st.session_state.get('color_accent', '#FF6600')
@@ -381,21 +428,30 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
         if uploaded_file:
             if st.button("↑ WCZYTAJ SZABLON", key=f"btn_apply_{uploader_key}",
                          use_container_width=True, type="primary"):
-                try:
-                    data = json.load(uploaded_file)
-                    filtered_data = {}
-                    for k in section_keys:
-                        save_key = k
-                        load_key = k if index is None else re.sub(f'_{index}$', '', k)
-                        if file_prefix == "ATR":
-                            load_key = ATR_KEY_MAP.get(load_key, load_key)
-                        if load_key in data:
-                            filtered_data[save_key] = data[load_key]
-                    load_project_data(filtered_data)
-                    st.success("Wczytano.")
-                    st.rerun()
-                except Exception:
-                    st.error("Błąd odczytu.")
+                # Bezpieczne ładowanie z walidacją
+                data, error = _validate_and_load_json(uploaded_file, expected_keys=section_keys)
+                
+                if error:
+                    st.error(f"❌ {error}")
+                else:
+                    try:
+                        filtered_data = {}
+                        for k in section_keys:
+                            save_key = k
+                            load_key = k if index is None else re.sub(f'_{index}$', '', k)
+                            if file_prefix == "ATR":
+                                load_key = ATR_KEY_MAP.get(load_key, load_key)
+                            if load_key in data:
+                                filtered_data[save_key] = data[load_key]
+                        
+                        if not filtered_data:
+                            st.warning("⚠️ Nie znaleziono pasujących danych w pliku")
+                        else:
+                            load_project_data(filtered_data)
+                            st.success(f"✅ Wczytano {len(filtered_data)} pól")
+                            st.rerun()
+                    except Exception as e:
+                        st.error(f"❌ Błąd przetwarzania danych: {str(e)[:100]}")
 
 
 def _section_header(label):
@@ -524,29 +580,40 @@ with st.sidebar:
         f"DODAJ ATRAKCJE/MIEJSCE</span></div>",
         unsafe_allow_html=True,
     )
-    st.button("＋ Dodaj", key="attr_add_btn", use_container_width=True,
-             on_click=_attr_add)
+    # Button zwraca True gdy kliknięty - NIE używaj session_state!
+    if st.button("＋ Dodaj", key="attr_add_btn", use_container_width=True):
+        _attr_add()
+        st.rerun()
 
     # Każda atrakcja jako wiersz: [nazwa] [▲] [▼] [✕]
     for _ap in range(_n_attr):
         _ap_key = _attr_pages[_ap]
         _ap_active = (_last == _ap_key)
         _ca, _cb, _cc, _cd = st.columns([6, 1, 1, 1])
-        _ca.button(
+        
+        # Button nawigacji - sprawdzaj wartość zwracaną
+        if _ca.button(
             f"★ {_attr_display_name(_ap)}", 
             key=f"attrnav_{_ap}",
             use_container_width=True,
-            type="primary" if _ap_active else "secondary",
-            on_click=lambda p=_ap_key: st.session_state.update({'last_page': p})
-        )
+            type="primary" if _ap_active else "secondary"
+        ):
+            st.session_state['last_page'] = _ap_key
+            st.rerun()
+            
         if _ap > 0:
-            _cb.button("▲", key=f"attrup_{_ap}", use_container_width=True,
-                      on_click=_attr_move, args=(_ap, -1))
+            if _cb.button("▲", key=f"attrup_{_ap}", use_container_width=True):
+                _attr_move(_ap, -1)
+                st.rerun()
+                
         if _ap < _n_attr - 1:
-            _cc.button("▼", key=f"attrdn_{_ap}", use_container_width=True,
-                      on_click=_attr_move, args=(_ap, 1))
-        _cd.button("✕", key=f"attrdel_{_ap}", use_container_width=True,
-                  on_click=_attr_delete, args=(_ap,))
+            if _cc.button("▼", key=f"attrdn_{_ap}", use_container_width=True):
+                _attr_move(_ap, 1)
+                st.rerun()
+                
+        if _cd.button("✕", key=f"attrdel_{_ap}", use_container_width=True):
+            _attr_delete(_ap)
+            st.rerun()
 
     # Nawigacja dolna — RADIO
     _bot_index = _nav_bot.index(_last) if _last in _nav_bot else 0
@@ -1394,9 +1461,18 @@ with col_form:
             key="up_export", label_visibility="collapsed",
         )
         if upf and st.button("WCZYTAJ PROJEKT Z PLIKU", use_container_width=True, type="primary"):
-            data = json.load(upf)
-            load_project_data(data)
-            st.rerun()
+            # Bezpieczne ładowanie z walidacją
+            data, error = _validate_and_load_json(upf)
+            
+            if error:
+                st.error(f"❌ Nie można wczytać projektu: {error}")
+            else:
+                try:
+                    load_project_data(data)
+                    st.success(f"✅ Wczytano projekt ({len(data)} kluczy)")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ Błąd ładowania danych: {str(e)[:100]}")
 
     # -----------------------------------------------------------------------
     # SZYBKIE AKCJE (stałe na dole sidebara)
