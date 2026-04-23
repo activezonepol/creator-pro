@@ -755,7 +755,7 @@ with col_form:
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_0")
         st.text_input("Duży tytuł (uppercase):", value=st.session_state.get(f"sek_0_title", ""), key=f"sek_0_title")
 
-        st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_0_sub"),
+        st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_0_sub")
 
         _ic1, _ic2 = st.columns(2)
         _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_0_bg")
@@ -774,10 +774,10 @@ with col_form:
                   on_click=set_focus, args=(f"slide-sek_3",),
                   use_container_width=True)
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_3")
-        st.text_input("Duży tytuł (uppercase):", key=f"sek_3_title",
-)
-        st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_3_sub",
-)
+        st.text_input("Duży tytuł (uppercase):", key=f"sek_3_title")
+        
+        st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_3_sub")
+        
         _ic1, _ic2 = st.columns(2)
         _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_3_bg")
         _ic2.color_picker("Kolor tytułu:", key=f"sek_3_txt")
@@ -795,10 +795,10 @@ with col_form:
                   on_click=set_focus, args=(f"slide-sek_1",),
                   use_container_width=True)
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_1")
-        st.text_input("Duży tytuł (uppercase):", key=f"sek_1_title",
-)
-        st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_1_sub",
-)
+        st.text_input("Duży tytuł (uppercase):", key=f"sek_1_title")
+        
+        st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_1_sub")
+        
         _ic1, _ic2 = st.columns(2)
         _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_1_bg")
         _ic2.color_picker("Kolor tytułu:", key=f"sek_1_txt")
@@ -816,10 +816,10 @@ with col_form:
                   on_click=set_focus, args=(f"slide-sek_2",),
                   use_container_width=True)
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_2")
-        st.text_input("Duży tytuł (uppercase):", key=f"sek_2_title",
-)
-        st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_2_sub",
-)
+        st.text_input("Duży tytuł (uppercase):", key=f"sek_2_title")
+        
+        st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_2_sub")
+        
         _ic1, _ic2 = st.columns(2)
         _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_2_bg")
         _ic2.color_picker("Kolor tytułu:", key=f"sek_2_txt")
@@ -868,8 +868,7 @@ with col_form:
         ]
         section_template_manager(k_keys, "KIE", st.session_state.get('k_main', 'czarnogora'), "kie")
         st.checkbox("Ukryj ten slajd w PDF", key="k_hide")
-        st.text_input("Mały nadtytuł (overline):", key="k_overline",
-)
+        st.text_input("Mały nadtytuł (overline):", key="k_overline")
         st.text_input("Nazwa kierunku (duży tytuł H1):", key="k_main")
         st.text_input("Podtytuł:", key="k_sub")
         st.text_area("Opis (prawa kolumna):", height=160, key="k_opis",
@@ -885,11 +884,10 @@ with col_form:
         cb1, cb2 = st.columns(2)
         cb1.color_picker("Kolor tła boksu", key="k_box_bg")
         cb2.color_picker("Kolor tekstu w boksie", key="k_box_txt")
-        st.text_input("Tytuł boksu (np. FAKTY):", key="k_facts_title",
-)
+        st.text_input("Tytuł boksu (np. FAKTY):", key="k_facts_title")
         st.text_area(
             "Fakty (Format: 'Etykieta: Wartość'):", height=160, key="k_facts",
-            help="Każda linia = jeden wpis. 'Etykieta: Wartość' pogrubia etykietę.",
+            help="Każda linia = jeden wpis. 'Etykieta: Wartość' pogrubia etykietę."
         )
 
         _section_header("ZDJĘCIE (jedno zdjęcie w dwóch ramkach)")
