@@ -4,6 +4,9 @@ app.py
 Punkt wejścia aplikacji Streamlit.
 Importuje renderer.py i obsługuje cały sidebar (panel edycji),
 tryb klienta oraz akcje globalne.
+
+OSTATNIA AKTUALIZACJA: 2024-04-23 15:35 UTC
+NAPRAWIONO: StreamlitValueAssignmentNotAllowedError - buttony atrakcji → selectbox
 """
 
 import re
@@ -115,12 +118,32 @@ if '_loaded_from_supabase' not in st.session_state:
         
         if result.data and result.data[0].get('data'):
             project_data = result.data[0]['data']
+            
+            # KLUCZOWE: Usuń klucze widgetów zanim wczytasz do session_state
+            # (kolizja z Streamlit widget management)
+            widget_keys = [
+                'attr_add_btn', 'attr_select', 'nav_top_radio', 'nav_bot_radio',
+                '_supabase_data', 'last_supabase_save', 'last_save_status'
+            ]
+            # Usuń też prefiksy widgetów (attrnav_0, attrup_1, etc)
+            widget_prefixes = ['attrnav_', 'attrup_', 'attrdn_', 'attrdel_']
+            
+            keys_to_remove = []
+            for key in project_data.keys():
+                if key in widget_keys:
+                    keys_to_remove.append(key)
+                elif any(key.startswith(prefix) for prefix in widget_prefixes):
+                    keys_to_remove.append(key)
+            
+            for key in keys_to_remove:
+                project_data.pop(key, None)
+            
             # DEBUG: pokaż ile kluczy wczytano
             text_keys = [k for k, v in project_data.items() if isinstance(v, str) and k.startswith('t_')]
             load_project_data(project_data)
             # DEBUG: sprawdź czy t_main został wczytany
             loaded_t_main = st.session_state.get('t_main', '???')
-            st.session_state['_debug_loaded'] = f"📥 Wczytano {len(project_data)} kluczy, w tym {len(text_keys)} tekstów t_* | t_main='{loaded_t_main}'"
+            st.session_state['_debug_loaded'] = f"📥 Wczytano {len(project_data)} kluczy (usunięto {len(keys_to_remove)} widgetów), w tym {len(text_keys)} tekstów t_* | t_main='{loaded_t_main}'"
             st.session_state['_loaded_from_supabase'] = True
         else:
             # Brak zapisanego projektu — załaduj defaults
@@ -287,10 +310,15 @@ def _rebuild_slide_order():
 def _build_proj_dict():
     """Serializuje session_state do słownika gotowego do zapisu JSON."""
     proj = {}
-    skip_prefixes = ('FormSubmitter', '$$', 'up_', 'fn_', 'dl_', 'btn_', 'sb_', 'pa_add_', 'sek_img_up')
+    # Prefiksy i klucze widgetów które NIE MOGĄ być zapisane (kolizja z Streamlit)
+    skip_prefixes = ('FormSubmitter', '$$', 'up_', 'fn_', 'dl_', 'btn_', 'sb_', 'pa_add_', 'sek_img_up',
+                     'attr_add_btn', 'attrnav_', 'attrup_', 'attrdn_', 'attrdel_', 'attr_select',
+                     'nav_top_radio', 'nav_bot_radio')
     # Klucze wewnętrzne które nie powinny trafić do pliku projektu
     internal_keys = {'_session_id', '_ls_loaded', '_ls_restore', '_scroll_pos',
-                     'ready_export_html', 'show_link_info', '_attr_focused', 'STATE_BACKUP'}
+                     'ready_export_html', 'show_link_info', '_attr_focused', 'STATE_BACKUP',
+                     '_supabase_data', '_loaded_from_supabase', 'last_supabase_save', 
+                     'last_save_status', '_user_edited', '_debug_loaded'}
     skip_keys = {
         'tyt_hero', 'tyt_logo_az', 'tyt_logo_cli',
         'kie_hero', 'kie_th1', 'kie_th2', 'kie_th3', 'lot_hero',
@@ -577,43 +605,35 @@ with st.sidebar:
         f"<span style='color:{_acc};font-size:13px;font-weight:700;'>★</span>"
         f"<span style='font-size:12px;font-weight:600;color:#334155;"
         f"font-family:Montserrat,sans-serif;'>"
-        f"DODAJ ATRAKCJE/MIEJSCE</span></div>",
+        f"ATRAKCJE ({_n_attr})</span></div>",
         unsafe_allow_html=True,
     )
-    # Button zwraca True gdy kliknięty - NIE używaj session_state!
-    if st.button("＋ Dodaj", key="attr_add_btn", use_container_width=True):
-        _attr_add()
-        st.rerun()
-
-    # Każda atrakcja jako wiersz: [nazwa] [▲] [▼] [✕]
-    for _ap in range(_n_attr):
-        _ap_key = _attr_pages[_ap]
-        _ap_active = (_last == _ap_key)
-        _ca, _cb, _cc, _cd = st.columns([6, 1, 1, 1])
+    
+    # Selectbox dla wyboru atrakcji (bez modyfikacji session_state)
+    if _n_attr > 0:
+        attr_options = [_attr_display_name(pos) for pos in range(_n_attr)]
+        current_attr_idx = None
+        for pos in range(_n_attr):
+            if _attr_pages[pos] == _last:
+                current_attr_idx = pos
+                break
         
-        # Button nawigacji - sprawdzaj wartość zwracaną
-        if _ca.button(
-            f"★ {_attr_display_name(_ap)}", 
-            key=f"attrnav_{_ap}",
-            use_container_width=True,
-            type="primary" if _ap_active else "secondary"
-        ):
-            st.session_state['last_page'] = _ap_key
-            st.rerun()
-            
-        if _ap > 0:
-            if _cb.button("▲", key=f"attrup_{_ap}", use_container_width=True):
-                _attr_move(_ap, -1)
+        if current_attr_idx is not None:
+            selected_attr_name = st.selectbox(
+                "Wybierz atrakcję",
+                attr_options,
+                index=current_attr_idx,
+                key="attr_select",
+                label_visibility="collapsed"
+            )
+            # Znajdź indeks wybranej atrakcji
+            selected_idx = attr_options.index(selected_attr_name)
+            selected_page = _attr_pages[selected_idx]
+            if selected_page != _last:
+                st.session_state['last_page'] = selected_page
                 st.rerun()
-                
-        if _ap < _n_attr - 1:
-            if _cc.button("▼", key=f"attrdn_{_ap}", use_container_width=True):
-                _attr_move(_ap, 1)
-                st.rerun()
-                
-        if _cd.button("✕", key=f"attrdel_{_ap}", use_container_width=True):
-            _attr_delete(_ap)
-            st.rerun()
+    
+    st.caption("💡 Zarządzaj atrakcjami na stronie 'Program Wyjazdu' → przypisz do dnia")
 
     # Nawigacja dolna — RADIO
     _bot_index = _nav_bot.index(_last) if _last in _nav_bot else 0
