@@ -798,7 +798,7 @@ with col_form:
         if _up_s:
             st.session_state[f"sek_2_img"] = optimize_img(_up_s.getvalue())
 
-  elif page == "Strona Tytułowa":
+   elif page == "Strona Tytułowa":
         tit_keys = [
             't_date', 'country_name', 'country_code', 't_main', 't_sub',
             't_klient', 't_kierunek', 't_pax', 't_hotel', 't_trans',
