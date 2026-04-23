@@ -407,6 +407,32 @@ def _section_header(label):
     )
 
 
+def save_to_supabase():
+    """Zapisz projekt do Supabase - wywołuj w on_change inputów"""
+    try:
+        data = _build_proj_dict()
+        # Sprawdź czy rekord istnieje
+        existing = supabase.table('projects').select('id').eq('user_email', 'default_user').execute()
+        
+        if existing.data:
+            # UPDATE istniejącego rekordu
+            supabase.table('projects').update({
+                'project_name': st.session_state.get('t_main', 'Projekt'),
+                'data': data,
+                'updated_at': datetime.now().isoformat()
+            }).eq('user_email', 'default_user').execute()
+        else:
+            # INSERT nowego rekordu
+            supabase.table('projects').insert({
+                'user_email': 'default_user',
+                'project_name': st.session_state.get('t_main', 'Projekt'),
+                'data': data,
+                'updated_at': datetime.now().isoformat()
+            }).execute()
+    except Exception:
+        pass  # Cichy błąd
+
+
 # ---------------------------------------------------------------------------
 # TRYB KLIENTA
 # ---------------------------------------------------------------------------
@@ -474,21 +500,18 @@ with st.sidebar:
             return "  ★ " + _attr_display_name(pos)
         return p
 
-    # Nawigacja górna — buttony kafelkowe
+    # Nawigacja górna — RADIO (najstabilniejsze)
     st.markdown("**WYBIERZ SEKCJE DO EDYCJI:**")
     
-    for idx, item in enumerate(_nav_top):
-        btn_type = "primary" if item == _last else "secondary"
-        # Button ustawia swój key w session_state automatycznie przy kliknięciu
-        st.button(item, key=f"navtop_{idx}", 
-                 use_container_width=True, type=btn_type)
-    
-    # Sprawdź który button został kliknięty (poza pętlą)
-    page_top = None
-    for idx, item in enumerate(_nav_top):
-        if st.session_state.get(f"navtop_{idx}", False):
-            page_top = item
-            break
+    _top_index = _nav_top.index(_last) if _last in _nav_top else 0
+    st.radio(
+        "Nawigacja górna",
+        _nav_top,
+        index=_top_index,
+        key="nav_top_radio",
+        label_visibility="collapsed",
+        on_change=lambda: st.session_state.update({'last_page': st.session_state['nav_top_radio']})
+    )
 
     # --- SEKCJA ATRAKCJI wbudowana w nawigację ---
     # Przycisk ＋ DODAJ ATRAKCJE/MIEJSCE
@@ -501,84 +524,54 @@ with st.sidebar:
         f"DODAJ ATRAKCJE/MIEJSCE</span></div>",
         unsafe_allow_html=True,
     )
-    st.button("＋ Dodaj", key="attr_add_btn", use_container_width=True)
+    st.button("＋ Dodaj", key="attr_add_btn", use_container_width=True,
+             on_click=_attr_add)
 
     # Każda atrakcja jako wiersz: [nazwa] [▲] [▼] [✕]
-    page_attr = None
     for _ap in range(_n_attr):
         _ap_key = _attr_pages[_ap]
         _ap_active = (_last == _ap_key)
         _ca, _cb, _cc, _cd = st.columns([6, 1, 1, 1])
-        _ca.button(f"★ {_attr_display_name(_ap)}", key=f"attrnav_{_ap}",
-                   use_container_width=True,
-                   type="primary" if _ap_active else "secondary")
+        _ca.button(
+            f"★ {_attr_display_name(_ap)}", 
+            key=f"attrnav_{_ap}",
+            use_container_width=True,
+            type="primary" if _ap_active else "secondary",
+            on_click=lambda p=_ap_key: st.session_state.update({'last_page': p})
+        )
         if _ap > 0:
-            _cb.button("▲", key=f"attrup_{_ap}", use_container_width=True)
+            _cb.button("▲", key=f"attrup_{_ap}", use_container_width=True,
+                      on_click=_attr_move, args=(_ap, -1))
         if _ap < _n_attr - 1:
-            _cc.button("▼", key=f"attrdn_{_ap}", use_container_width=True)
-        _cd.button("✕", key=f"attrdel_{_ap}", use_container_width=True)
-    
-    # Sprawdź kliknięcia (poza pętlą)
-    for _ap in range(_n_attr):
-        if st.session_state.get(f"attrnav_{_ap}", False):
-            page_attr = _attr_pages[_ap]
-            break
+            _cc.button("▼", key=f"attrdn_{_ap}", use_container_width=True,
+                      on_click=_attr_move, args=(_ap, 1))
+        _cd.button("✕", key=f"attrdel_{_ap}", use_container_width=True,
+                  on_click=_attr_delete, args=(_ap,))
 
-    # Nawigacja dolna — buttony kafelkowe
-    for idx, item in enumerate(_nav_bot):
-        btn_type = "primary" if item == _last else "secondary"
-        st.button(item, key=f"navbot_{idx}", 
-                 use_container_width=True, type=btn_type)
-    
-    # Sprawdź który button został kliknięty
-    page_bot = None
-    for idx, item in enumerate(_nav_bot):
-        if st.session_state.get(f"navbot_{idx}", False):
-            page_bot = item
-            break
-
-    # Ustal aktywną stronę — priorytet: kliknięcie atrakcji > zmiana selectbox
-    if page_attr is not None:
-        page = page_attr
-        st.session_state['last_page'] = page
-        st.session_state['scroll_target'] = ""
-        st.rerun()
-    elif page_top is not None and page_top != _last:
-        # Użytkownik wybrał coś z górnego selectbox
-        page = page_top
-        st.session_state['last_page'] = page
-        st.session_state['scroll_target'] = ""
-    elif page_bot is not None and page_bot != _last:
-        # Użytkownik wybrał coś z dolnego selectbox
-        page = page_bot
-        st.session_state['last_page'] = page
-        st.session_state['scroll_target'] = ""
-    else:
-        page = _last if _last in (_nav_top + _attr_pages + _nav_bot) else _nav_top[0]
+    # Nawigacja dolna — RADIO
+    _bot_index = _nav_bot.index(_last) if _last in _nav_bot else 0
+    st.radio(
+        "Nawigacja dolna",
+        _nav_bot,
+        index=_bot_index,
+        key="nav_bot_radio",
+        label_visibility="collapsed",
+        on_change=lambda: st.session_state.update({'last_page': st.session_state['nav_bot_radio']})
+    )
 
     # Nagłówek zakładki
     _inter_pages = {"  ↳ Przerywnik hotel", "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}
     _is_attr_page = page.startswith("ATTR:")
 
 # ---------------------------------------------------------------------------
-# OBSŁUGA AKCJI Z SIDEBARA (poza with st.sidebar)
+# USTALANIE AKTYWNEJ STRONY
 # ---------------------------------------------------------------------------
-# Sprawdź akcje na atrakcjach
-_n_attr_check = _attr_count()
-if st.session_state.get('attr_add_btn', False):
-    _attr_add()
-    st.rerun()
-
-for _ap in range(_n_attr_check):
-    if st.session_state.get(f"attrup_{_ap}", False):
-        _attr_move(_ap, -1)
-        st.rerun()
-    if st.session_state.get(f"attrdn_{_ap}", False):
-        _attr_move(_ap, 1)
-        st.rerun()
-    if st.session_state.get(f"attrdel_{_ap}", False):
-        _attr_delete(_ap)
-        st.rerun()
+page = st.session_state.get('last_page', _nav_top[0])
+# Walidacja - czy strona istnieje
+_nav_all = _nav_top + _attr_pages + _nav_bot
+if page not in _nav_all:
+    page = _nav_top[0]
+    st.session_state['last_page'] = page
 
 # ---------------------------------------------------------------------------
 # NAGŁÓWKI STRON
@@ -708,26 +701,29 @@ with col_form:
             'img_hero_t', 'logo_az', 'logo_cli', 'hide_logo_cli',
         ]
         section_template_manager(tit_keys, "TYT", "strona-tytulowa", "tit")
-        st.text_input("Termin:", key="t_date", on_change=parse_date_and_days)
-        st.selectbox("Kraj docelowy:", list(COUNTRIES_DICT.keys()), key="country_name")
+        st.text_input("Termin:", key="t_date", on_change=lambda: (parse_date_and_days(), save_to_supabase()))
+        st.selectbox("Kraj docelowy:", list(COUNTRIES_DICT.keys()), key="country_name", on_change=save_to_supabase)
         st.session_state['country_code'] = COUNTRIES_DICT[st.session_state['country_name']]
         for k, l in [
             ('t_main', 'Tytuł H1'), ('t_sub', 'Podtytuł'), ('t_klient', 'Klient'),
             ('t_kierunek', 'Kierunek'), ('t_pax', 'Liczba osób'),
             ('t_hotel', 'Hotel'), ('t_trans', 'Dojazd'),
         ]:
-            st.text_input(l, key=k)
+            st.text_input(l, key=k, on_change=save_to_supabase)
         u1 = st.file_uploader("Zdjęcie główne (4:5)", key="tyt_hero")
         if u1:
             st.session_state['img_hero_t'] = optimize_img(u1.getvalue())
+            save_to_supabase()
         c1, c2 = st.columns(2)
         u2 = c1.file_uploader("Logo Firmy", key="tyt_logo_az")
         if u2:
             st.session_state['logo_az'] = optimize_logo(u2.getvalue())
+            save_to_supabase()
         u3 = c2.file_uploader("Logo Klienta", key="tyt_logo_cli")
         if u3:
             st.session_state['logo_cli'] = optimize_logo(u3.getvalue())
-        c2.checkbox("Ukryj logo klienta na stronie tytułowej", key="hide_logo_cli")
+            save_to_supabase()
+        c2.checkbox("Ukryj logo klienta na stronie tytułowej", key="hide_logo_cli", on_change=save_to_supabase)
 
     # -----------------------------------------------------------------------
     # OPIS KIERUNKU
@@ -1466,31 +1462,47 @@ with col_form:
 
 
 # ---------------------------------------------------------------------------
-# AUTO-SAVE DO SUPABASE - WYŁĄCZONE (powodowało pętlę rerenderowania)
 # ---------------------------------------------------------------------------
-# if 'last_supabase_save' not in st.session_state:
-#     st.session_state['last_supabase_save'] = 0
-# 
-# current_time = time.time()
-# if current_time - st.session_state['last_supabase_save'] > 2:
-#     should_save = st.session_state.get('_user_edited', False)
-#     if should_save:
-#         try:
-#             project_data = _build_proj_dict()
-#             project_name = st.session_state.get('t_main', 'Nowy projekt')
-#             supabase.table('projects').delete().eq('user_email', 'default_user').execute()
-#             supabase.table('projects').insert({
-#                 'user_email': 'default_user',
-#                 'project_name': project_name,
-#                 'data': project_data,
-#                 'updated_at': datetime.now().isoformat()
-#             }).execute()
-#             st.session_state['last_supabase_save'] = current_time
-#             st.session_state['_user_edited'] = False
-#             sample_keys = {k: v for k, v in project_data.items() if k in ['t_main', 't_sub', 't_klient']}
-#             st.session_state['last_save_status'] = f"✅ Zapisano {datetime.now().strftime('%H:%M:%S')} | Dane: {sample_keys}"
-#         except Exception as e:
-#             st.session_state['last_save_status'] = f"❌ Błąd: {str(e)[:100]}"
+# AUTO-SAVE DO SUPABASE - Bezpieczny upsert z ID
+# ---------------------------------------------------------------------------
+if 'last_supabase_save' not in st.session_state:
+    st.session_state['last_supabase_save'] = 0
+
+current_time = time.time()
+# Auto-save co 10 sekund (nie 2s - za częste zapisy obciążają bazę)
+if current_time - st.session_state['last_supabase_save'] > 10:
+    try:
+        project_data = _build_proj_dict()
+        project_name = st.session_state.get('t_main', 'Nowy projekt')
+        
+        # Sprawdź czy istnieje rekord dla tego użytkownika
+        existing = supabase.table('projects').select('id').eq(
+            'user_email', 'default_user'
+        ).order('updated_at', desc=True).limit(1).execute()
+        
+        if existing.data:
+            # UPDATE istniejącego rekordu
+            project_id = existing.data[0]['id']
+            supabase.table('projects').update({
+                'project_name': project_name,
+                'data': project_data,
+                'updated_at': datetime.now().isoformat()
+            }).eq('id', project_id).execute()
+        else:
+            # INSERT nowego rekordu
+            supabase.table('projects').insert({
+                'user_email': 'default_user',
+                'project_name': project_name,
+                'data': project_data,
+                'updated_at': datetime.now().isoformat()
+            }).execute()
+        
+        st.session_state['last_supabase_save'] = current_time
+        # Debug (opcjonalnie)
+        # st.session_state['last_save_status'] = f"✅ {datetime.now().strftime('%H:%M:%S')}"
+    except Exception as e:
+        # Cichy błąd - nie przerywaj renderowania
+        st.session_state['last_save_status'] = f"❌ {str(e)[:50]}"
 
 # Pokaż status load w sidebarze (debug)
 if '_debug_loaded' in st.session_state:
