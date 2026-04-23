@@ -472,6 +472,22 @@ def save_to_supabase():
     except Exception:
         pass  # Cichy błąd
 
+def _nav_change_top():
+    """Callback nawigacji górnej - zapisuje stan PRZED zmianą strony."""
+    try:
+        save_to_supabase()
+    except Exception:
+        pass
+    st.session_state['last_page'] = st.session_state.get('nav_top_radio', 'Strona Tytułowa')
+
+
+def _nav_change_bot():
+    """Callback nawigacji dolnej - zapisuje stan PRZED zmianą strony."""
+    try:
+        save_to_supabase()
+    except Exception:
+        pass
+    st.session_state['last_page'] = st.session_state.get('nav_bot_radio', 'Aplikacja (Komunikacja)')
 
 # ---------------------------------------------------------------------------
 # TRYB KLIENTA
