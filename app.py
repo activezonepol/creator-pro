@@ -724,7 +724,7 @@ with col_form:
                   on_click=set_focus, args=(f"slide-sek_0",),
                   use_container_width=True)
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_0")
-        st.text_input("Duży tytuł (uppercase):", key=f"sek_0_title",
+        st.text_input("Duży tytuł (uppercase):", value=st.session_state.get(f"sek_0_title", ""), key=f"sek_0_title")
 )
         st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_0_sub",
 )
