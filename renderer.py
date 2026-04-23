@@ -303,105 +303,73 @@ _SIZE_KEYS = {'font_size_h1', 'font_size_h2', 'font_size_sub', 'font_size_text',
 
 # renderer.py
 # W renderer.py
+# ==============================================================================
+# PATCH dla renderer.py
+# ==============================================================================
+# INSTRUKCJA: W pliku renderer.py znajdź funkcję `load_project_data` 
+# (jest około linii 280-310) i ZASTĄP CAŁĄ FUNKCJĘ poniższą wersją.
+# Nic więcej w renderer.py nie zmieniaj.
+# ==============================================================================
+
+
 def load_project_data(project_data: dict):
     """
-    Wczytuje dane z JSON/Bazy do session_state, zapewniając synchronizację 
-    między bazą a interfejsem Streamlit.
-    """
-    # KLUCZOWE: Te klucze są zarezerwowane dla Streamlit (przyciski/widżety)
-    forbidden_keys = {
-        'manual_save_btn', 'attr_add_btn', 'nav_top_radio', 'nav_bot_radio', 
-        'btn_add_attraction_main', 'last_page', 'up_export'
-    }
+    Wczytuje dane z JSON/Bazy do session_state.
     
+    POPRAWIONE 2026-04-23: Kluczowa zmiana — jeśli wartość w bazie jest 
+    pustym stringiem, a lokalnie w session_state mamy niepustą wartość,
+    ZACHOWUJEMY lokalną. To likwiduje problem znikania tekstów gdy 
+    auto-save zapisuje niekompletny stan między interakcjami.
+    """
+    # Klucze zarezerwowane dla Streamlit (przyciski/widżety) — nie wczytujemy
+    forbidden_keys = {
+        'manual_save_btn', 'attr_add_btn', 'nav_top_radio', 'nav_bot_radio',
+        'btn_add_attraction_main', 'last_page', 'up_export',
+        # Klucze wewnętrzne auto-save/auto-load
+        '_data_loaded_once', '_debug_loaded', 'last_supabase_save',
+        'last_save_status', 'last_save_count',
+    }
+    forbidden_prefixes = (
+        'attrnav_', 'attrup_', 'attrdn_', 'attrdel_',
+        'btn_', 'dl_', 'up_',
+    )
+
     for k, v in project_data.items():
-        # 1. Pomijamy klucze przycisków, którymi Streamlit sam zarządza
-        if k in forbidden_keys or k.startswith(('attrnav_', 'attrup_', 'attrdn_', 'attrdel_')):
+        # 1. Pomijamy klucze przycisków i widżetów Streamlit
+        if k in forbidden_keys:
             continue
-            
-        # 2. Logika wczytywania
-        # Zamiast 'continue', po prostu wczytujemy dane, jeśli w bazie faktycznie coś jest.
-        # Jeśli v jest None, to nie nadpisujemy niczego w session_state.
+        if any(k.startswith(p) for p in forbidden_prefixes):
+            continue
+
+        # 2. None — zachowaj lokalny stan
         if v is None:
             continue
-            
-        # 3. Specjalistyczne wczytywanie typów
+
+        # 3. BEZPIECZNIK: pusty string z bazy vs niepusty lokalnie → zachowaj lokalny.
+        # To jest KLUCZOWA zmiana likwidująca "znikanie tekstów".
+        if isinstance(v, str) and v == "":
+            current = st.session_state.get(k)
+            if isinstance(current, str) and current != "":
+                continue
+
+        # 4. Specjalistyczne wczytywanie typów
         if k in IMAGE_KEYS and isinstance(v, str):
-            try: 
+            try:
                 st.session_state[k] = base64.b64decode(v)
-            except Exception: 
+            except Exception:
                 st.session_state[k] = v
-        
+
         elif k == 'p_start_dt' and isinstance(v, str):
-            try: 
+            try:
                 st.session_state[k] = date.fromisoformat(v)
-            except Exception: 
+            except Exception:
                 pass
-        
-        # 4. Nadpisujemy sesję danymi z bazy, ALE tylko jeśli to co mamy w bazie 
-        # jest istotne (v nie jest None). To zapewnia, że baza jest "źródłem prawdy".
+
         else:
-            st.session_state[k] = v
-
-def get_project_filename():
-    d_str = st.session_state.get('t_date', '')
-    yy, mm = "XX", "XX"
-    m_date = re.search(r'\.(\d{1,2})\.(\d{4})', d_str)
-    if m_date:
-        mm = m_date.group(1).zfill(2)
-        yy = m_date.group(2)[-2:]
-    cc = st.session_state.get('country_code', 'OTH')
-    cli = str(st.session_state.get('t_klient', 'KLI')).strip()[:3].upper() or "KLI"
-    tit = re.sub(r'[^A-Za-z0-9_-]', '',
-                 str(st.session_state.get('t_main', 'OFERTA')).replace(' ', '_'))
-    return f"{yy}-{mm}-{cc}-{cli}-{tit}.json"
-
-def auto_generate_kosztorys():
-    s = st.session_state
-    part1 = []
-    route = s.get('m_route', '')
-    luggage = s.get('m_luggage', '')
-    if route:
-        part1.append(f"Przelot samolotem na trasie {route}, bagaż {luggage}")
-    dbl = s.get('koszt_dbl', '')
-    sgl = s.get('koszt_sgl', '')
-    part1.append(f"Zakwaterowanie w pokojach dwuosobowych ({dbl}) i jednoosobowych ({sgl})")
-    part1 += [
-        "Wyżywienie wg programu", "Napoje wg programu",
-        "Ubezpieczenie wersja MAX", "Transfery",
-        "Woda podczas wycieczek i transferów",
-        "Opieka profesjonalnego tour leadera Activezone",
-    ]
-    for i in range(s.get('num_attr', 0)):
-        if not s.get(f'ahide_{i}', False):
-            name = str(s.get(f'amain_{i}', '')).strip()
-            if name:
-                part1.append(name)
-    part2 = []
-    if not s.get('brand_hide', False):
-        part2.append("Materiały brandingowe:")
-        for bf in str(s.get('brand_features', '')).split('\n'):
-            if bf.strip():
-                part2.append(f"-- {bf.strip()}")
-    if not s.get('app_hide', False):
-        part2 += ["Aplikacja na wyjazd", "Strona www z formularzem uczestnika"]
-    if not s.get('pg_hide', False):
-        part2.append("Pillow gift dla każdego uczestnika na przywitanie")
-    part2 += ["Obowiązkowa opłata TFG i TFP", "VAT marża"]
-    
-    s['koszt_zawiera_1'] = "\n".join(part1)
-    s['koszt_zawiera_2'] = "\n".join(part2)
-    s['koszt_nie_zawiera'] = "Napiwki\nWydatki osobiste\nAtrakcje wymienione jako opcje"
-
-@st.cache_data
-def build_day_options(start_dt: date, num_days: int) -> list:
-    options = ["Brak przypisania"]
-    for d in range(num_days):
-        curr_date = start_dt + timedelta(days=d)
-        options.append(
-            f"Dzień {d+1} ({curr_date.strftime('%d.%m.%Y')} - {pl_days_map[curr_date.weekday()]})"
-        )
-    return options
+            # 5. Nadpisz tylko jeśli wartość faktycznie się różni
+            # (oszczędzamy niepotrzebne rerunowanie widgetów)
+            if st.session_state.get(k) != v:
+                st.session_state[k] = v
 
 
 # ---------------------------------------------------------------------------
