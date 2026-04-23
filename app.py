@@ -101,10 +101,40 @@ div[data-testid="stExpander"] {
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
-# INICJALIZACJA SESSION STATE
+# INICJALIZACJA SESSION STATE I FILTR UPLOADERÓW
 # ---------------------------------------------------------------------------
 if 'client_mode' not in st.session_state:
     st.session_state['client_mode'] = False
+
+# Klucze uploaderów, których nie wolno przywracać automatycznie (Streamlit by wyrzucił błąd)
+_UPLOADER_KEYS_EXACT = {
+    'tyt_hero', 'tyt_logo_az', 'tyt_logo_cli', 'kie_hero', 'lot_hero',
+    'app_bg', 'app_sc', 'bra_img_1', 'bra_img_2', 'bra_img_3',
+    'va_img_1', 'va_img_2', 'va_img_3', 'pg_img_1', 'pg_img_2', 'pg_img_3',
+    'koszt_img_1', 'koszt_img_2', 'opi_main', 'nas_clients',
+}
+_UPLOADER_KEYS_REGEX = re.compile(
+    r'^(uh1|uh1b|uh2|uh3|prg_img|plc_img1|plc_img2|plc_img3|plc_img4|'
+    r'atr_hero|atr_th1|atr_th2|atr_th3|opi_img|nas_img|sek_img_up)_\d+$'
+)
+
+def _is_uploader_key(k):
+    if k in _UPLOADER_KEYS_EXACT: return True
+    if k.startswith('up_'): return True
+    if _UPLOADER_KEYS_REGEX.match(k): return True
+    return False
+
+# 1. TARCZA OCHRONNA (Przywraca stary stan z pominięciem plików i przycisków)
+if 'RAW_STATE_BACKUP' in st.session_state:
+    for k, v in st.session_state['RAW_STATE_BACKUP'].items():
+        if k not in st.session_state and not _is_uploader_key(k) and not k.startswith(('dl_', 'btn_', 'up_')):
+            st.session_state[k] = v
+
+for k, v in defaults.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
+
+st.session_state.setdefault('num_sekcje', 4)
 
 # ---------------------------------------------------------------------------
 # AUTO-LOAD Z SUPABASE (WERSJA STABILNA - JEDNORAZOWE WCZYTANIE)
