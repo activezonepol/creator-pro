@@ -656,6 +656,13 @@ with st.sidebar:
 page = _last
 
 # ---------------------------------------------------------------------------
+# PRZYCISK DODAJ ATRAKCJĘ (POZA sidebarem - może modyfikować session_state)
+# ---------------------------------------------------------------------------
+if st.button("➕ Dodaj nową atrakcję", key="btn_add_attraction_main", type="primary"):
+    _attr_add()
+    st.rerun()
+
+# ---------------------------------------------------------------------------
 # NAGŁÓWKI STRON
 # ---------------------------------------------------------------------------
 with st.container():
