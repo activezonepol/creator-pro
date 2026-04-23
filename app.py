@@ -388,6 +388,53 @@ with st.sidebar:
     if '_debug_loaded' in st.session_state:
         st.caption(st.session_state['_debug_loaded'])
 
+# -----------------------------------------------------------------------
+    # SZYBKIE AKCJE (Eksport HTML / PDF)
+    # -----------------------------------------------------------------------
+    st.divider()
+    st.markdown("<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;'>SZYBKIE AKCJE (CAŁA OFERTA)</div>", unsafe_allow_html=True)
+
+    if st.button("PRZYGOTUJ OFERTĘ DO POBRANIA", type="secondary", use_container_width=True):
+        with st.spinner("Generowanie ostatecznego pliku oferty..."):
+            export_content = build_presentation(export_mode=True)
+            acc = st.session_state.get('color_accent', '#FF6600')
+            t_main = st.session_state.get('t_main', 'Oferta')
+            client_html = (
+                f'<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8">'
+                f'<title>{t_main}</title>'
+                f'<link rel="icon" href="data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23FF6600\'/></svg>">'
+                f'{get_local_css(return_str=True)}'
+                f'<style>body{{background:#f4f5f7;margin:0;}} .presentation-wrapper{{height:100vh;overflow-y:auto;scroll-snap-type:y proximity;}}'
+                f'.client-export-btn{{position:fixed;top:20px;left:20px;z-index:9999;background:{acc};color:white;border:none;'
+                f'padding:15px 25px;border-radius:4px;font-family:sans-serif;font-size:12px;font-weight:700;'
+                f'text-transform:uppercase;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.3);}}'
+                f'@media print{{.client-export-btn{{display:none !important;}} .presentation-wrapper{{height:auto !important;overflow:visible !important;}}}}'
+                f'</style></head><body>'
+                f'<button class="client-export-btn" onclick="window.print()">POBIERZ JAKO PDF</button>'
+                f'<div class="presentation-wrapper">{export_content}</div></body></html>'
+            )
+            st.session_state['ready_export_html'] = client_html
+            st.rerun()
+
+    if st.session_state.get('ready_export_html'):
+        st.download_button(
+            "POBIERZ GOTOWY PLIK HTML",
+            st.session_state['ready_export_html'],
+            get_project_filename().replace('.json', '.html'),
+            "text/html",
+            type="primary",
+            use_container_width=True,
+        )
+
+    if st.button("GENERUJ LINK DO OFERTY ONLINE", use_container_width=True):
+        st.session_state['show_link_info'] = not st.session_state.get('show_link_info', False)
+    if st.session_state.get('show_link_info', False):
+        st.info("Wyeksportuj plik HTML za pomocą przycisku wyżej i umieść go na serwerze swojej agencji. Plik jest w pełni autonomiczną stroną WWW.")
+
+    if st.button("PODGLĄD PEŁNOEKRANOWY", use_container_width=True):
+        st.session_state['client_mode'] = True
+        st.rerun()
+
 # ---------------------------------------------------------------------------
 # UKŁAD GŁÓWNY (Dwie Kolumny)
 # ---------------------------------------------------------------------------
