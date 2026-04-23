@@ -1194,6 +1194,17 @@ with col_form:
                 st.session_state[f"aday_{_i}"] = day_options_global[0]
             st.selectbox("Przypisz do dnia:", day_options_global, key=f"aday_{_i}",
                          on_change=set_focus, args=(f"attr_{_i}",))
+            
+            # Przycisk powrotu do programu (jeśli atrakcja przypisana do dnia)
+            assigned_day = st.session_state.get(f"aday_{_i}", "Brak przypisania")
+            if assigned_day != "Brak przypisania":
+                if st.button(f"⬅️ Wróć do Programu ({assigned_day})", 
+                            key=f"back_to_program_{_i}", 
+                            use_container_width=True, 
+                            type="secondary"):
+                    st.session_state['last_page'] = "Program Wyjazdu"
+                    st.rerun()
+            
             st.selectbox("Ikona:", ["Brak"] + list(icon_map.keys()), key=f"atype_{_i}",
                          on_change=set_focus, args=(f"attr_{_i}",))
             st.text_area("Opis:", key=f"aopis_{_i}",
