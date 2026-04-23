@@ -154,7 +154,7 @@ def _move_hotel(idx, direction):
         st.session_state['hotel_order'] = order
 
 # -----------------------------------------------------------------------
-# ZARZĄDZANIE LISTĄ ATRAKCJI (Tylko Atrakcje)
+# ZARZĄDZANIE LISTĄ ATRAKCJI
 # -----------------------------------------------------------------------
 def _attr_count():
     return st.session_state.get('num_attr', 0)
@@ -333,7 +333,54 @@ with st.sidebar:
     save_status = st.session_state.get('last_save_status', '⏳ Czekam na zmiany...')
     save_count = st.session_state.get('last_save_count', 0)
     st.markdown(f"<div style='background:#f0f9ff;border-left:3px solid #0ea5e9;padding:8px 12px;margin-bottom:15px;border-radius:4px;'><div style='font-size:11px;font-weight:600;color:#0369a1;margin-bottom:4px;'>AUTO-ZAPIS (co 10s)</div><div style='font-size:10px;color:#64748b;'>{save_status}</div><div style='font-size:9px;color:#94a3b8;margin-top:2px;'>{save_count} pól w bazie</div></div>", unsafe_allow_html=True)
-    st.markdown("---")
+    
+    # -----------------------------------------------------------------------
+    # SZYBKIE AKCJE (Eksport HTML / PDF / LINK) wyciagnięte na górę dla wygody
+    # -----------------------------------------------------------------------
+    st.markdown("<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;'>SZYBKIE AKCJE (CAŁA OFERTA)</div>", unsafe_allow_html=True)
+
+    if st.button("PRZYGOTUJ OFERTĘ DO POBRANIA", type="secondary", use_container_width=True):
+        with st.spinner("Generowanie ostatecznego pliku oferty..."):
+            export_content = build_presentation(export_mode=True)
+            acc = st.session_state.get('color_accent', '#FF6600')
+            t_main = st.session_state.get('t_main', 'Oferta')
+            client_html = (
+                f'<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8">'
+                f'<title>{t_main}</title>'
+                f'<link rel="icon" href="data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23FF6600\'/></svg>">'
+                f'{get_local_css(return_str=True)}'
+                f'<style>body{{background:#f4f5f7;margin:0;}} .presentation-wrapper{{height:100vh;overflow-y:auto;scroll-snap-type:y proximity;}}'
+                f'.client-export-btn{{position:fixed;top:20px;left:20px;z-index:9999;background:{acc};color:white;border:none;'
+                f'padding:15px 25px;border-radius:4px;font-family:sans-serif;font-size:12px;font-weight:700;'
+                f'text-transform:uppercase;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.3);}}'
+                f'@media print{{.client-export-btn{{display:none !important;}} .presentation-wrapper{{height:auto !important;overflow:visible !important;}}}}'
+                f'</style></head><body>'
+                f'<button class="client-export-btn" onclick="window.print()">POBIERZ JAKO PDF</button>'
+                f'<div class="presentation-wrapper">{export_content}</div></body></html>'
+            )
+            st.session_state['ready_export_html'] = client_html
+            st.rerun()
+
+    if st.session_state.get('ready_export_html'):
+        st.download_button(
+            "POBIERZ GOTOWY PLIK HTML",
+            st.session_state['ready_export_html'],
+            get_project_filename().replace('.json', '.html'),
+            "text/html",
+            type="primary",
+            use_container_width=True,
+        )
+
+    if st.button("GENERUJ LINK DO OFERTY ONLINE", use_container_width=True):
+        st.session_state['show_link_info'] = not st.session_state.get('show_link_info', False)
+    if st.session_state.get('show_link_info', False):
+        st.info("Wyeksportuj plik HTML za pomocą przycisku wyżej i umieść go na serwerze swojej agencji. Plik jest w pełni autonomiczną stroną WWW.")
+
+    if st.button("PODGLĄD PEŁNOEKRANOWY", use_container_width=True):
+        st.session_state['client_mode'] = True
+        st.rerun()
+
+    st.divider()
 
     _acc = st.session_state.get('color_accent', '#FF6600')
     _h1c = st.session_state.get('color_h1', '#003366')
@@ -387,53 +434,6 @@ with st.sidebar:
     if '_debug_loaded' in st.session_state:
         st.caption(st.session_state['_debug_loaded'])
 
-    # -----------------------------------------------------------------------
-    # SZYBKIE AKCJE (Eksport HTML / PDF)
-    # -----------------------------------------------------------------------
-    st.divider()
-    st.markdown("<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;'>SZYBKIE AKCJE (CAŁA OFERTA)</div>", unsafe_allow_html=True)
-
-    if st.button("PRZYGOTUJ OFERTĘ DO POBRANIA", type="secondary", use_container_width=True):
-        with st.spinner("Generowanie ostatecznego pliku oferty..."):
-            export_content = build_presentation(export_mode=True)
-            acc = st.session_state.get('color_accent', '#FF6600')
-            t_main = st.session_state.get('t_main', 'Oferta')
-            client_html = (
-                f'<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8">'
-                f'<title>{t_main}</title>'
-                f'<link rel="icon" href="data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23FF6600\'/></svg>">'
-                f'{get_local_css(return_str=True)}'
-                f'<style>body{{background:#f4f5f7;margin:0;}} .presentation-wrapper{{height:100vh;overflow-y:auto;scroll-snap-type:y proximity;}}'
-                f'.client-export-btn{{position:fixed;top:20px;left:20px;z-index:9999;background:{acc};color:white;border:none;'
-                f'padding:15px 25px;border-radius:4px;font-family:sans-serif;font-size:12px;font-weight:700;'
-                f'text-transform:uppercase;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.3);}}'
-                f'@media print{{.client-export-btn{{display:none !important;}} .presentation-wrapper{{height:auto !important;overflow:visible !important;}}}}'
-                f'</style></head><body>'
-                f'<button class="client-export-btn" onclick="window.print()">POBIERZ JAKO PDF</button>'
-                f'<div class="presentation-wrapper">{export_content}</div></body></html>'
-            )
-            st.session_state['ready_export_html'] = client_html
-            st.rerun()
-
-    if st.session_state.get('ready_export_html'):
-        st.download_button(
-            "POBIERZ GOTOWY PLIK HTML",
-            st.session_state['ready_export_html'],
-            get_project_filename().replace('.json', '.html'),
-            "text/html",
-            type="primary",
-            use_container_width=True,
-        )
-
-    if st.button("GENERUJ LINK DO OFERTY ONLINE", use_container_width=True):
-        st.session_state['show_link_info'] = not st.session_state.get('show_link_info', False)
-    if st.session_state.get('show_link_info', False):
-        st.info("Wyeksportuj plik HTML za pomocą przycisku wyżej i umieść go na serwerze swojej agencji. Plik jest w pełni autonomiczną stroną WWW.")
-
-    if st.button("PODGLĄD PEŁNOEKRANOWY", use_container_width=True):
-        st.session_state['client_mode'] = True
-        st.rerun()
-
 # ---------------------------------------------------------------------------
 # UKŁAD GŁÓWNY (Dwie Kolumny)
 # ---------------------------------------------------------------------------
@@ -474,7 +474,7 @@ with col_form:
         for _ck, _cv in [(f"sek_0_bg", st.session_state.get('color_h1', '#003366')), (f"sek_0_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7): st.session_state[_ck] = _cv
-        st.button("POKAŻ PODGLĄD", key="btn_sek_0", on_click=set_focus, args=("slide-sek_0",), use_container_width=True)
+            if _ck.endswith('_txt') and st.session_state[_ck] == '#000000': st.session_state[_ck] = '#ffffff'
         st.checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_0")
         st.text_input("Duży tytuł (uppercase):", key="sek_0_title")
         st.text_input("Nadtytuł (overline, kolor akcentu):", key="sek_0_sub")
@@ -491,7 +491,7 @@ with col_form:
         for _ck, _cv in [(f"sek_3_bg", st.session_state.get('color_h1', '#003366')), (f"sek_3_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7): st.session_state[_ck] = _cv
-        st.button("POKAŻ PODGLĄD", key="btn_sek_3", on_click=set_focus, args=("slide-sek_3",), use_container_width=True)
+            if _ck.endswith('_txt') and st.session_state[_ck] == '#000000': st.session_state[_ck] = '#ffffff'
         st.checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_3")
         st.text_input("Duży tytuł (uppercase):", key="sek_3_title")
         st.text_input("Nadtytuł (overline, kolor akcentu):", key="sek_3_sub")
@@ -508,7 +508,7 @@ with col_form:
         for _ck, _cv in [(f"sek_1_bg", st.session_state.get('color_h1', '#003366')), (f"sek_1_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7): st.session_state[_ck] = _cv
-        st.button("POKAŻ PODGLĄD", key="btn_sek_1", on_click=set_focus, args=("slide-sek_1",), use_container_width=True)
+            if _ck.endswith('_txt') and st.session_state[_ck] == '#000000': st.session_state[_ck] = '#ffffff'
         st.checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_1")
         st.text_input("Duży tytuł (uppercase):", key="sek_1_title")
         st.text_input("Nadtytuł (overline, kolor akcentu):", key="sek_1_sub")
@@ -525,7 +525,7 @@ with col_form:
         for _ck, _cv in [(f"sek_2_bg", st.session_state.get('color_h1', '#003366')), (f"sek_2_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7): st.session_state[_ck] = _cv
-        st.button("POKAŻ PODGLĄD", key="btn_sek_2", on_click=set_focus, args=("slide-sek_2",), use_container_width=True)
+            if _ck.endswith('_txt') and st.session_state[_ck] == '#000000': st.session_state[_ck] = '#ffffff'
         st.checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_2")
         st.text_input("Duży tytuł (uppercase):", key="sek_2_title")
         st.text_input("Nadtytuł (overline, kolor akcentu):", key="sek_2_sub")
@@ -686,30 +686,29 @@ with col_form:
         st.divider()
         for i in range(st.session_state['num_hotels']):
             with st.expander(f"Hotel {i+1}"):
-                st.button("POKAŻ PODGLĄD", key=f"btn_show_hot_{i}", on_click=set_focus, args=(f"slide-hotel-{i}",), use_container_width=True)
                 for dk, dv in [(f'h_hide_{i}', False), (f'h_overline_{i}', 'ZAKWATEROWANIE'), (f'h_title_{i}', f'NAZWA HOTELU {i+1} 5*'), (f'h_subtitle_{i}', 'Komfort i elegancja'), (f'h_url_{i}', 'www.hotel.com'), (f'h_booking_{i}', '8.9'), (f'h_amenities_{i}', ["Basen", "SPA"]), (f'h_text_{i}', 'Zapewniamy zakwaterowanie.'), (f'h_advantages_{i}', 'Położenie')]:
                     if dk not in st.session_state: st.session_state[dk] = dv
                 h_keys = [f'h_hide_{i}', f'h_overline_{i}', f'h_title_{i}', f'h_subtitle_{i}', f'h_url_{i}', f'h_booking_{i}', f'h_amenities_{i}', f'h_text_{i}', f'h_advantages_{i}', f'img_hotel_1_{i}', f'img_hotel_1b_{i}', f'img_hotel_2_{i}', f'img_hotel_3_{i}']
                 section_template_manager(h_keys, "HOT", st.session_state.get(f'h_title_{i}', f'hotel-{i+1}'), f"hot_{i}", index=i)
-                st.checkbox("Ukryj ten slajd w PDF", key=f"h_hide_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                st.text_input("Mały nadtytuł:", key=f"h_overline_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                st.text_area("Nazwa hotelu (H1):", key=f"h_title_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                st.text_input("Podtytuł:", key=f"h_subtitle_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+                st.checkbox("Ukryj ten slajd w PDF", key=f"h_hide_{i}")
+                st.text_input("Mały nadtytuł:", key=f"h_overline_{i}")
+                st.text_area("Nazwa hotelu (H1):", key=f"h_title_{i}")
+                st.text_input("Podtytuł:", key=f"h_subtitle_{i}")
                 c1, c2 = st.columns(2)
-                c1.text_input("Strona www:", key=f"h_url_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                c2.text_input("Ocena Booking:", key=f"h_booking_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                st.multiselect("Udogodnienia (ikonki):", list(hotel_icons.keys()), key=f"h_amenities_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                st.text_area("Opis hotelu:", height=100, key=f"h_text_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                st.text_area("Atuty hotelu:", height=100, key=f"h_advantages_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+                c1.text_input("Strona www:", key=f"h_url_{i}")
+                c2.text_input("Ocena Booking:", key=f"h_booking_{i}")
+                st.multiselect("Udogodnienia (ikonki):", list(hotel_icons.keys()), key=f"h_amenities_{i}")
+                st.text_area("Opis hotelu:", height=100, key=f"h_text_{i}")
+                st.text_area("Atuty hotelu:", height=100, key=f"h_advantages_{i}")
                 cl1, cl2 = st.columns(2)
-                u_h1 = cl1.file_uploader("Zdj. Lewe Górne", key=f"uh1_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+                u_h1 = cl1.file_uploader("Zdj. Lewe Górne", key=f"uh1_{i}")
                 if u_h1: st.session_state[f'img_hotel_1_{i}'] = optimize_img(u_h1.getvalue())
-                u_h1b = cl2.file_uploader("Zdj. Lewe Dolne", key=f"uh1b_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+                u_h1b = cl2.file_uploader("Zdj. Lewe Dolne", key=f"uh1b_{i}")
                 if u_h1b: st.session_state[f'img_hotel_1b_{i}'] = optimize_img(u_h1b.getvalue())
                 c3, c4 = st.columns(2)
-                u_h2 = c3.file_uploader("Zdj. Dolne 1", key=f"uh2_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+                u_h2 = c3.file_uploader("Zdj. Dolne 1", key=f"uh2_{i}")
                 if u_h2: st.session_state[f'img_hotel_2_{i}'] = optimize_img(u_h2.getvalue())
-                u_h3 = c4.file_uploader("Zdj. Dolne 2", key=f"uh3_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+                u_h3 = c4.file_uploader("Zdj. Dolne 2", key=f"uh3_{i}")
                 if u_h3: st.session_state[f'img_hotel_3_{i}'] = optimize_img(u_h3.getvalue())
 
     elif page == "Program Wyjazdu":
@@ -740,29 +739,25 @@ with col_form:
             for _dk, _dv in [(f"amain_{_i}", ""), (f"asub_{_i}", ""), (f"aday_{_i}", "Brak przypisania"), (f"atype_{_i}", "Atrakcja"), (f"aopis_{_i}", ""), (f"ahide_{_i}", False)]:
                 if _dk not in st.session_state: st.session_state[_dk] = _dv
 
-            if st.session_state.get('_attr_focused') != _i:
-                st.session_state['_attr_focused'] = _i
-                set_focus(f"attr_{_i}")
-                
             a_keys = [f'ahide_{_i}', f'amain_{_i}', f'asub_{_i}', f'aday_{_i}', f'atype_{_i}', f'aopis_{_i}', f'ah_{_i}', f'at1_{_i}', f'at2_{_i}', f'at3_{_i}']
             section_template_manager(a_keys, "ATR", st.session_state.get(f"amain_{_i}") or f"Atrakcja_{_pos+1}", f"atr_{_i}", index=_i)
             
-            st.checkbox("Ukryj ten slajd w PDF", key=f"ahide_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            st.text_input("Nazwa:", key=f"amain_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            st.text_input("Podtytuł:", key=f"asub_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
+            st.checkbox("Ukryj ten slajd w PDF", key=f"ahide_{_i}")
+            st.text_input("Nazwa:", key=f"amain_{_i}")
+            st.text_input("Podtytuł:", key=f"asub_{_i}")
             _curr = st.session_state.get(f"aday_{_i}", day_options_global[0])
             if _curr not in day_options_global: st.session_state[f"aday_{_i}"] = day_options_global[0]
-            st.selectbox("Przypisz do dnia:", day_options_global, key=f"aday_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            st.selectbox("Ikona:", list(icon_map.keys()), key=f"atype_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            st.text_area("Opis:", key=f"aopis_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            _upa = st.file_uploader("Foto Główne", key=f"atr_hero_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
+            st.selectbox("Przypisz do dnia:", day_options_global, key=f"aday_{_i}")
+            st.selectbox("Ikona:", list(icon_map.keys()), key=f"atype_{_i}")
+            st.text_area("Opis:", key=f"aopis_{_i}")
+            _upa = st.file_uploader("Foto Główne", key=f"atr_hero_{_i}")
             if _upa: st.session_state[f"ah_{_i}"] = optimize_img(_upa.getvalue())
             _ac1, _ac2, _ac3 = st.columns(3)
-            _uat1 = _ac1.file_uploader("Fot. 1", key=f"atr_th1_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
+            _uat1 = _ac1.file_uploader("Fot. 1", key=f"atr_th1_{_i}")
             if _uat1: st.session_state[f"at1_{_i}"] = optimize_img(_uat1.getvalue())
-            _uat2 = _ac2.file_uploader("Fot. 2", key=f"atr_th2_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
+            _uat2 = _ac2.file_uploader("Fot. 2", key=f"atr_th2_{_i}")
             if _uat2: st.session_state[f"at2_{_i}"] = optimize_img(_uat2.getvalue())
-            _uat3 = _ac3.file_uploader("Fot. 3", key=f"atr_th3_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
+            _uat3 = _ac3.file_uploader("Fot. 3", key=f"atr_th3_{_i}")
             if _uat3: st.session_state[f"at3_{_i}"] = optimize_img(_uat3.getvalue())
 
     elif page == "Aplikacja (Komunikacja)":
