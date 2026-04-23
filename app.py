@@ -107,83 +107,49 @@ if 'client_mode' not in st.session_state:
     st.session_state['client_mode'] = False
 
 # ---------------------------------------------------------------------------
-# AUTO-LOAD Z SUPABASE przy starcie sesji
+# AUTO-LOAD Z SUPABASE (NAPRAWIONA WERSJA)
 # ---------------------------------------------------------------------------
 if '_loaded_from_supabase' not in st.session_state:
     try:
-        # Pobierz najnowszy projekt
+        # Pobierz dane z Supabase
         result = supabase.table('projects').select('data').eq(
             'user_email', 'default_user'
         ).order('updated_at', desc=True).limit(1).execute()
         
+        # Klucze, których absolutnie nie wolno wczytywać do session_state,
+        # bo są zarezerwowane dla widgetów Streamlit.
+        forbidden_keys = {
+            'manual_save_btn', 'attr_add_btn', 'nav_top_radio', 'nav_bot_radio',
+            'btn_add_attraction_main', 'last_page', 'up_export'
+        }
+        # Prefiksy, których nie chcemy wczytywać
+        forbidden_prefixes = ('attrnav_', 'attrup_', 'attrdn_', 'attrdel_')
+
         if result.data and result.data[0].get('data'):
-            project_data = result.data[0]['data']
+            raw_data = result.data[0]['data']
             
-            # KLUCZOWE: Usuń klucze widgetów zanim wczytasz do session_state
-            # (kolizja z Streamlit widget management)
-            widget_keys = [
-                'attr_add_btn', 'attr_select', 'nav_top_radio', 'nav_bot_radio',
-                '_supabase_data', 'last_supabase_save', 'last_save_status'
-            ]
-            # Usuń też prefiksy widgetów (attrnav_0, attrup_1, etc)
-            widget_prefixes = ['attrnav_', 'attrup_', 'attrdn_', 'attrdel_']
+            # Filtrujemy dane w pamięci (zanim trafią do session_state)
+            clean_data = {
+                k: v for k, v in raw_data.items() 
+                if k not in forbidden_keys and not k.startswith(forbidden_prefixes)
+            }
             
-            keys_to_remove = []
-            for key in project_data.keys():
-                if key in widget_keys:
-                    keys_to_remove.append(key)
-                elif any(key.startswith(prefix) for prefix in widget_prefixes):
-                    keys_to_remove.append(key)
-            
-            for key in keys_to_remove:
-                project_data.pop(key, None)
-            
-            # DEBUG: pokaż ile kluczy wczytano
-            text_keys = [k for k, v in project_data.items() if isinstance(v, str) and k.startswith('t_')]
-            load_project_data(project_data)
-            # DEBUG: sprawdź czy t_main został wczytany
-            loaded_t_main = st.session_state.get('t_main', '???')
-            st.session_state['_debug_loaded'] = f"📥 Wczytano {len(project_data)} kluczy (usunięto {len(keys_to_remove)} widgetów), w tym {len(text_keys)} tekstów t_* | t_main='{loaded_t_main}'"
-            st.session_state['_loaded_from_supabase'] = True
+            # Wczytujemy przefiltrowane dane
+            load_project_data(clean_data)
+            st.session_state['_debug_loaded'] = f"📥 Wczytano {len(clean_data)} kluczy z bazy."
         else:
-            # Brak zapisanego projektu — załaduj defaults
             st.session_state['_debug_loaded'] = "📥 Brak danych w bazie - użyto defaults"
-            st.session_state['_loaded_from_supabase'] = True
+            
+        st.session_state['_loaded_from_supabase'] = True
+        
     except Exception as e:
-        # Błąd połączenia — kontynuuj z defaults
-        st.session_state['_debug_loaded'] = f"❌ Błąd load: {str(e)[:50]}"
+        st.error(f"❌ Błąd połączenia z Supabase: {str(e)[:50]}")
         st.session_state['_loaded_from_supabase'] = True
 
-# Ładuj defaults dla kluczy których nie ma w bazie
+# Zapewnienie, że defaults są w sesji (tylko jeśli czegoś brakuje)
 for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
-
-# Wymagane dla 4 przerywników zdefiniowanych na sztywno
-st.session_state.setdefault('num_sekcje', 4)
-
-# Wymuszenie poprawnych typów — color_picker wymaga #RRGGBB, number_input wymaga int.
-_COLOR_DEFS = {
-    'color_h1': '#003366', 'color_h2': '#003366', 'color_sub': '#FF6600',
-    'color_accent': '#FF6600', 'color_text': '#333333', 'color_metric': '#003366',
-}
-_SIZE_DEFS = {
-    'font_size_h1': 48, 'font_size_h2': 36, 'font_size_sub': 26,
-    'font_size_text': 14, 'font_size_metric': 16,
-}
-for _k, _v in _COLOR_DEFS.items():
-    _cur = st.session_state.setdefault(_k, _v)
-    if not (isinstance(_cur, str) and _cur.startswith('#') and len(_cur) == 7):
-        st.session_state[_k] = _v
-for _k, _v in _SIZE_DEFS.items():
-    _cur = st.session_state.setdefault(_k, _v)
-    try:
-        _int_val = max(8, int(float(_cur or _v)))
-        if _int_val != _cur:
-            st.session_state[_k] = _int_val
-    except Exception:
-        st.session_state[_k] = _v
-
 # ---------------------------------------------------------------------------
 # HELPERY UI
 # ---------------------------------------------------------------------------
