@@ -333,75 +333,69 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
     ATR_KEY_MAP = {"atype": "type", "amain": "main", "asub": "sub", "aopis": "opis"}
     _acc = st.session_state.get('color_accent', '#FF6600')
 
-    st.markdown(
-        f"<div style='font-size:10px;font-weight:700;color:{_acc};text-transform:uppercase;"
-        f"margin-top:15px;margin-bottom:10px;letter-spacing:1.5px;'>"
-        f"Zarządzanie szablonem sekcji</div>",
-        unsafe_allow_html=True,
-    )
+    # Zwijany expander - domyślnie ukryty
+    with st.expander("⚙️ Zarządzanie szablonem sekcji", expanded=False):
+        # Przygotuj dane eksportu
+        export_data = {}
+        for k in section_keys:
+            save_key = k if index is None else re.sub(f'_{index}$', '', k)
+            if file_prefix == "ATR":
+                save_key = ATR_KEY_MAP.get(save_key, save_key)
+            val = st.session_state.get(k)
+            if val is not None:
+                if isinstance(val, bytes):
+                    export_data[save_key] = base64.b64encode(val).decode('utf-8')
+                elif isinstance(val, (date, datetime)):
+                    export_data[save_key] = val.isoformat()
+                else:
+                    export_data[save_key] = val
+        json_str = json.dumps(export_data)
+        cc = st.session_state.get('country_code', 'OTH')
+        base_slug = create_slug(default_filename)
+        full_filename = f"{cc}-{file_prefix}-{base_slug}.json"
+        _display = default_filename.replace("_", " ").title() if default_filename else "Slajd"
 
-    # Przygotuj dane eksportu
-    export_data = {}
-    for k in section_keys:
-        save_key = k if index is None else re.sub(f'_{index}$', '', k)
-        if file_prefix == "ATR":
-            save_key = ATR_KEY_MAP.get(save_key, save_key)
-        val = st.session_state.get(k)
-        if val is not None:
-            if isinstance(val, bytes):
-                export_data[save_key] = base64.b64encode(val).decode('utf-8')
-            elif isinstance(val, (date, datetime)):
-                export_data[save_key] = val.isoformat()
-            else:
-                export_data[save_key] = val
-    json_str = json.dumps(export_data)
-    cc = st.session_state.get('country_code', 'OTH')
-    base_slug = create_slug(default_filename)
-    full_filename = f"{cc}-{file_prefix}-{base_slug}.json"
-    _display = default_filename.replace("_", " ").title() if default_filename else "Slajd"
-
-    # ── KOMPAKTOWY LAYOUT 3 KOLUMNY ──────────────────────────────────
-    col1, col2, col3 = st.columns([1.2, 1, 1])
-    
-    with col1:
-        st.markdown(
-            f"<div style='font-size:11px;font-weight:600;color:#334155;padding:8px 0;'>"
-            f"<span style='color:{_acc};'>★</span> {_display}</div>",
-            unsafe_allow_html=True,
-        )
-    
-    with col2:
-        st.download_button(
-            "💾 Zapisz", json_str, full_filename,
-            key=f"dl_{uploader_key}", use_container_width=True,
-        )
-    
-    with col3:
-        uploaded_file = st.file_uploader(
-            "📂", type=['json'], key=f"up_{uploader_key}",
-            label_visibility="collapsed",
-        )
-    
-    # Button Wczytaj w osobnym wierszu (pełna szerokość)
-    if uploaded_file:
-        if st.button("↑ WCZYTAJ SZABLON", key=f"btn_apply_{uploader_key}",
-                     use_container_width=True, type="primary"):
-            try:
-                data = json.load(uploaded_file)
-                filtered_data = {}
-                for k in section_keys:
-                    save_key = k
-                    load_key = k if index is None else re.sub(f'_{index}$', '', k)
-                    if file_prefix == "ATR":
-                        load_key = ATR_KEY_MAP.get(load_key, load_key)
-                    if load_key in data:
-                        filtered_data[save_key] = data[load_key]
-                load_project_data(filtered_data)
-                st.success("Wczytano.")
-                st.rerun()
-            except Exception:
-                st.error("Błąd odczytu.")
-    st.markdown("<div style='margin-bottom:8px;'></div>", unsafe_allow_html=True)
+        # ── KOMPAKTOWY LAYOUT 3 KOLUMNY ──────────────────────────────────
+        col1, col2, col3 = st.columns([1.2, 1, 1])
+        
+        with col1:
+            st.markdown(
+                f"<div style='font-size:11px;font-weight:600;color:#334155;padding:8px 0;'>"
+                f"<span style='color:{_acc};'>★</span> {_display}</div>",
+                unsafe_allow_html=True,
+            )
+        
+        with col2:
+            st.download_button(
+                "💾 Zapisz", json_str, full_filename,
+                key=f"dl_{uploader_key}", use_container_width=True,
+            )
+        
+        with col3:
+            uploaded_file = st.file_uploader(
+                "📂", type=['json'], key=f"up_{uploader_key}",
+                label_visibility="collapsed",
+            )
+        
+        # Button Wczytaj w osobnym wierszu (pełna szerokość)
+        if uploaded_file:
+            if st.button("↑ WCZYTAJ SZABLON", key=f"btn_apply_{uploader_key}",
+                         use_container_width=True, type="primary"):
+                try:
+                    data = json.load(uploaded_file)
+                    filtered_data = {}
+                    for k in section_keys:
+                        save_key = k
+                        load_key = k if index is None else re.sub(f'_{index}$', '', k)
+                        if file_prefix == "ATR":
+                            load_key = ATR_KEY_MAP.get(load_key, load_key)
+                        if load_key in data:
+                            filtered_data[save_key] = data[load_key]
+                    load_project_data(filtered_data)
+                    st.success("Wczytano.")
+                    st.rerun()
+                except Exception:
+                    st.error("Błąd odczytu.")
 
 
 def _section_header(label):
