@@ -497,11 +497,21 @@ with st.sidebar:
             return "  ★ " + _attr_display_name(pos)
         return p
 
-    # Nawigacja górna — selectbox
+    # Nawigacja górna — buttony kafelkowe
     st.markdown("**WYBIERZ SEKCJE DO EDYCJI:**")
-    page_top = st.selectbox("", _nav_top, 
-                           index=_nav_top.index(_last) if _last in _nav_top else 0,
-                           key="nav_top_select", label_visibility="collapsed")
+    
+    for idx, item in enumerate(_nav_top):
+        btn_type = "primary" if item == _last else "secondary"
+        # Button ustawia swój key w session_state automatycznie przy kliknięciu
+        st.button(item, key=f"navtop_{idx}", 
+                 use_container_width=True, type=btn_type)
+    
+    # Sprawdź który button został kliknięty (poza pętlą)
+    page_top = None
+    for idx, item in enumerate(_nav_top):
+        if st.session_state.get(f"navtop_{idx}", False):
+            page_top = item
+            break
 
     # --- SEKCJA ATRAKCJI wbudowana w nawigację ---
     # Przycisk ＋ DODAJ ATRAKCJE/MIEJSCE
@@ -511,26 +521,44 @@ with st.sidebar:
         f"<span style='color:{_acc};font-size:13px;font-weight:700;'>★</span>"
         f"<span style='font-size:12px;font-weight:600;color:#334155;"
         f"font-family:Montserrat,sans-serif;'>"
-        f"ATRAKCJE ({_n_attr})</span></div>",
+        f"DODAJ ATRAKCJE/MIEJSCE</span></div>",
         unsafe_allow_html=True,
     )
-    st.caption("💡 Zarządzaj atrakcjami na stronie każdego slajdu atrakcji")
-    
-    # Lista atrakcji tylko do nawigacji (bez buttonów akcji)
+    st.button("＋ Dodaj", key="attr_add_btn", use_container_width=True)
+
+    # Każda atrakcja jako wiersz: [nazwa] [▲] [▼] [✕]
     page_attr = None
     for _ap in range(_n_attr):
         _ap_key = _attr_pages[_ap]
-        if st.button(f"★ {_attr_display_name(_ap)}", key=f"attr_view_{_ap}",
-                    use_container_width=True,
-                    type="primary" if _last == _ap_key else "secondary"):
-            # Ustawienie flagi bez reruna (Streamlit zrobi rerun automatycznie)
-            st.session_state['last_page'] = _ap_key
-            st.session_state['scroll_target'] = ""
+        _ap_active = (_last == _ap_key)
+        _ca, _cb, _cc, _cd = st.columns([6, 1, 1, 1])
+        _ca.button(f"★ {_attr_display_name(_ap)}", key=f"attrnav_{_ap}",
+                   use_container_width=True,
+                   type="primary" if _ap_active else "secondary")
+        if _ap > 0:
+            _cb.button("▲", key=f"attrup_{_ap}", use_container_width=True)
+        if _ap < _n_attr - 1:
+            _cc.button("▼", key=f"attrdn_{_ap}", use_container_width=True)
+        _cd.button("✕", key=f"attrdel_{_ap}", use_container_width=True)
+    
+    # Sprawdź kliknięcia (poza pętlą)
+    for _ap in range(_n_attr):
+        if st.session_state.get(f"attrnav_{_ap}", False):
+            page_attr = _attr_pages[_ap]
+            break
 
-    # Nawigacja dolna — selectbox
-    page_bot = st.selectbox("", _nav_bot,
-                           index=_nav_bot.index(_last) if _last in _nav_bot else 0,
-                           key="nav_bot_select", label_visibility="collapsed")
+    # Nawigacja dolna — buttony kafelkowe
+    for idx, item in enumerate(_nav_bot):
+        btn_type = "primary" if item == _last else "secondary"
+        st.button(item, key=f"navbot_{idx}", 
+                 use_container_width=True, type=btn_type)
+    
+    # Sprawdź który button został kliknięty
+    page_bot = None
+    for idx, item in enumerate(_nav_bot):
+        if st.session_state.get(f"navbot_{idx}", False):
+            page_bot = item
+            break
 
     # Ustal aktywną stronę — priorytet: kliknięcie atrakcji > zmiana selectbox
     if page_attr is not None:
@@ -558,11 +586,22 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 # OBSŁUGA AKCJI Z SIDEBARA (poza with st.sidebar)
 # ---------------------------------------------------------------------------
-# Sprawdź czy kliknięto "Dodaj atrakcję" - button ustawia swój key w session_state
-# Ale to nie działa w Streamlit w sidebarze... Usuwam obsługę
-# if st.session_state.get('attr_add_trigger', False):
-#     _attr_add()
-#     st.rerun()
+# Sprawdź akcje na atrakcjach
+_n_attr_check = _attr_count()
+if st.session_state.get('attr_add_btn', False):
+    _attr_add()
+    st.rerun()
+
+for _ap in range(_n_attr_check):
+    if st.session_state.get(f"attrup_{_ap}", False):
+        _attr_move(_ap, -1)
+        st.rerun()
+    if st.session_state.get(f"attrdn_{_ap}", False):
+        _attr_move(_ap, 1)
+        st.rerun()
+    if st.session_state.get(f"attrdel_{_ap}", False):
+        _attr_delete(_ap)
+        st.rerun()
 
 # ---------------------------------------------------------------------------
 # NAGŁÓWKI STRON
