@@ -360,64 +360,47 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
     full_filename = f"{cc}-{file_prefix}-{base_slug}.json"
     _display = default_filename.replace("_", " ").title() if default_filename else "Slajd"
 
-    # ── RAMKA POBIERANIE ──────────────────────────────────────────
-    with st.container():
+    # ── KOMPAKTOWY LAYOUT 3 KOLUMNY ──────────────────────────────────
+    col1, col2, col3 = st.columns([1.2, 1, 1])
+    
+    with col1:
         st.markdown(
-            f"<div style='border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px 4px 14px;"
-            f"margin-bottom:8px;background:#fff;'>"
-            f"<span style='font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;"
-            f"letter-spacing:1.5px;'>Pobieranie</span></div>",
+            f"<div style='font-size:11px;font-weight:600;color:#334155;padding:8px 0;'>"
+            f"<span style='color:{_acc};'>★</span> {_display}</div>",
             unsafe_allow_html=True,
         )
-        _cp1, _cp2 = st.columns(2)
-        with _cp1:
-            st.markdown(
-                f"<div style='border:1px solid #e2e8f0;border-radius:7px;padding:9px 10px;"
-                f"background:#f8fafc;font-family:Montserrat,sans-serif;font-size:12px;"
-                f"font-weight:600;color:#334155;display:flex;align-items:center;gap:6px;"
-                f"min-height:38px;margin-bottom:8px;'>"
-                f"<span style='color:{_acc};'>★</span> {_display}</div>",
-                unsafe_allow_html=True,
-            )
-        with _cp2:
-            st.download_button(
-                "↓ POBIERZ", json_str, full_filename,
-                key=f"dl_{uploader_key}", use_container_width=True,
-            )
-
-    # ── RAMKA WCZYTYWANIE ─────────────────────────────────────────
-    with st.container():
-        st.markdown(
-            f"<div style='border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px 4px 14px;"
-            f"margin-bottom:4px;background:#fff;'>"
-            f"<span style='font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;"
-            f"letter-spacing:1.5px;'>Wczytywanie</span></div>",
-            unsafe_allow_html=True,
+    
+    with col2:
+        st.download_button(
+            "💾 Zapisz", json_str, full_filename,
+            key=f"dl_{uploader_key}", use_container_width=True,
         )
-        _cw1, _cw2 = st.columns(2)
-        with _cw1:
-            uploaded_file = st.file_uploader(
-                "JSON", type=['json'], key=f"up_{uploader_key}",
-                label_visibility="collapsed",
-            )
-        with _cw2:
-            if st.button("↑ WCZYTAJ", key=f"btn_apply_{uploader_key}",
-                         use_container_width=True, disabled=not uploaded_file):
-                try:
-                    data = json.load(uploaded_file)
-                    filtered_data = {}
-                    for k in section_keys:
-                        save_key = k
-                        load_key = k if index is None else re.sub(f'_{index}$', '', k)
-                        if file_prefix == "ATR":
-                            load_key = ATR_KEY_MAP.get(load_key, load_key)
-                        if load_key in data:
-                            filtered_data[save_key] = data[load_key]
-                    load_project_data(filtered_data)
-                    st.success("Wczytano.")
-                    st.rerun()
-                except Exception:
-                    st.error("Błąd odczytu.")
+    
+    with col3:
+        uploaded_file = st.file_uploader(
+            "📂", type=['json'], key=f"up_{uploader_key}",
+            label_visibility="collapsed",
+        )
+    
+    # Button Wczytaj w osobnym wierszu (pełna szerokość)
+    if uploaded_file:
+        if st.button("↑ WCZYTAJ SZABLON", key=f"btn_apply_{uploader_key}",
+                     use_container_width=True, type="primary"):
+            try:
+                data = json.load(uploaded_file)
+                filtered_data = {}
+                for k in section_keys:
+                    save_key = k
+                    load_key = k if index is None else re.sub(f'_{index}$', '', k)
+                    if file_prefix == "ATR":
+                        load_key = ATR_KEY_MAP.get(load_key, load_key)
+                    if load_key in data:
+                        filtered_data[save_key] = data[load_key]
+                load_project_data(filtered_data)
+                st.success("Wczytano.")
+                st.rerun()
+            except Exception:
+                st.error("Błąd odczytu.")
     st.markdown("<div style='margin-bottom:8px;'></div>", unsafe_allow_html=True)
 
 
