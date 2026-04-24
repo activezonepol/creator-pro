@@ -1752,8 +1752,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 if k1 else _get_ph('ZDJĘCIE KOSZTORYSU'))
         zaw1_list = []
         for x in get_data('koszt_zawiera_1', '').split('\n'):
-            if not x.strip():
-                continue
+            if not x.strip(): continue
             if x.strip().startswith('--'):
                 zaw1_list.append(f"<li class='sub-item'>{x.replace('--','',1).strip()}</li>")
             else:
@@ -1778,8 +1777,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 if k2 else _get_ph('ZDJĘCIE KOSZTORYSU 2'))
         zaw2_list = []
         for x in get_data('koszt_zawiera_2', '').split('\n'):
-            if not x.strip():
-                continue
+            if not x.strip(): continue
             if x.strip().startswith('--'):
                 zaw2_list.append(f"<li class='sub-item'>{x.replace('--','',1).strip()}</li>")
             else:
@@ -1802,13 +1800,10 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             <div class="photo-col">{imk2}</div>
             </div>{fh}""", "slide-kosztorys-2"))
 
-
-
-
     # --- Przerywnik sek_2 (przed testim) ---
-    _render_sek(2)  # Przerywnik przed rekomendacjami
+    _render_sek(2)
 
-        # --- Rekomendacje ---
+    # --- Rekomendacje ---
     if not get_data('testim_hide', False):
         t_main_img = get_b64('img_testim_main', (4, 5))
         t_main_img_html = (f'<img src="data:image/jpeg;base64,{t_main_img}" style="width:100%;height:100%;object-fit:cover;">'
@@ -1851,7 +1846,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div>"""
         c_img = get_b64('img_about_clients', (4, 5))
         c_img_html = (f'<img src="data:image/jpeg;base64,{c_img}" style="width:100%;height:100%;object-fit:cover;">'
-                      if c_img else _get_ph('ZDJĘCIE / LOGA KLIENTÓW'))
+                       if c_img else _get_ph('ZDJĘCIE / LOGA KLIENTÓW'))
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
             <div class="info-col" style="flex: 60; padding-right: 40px; padding-top: 30px; justify-content: flex-start; display: flex; flex-direction: column;">
                 <div class="app-overline-style"><span>{str(get_data('about_overline','NASZ ZESPÓŁ'))}</span></div>
@@ -1867,23 +1862,17 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     if export_mode:
         return "".join(hp)
 
-    # Budujemy cały CSS + slajdy + scroll w jednym components.html.
-    # To jedyne podejście działające na Streamlit Community Cloud:
-    # - brak limitu rozmiaru (w przeciwieństwie do st.markdown)
-    # - pełny dostęp do DOM własnego dokumentu (w przeciwieństwie do window.parent)
-    # - scroll działa na .presentation-wrapper który ma własny overflow:auto
     import streamlit.components.v1 as components
 
     first_visible_place = next(
         (i for i in range(get_data('num_places', 0)) if not get_data(f'phide_{i}')), None
     )
-    # Gdy brak miejsc — scroll do slajdu wzorcowego place_preview (zawsze renderowanego w trybie edycji)
     pid = f"place_{first_visible_place}" if first_visible_place is not None else "place_preview"
     first_visible_attr = next(
         (i for i in range(get_data('num_attr', 0)) if not get_data(f'ahide_{i}')), None
     )
     fid = f"attr_{first_visible_attr}" if first_visible_attr is not None else "slide-title"
-    # Pierwszy hotel
+    
     hid = f"slide-hotel-0" if get_data('num_hotels', 1) > 0 and not get_data('h_hide_0') else "slide-title"
 
     default_tid = {
@@ -1913,6 +1902,9 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     scroll_js = f"""
     <script>
     (function() {{
+        document.body.style.transition = 'opacity 0.15s ease';
+        document.body.style.opacity = '1';
+
         var targetId = "{tid if tid else ''}";
         var wrapper = document.getElementById('main-wrapper');
         if (!wrapper || !targetId) return;
@@ -1923,21 +1915,12 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             return Math.max(0, el.offsetTop - (wrapper.clientHeight / 2) + (el.offsetHeight / 2));
         }}
 
-        // Iframe po rerunie startuje od scrollTop=0 i jest niewidoczny (opacity:0).
-        // 1. Instant skok do slajdu tuż przed celem (jeden slajd wyżej)
-        // 2. Ciało staje się widoczne (opacity:1, transition 0.15s)
-        // 3. Smooth scroll do właściwego slajdu
-        // Efekt: widoczne jest tylko krótkie płynne przewinięcie o jeden slajd.
         var targetOffset = getOffset(targetId);
         if (targetOffset === null) return;
 
-        // Skocz instant do pozycji jeden ekran przed celem
         var slideH = wrapper.clientHeight;
         wrapper.scrollTo({{ top: Math.max(0, targetOffset - slideH), behavior: 'instant' }});
 
-        // Pokaż ciało i płynnie dojedź do celu
-        document.body.style.transition = 'opacity 0.15s ease';
-        document.body.style.opacity = '1';
         setTimeout(function() {{
             wrapper.scrollTo({{ top: targetOffset, behavior: 'smooth' }});
         }}, 50);
@@ -1950,8 +1933,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
 <meta charset="UTF-8">
 {css_str}
 <style>
-  @keyframes fadein {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
-  body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; opacity: 0; }}
+  body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; }}
   .presentation-wrapper {{
       height: 100vh;
       overflow-y: auto;
@@ -1971,4 +1953,5 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
 </body>
 </html>"""
 
+    st.write(f"DEBUG END: hp={len(hp)}, html_len={len(full_html)}")
     components.html(full_html, height=900, scrolling=False)
