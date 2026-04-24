@@ -371,13 +371,13 @@ def load_project_data(data: dict):
             if isinstance(v, str) and v.startswith('#') and len(v) == 7:
                 st.session_state[k] = v
             else:
-                st.session_state[k] = defaults.get(k, '#000000')
+                st.session_state[k] = defaultget_data(k, '#000000')
         elif k in _SIZE_KEYS:
             # Upewnij się że rozmiar to int > 0
             try:
                 st.session_state[k] = max(8, int(float(v)))
             except Exception:
-                st.session_state[k] = defaults.get(k, 14)
+                st.session_state[k] = defaultget_data(k, 14)
         else:
             st.session_state[k] = v
 
@@ -605,7 +605,7 @@ def get_road_distance(place_a: str, place_b: str, ors_api_key: str = '', country
         return None, None, f"Nie znaleziono lokalizacji: {'A' if lat_a is None else 'B'}. Sprawdź pisownię."
 
     # 1. Próba Google Maps Distance Matrix (obsługuje cały świat)
-    google_key = st.secrets.get('google', {}).get('maps_api_key') if hasattr(st, 'secrets') else None
+    google_key = st.secretget_data('google', {}).get('maps_api_key')
     if google_key:
         try:
             origin = f"{lat_a},{lon_a}"
@@ -1013,8 +1013,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     Dane pochodzą z session_state z fallback do Supabase.
     """
     hp = []
-    st.write(f"🔍 DEBUG START: page={current_page}, export={export_mode}")
-    
+
     # Kolory - używaj get_data() zamiast get_data()
     c_h1 = get_data('color_h1', '#003366')
     c_h2 = get_data('color_h2', '#003366')
@@ -1913,10 +1912,6 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     scroll_js = f"""
     <script>
     (function() {{
-        // ZAWSZE pokazuj body — nawet jeśli scroll się nie uda
-        document.body.style.transition = 'opacity 0.15s ease';
-        document.body.style.opacity = '1';
-
         var targetId = "{tid if tid else ''}";
         var wrapper = document.getElementById('main-wrapper');
         if (!wrapper || !targetId) return;
@@ -1927,25 +1922,35 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             return Math.max(0, el.offsetTop - (wrapper.clientHeight / 2) + (el.offsetHeight / 2));
         }}
 
+        // Iframe po rerunie startuje od scrollTop=0 i jest niewidoczny (opacity:0).
+        // 1. Instant skok do slajdu tuż przed celem (jeden slajd wyżej)
+        // 2. Ciało staje się widoczne (opacity:1, transition 0.15s)
+        // 3. Smooth scroll do właściwego slajdu
+        // Efekt: widoczne jest tylko krótkie płynne przewinięcie o jeden slajd.
         var targetOffset = getOffset(targetId);
         if (targetOffset === null) return;
 
+        // Skocz instant do pozycji jeden ekran przed celem
         var slideH = wrapper.clientHeight;
         wrapper.scrollTo({{ top: Math.max(0, targetOffset - slideH), behavior: 'instant' }});
 
+        // Pokaż ciało i płynnie dojedź do celu
+        document.body.style.transition = 'opacity 0.15s ease';
+        document.body.style.opacity = '1';
         setTimeout(function() {{
             wrapper.scrollTo({{ top: targetOffset, behavior: 'smooth' }});
         }}, 50);
     }})();
     </script>"""
 
-   full_html = f"""<!DOCTYPE html>
+    full_html = f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 {css_str}
 <style>
-  body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; }}
+  @keyframes fadein {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
+  body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; opacity: 0; }}
   .presentation-wrapper {{
       height: 100vh;
       overflow-y: auto;
@@ -1965,5 +1970,4 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
 </body>
 </html>"""
 
-    st.write(f"DEBUG END: hp={len(hp)}, html_len={len(full_html)}")
     components.html(full_html, height=900, scrolling=False)
