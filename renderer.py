@@ -1971,4 +1971,5 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
 </body>
 </html>"""
 
+    st.write(f"🔍 DEBUG END: hp ma {len(hp)} slajdów, full_html ma {len(full_html)} znaków, tid={tid}")
     components.html(full_html, height=900, scrolling=False)
