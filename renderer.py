@@ -371,7 +371,7 @@ def load_project_data(data: dict):
             if isinstance(v, str) and v.startswith('#') and len(v) == 7:
                 st.session_state[k] = v
             else:
-                st.session_state[k] = defaultget_data(k, '#000000')
+                st.session_state[k] = defaults.get(k, '#000000')
         elif k in _SIZE_KEYS:
             # Upewnij się że rozmiar to int > 0
             try:
