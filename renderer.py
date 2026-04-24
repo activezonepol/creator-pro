@@ -1913,6 +1913,10 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     scroll_js = f"""
     <script>
     (function() {{
+        // ZAWSZE pokazuj body — nawet jeśli scroll się nie uda
+        document.body.style.transition = 'opacity 0.15s ease';
+        document.body.style.opacity = '1';
+
         var targetId = "{tid if tid else ''}";
         var wrapper = document.getElementById('main-wrapper');
         if (!wrapper || !targetId) return;
@@ -1923,21 +1927,12 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             return Math.max(0, el.offsetTop - (wrapper.clientHeight / 2) + (el.offsetHeight / 2));
         }}
 
-        // Iframe po rerunie startuje od scrollTop=0 i jest niewidoczny (opacity:0).
-        // 1. Instant skok do slajdu tuż przed celem (jeden slajd wyżej)
-        // 2. Ciało staje się widoczne (opacity:1, transition 0.15s)
-        // 3. Smooth scroll do właściwego slajdu
-        // Efekt: widoczne jest tylko krótkie płynne przewinięcie o jeden slajd.
         var targetOffset = getOffset(targetId);
         if (targetOffset === null) return;
 
-        // Skocz instant do pozycji jeden ekran przed celem
         var slideH = wrapper.clientHeight;
         wrapper.scrollTo({{ top: Math.max(0, targetOffset - slideH), behavior: 'instant' }});
 
-        // Pokaż ciało i płynnie dojedź do celu
-        document.body.style.transition = 'opacity 0.15s ease';
-        document.body.style.opacity = '1';
         setTimeout(function() {{
             wrapper.scrollTo({{ top: targetOffset, behavior: 'smooth' }});
         }}, 50);
