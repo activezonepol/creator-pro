@@ -605,7 +605,7 @@ def get_road_distance(place_a: str, place_b: str, ors_api_key: str = '', country
         return None, None, f"Nie znaleziono lokalizacji: {'A' if lat_a is None else 'B'}. Sprawdź pisownię."
 
     # 1. Próba Google Maps Distance Matrix (obsługuje cały świat)
-    google_key = st.secretget_data('google', {}).get('maps_api_key')
+    google_key = st.secrets.get('google', {}).get('maps_api_key')
     if google_key:
         try:
             origin = f"{lat_a},{lon_a}"
