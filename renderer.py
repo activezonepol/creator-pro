@@ -1939,14 +1939,13 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     }})();
     </script>"""
 
-    full_html = f"""<!DOCTYPE html>
+   full_html = f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 {css_str}
 <style>
-  @keyframes fadein {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
-  body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; opacity: 0; }}
+  body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; }}
   .presentation-wrapper {{
       height: 100vh;
       overflow-y: auto;
