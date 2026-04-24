@@ -1013,7 +1013,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     Dane pochodzą z session_state z fallback do Supabase.
     """
     hp = []
-
+    st.write(f"🔍 DEBUG START: page={current_page}, export={export_mode}")
+    
     # Kolory - używaj get_data() zamiast get_data()
     c_h1 = get_data('color_h1', '#003366')
     c_h2 = get_data('color_h2', '#003366')
