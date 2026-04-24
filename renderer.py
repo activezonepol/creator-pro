@@ -1266,18 +1266,21 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     (function() {{
         var targetId = "{tid}";
         var wrapper = document.getElementById('main-wrapper');
-        if (!wrapper || !targetId) return;
+        var showBody = function() {{
+            document.body.style.transition = 'opacity 0.15s ease';
+            document.body.style.opacity = '1';
+        }};
+        if (!wrapper || !targetId) {{ showBody(); return; }}
         function getOffset(id) {{
             var el = document.getElementById(id);
             if (!el) return null;
             return Math.max(0, el.offsetTop - (wrapper.clientHeight / 2) + (el.offsetHeight / 2));
         }}
         var targetOffset = getOffset(targetId);
-        if (targetOffset === null) return;
+        if (targetOffset === null) {{ showBody(); return; }}
         var slideH = wrapper.clientHeight;
         wrapper.scrollTo({{ top: Math.max(0, targetOffset - slideH), behavior: 'instant' }});
-        document.body.style.transition = 'opacity 0.15s ease';
-        document.body.style.opacity = '1';
+        showBody();
         setTimeout(function() {{ wrapper.scrollTo({{ top: targetOffset, behavior: 'smooth' }}); }}, 50);
     }})();
     </script>"""
