@@ -377,7 +377,7 @@ def load_project_data(data: dict):
             try:
                 st.session_state[k] = max(8, int(float(v)))
             except Exception:
-                st.session_state[k] = defaultget_data(k, 14)
+                st.session_state[k] = defaults.get(k, 14)
         else:
             st.session_state[k] = v
 
