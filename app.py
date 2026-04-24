@@ -962,4 +962,22 @@ st.session_state['RAW_STATE_BACKUP'] = raw_backup
 with col_preview:
     _acc = st.session_state.get('color_accent', '#FF6600')
     st.markdown(f"<h3 style='color:{_acc};font-size:16px;margin-bottom:20px;'>PODGLĄD SLAJDU</h3>", unsafe_allow_html=True)
+    
+    # DIAGNOSTYKA TYPÓW
+    st.write("**Typy zmiennych numerycznych:**")
+    for k in ['num_attr', 'num_places', 'num_days', 'num_hotels', 'num_dist_pairs', 'num_map_points', 'testim_count', 'team_count']:
+        v = st.session_state.get(k, '<BRAK>')
+        st.write(f"- `{k}` = `{v}` (typ: `{type(v).__name__}`)")
+    
+    p_start = st.session_state.get('p_start_dt', '<BRAK>')
+    st.write(f"- `p_start_dt` = `{p_start}` (typ: `{type(p_start).__name__}`)")
+    
+    st.divider()
+    
+    try:
+        build_presentation(page)
+    except Exception as e:
+        import traceback
+        st.error(f"❌ BŁĄD: {type(e).__name__}: {e}")
+        st.code(traceback.format_exc())
     build_presentation(page)
