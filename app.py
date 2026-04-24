@@ -981,3 +981,5 @@ with col_preview:
         st.error(f"❌ BŁĄD: {type(e).__name__}: {e}")
         st.code(traceback.format_exc())
     build_presentation(page)
+
+st.error("🚨 SAM KONIEC APP.PY - JEŚLI TO WIDZISZ, KOD SIĘ WYKONUJE")
