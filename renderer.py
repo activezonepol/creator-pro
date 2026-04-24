@@ -371,13 +371,13 @@ def load_project_data(data: dict):
             if isinstance(v, str) and v.startswith('#') and len(v) == 7:
                 st.session_state[k] = v
             else:
-                st.session_state[k] = defaultget_data(k, '#000000')
+                st.session_state[k] = defaults.get(k, '#000000')
         elif k in _SIZE_KEYS:
             # Upewnij się że rozmiar to int > 0
             try:
                 st.session_state[k] = max(8, int(float(v)))
             except Exception:
-                st.session_state[k] = defaultget_data(k, 14)
+                st.session_state[k] = defaults.get(k, 14)
         else:
             st.session_state[k] = v
 
@@ -605,7 +605,7 @@ def get_road_distance(place_a: str, place_b: str, ors_api_key: str = '', country
         return None, None, f"Nie znaleziono lokalizacji: {'A' if lat_a is None else 'B'}. Sprawdź pisownię."
 
     # 1. Próba Google Maps Distance Matrix (obsługuje cały świat)
-    google_key = st.secretget_data('google', {}).get('maps_api_key')
+    google_key = st.secrets.get('google', {}).get('maps_api_key') if hasattr(st, 'secrets') else None
     if google_key:
         try:
             origin = f"{lat_a},{lon_a}"
@@ -1013,7 +1013,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     Dane pochodzą z session_state z fallback do Supabase.
     """
     hp = []
-
+    st.write(f"🔍 DEBUG START: page={current_page}, export={export_mode}")
+    
     # Kolory - używaj get_data() zamiast get_data()
     c_h1 = get_data('color_h1', '#003366')
     c_h2 = get_data('color_h2', '#003366')
@@ -1094,7 +1095,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     hide_cli = get_data('hide_logo_cli', False)
     lcli_b64 = get_logo_b64(rcli)
     lcli = (f"<img src='data:image/png;base64,{lcli_b64}' style='max-height:100%;max-width:150px;object-fit:contain;'>"
-            if (lcli_b64 and not hide_cli) else "")
+             if (lcli_b64 and not hide_cli) else "")
     lcli_container = f"<div style='margin-bottom:40px;height:60px;display:flex;align-items:center;justify-content:flex-start;'>{lcli}</div>"
     hp.append(_shtml(f"""{lh}<div class="premium-layout"><div class="photo-col">{im1}</div><div class="info-col">
         {lcli_container}
@@ -1391,9 +1392,9 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             h2 = get_b64(f'img_hotel_2_{i}', (16, 9))
             h3 = get_b64(f'img_hotel_3_{i}', (16, 9))
             h1_html = (f'<img src="data:image/jpeg;base64,{h1}" style="width:100%; height:100%; object-fit:cover;">'
-                       if h1 else _get_ph('ZDJ. LEWE 1'))
+                        if h1 else _get_ph('ZDJ. LEWE 1'))
             h1b_html = (f'<img src="data:image/jpeg;base64,{h1b}" style="width:100%; height:100%; object-fit:cover;">'
-                        if h1b else _get_ph('ZDJ. LEWE 2'))
+                         if h1b else _get_ph('ZDJ. LEWE 2'))
             url_val = str(get_data(f'h_url_{i}', '')).strip()
 
             # POPRAWKA 2: URL w linii z podtytułem (wyrównany do prawej), podlinkowany
