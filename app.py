@@ -154,7 +154,7 @@ def _move_hotel(idx, direction):
         st.session_state['hotel_order'] = order
 
 # -----------------------------------------------------------------------
-# ZARZĄDZANIE LISTĄ ATRAKCJI (Tylko Atrakcje)
+# ZARZĄDZANIE LISTĄ ATRAKCJI
 # -----------------------------------------------------------------------
 def _attr_count():
     return st.session_state.get('num_attr', 0)
@@ -254,7 +254,19 @@ def _validate_and_load_json(uploaded_file, expected_keys=None):
     except Exception as e: return None, f"Błąd odczytu: {str(e)[:100]}"
 
 def section_template_manager(section_keys, file_prefix, default_filename, uploader_key, index=None):
-    ATR_KEY_MAP = {"atype": "type", "amain": "main", "asub": "sub", "aopis": "opis"}
+    # POPRAWKA: Pełne mapowanie dla szablonów atrakcji
+    ATR_KEY_MAP = {
+        "atype": "type", 
+        "amain": "main", 
+        "asub": "sub", 
+        "aopis": "opis",
+        "ahide": "hide",
+        "aday": "day_assigned",
+        "ah": "img_hero",
+        "at1": "img_thumb_1",
+        "at2": "img_thumb_2",
+        "at3": "img_thumb_3"
+    }
     _acc = st.session_state.get('color_accent', '#FF6600')
 
     with st.expander("⚙️ Zarządzanie szablonem sekcji", expanded=False):
@@ -327,7 +339,7 @@ if st.session_state['client_mode']:
     st.stop()
 
 # ---------------------------------------------------------------------------
-# SIDEBAR — NAWIGACJA (ZJEDNOCZONA I STABILNA)
+# SIDEBAR — NAWIGACJA
 # ---------------------------------------------------------------------------
 with st.sidebar:
     save_status = st.session_state.get('last_save_status', '⏳ Czekam na zmiany...')
@@ -335,7 +347,7 @@ with st.sidebar:
     st.markdown(f"<div style='background:#f0f9ff;border-left:3px solid #0ea5e9;padding:8px 12px;margin-bottom:15px;border-radius:4px;'><div style='font-size:11px;font-weight:600;color:#0369a1;margin-bottom:4px;'>AUTO-ZAPIS (co 10s)</div><div style='font-size:10px;color:#64748b;'>{save_status}</div><div style='font-size:9px;color:#94a3b8;margin-top:2px;'>{save_count} pól w bazie</div></div>", unsafe_allow_html=True)
     
     # -----------------------------------------------------------------------
-    # SZYBKIE AKCJE (Eksport HTML / PDF / Zapis JSON) wyciagnięte na górę
+    # SZYBKIE AKCJE (Eksport HTML / PDF / Zapis JSON)
     # -----------------------------------------------------------------------
     st.markdown("<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;'>Eksport dla klienta</div>", unsafe_allow_html=True)
 
@@ -445,7 +457,13 @@ with col_form:
     _acc = st.session_state.get('color_accent', '#FF6600')
     st.markdown(f"<h3 style='color:{_acc};font-size:16px;margin-bottom:20px;'>EDYCJA SLAJDU</h3>", unsafe_allow_html=True)
 
-    _inter_pages = {"  ↳ Przerywnik hotel", "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}
+    # POPRAWKA: Mapowanie przerywników dla reguły DRY (Don't Repeat Yourself)
+    _inter_pages_map = {
+        "  ↳ Przerywnik hotel": (0, "przerywnik-hotel"),
+        "  ↳ Przerywnik atrakcje": (1, "przerywnik-atrakcje"),
+        "  ↳ Przerywnik o nas": (2, "przerywnik-o-nas"),
+        "  ↳ Przerywnik program": (3, "przerywnik-program")
+    }
     _is_attr_page = page.startswith("ATTR:")
 
     if page == "Wygląd i Kolory":
@@ -454,7 +472,7 @@ with col_form:
     elif page == "Zapisz / Wczytaj Projekt":
         st.markdown("<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;'>ZARZĄDZANIE PROJEKTEM</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Wczytuj i aktualizuj projekty z plików .json</div>", unsafe_allow_html=True)
-    elif page in _inter_pages:
+    elif page in _inter_pages_map:
         _h1_col = st.session_state.get("color_h1", "#003366")
         _page_label = page.strip().lstrip("↳").strip()
         st.markdown(f"<h2 style='color:{_h1_col};margin-bottom:0;font-size:20px;font-weight:700;font-family:Montserrat,sans-serif;text-transform:uppercase;margin-left:12px;border-left:3px solid {_h1_col};padding-left:10px;'>{_page_label}</h2>", unsafe_allow_html=True)
@@ -469,73 +487,24 @@ with col_form:
         st.markdown(f"<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;text-transform:uppercase;'>{page}</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Wprowadź dane dla tej sekcji poniżej:</div>", unsafe_allow_html=True)
 
-    if page == "  ↳ Przerywnik hotel":
-        sek_keys = ['sek_hide_0', 'sek_0_title', 'sek_0_sub', 'sek_0_bg', 'sek_0_txt', 'sek_0_img']
-        section_template_manager(sek_keys, "SEK", "przerywnik-hotel", "sek0")
+    if page in _inter_pages_map:
+        idx, filename = _inter_pages_map[page]
+        sek_keys = [f'sek_hide_{idx}', f'sek_{idx}_title', f'sek_{idx}_sub', f'sek_{idx}_bg', f'sek_{idx}_txt', f'sek_{idx}_img']
+        section_template_manager(sek_keys, "SEK", filename, f"sek{idx}")
 
-        for _ck, _cv in [(f"sek_0_bg", st.session_state.get('color_h1', '#003366')), (f"sek_0_txt", '#ffffff')]:
+        for _ck, _cv in [(f"sek_{idx}_bg", st.session_state.get('color_h1', '#003366')), (f"sek_{idx}_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7): st.session_state[_ck] = _cv
             if _ck.endswith('_txt') and st.session_state[_ck] == '#000000': st.session_state[_ck] = '#ffffff'
-        st.checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_0")
-        st.text_input("Duży tytuł (uppercase):", key="sek_0_title")
-        st.text_input("Nadtytuł (overline, kolor akcentu):", key="sek_0_sub")
+            
+        st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_{idx}")
+        st.text_input("Duży tytuł (uppercase):", key=f"sek_{idx}_title")
+        st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_{idx}_sub")
         _ic1, _ic2 = st.columns(2)
-        _ic1.color_picker("Kolor tła (gradient):", key="sek_0_bg")
-        _ic2.color_picker("Kolor wielkiego tytułu (domyślnie biały):", key="sek_0_txt")
-        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key="sek_img_up_0")
-        if _up_s: st.session_state["sek_0_img"] = optimize_img(_up_s.getvalue())
-
-    elif page == "  ↳ Przerywnik program":
-        sek_keys = ['sek_hide_3', 'sek_3_title', 'sek_3_sub', 'sek_3_bg', 'sek_3_txt', 'sek_3_img']
-        section_template_manager(sek_keys, "SEK", "przerywnik-program", "sek3")
-
-        for _ck, _cv in [(f"sek_3_bg", st.session_state.get('color_h1', '#003366')), (f"sek_3_txt", '#ffffff')]:
-            _v = st.session_state.get(_ck, _cv)
-            if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7): st.session_state[_ck] = _cv
-            if _ck.endswith('_txt') and st.session_state[_ck] == '#000000': st.session_state[_ck] = '#ffffff'
-        st.checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_3")
-        st.text_input("Duży tytuł (uppercase):", key="sek_3_title")
-        st.text_input("Nadtytuł (overline, kolor akcentu):", key="sek_3_sub")
-        _ic1, _ic2 = st.columns(2)
-        _ic1.color_picker("Kolor tła (gradient):", key="sek_3_bg")
-        _ic2.color_picker("Kolor wielkiego tytułu (domyślnie biały):", key="sek_3_txt")
-        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key="sek_img_up_3")
-        if _up_s: st.session_state["sek_3_img"] = optimize_img(_up_s.getvalue())
-
-    elif page == "  ↳ Przerywnik atrakcje":
-        sek_keys = ['sek_hide_1', 'sek_1_title', 'sek_1_sub', 'sek_1_bg', 'sek_1_txt', 'sek_1_img']
-        section_template_manager(sek_keys, "SEK", "przerywnik-atrakcje", "sek1")
-
-        for _ck, _cv in [(f"sek_1_bg", st.session_state.get('color_h1', '#003366')), (f"sek_1_txt", '#ffffff')]:
-            _v = st.session_state.get(_ck, _cv)
-            if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7): st.session_state[_ck] = _cv
-            if _ck.endswith('_txt') and st.session_state[_ck] == '#000000': st.session_state[_ck] = '#ffffff'
-        st.checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_1")
-        st.text_input("Duży tytuł (uppercase):", key="sek_1_title")
-        st.text_input("Nadtytuł (overline, kolor akcentu):", key="sek_1_sub")
-        _ic1, _ic2 = st.columns(2)
-        _ic1.color_picker("Kolor tła (gradient):", key="sek_1_bg")
-        _ic2.color_picker("Kolor wielkiego tytułu (domyślnie biały):", key="sek_1_txt")
-        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key="sek_img_up_1")
-        if _up_s: st.session_state["sek_1_img"] = optimize_img(_up_s.getvalue())
-
-    elif page == "  ↳ Przerywnik o nas":
-        sek_keys = ['sek_hide_2', 'sek_2_title', 'sek_2_sub', 'sek_2_bg', 'sek_2_txt', 'sek_2_img']
-        section_template_manager(sek_keys, "SEK", "przerywnik-o-nas", "sek2")
-
-        for _ck, _cv in [(f"sek_2_bg", st.session_state.get('color_h1', '#003366')), (f"sek_2_txt", '#ffffff')]:
-            _v = st.session_state.get(_ck, _cv)
-            if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7): st.session_state[_ck] = _cv
-            if _ck.endswith('_txt') and st.session_state[_ck] == '#000000': st.session_state[_ck] = '#ffffff'
-        st.checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_2")
-        st.text_input("Duży tytuł (uppercase):", key="sek_2_title")
-        st.text_input("Nadtytuł (overline, kolor akcentu):", key="sek_2_sub")
-        _ic1, _ic2 = st.columns(2)
-        _ic1.color_picker("Kolor tła (gradient):", key="sek_2_bg")
-        _ic2.color_picker("Kolor wielkiego tytułu (domyślnie biały):", key="sek_2_txt")
-        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key="sek_img_up_2")
-        if _up_s: st.session_state["sek_2_img"] = optimize_img(_up_s.getvalue())
+        _ic1.color_picker("Kolor tła (gradient):", key=f"sek_{idx}_bg")
+        _ic2.color_picker("Kolor wielkiego tytułu (domyślnie biały):", key=f"sek_{idx}_txt")
+        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"sek_img_up_{idx}")
+        if _up_s: st.session_state[f"sek_{idx}_img"] = optimize_img(_up_s.getvalue())
 
     elif page == "Strona Tytułowa":
         tit_keys = ['t_date', 'country_name', 'country_code', 't_main', 't_sub', 't_klient', 't_kierunek', 't_pax', 't_hotel', 't_trans', 'img_hero_t', 'logo_az', 'logo_cli', 'hide_logo_cli']
@@ -830,7 +799,7 @@ with col_form:
         c1, c2 = st.columns(2)
         c1.checkbox("Ukryj CAŁY Kosztorys", key="koszt_hide_1")
         c2.checkbox("Ukryj Slajd 2", key="koszt_hide_2")
-        st.text_input("Tytuł H1:", key="koszt_h1_title")
+        st.text_input("Tytuł H1:", key="koszt_h1_title", value=st.session_state.get('koszt_h1_title', 'KOSZTORYS'))
         st.text_input("Overline:", key="koszt_title")
         _section_header("GŁÓWNE DANE TABELI")
         c1, c2 = st.columns(2)
@@ -897,24 +866,7 @@ with col_form:
                 u_team = st.file_uploader("Zdjęcie okrągłe", key=f"nas_img_{i}")
                 if u_team: st.session_state[f"t_img_{i}"] = optimize_img(u_team.getvalue())
 
-    elif page == "Wygląd i Kolory":
-        for (f_key, c_key, s_key, label) in [
-            ('font_h1', 'color_h1', 'font_size_h1', 'H1'),
-            ('font_h2', 'color_h2', 'font_size_h2', 'H2'),
-            ('font_sub', 'color_sub', 'font_size_sub', 'Podt.'),
-            ('font_text', 'color_text', 'font_size_text', 'Tekstu'),
-            ('font_metric', 'color_metric', 'font_size_metric', 'Wyr.'),
-        ]:
-            c1, c2, c3 = st.columns([2, 1, 1])
-            c1.selectbox(f"Czcionka {label}", FONTS_LIST, key=f_key)
-            c2.color_picker(f"Kolor {label}", key=c_key)
-            c3.number_input("Rozmiar (px)", min_value=8, max_value=120, step=1, format="%d", key=s_key)
-        st.color_picker("Akcent", key="color_accent")
-
     elif page == "Zapisz / Wczytaj Projekt":
-        st.markdown("<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;'>ZARZĄDZANIE PROJEKTEM</h2>", unsafe_allow_html=True)
-        st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Wczytuj z dysku całe projekty .json do dalszej pracy.</div>", unsafe_allow_html=True)
-        st.markdown("##### Wczytaj projekt .json")
         upf = st.file_uploader("Wgraj projekt z dysku (.json)", type=['json'], key="up_export")
         if upf and st.button("WCZYTAJ PROJEKT Z PLIKU", use_container_width=True, type="primary"):
             data, error = _validate_and_load_json(upf)
