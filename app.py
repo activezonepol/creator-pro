@@ -9,15 +9,16 @@ tryb klienta oraz akcje globalne.
 import re
 import json
 import base64
+import hashlib
 from datetime import date, datetime
 import time
-import uuid
+from html import escape as html_escape
 
 import streamlit as st
 from supabase import create_client, Client
 
 from renderer import (
-    COUNTRIES_DICT, FONTS_LIST, hotel_icons, icon_map, defaults, IMAGE_KEYS,
+    COUNTRIES_DICT, FONTS_LIST, hotel_icons, icon_map, defaults,
     EXCLUDE_EXPORT_KEYS, pl_days_map,
     clean_str, create_slug, parse_date_and_days, load_project_data,
     get_project_filename, auto_generate_kosztorys, build_day_options,
@@ -134,7 +135,8 @@ if '_data_loaded_once' not in st.session_state:
 # ---------------------------------------------------------------------------
 # HELPERY UI & LOGIKA
 # ---------------------------------------------------------------------------
-def set_focus(target_id): st.session_state['scroll_target'] = target_id
+def set_focus(target_id): 
+    st.session_state['scroll_target'] = target_id
 
 def _get_hotel_order():
     n = st.session_state.get('num_hotels', 1)
@@ -209,12 +211,6 @@ def _attr_display_name(pos):
     name = str(st.session_state.get(f'amain_{idx}', '')).split('\n')[0][:25].strip()
     return name or f"Atrakcja {pos + 1}"
 
-def _get_place_attr_order():
-    return [['attr', i] for i in _attr_order()]
-
-def _move_place_attr(pos, direction):
-    _attr_move(pos, direction)
-
 def _rebuild_slide_order():
     _get_hotel_order()
     _attr_order()
@@ -222,7 +218,7 @@ def _rebuild_slide_order():
 def _build_proj_dict():
     proj = {}
     skip_prefixes = ('FormSubmitter', '$$', 'fn_', 'dl_', 'btn_', 'sb_', 'attr_add_', 'up_', 'sek_img_up')
-    internal_keys = {'_session_id', '_ls_loaded', '_ls_restore', '_scroll_pos', 'ready_export_html', 'show_link_info', 'RAW_STATE_BACKUP', 'STATE_BACKUP', '_data_loaded_once', 'last_supabase_save', 'last_save_status', 'last_save_count', '_debug_loaded'}
+    internal_keys = {'_session_id', '_ls_loaded', '_ls_restore', '_scroll_pos', 'ready_export_html', 'show_link_info', 'RAW_STATE_BACKUP', 'STATE_BACKUP', '_data_loaded_once', 'last_supabase_save', 'last_save_status', 'last_save_count', '_debug_loaded', '_last_saved_hash'}
     skip_keys = {'tyt_hero', 'tyt_logo_az', 'tyt_logo_cli', 'kie_hero', 'lot_hero', 'app_bg', 'app_sc', 'bra_img_1', 'bra_img_2', 'bra_img_3', 'va_img_1', 'va_img_2', 'va_img_3', 'pg_img_1', 'pg_img_2', 'pg_img_3', 'koszt_img_1', 'koszt_img_2', 'opi_main', 'nas_clients'}
     dyn_skip = re.compile(r'^(uh1|uh1b|uh2|uh3|prg_img|plc_img1|plc_img2|plc_img3|plc_img4|atr_hero|atr_th1|atr_th2|atr_th3|opi_img|nas_img|sek_img_up)_\d+$')
     
@@ -254,7 +250,6 @@ def _validate_and_load_json(uploaded_file, expected_keys=None):
     except Exception as e: return None, f"Błąd odczytu: {str(e)[:100]}"
 
 def section_template_manager(section_keys, file_prefix, default_filename, uploader_key, index=None):
-    # POPRAWKA: Pełne mapowanie dla szablonów atrakcji
     ATR_KEY_MAP = {
         "atype": "type", 
         "amain": "main", 
@@ -316,15 +311,6 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
 def _section_header(label):
     st.markdown(f"<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; letter-spacing: 1px;'>{label}</div>", unsafe_allow_html=True)
 
-def save_to_supabase():
-    try:
-        data = _build_proj_dict()
-        existing = supabase.table('projects').select('id').eq('user_email', 'default_user').execute()
-        if existing.data:
-            supabase.table('projects').update({'project_name': st.session_state.get('t_main', 'Projekt'), 'data': data, 'updated_at': datetime.now().isoformat()}).eq('user_email', 'default_user').execute()
-        else:
-            supabase.table('projects').insert({'user_email': 'default_user', 'project_name': st.session_state.get('t_main', 'Projekt'), 'data': data, 'updated_at': datetime.now().isoformat()}).execute()
-    except Exception: pass
 
 # ---------------------------------------------------------------------------
 # TRYB KLIENTA
@@ -357,7 +343,8 @@ with st.sidebar:
         with st.spinner("Trwa generowanie ostatecznego pliku oferty..."):
             export_content = build_presentation(export_mode=True)
             acc = st.session_state.get('color_accent', '#FF6600')
-            t_main = st.session_state.get('t_main', 'Oferta')
+            # Poprawka: Escape HTML w tytule strony
+            t_main = html_escape(st.session_state.get('t_main', 'Oferta'))
             client_html = (
                 f'<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8">'
                 f'<title>{t_main}</title>'
@@ -423,7 +410,7 @@ with st.sidebar:
     if page != _last:
         st.session_state['last_page'] = page
         st.session_state['scroll_target'] = ""
-        st.rerun()
+        # St.rerun() USUNIĘTO zgodnie z optymalizacją - st.radio załatwi to samoistnie.
 
     st.divider()
     st.markdown(f"<div style='display:flex;align-items:center;gap:6px;padding:3px 0 3px 4px;'><span style='color:{_acc};font-size:13px;font-weight:700;'>★</span><span style='font-size:12px;font-weight:600;color:#334155;font-family:Montserrat,sans-serif;'>ZARZĄDZANIE ATRAKCJAMI</span></div>", unsafe_allow_html=True)
@@ -457,7 +444,6 @@ with col_form:
     _acc = st.session_state.get('color_accent', '#FF6600')
     st.markdown(f"<h3 style='color:{_acc};font-size:16px;margin-bottom:20px;'>EDYCJA SLAJDU</h3>", unsafe_allow_html=True)
 
-    # POPRAWKA: Mapowanie przerywników dla reguły DRY (Don't Repeat Yourself)
     _inter_pages_map = {
         "  ↳ Przerywnik hotel": (0, "przerywnik-hotel"),
         "  ↳ Przerywnik atrakcje": (1, "przerywnik-atrakcje"),
@@ -471,7 +457,7 @@ with col_form:
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Dostosuj kolory i typografię oferty</div>", unsafe_allow_html=True)
     elif page == "Zapisz / Wczytaj Projekt":
         st.markdown("<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;'>ZARZĄDZANIE PROJEKTEM</h2>", unsafe_allow_html=True)
-        st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Wczytuj i aktualizuj projekty z plików .json</div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Wczytuj z dysku całe projekty .json do dalszej pracy.</div>", unsafe_allow_html=True)
     elif page in _inter_pages_map:
         _h1_col = st.session_state.get("color_h1", "#003366")
         _page_label = page.strip().lstrip("↳").strip()
@@ -497,6 +483,7 @@ with col_form:
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7): st.session_state[_ck] = _cv
             if _ck.endswith('_txt') and st.session_state[_ck] == '#000000': st.session_state[_ck] = '#ffffff'
             
+        st.button("POKAŻ PODGLĄD", key=f"btn_sek_{idx}", on_click=set_focus, args=(f"slide-sek_{idx}",), use_container_width=True)
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_{idx}")
         st.text_input("Duży tytuł (uppercase):", key=f"sek_{idx}_title")
         st.text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_{idx}_sub")
@@ -572,18 +559,32 @@ with col_form:
                     c1.slider("Pozycja X %:", 0, 100, key=f"map_pt_x_{i}")
                     c2.slider("Pozycja Y %:", 0, 100, key=f"map_pt_y_{i}")
                 points_data.append({'name': st.session_state[f"map_pt_name_{i}"], 'conn': st.session_state[f"map_conn_{i}"], 'symbolic': st.session_state[f"map_pt_sym_{i}"], 'x': st.session_state[f"map_pt_x_{i}"], 'y': st.session_state[f"map_pt_y_{i}"]})
+        
         if st.button("GENERUJ MAPĘ", type="primary", use_container_width=True):
             with st.spinner("Pobieranie danych..."):
                 country = st.session_state.get('country_name', '')
                 valid_pts = []
+                failed_pts = []
                 for p in points_data:
                     nm = p['name'].strip()
                     if not nm: continue
-                    if p['symbolic']: valid_pts.append({'name': nm, 'conn': p['conn'], 'symbolic': True, 'x': p['x'], 'y': p['y']})
+                    if p['symbolic']:
+                        valid_pts.append({'name': nm, 'conn': p['conn'], 'symbolic': True, 'x': p['x'], 'y': p['y']})
                     else:
-                        lat, lon = geocode_place(nm, country)
-                        if lat is None: lat, lon = geocode_place(nm)
-                        if lat is not None: valid_pts.append({'name': nm, 'conn': p['conn'], 'symbolic': False, 'lat': lat, 'lon': lon})
+                        try:
+                            lat, lon = geocode_place(nm, country)
+                            if lat is None:
+                                lat, lon = geocode_place(nm)
+                            if lat is not None:
+                                valid_pts.append({'name': nm, 'conn': p['conn'], 'symbolic': False, 'lat': lat, 'lon': lon})
+                            else:
+                                failed_pts.append(nm)
+                        except Exception as e:
+                            failed_pts.append(f"{nm} (błąd: {str(e)[:40]})")
+                
+                if failed_pts:
+                    st.warning(f"⚠️ Nie udało się zlokalizować: {', '.join(failed_pts)}")
+                
                 if valid_pts:
                     try:
                         bg_b64, final_pts = generate_map_data(valid_pts, zoom=map_zoom)
@@ -592,8 +593,11 @@ with col_form:
                             st.session_state['auto_map_points'] = final_pts
                             st.success("Wygenerowano.")
                             st.rerun()
-                    except Exception: st.error("Błąd podczas generowania mapy.")
-                else: st.warning("Nie udało się zgeokodować żadnego punktu.")
+                    except Exception as e:
+                        st.error(f"Błąd generowania mapy: {str(e)[:100]}")
+                elif not failed_pts:
+                    st.warning("Brak punktów do wygenerowania.")
+                    
         _section_header("ODLEGŁOŚCI I CZAS DOJAZDU")
         st.text_input("Tytuł sekcji:", key="map_dist_title")
         _ors_from_secrets = st.secrets.get("ORS_API_KEY", "") if hasattr(st, 'secrets') else ""
@@ -657,6 +661,7 @@ with col_form:
         st.divider()
         for i in range(st.session_state['num_hotels']):
             with st.expander(f"Hotel {i+1}"):
+                st.button("POKAŻ PODGLĄD", key=f"btn_show_hot_{i}", on_click=set_focus, args=(f"slide-hotel-{i}",), use_container_width=True)
                 for dk, dv in [(f'h_hide_{i}', False), (f'h_overline_{i}', 'ZAKWATEROWANIE'), (f'h_title_{i}', f'NAZWA HOTELU {i+1} 5*'), (f'h_subtitle_{i}', 'Komfort i elegancja'), (f'h_url_{i}', 'www.hotel.com'), (f'h_booking_{i}', '8.9'), (f'h_amenities_{i}', ["Basen", "SPA"]), (f'h_text_{i}', 'Zapewniamy zakwaterowanie.'), (f'h_advantages_{i}', 'Położenie')]:
                     if dk not in st.session_state: st.session_state[dk] = dv
                 h_keys = [f'h_hide_{i}', f'h_overline_{i}', f'h_title_{i}', f'h_subtitle_{i}', f'h_url_{i}', f'h_booking_{i}', f'h_amenities_{i}', f'h_text_{i}', f'h_advantages_{i}', f'img_hotel_1_{i}', f'img_hotel_1b_{i}', f'img_hotel_2_{i}', f'img_hotel_3_{i}']
@@ -866,7 +871,24 @@ with col_form:
                 u_team = st.file_uploader("Zdjęcie okrągłe", key=f"nas_img_{i}")
                 if u_team: st.session_state[f"t_img_{i}"] = optimize_img(u_team.getvalue())
 
+    elif page == "Wygląd i Kolory":
+        for (f_key, c_key, s_key, label) in [
+            ('font_h1', 'color_h1', 'font_size_h1', 'H1'),
+            ('font_h2', 'color_h2', 'font_size_h2', 'H2'),
+            ('font_sub', 'color_sub', 'font_size_sub', 'Podt.'),
+            ('font_text', 'color_text', 'font_size_text', 'Tekstu'),
+            ('font_metric', 'color_metric', 'font_size_metric', 'Wyr.'),
+        ]:
+            c1, c2, c3 = st.columns([2, 1, 1])
+            c1.selectbox(f"Czcionka {label}", FONTS_LIST, key=f_key)
+            c2.color_picker(f"Kolor {label}", key=c_key)
+            c3.number_input("Rozmiar (px)", min_value=8, max_value=120, step=1, format="%d", key=s_key)
+        st.color_picker("Akcent", key="color_accent")
+
     elif page == "Zapisz / Wczytaj Projekt":
+        st.markdown("<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;'>ZARZĄDZANIE PROJEKTEM</h2>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Wczytuj z dysku całe projekty .json do dalszej pracy.</div>", unsafe_allow_html=True)
+        st.markdown("##### Wczytaj projekt .json")
         upf = st.file_uploader("Wgraj projekt z dysku (.json)", type=['json'], key="up_export")
         if upf and st.button("WCZYTAJ PROJEKT Z PLIKU", use_container_width=True, type="primary"):
             data, error = _validate_and_load_json(upf)
@@ -879,32 +901,40 @@ with col_form:
                 st.rerun()
 
 # ---------------------------------------------------------------------------
-# AUTO-SAVE DO SUPABASE
+# AUTO-SAVE DO SUPABASE (z detekcją zmian)
 # ---------------------------------------------------------------------------
 if 'last_supabase_save' not in st.session_state:
     st.session_state['last_supabase_save'] = 0
+if '_last_saved_hash' not in st.session_state:
+    st.session_state['_last_saved_hash'] = None
 
 current_time = time.time()
 if current_time - st.session_state['last_supabase_save'] > 10:
     try:
         project_data = _build_proj_dict()
-        project_name = st.session_state.get('t_main', 'Nowy projekt')
+        data_str = json.dumps(project_data, sort_keys=True, default=str, ensure_ascii=False)
+        current_hash = hashlib.md5(data_str.encode('utf-8')).hexdigest()
         
-        existing = supabase.table('projects').select('id').eq('user_email', 'default_user').order('updated_at', desc=True).limit(1).execute()
-        if existing.data:
-            project_id = existing.data[0]['id']
-            supabase.table('projects').update({
-                'project_name': project_name, 'data': project_data, 'updated_at': datetime.now().isoformat()
-            }).eq('id', project_id).execute()
-        else:
-            supabase.table('projects').insert({
-                'user_email': 'default_user', 'project_name': project_name, 'data': project_data, 'updated_at': datetime.now().isoformat()
-            }).execute()
+        if current_hash != st.session_state['_last_saved_hash']:
+            project_name = st.session_state.get('t_main', 'Nowy projekt')
+            existing = supabase.table('projects').select('id').eq('user_email', 'default_user').order('updated_at', desc=True).limit(1).execute()
+            
+            if existing.data:
+                project_id = existing.data[0]['id']
+                supabase.table('projects').update({
+                    'project_name': project_name, 'data': project_data, 'updated_at': datetime.now().isoformat()
+                }).eq('id', project_id).execute()
+            else:
+                supabase.table('projects').insert({
+                    'user_email': 'default_user', 'project_name': project_name, 'data': project_data, 'updated_at': datetime.now().isoformat()
+                }).execute()
+            
+            st.session_state['_last_saved_hash'] = current_hash
+            save_time = datetime.now().strftime('%H:%M:%S')
+            st.session_state['last_save_status'] = f"✅ Zapisano {save_time}"
+            st.session_state['last_save_count'] = len(project_data)
         
         st.session_state['last_supabase_save'] = current_time
-        save_time = datetime.now().strftime('%H:%M:%S')
-        st.session_state['last_save_status'] = f"✅ Zapisano {save_time}"
-        st.session_state['last_save_count'] = len(project_data)
     except Exception as e:
         st.session_state['last_save_status'] = f"❌ Błąd zapisu bazy"
 
