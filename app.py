@@ -786,6 +786,7 @@ with col_form:
     # STRONA TYTUŁOWA
     # -----------------------------------------------------------------------
     if page == "  ↳ Przerywnik hotel":
+        _guard(["sek_0_title", "sek_0_sub", "sek_hide_0", "sek_0_bg", "sek_0_txt"])  # ← DODAJ
         _bg_default = st.session_state.get('color_h1', '#003366')
         for _ck, _cv in [(f"sek_0_bg", _bg_default), (f"sek_0_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
