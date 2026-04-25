@@ -110,9 +110,13 @@ if 'client_mode' not in st.session_state:
 # ---------------------------------------------------------------------------
 # AUTO-LOAD Z SUPABASE przy starcie sesji
 # ---------------------------------------------------------------------------
-if '_loaded_from_supabase' not in st.session_state:
+OK, finalna propozycja. Łączę Twój plan (uprościć logikę inicjalizacji + usunąć _guard) z moimi uwagami (jedna flaga zamiast dwóch, bez ensure_key).
+Trzy zmiany, opisane konkretnie z numerami linii w Twoim aktualnym app.py:
+Zmiana 1: Przenieś ładowanie defaults do bloku startowego
+Znajdź w app.py blok zaczynający się około linii 109 (if '_loaded_from_supabase' not in st.session_state:).
+Przed zmianą wygląda tak (linie ~109-150):
+pythonif '_loaded_from_supabase' not in st.session_state:
     try:
-        # Pobierz najnowszy projekt
         result = supabase.table('projects').select('data').eq(
             'user_email', 'default_user'
         ).order('updated_at', desc=True).limit(1).execute()
@@ -120,13 +124,10 @@ if '_loaded_from_supabase' not in st.session_state:
         if result.data and result.data[0].get('data'):
             project_data = result.data[0]['data']
             
-            # KLUCZOWE: Usuń klucze widgetów zanim wczytasz do session_state
-            # (kolizja z Streamlit widget management)
             widget_keys = [
                 'attr_add_btn', 'attr_select', 'nav_top_radio', 'nav_bot_radio',
                 '_supabase_data', 'last_supabase_save', 'last_save_status'
             ]
-            # Usuń też prefiksy widgetów (attrnav_0, attrup_1, etc)
             widget_prefixes = ['attrnav_', 'attrup_', 'attrdn_', 'attrdel_']
             
             keys_to_remove = []
@@ -139,19 +140,15 @@ if '_loaded_from_supabase' not in st.session_state:
             for key in keys_to_remove:
                 project_data.pop(key, None)
             
-            # DEBUG: pokaż ile kluczy wczytano
             text_keys = [k for k, v in project_data.items() if isinstance(v, str) and k.startswith('t_')]
             load_project_data(project_data)
-            # DEBUG: sprawdź czy t_main został wczytany
             loaded_t_main = st.session_state.get('t_main', '???')
             st.session_state['_debug_loaded'] = f"📥 Wczytano {len(project_data)} kluczy (usunięto {len(keys_to_remove)} widgetów), w tym {len(text_keys)} tekstów t_* | t_main='{loaded_t_main}'"
             st.session_state['_loaded_from_supabase'] = True
         else:
-            # Brak zapisanego projektu — załaduj defaults
             st.session_state['_debug_loaded'] = "📥 Brak danych w bazie - użyto defaults"
             st.session_state['_loaded_from_supabase'] = True
     except Exception as e:
-        # Błąd połączenia — kontynuuj z defaults
         st.session_state['_debug_loaded'] = f"❌ Błąd load: {str(e)[:50]}"
         st.session_state['_loaded_from_supabase'] = True
 
@@ -159,32 +156,48 @@ if '_loaded_from_supabase' not in st.session_state:
 for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
-
-# Pokaż status load w sidebarze (debug)
-if '_debug_loaded' in st.session_state:
-    with st.sidebar:
-        st.caption(st.session_state['_debug_loaded'])
-if 'session_id' not in st.session_state:
-    st.session_state['session_id'] = str(uuid.uuid4())
-
-try:
-    _last_save = supabase.table('projects').select('data').eq(
-        'user_email', 'default_user'
-    ).order('updated_at', desc=True).limit(1).execute()
-
-    if _last_save.data and _last_save.data[0].get('data'):
-        _last_session = _last_save.data[0]['data'].get('_last_editor_session')
-        if _last_session and _last_session != st.session_state['session_id']:
-            st.warning(
-                "⚠️ **Uwaga:** ten projekt mógł być ostatnio edytowany w innej karcie "
-                "lub przez inną osobę. Jeśli pracujesz tu sama, możesz kontynuować — "
-                "Twoje zmiany nadpiszą poprzedni stan po pierwszym zapisie. Jeśli ktoś inny też "
-                "ma otwarty ten projekt, ustalcie kto edytuje, żeby nie stracić pracy."
-            )
-except Exception:
-    pass
-
-st.session_state['_last_editor_session'] = st.session_state['session_id']
+Zamień na:
+pythonif '_loaded_from_supabase' not in st.session_state:
+    try:
+        result = supabase.table('projects').select('data').eq(
+            'user_email', 'default_user'
+        ).order('updated_at', desc=True).limit(1).execute()
+        
+        if result.data and result.data[0].get('data'):
+            project_data = result.data[0]['data']
+            
+            widget_keys = [
+                'attr_add_btn', 'attr_select', 'nav_top_radio', 'nav_bot_radio',
+                '_supabase_data', 'last_supabase_save', 'last_save_status'
+            ]
+            widget_prefixes = ['attrnav_', 'attrup_', 'attrdn_', 'attrdel_']
+            
+            keys_to_remove = []
+            for key in project_data.keys():
+                if key in widget_keys:
+                    keys_to_remove.append(key)
+                elif any(key.startswith(prefix) for prefix in widget_prefixes):
+                    keys_to_remove.append(key)
+            
+            for key in keys_to_remove:
+                project_data.pop(key, None)
+            
+            text_keys = [k for k, v in project_data.items() if isinstance(v, str) and k.startswith('t_')]
+            load_project_data(project_data)
+            loaded_t_main = st.session_state.get('t_main', '???')
+            st.session_state['_debug_loaded'] = f"📥 Wczytano {len(project_data)} kluczy (usunięto {len(keys_to_remove)} widgetów), w tym {len(text_keys)} tekstów t_* | t_main='{loaded_t_main}'"
+        else:
+            st.session_state['_debug_loaded'] = "📥 Brak danych w bazie - użyto defaults"
+    except Exception as e:
+        st.session_state['_debug_loaded'] = f"❌ Błąd load: {str(e)[:50]}"
+    
+    # Uzupełnij defaults dla kluczy których baza nie dostarczyła.
+    # WAŻNE: tylko raz na sesję — wewnątrz bloku startowego.
+    for k, v in defaults.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
+    
+    st.session_state['_loaded_from_supabase'] = True
 
 # ---------------------------------------------------------------------------
 # (KONIEC SYSTEMU LOCKÓW — dalej idzie reszta Twojego kodu, np. # HELPERY UI)
