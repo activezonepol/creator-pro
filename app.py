@@ -164,22 +164,16 @@ for k, v in defaults.items():
 if '_debug_loaded' in st.session_state:
     with st.sidebar:
         st.caption(st.session_state['_debug_loaded'])
- ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # SYSTEM LOCKÓW — zapobiega edycji tego samego projektu w dwóch kartach
 # ---------------------------------------------------------------------------
-# Działa na zasadzie "heartbeat": każda karta co 5 sekund odświeża swój
-# znacznik czasowy w bazie. Lock starszy niż 30 sekund jest traktowany
-# jako wygasły (np. karta zamknięta lub komputer uśpiony).
+LOCK_USER = 'default_user'
+LOCK_HEARTBEAT_INTERVAL = 5
+LOCK_EXPIRY_SECONDS = 30
 
-LOCK_USER = 'default_user'           # Stały identyfikator użytkownika
-LOCK_HEARTBEAT_INTERVAL = 5          # Co ile sekund odświeżamy nasz lock
-LOCK_EXPIRY_SECONDS = 30             # Po jakim czasie cudzy lock uznajemy za martwy
-
-# 1. Generuj unikalny ID tej karty (raz na sesję)
 if 'session_id' not in st.session_state:
     st.session_state['session_id'] = str(uuid.uuid4())
 
-# 2. Stan locka: 'owner' (mamy lock) | 'readonly' (ktoś inny ma lock) | 'unknown'
 if 'lock_status' not in st.session_state:
     st.session_state['lock_status'] = 'unknown'
 
@@ -188,12 +182,8 @@ if 'last_heartbeat_time' not in st.session_state:
 
 
 def _check_or_acquire_lock():
-    """
-    Sprawdza stan locka i decyduje czy ta karta może edytować.
-    Zwraca status: 'owner' (możesz edytować) lub 'readonly' (ktoś inny edytuje).
-    """
+    """Sprawdza stan locka. Zwraca 'owner' lub 'readonly'."""
     try:
-        # Pobierz aktualny lock dla naszego użytkownika
         result = supabase.table('project_locks').select('*').eq(
             'user_email', LOCK_USER
         ).execute()
@@ -202,7 +192,6 @@ def _check_or_acquire_lock():
         now = datetime.now()
 
         if not result.data:
-            # Nikt nie trzyma locka — bierzemy go
             supabase.table('project_locks').insert({
                 'user_email': LOCK_USER,
                 'session_id': my_session,
@@ -214,28 +203,23 @@ def _check_or_acquire_lock():
         existing = result.data[0]
         existing_session = existing['session_id']
 
-        # Czy to nasz własny lock? (np. po reload tej samej karty)
         if existing_session == my_session:
             return 'owner'
 
-        # Czy lock wygasł?
         last_hb = existing['last_heartbeat']
         if isinstance(last_hb, str):
-            # Parsowanie ISO timestamp z timezone
             try:
                 last_hb_dt = datetime.fromisoformat(last_hb.replace('Z', '+00:00'))
-                # Konwersja do naive (lokalny czas) dla porównania
                 if last_hb_dt.tzinfo is not None:
                     last_hb_dt = last_hb_dt.replace(tzinfo=None)
             except Exception:
-                last_hb_dt = now  # bezpieczny fallback
+                last_hb_dt = now
         else:
             last_hb_dt = last_hb
 
         age_seconds = (now - last_hb_dt).total_seconds()
 
         if age_seconds > LOCK_EXPIRY_SECONDS:
-            # Stary lock — przejmujemy
             supabase.table('project_locks').update({
                 'session_id': my_session,
                 'last_heartbeat': now.isoformat(),
@@ -243,16 +227,14 @@ def _check_or_acquire_lock():
             }).eq('user_email', LOCK_USER).execute()
             return 'owner'
 
-        # Świeży cudzy lock — jesteśmy w trybie read-only
         return 'readonly'
 
-    except Exception as e:
-        # Błąd sieci/bazy — pozwól pracować, ale nie sprawdzaj locka tym razem
+    except Exception:
         return 'owner'
 
 
 def _heartbeat_lock():
-    """Odświeża nasz lock w bazie. Wywoływane co LOCK_HEARTBEAT_INTERVAL sekund."""
+    """Odświeża nasz lock w bazie."""
     try:
         supabase.table('project_locks').update({
             'last_heartbeat': datetime.now().isoformat(),
@@ -264,41 +246,48 @@ def _heartbeat_lock():
 
 
 def _force_takeover():
-    """Przejmuje lock siłą — używane gdy user kliknie 'Przejmij edycję'."""
+    """Przejmuje lock siłą - gdy user kliknie 'Przejmij edycję'."""
     try:
-        supabase.table('project_locks').update({
-            'session_id': st.session_state['session_id'],
-            'last_heartbeat': datetime.now().isoformat(),
-            'project_name': st.session_state.get('t_main', 'Projekt'),
-        }).eq('user_email', LOCK_USER).execute()
+        result = supabase.table('project_locks').select('*').eq(
+            'user_email', LOCK_USER
+        ).execute()
+
+        if result.data:
+            supabase.table('project_locks').update({
+                'session_id': st.session_state['session_id'],
+                'last_heartbeat': datetime.now().isoformat(),
+                'project_name': st.session_state.get('t_main', 'Projekt'),
+            }).eq('user_email', LOCK_USER).execute()
+        else:
+            supabase.table('project_locks').insert({
+                'user_email': LOCK_USER,
+                'session_id': st.session_state['session_id'],
+                'last_heartbeat': datetime.now().isoformat(),
+                'project_name': st.session_state.get('t_main', 'Projekt'),
+            }).execute()
+
         st.session_state['lock_status'] = 'owner'
         st.session_state['last_heartbeat_time'] = time.time()
     except Exception as e:
         st.error(f"Nie udało się przejąć edycji: {str(e)[:80]}")
 
 
-# 3. Sprawdź lock przy każdym rerun (z throttlingiem żeby nie spamować bazy)
-_now = time.time()
-_time_since_hb = _now - st.session_state['last_heartbeat_time']
+_now_lock = time.time()
+_time_since_hb = _now_lock - st.session_state['last_heartbeat_time']
 
 if st.session_state['lock_status'] == 'unknown' or _time_since_hb > LOCK_HEARTBEAT_INTERVAL:
     if st.session_state['lock_status'] == 'owner':
-        # Jesteśmy właścicielem — odświeżamy heartbeat ALE też weryfikujemy
-        # czy nikt nas nie przejął
         new_status = _check_or_acquire_lock()
         st.session_state['lock_status'] = new_status
         if new_status == 'owner':
             _heartbeat_lock()
     else:
-        # Nie wiemy lub jesteśmy readonly — sprawdzamy czy się zmieniło
         st.session_state['lock_status'] = _check_or_acquire_lock()
 
-    st.session_state['last_heartbeat_time'] = _now
+    st.session_state['last_heartbeat_time'] = _now_lock
 
 
-# 4. Jeśli jesteśmy w trybie read-only — pokaż komunikat i zablokuj edycję
 if st.session_state['lock_status'] == 'readonly':
-    # Pokaż duże ostrzeżenie na środku ekranu
     st.markdown(
         """
         <div style='background:#fef3c7;border-left:5px solid #f59e0b;
@@ -311,32 +300,31 @@ if st.session_state['lock_status'] == 'readonly':
                 lub na innym komputerze. Aby uniknąć utraty pracy, ta karta
                 została przełączona w <strong>tryb tylko do odczytu</strong>.
             </p>
-            <p style='color:#78350f;font-size:14px;'>
-                Możesz:
-            </p>
+            <p style='color:#78350f;font-size:14px;'>Możesz:</p>
             <ul style='color:#78350f;font-size:14px;'>
                 <li><strong>Wrócić do pierwszej karty</strong> i kontynuować pracę tam</li>
                 <li><strong>Przejąć edycję</strong> — pierwsza karta zostanie przełączona w tryb read-only
-                    (użyj jeśli jesteś pewna że pierwsza karta nie jest już używana)</li>
+                    (użyj jeśli jesteś pewna, że pierwsza karta nie jest już używana)</li>
             </ul>
         </div>
         """,
         unsafe_allow_html=True
     )
 
-    col_a, col_b = st.columns([1, 1])
-    with col_a:
-        if st.button("🔄 Sprawdź ponownie", use_container_width=True, type="secondary"):
+    col_lock_a, col_lock_b = st.columns([1, 1])
+    with col_lock_a:
+        if st.button("🔄 Sprawdź ponownie", use_container_width=True, type="secondary",
+                     key="lock_recheck_btn"):
             st.session_state['lock_status'] = 'unknown'
             st.session_state['last_heartbeat_time'] = 0
             st.rerun()
-    with col_b:
-        if st.button("⚡ Przejmij edycję", use_container_width=True, type="primary"):
+    with col_lock_b:
+        if st.button("⚡ Przejmij edycję", use_container_width=True, type="primary",
+                     key="lock_takeover_btn"):
             _force_takeover()
             st.success("Edycja przejęta. Możesz teraz pracować nad projektem.")
             st.rerun()
 
-    # Pokaż statyczny podgląd (bez możliwości edycji)
     st.markdown("---")
     st.markdown("### Podgląd projektu (tryb tylko do odczytu)")
     try:
@@ -344,7 +332,6 @@ if st.session_state['lock_status'] == 'readonly':
     except Exception:
         st.info("Podgląd niedostępny w trybie read-only.")
 
-    # ZATRZYMUJEMY TUTAJ — nie renderujemy reszty UI ani auto-save
     st.stop()
 
 # ---------------------------------------------------------------------------
