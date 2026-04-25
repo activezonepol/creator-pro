@@ -12,6 +12,7 @@ NAPRAWIONO: StreamlitValueAssignmentNotAllowedError - buttony atrakcji → selec
 import re
 import json
 import base64
+import uuid
 from datetime import date, datetime
 import time
 
