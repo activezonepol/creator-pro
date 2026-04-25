@@ -960,6 +960,9 @@ with col_form:
     # MAPA PODRÓŻY
     # -----------------------------------------------------------------------
     elif page == "Mapa Podróży":
+        _guard(["map_hide", "map_overline", "map_title", "map_subtitle", "map_desc",  # ← DODAJ
+                "map_zoom", "num_map_points", "map_dist_title",                        # ← DODAJ
+                "ors_api_key", "num_dist_pairs"])                                      # ← DODAJ
         map_keys = [
             'map_hide', 'map_overline', 'map_title', 'map_subtitle', 'map_desc',
             'img_map_bg', 'map_zoom', 'num_map_points', 'img_map_bg_auto', 'auto_map_points',
@@ -1140,6 +1143,11 @@ with col_form:
     # ZAKWATEROWANIE
     # -----------------------------------------------------------------------
     elif page == "Zakwaterowanie":
+        _guard(["num_hotels", "hotel_order"])                                          # ← DODAJ
+        for _hi in range(st.session_state.get("num_hotels", 1)):                      # ← DODAJ
+            _guard([f"h_hide_{_hi}", f"h_overline_{_hi}", f"h_title_{_hi}",          # ← DODAJ
+                    f"h_subtitle_{_hi}", f"h_url_{_hi}", f"h_booking_{_hi}",          # ← DODAJ
+                    f"h_amenities_{_hi}", f"h_text_{_hi}", f"h_advantages_{_hi}"])    # ← DODAJ
 
         st.number_input("Liczba hoteli:", 1, 3, step=1, key="num_hotels")
         _rebuild_slide_order()
@@ -1237,6 +1245,9 @@ with col_form:
     # PROGRAM WYJAZDU
     # -----------------------------------------------------------------------
     elif page == "Program Wyjazdu":
+        _guard(["prg_hide", "num_days", "p_start_dt"])                                # ← DODAJ
+        for _d in range(st.session_state.get("num_days", 4)):                         # ← DODAJ
+            _guard([f"attr_{_d}", f"desc_{_d}"])                                      # ← DODAJ
 
         st.checkbox("Ukryj CAŁĄ sekcję Programu w PDF", key="prg_hide")
         st.number_input("Ilość dni:", 1, 15, step=1, key="num_days")
