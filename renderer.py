@@ -322,8 +322,48 @@ _COLOR_KEYS = {'color_h1', 'color_h2', 'color_sub', 'color_accent', 'color_text'
 _SIZE_KEYS = {'font_size_h1', 'font_size_h2', 'font_size_sub', 'font_size_text', 'font_size_metric'}
 
 
-def load_project_data(data: dict):
-    for k, v in data.items():
+def load_project_data(project_data: dict):
+    """
+    Wczytuje dane do session_state — TYLKO dla kluczy które jeszcze
+    nie istnieją. Po pierwszym wczytaniu (przy starcie sesji) session_state
+    staje się samodzielnym źródłem prawdy. Widgety zachowują swój stan
+    przez stabilne klucze, a baza służy wyłącznie do persystencji.
+
+    Specjalny przypadek: gdy klucz JUŻ istnieje w session_state z None,
+    a w bazie jest poprawna wartość — wczytujemy (bo None oznacza "brak
+    inicjalizacji", nie "świadomy wybór użytkownika").
+    """
+    # Klucze zarezerwowane dla Streamlit (przyciski/widżety) — nie wczytujemy
+    forbidden_keys = {
+        'manual_save_btn', 'attr_add_btn', 'nav_top_radio', 'nav_bot_radio',
+        'btn_add_attraction_main', 'last_page', 'up_export',
+        '_data_loaded_once', '_debug_loaded',
+    }
+    forbidden_prefixes = (
+        'attrnav_', 'attrup_', 'attrdn_', 'attrdel_',
+        'btn_', 'up_', 'dl_',
+    )
+
+    for k, v in project_data.items():
+        # 1. Pomijamy klucze przycisków i kontrolek Streamlit
+        if k in forbidden_keys:
+            continue
+        if any(k.startswith(p) for p in forbidden_prefixes):
+            continue
+
+        # 2. None w bazie nie nadpisuje niczego
+        if v is None:
+            continue
+
+        # 3. KLUCZOWA ZASADA: wczytujemy TYLKO jeśli klucza jeszcze nie ma
+        # w session_state. Jeśli widget już go ustawił — zostawiamy w spokoju.
+        # Wyjątek: jeśli klucz istnieje ale ma wartość None, traktujemy to
+        # jak brak inicjalizacji.
+        current = st.session_state.get(k, '__MISSING__')
+        if current != '__MISSING__' and current is not None:
+            continue
+
+        # 4. Specjalistyczne typy
         if k in IMAGE_KEYS and isinstance(v, str):
             try:
                 st.session_state[k] = base64.b64decode(v)
@@ -334,18 +374,6 @@ def load_project_data(data: dict):
                 st.session_state[k] = date.fromisoformat(v)
             except Exception:
                 pass
-        elif k in _COLOR_KEYS:
-            # Upewnij się że kolor jest w formacie #RRGGBB
-            if isinstance(v, str) and v.startswith('#') and len(v) == 7:
-                st.session_state[k] = v
-            else:
-                st.session_state[k] = defaults.get(k, '#000000')
-        elif k in _SIZE_KEYS:
-            # Upewnij się że rozmiar to int > 0
-            try:
-                st.session_state[k] = max(8, int(float(v)))
-            except Exception:
-                st.session_state[k] = defaults.get(k, 14)
         else:
             st.session_state[k] = v
 
