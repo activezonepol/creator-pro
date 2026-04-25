@@ -714,13 +714,14 @@ with st.sidebar:
 
     # Nawigacja dolna — RADIO
     _bot_index = _nav_bot.index(_last) if _last in _nav_bot else 0
-    st.radio(
+   st.radio(
         "Nawigacja dolna",
         _nav_bot,
         index=_bot_index,
         key="nav_bot_radio",
         label_visibility="collapsed",
         on_change=lambda: (st.session_state.update({'last_page': st.session_state['nav_bot_radio']}), save_to_supabase())
+    )
 
     # Nagłówek zakładki (używa _last który jest już zdefiniowany)
     _inter_pages = {"  ↳ Przerywnik hotel", "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}
