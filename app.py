@@ -1447,9 +1447,9 @@ with col_form:
     # KOSZTORYS
     # -----------------------------------------------------------------------
     elif page == "Kosztorys":
-        _guard(["koszt_hide_1", "koszt_hide_2", "koszt_h1_title", "koszt_title",  # ← DODAJ
-                "koszt_pax", "koszt_price", "koszt_hotel", "koszt_dbl", "koszt_sgl",  # ← DODAJ
-                "koszt_zawiera_1", "koszt_zawiera_2", "koszt_nie_zawiera", "koszt_opcje"])  # ← DODAJ
+        _guard(["koszt_hide_1", "koszt_hide_2", "koszt_h1_title", "koszt_title",
+                "koszt_pax", "koszt_price", "koszt_hotel", "koszt_dbl", "koszt_sgl",
+                "koszt_zawiera_1", "koszt_zawiera_2", "koszt_nie_zawiera", "koszt_opcje"])
         koszt_keys = [
             'koszt_hide_1', 'koszt_hide_2', 'koszt_h1_title', 'koszt_title',
             'koszt_pax', 'koszt_price', 'koszt_hotel', 'koszt_dbl', 'koszt_sgl',
