@@ -1339,7 +1339,10 @@ with col_form:
                                        on_change=set_focus, args=(f"attr_{_i}",))
             if _uat3: st.session_state[f"at3_{_i}"] = optimize_img(_uat3.getvalue())
 
-   elif page == "Aplikacja (Komunikacja)":
+    # -----------------------------------------------------------------------
+    # APLIKACJA (KOMUNIKACJA)
+    # -----------------------------------------------------------------------
+    elif page == "Aplikacja (Komunikacja)":
         _guard(["app_hide", "app_overline", "app_title",  
                 "app_subtitle", "app_features"])           
         app_keys = [
@@ -1562,9 +1565,6 @@ with col_form:
                 if u_team:
                     st.session_state[f"t_img_{i}"] = optimize_img(u_team.getvalue())
 
-    # -----------------------------------------------------------------------
-    # WYGLĄD I KOLORY
-    # -----------------------------------------------------------------------
     # -----------------------------------------------------------------------
     # WYGLĄD I KOLORY
     # -----------------------------------------------------------------------
