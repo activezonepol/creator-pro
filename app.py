@@ -714,7 +714,7 @@ with st.sidebar:
 
     # Nawigacja dolna — RADIO
     _bot_index = _nav_bot.index(_last) if _last in _nav_bot else 0
-   st.radio(
+    st.radio(
         "Nawigacja dolna",
         _nav_bot,
         index=_bot_index,
