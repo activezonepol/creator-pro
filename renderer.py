@@ -29,52 +29,20 @@ from PIL import Image, ImageOps
 # ---------------------------------------------------------------------------
 def get_data(key, default=None):
     """
-    Bezpieczny odczyt danych z session_state z fallback do Supabase.
-    
-    Kolejność:
-    1. Sprawdź session_state
-    2. Jeśli brak, spróbuj załadować z Supabase
-    3. Jeśli brak w bazie, zwróć default
-    
-    Args:
-        key: Klucz danych (np. 't_main', 'img_hero_t')
-        default: Wartość domyślna jeśli brak danych
-    
-    Returns:
-        Wartość z session_state lub Supabase lub default
+    Bezpieczny odczyt danych z session_state.
+    Supabase jest ładowany tylko raz przy starcie w app.py.
     """
     # 1. Sprawdź session_state
     if key in st.session_state and st.session_state[key] is not None:
         return st.session_state[key]
-    
-    # 2. Fallback do Supabase (tylko jeśli Supabase jest dostępny)
-    if '_supabase_data' not in st.session_state:
-        # Cache danych z Supabase na czas trwania sesji
-        try:
-            from supabase import create_client
-            url = st.secrets["supabase"]["url"]
-            api_key = st.secrets["supabase"]["key"]
-            supabase = create_client(url, api_key)
-            
-            result = supabase.table('projects').select('data').eq(
-                'user_email', 'default_user'
-            ).order('updated_at', desc=True).limit(1).execute()
-            
-            if result.data and result.data[0].get('data'):
-                st.session_state['_supabase_data'] = result.data[0]['data']
-            else:
-                st.session_state['_supabase_data'] = {}
-        except Exception:
-            st.session_state['_supabase_data'] = {}
-    
-    # 3. Sprawdź cache Supabase
+
+    # 2. Sprawdź cache Supabase (załadowany przy starcie w app.py)
     supabase_data = st.session_state.get('_supabase_data', {})
     if key in supabase_data:
-        # Wczytaj do session_state dla kolejnych wywołań
         st.session_state[key] = supabase_data[key]
         return supabase_data[key]
-    
-    # 4. Zwróć default
+
+    # 3. Zwróć default
     return default
 
 # ---------------------------------------------------------------------------
