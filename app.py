@@ -900,7 +900,7 @@ with col_form:
             ('t_kierunek', 'Kierunek'), ('t_pax', 'Liczba osób'),
             ('t_hotel', 'Hotel'), ('t_trans', 'Dojazd'),
         ]:
-            st.text_input(l, key=k, on_change=save_to_supabase)
+            st.text_input(l, key=k)
         u1 = st.file_uploader("Zdjęcie główne (4:5)", key="tyt_hero")
         if u1:
             st.session_state['img_hero_t'] = optimize_img(u1.getvalue())
