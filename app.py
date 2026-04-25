@@ -893,7 +893,7 @@ with col_form:
         ]
         section_template_manager(tit_keys, "TYT", "strona-tytulowa", "tit")
         st.text_input("Termin:", key="t_date", on_change=lambda: (parse_date_and_days(), save_to_supabase()))
-        st.selectbox("Kraj docelowy:", list(COUNTRIES_DICT.keys()), key="country_name", on_change=save_to_supabase)
+        st.selectbox("Kraj docelowy:", list(COUNTRIES_DICT.keys()), key="country_name")
         st.session_state['country_code'] = COUNTRIES_DICT[st.session_state['country_name']]
         for k, l in [
             ('t_main', 'Tytuł H1'), ('t_sub', 'Podtytuł'), ('t_klient', 'Klient'),
@@ -914,7 +914,7 @@ with col_form:
         if u3:
             st.session_state['logo_cli'] = optimize_logo(u3.getvalue())
             save_to_supabase()
-        c2.checkbox("Ukryj logo klienta na stronie tytułowej", key="hide_logo_cli", on_change=save_to_supabase)
+        c2.checkbox("Ukryj logo klienta na stronie tytułowej", key="hide_logo_cli")
 
     # -----------------------------------------------------------------------
     # OPIS KIERUNKU
