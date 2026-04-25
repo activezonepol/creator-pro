@@ -185,6 +185,15 @@ for _k, _v in _SIZE_DEFS.items():
         st.session_state[_k] = _v
 
 # ---------------------------------------------------------------------------
+# OCHRONA DANYCH PRZY ZMIANIE STRONY
+# ---------------------------------------------------------------------------
+def _guard(keys):
+    """Przywraca klucze do session_state jeśli Streamlit je usunął."""
+    for _k in keys:
+        if _k not in st.session_state:
+            st.session_state[_k] = defaults.get(_k, "")
+            
+# ---------------------------------------------------------------------------
 # HELPERY UI
 # ---------------------------------------------------------------------------
 
