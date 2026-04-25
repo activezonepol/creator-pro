@@ -721,8 +721,7 @@ with st.sidebar:
         index=_bot_index,
         key="nav_bot_radio",
         label_visibility="collapsed",
-        on_change=lambda: (st.session_state.update({'last_page': st.session_state['nav_bot_radio']}), save_to_supabase())
-    )
+        on_change=lambda: st.session_state.update({'last_page': st.session_state['nav_bot_radio']})
 
     # Nagłówek zakładki (używa _last który jest już zdefiniowany)
     _inter_pages = {"  ↳ Przerywnik hotel", "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}
