@@ -159,50 +159,6 @@ for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
-    # ---------------------------------------------------------------------------
-# AUTO-SAVE DO SUPABASE - Bezpieczny upsert z ID
-# ---------------------------------------------------------------------------
-if 'last_supabase_save' not in st.session_state:
-    st.session_state['last_supabase_save'] = 0
-
-current_time = time.time()
-# Auto-save co 10 sekund (nie 2s - za częste zapisy obciążają bazę)
-if current_time - st.session_state['last_supabase_save'] > 10:
-    try:
-        project_data = _build_proj_dict()
-        project_name = st.session_state.get('t_main', 'Nowy projekt')
-        
-        # Sprawdź czy istnieje rekord dla tego użytkownika
-        existing = supabase.table('projects').select('id').eq(
-            'user_email', 'default_user'
-        ).order('updated_at', desc=True).limit(1).execute()
-        
-        if existing.data:
-            # UPDATE istniejącego rekordu
-            project_id = existing.data[0]['id']
-            supabase.table('projects').update({
-                'project_name': project_name,
-                'data': project_data,
-                'updated_at': datetime.now().isoformat()
-            }).eq('id', project_id).execute()
-        else:
-            # INSERT nowego rekordu
-            supabase.table('projects').insert({
-                'user_email': 'default_user',
-                'project_name': project_name,
-                'data': project_data,
-                'updated_at': datetime.now().isoformat()
-            }).execute()
-        
-        st.session_state['last_supabase_save'] = current_time
-        # Status zapisu (widoczny dla użytkownika)
-        save_time = datetime.now().strftime('%H:%M:%S')
-        st.session_state['last_save_status'] = f"✅ Zapisano {save_time}"
-        st.session_state['last_save_count'] = len(project_data)
-    except Exception as e:
-        # Cichy błąd - nie przerywaj renderowania
-        st.session_state['last_save_status'] = f"❌ {str(e)[:50]}"
-
 # Pokaż status load w sidebarze (debug)
 if '_debug_loaded' in st.session_state:
     with st.sidebar:
@@ -596,10 +552,55 @@ if st.session_state['client_mode']:
         st.rerun()
     build_presentation()
     st.stop()
+    
+# ---------------------------------------------------------------------------
+# AUTO-SAVE DO SUPABASE - Bezpieczny upsert z ID
+# ---------------------------------------------------------------------------
+if 'last_supabase_save' not in st.session_state:
+    st.session_state['last_supabase_save'] = 0
 
+current_time = time.time()
+# Auto-save co 10 sekund (nie 2s - za częste zapisy obciążają bazę)
+if current_time - st.session_state['last_supabase_save'] > 10:
+    try:
+        project_data = _build_proj_dict()
+        project_name = st.session_state.get('t_main', 'Nowy projekt')
+        
+        # Sprawdź czy istnieje rekord dla tego użytkownika
+        existing = supabase.table('projects').select('id').eq(
+            'user_email', 'default_user'
+        ).order('updated_at', desc=True).limit(1).execute()
+        
+        if existing.data:
+            # UPDATE istniejącego rekordu
+            project_id = existing.data[0]['id']
+            supabase.table('projects').update({
+                'project_name': project_name,
+                'data': project_data,
+                'updated_at': datetime.now().isoformat()
+            }).eq('id', project_id).execute()
+        else:
+            # INSERT nowego rekordu
+            supabase.table('projects').insert({
+                'user_email': 'default_user',
+                'project_name': project_name,
+                'data': project_data,
+                'updated_at': datetime.now().isoformat()
+            }).execute()
+        
+        st.session_state['last_supabase_save'] = current_time
+        # Status zapisu (widoczny dla użytkownika)
+        save_time = datetime.now().strftime('%H:%M:%S')
+        st.session_state['last_save_status'] = f"✅ Zapisano {save_time}"
+        st.session_state['last_save_count'] = len(project_data)
+    except Exception as e:
+        # Cichy błąd - nie przerywaj renderowania
+        st.session_state['last_save_status'] = f"❌ {str(e)[:50]}"
+        
 # ---------------------------------------------------------------------------
 # SIDEBAR — NAWIGACJA
 # ---------------------------------------------------------------------------
+    
 with st.sidebar:
     # ---------------------------------------------------------------------------
     # STATUS AUTO-SAVE (na samej górze - zawsze widoczny)
