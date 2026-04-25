@@ -709,6 +709,7 @@ page = _last
 col_save, col_add = st.columns([1, 1])
 
 with col_save:
+    if "manual_save_btn" in st.session_state: del st.session_state["manual_save_btn"]
     if st.button("💾 ZAPISZ TERAZ", use_container_width=True, type="primary", key="manual_save_btn"):
         try:
             project_data = _build_proj_dict()
