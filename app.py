@@ -673,7 +673,7 @@ with st.sidebar:
         index=_top_index,
         key="nav_top_radio",
         label_visibility="collapsed",
-        on_change=lambda: (st.session_state.update({'last_page': st.session_state['nav_top_radio']}), save_to_supabase())
+        on_change=lambda: st.session_state.update({'last_page': st.session_state['nav_top_radio']})
     )
     # --- SEKCJA ATRAKCJI wbudowana w nawigację ---
     # Przycisk ＋ DODAJ ATRAKCJE/MIEJSCE
