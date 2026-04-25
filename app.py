@@ -1781,11 +1781,9 @@ with col_form:
 # GŁÓWNA ZAWARTOŚĆ — PODGLĄD PREZENTACJI
 # ---------------------------------------------------------------------------
 with col_preview:
+
     _acc = st.session_state.get('color_accent', '#FF6600')
+
     st.markdown(f"<h3 style='color:{_acc};font-size:16px;margin-bottom:20px;'>PODGLĄD SLAJDU</h3>", unsafe_allow_html=True)
 
-    @st.fragment
-    def _preview():
-        build_presentation(page)
-
-    _preview()
+    build_presentation(page)
