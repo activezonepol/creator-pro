@@ -1758,4 +1758,9 @@ if '_debug_loaded' in st.session_state:
 with col_preview:
     _acc = st.session_state.get('color_accent', '#FF6600')
     st.markdown(f"<h3 style='color:{_acc};font-size:16px;margin-bottom:20px;'>PODGLĄD SLAJDU</h3>", unsafe_allow_html=True)
-    build_presentation(page)
+
+    @st.fragment
+    def _preview():
+        build_presentation(page)
+
+    _preview()
