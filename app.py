@@ -587,6 +587,7 @@ if current_time - st.session_state['last_supabase_save'] > 10:
         save_time = datetime.now().strftime('%H:%M:%S')
         st.session_state['last_save_status'] = f"✅ Zapisano {save_time}"
         st.session_state['last_save_count'] = len(project_data)
+        st.session_state['_project_data'] = {k: v for k, v in project_data.items() if not isinstance(v, bytes)}
     except Exception as e:
         # Cichy błąd - nie przerywaj renderowania
         st.session_state['last_save_status'] = f"❌ {str(e)[:50]}"
@@ -780,6 +781,7 @@ with col_save:
             save_time = datetime.now().strftime('%H:%M:%S')
             st.session_state['last_save_status'] = f"✅ Zapisano ręcznie {save_time}"
             st.session_state['last_save_count'] = len(project_data)
+            st.session_state['_project_data'] = {k: v for k, v in project_data.items() if not isinstance(v, bytes)}
             st.session_state['last_supabase_save'] = time.time()
             st.success("✅ Projekt zapisany!")
             st.rerun()
