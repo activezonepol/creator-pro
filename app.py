@@ -139,6 +139,7 @@ if '_loaded_from_supabase' not in st.session_state:
             load_project_data(project_data)
             loaded_t_main = st.session_state.get('t_main', '???')
             st.session_state['_debug_loaded'] = f"📥 Wczytano {len(project_data)} kluczy (usunięto {len(keys_to_remove)} widgetów), w tym {len(text_keys)} tekstów t_* | t_main='{loaded_t_main}'"
+            st.session_state['_project_data'] = {k: v for k, v in project_data.items() if not isinstance(v, bytes)}
         else:
             st.session_state['_debug_loaded'] = "📥 Brak danych w bazie - użyto defaults"
     except Exception as e:
