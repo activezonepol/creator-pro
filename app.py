@@ -628,27 +628,7 @@ current_time = time.time()
 
 if current_time - st.session_state['last_supabase_save'] > 10:
     _save_texts_to_db()
-    try:
-        project_data = _build_proj_dict()
-        project_name = st.session_state.get('t_main', 'Nowy projekt')
-        
-        supabase.table('projects').upsert({
-            'user_email': 'default_user',
-            'project_name': project_name,
-            'data': project_data,
-            'updated_at': datetime.now().isoformat()
-        }, on_conflict='user_email').execute()
-        
-        st.session_state['last_supabase_save'] = current_time
-        # Status zapisu (widoczny dla użytkownika)
-        save_time = datetime.now().strftime('%H:%M:%S')
-        st.session_state['last_save_status'] = f"✅ Zapisano {save_time}"
-        st.session_state['last_save_count'] = len(project_data)
-        st.session_state['_project_data'] = {k: v for k, v in project_data.items() if not isinstance(v, bytes)}
-    except Exception as e:
-        # Cichy błąd - nie przerywaj renderowania
-        st.session_state['last_save_status'] = f"❌ {str(e)[:50]}"
-        
+            
 # ---------------------------------------------------------------------------
 # SIDEBAR — NAWIGACJA
 # ---------------------------------------------------------------------------
