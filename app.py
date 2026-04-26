@@ -560,27 +560,12 @@ if current_time - st.session_state['last_supabase_save'] > 10:
         project_data = _build_proj_dict()
         project_name = st.session_state.get('t_main', 'Nowy projekt')
         
-        # Sprawdź czy istnieje rekord dla tego użytkownika
-        existing = supabase.table('projects').select('id').eq(
-            'user_email', 'default_user'
-        ).order('updated_at', desc=True).limit(1).execute()
-        
-        if existing.data:
-            # UPDATE istniejącego rekordu
-            project_id = existing.data[0]['id']
-            supabase.table('projects').update({
-                'project_name': project_name,
-                'data': project_data,
-                'updated_at': datetime.now().isoformat()
-            }).eq('id', project_id).execute()
-        else:
-            # INSERT nowego rekordu
-            supabase.table('projects').insert({
-                'user_email': 'default_user',
-                'project_name': project_name,
-                'data': project_data,
-                'updated_at': datetime.now().isoformat()
-            }).execute()
+       supabase.table('projects').upsert({
+            'user_email': 'default_user',
+            'project_name': project_name,
+            'data': project_data,
+            'updated_at': datetime.now().isoformat()
+        }, on_conflict='user_email').execute()
         
         st.session_state['last_supabase_save'] = current_time
         # Status zapisu (widoczny dla użytkownika)
