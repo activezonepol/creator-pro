@@ -733,24 +733,12 @@ with col_save:
             project_data = _build_proj_dict()
             project_name = st.session_state.get('t_main', 'Nowy projekt')
             
-            existing = supabase.table('projects').select('id').eq(
-                'user_email', 'default_user'
-            ).order('updated_at', desc=True).limit(1).execute()
-            
-            if existing.data:
-                project_id = existing.data[0]['id']
-                supabase.table('projects').update({
-                    'project_name': project_name,
-                    'data': project_data,
-                    'updated_at': datetime.now().isoformat()
-                }).eq('id', project_id).execute()
-            else:
-                supabase.table('projects').insert({
-                    'user_email': 'default_user',
-                    'project_name': project_name,
-                    'data': project_data,
-                    'updated_at': datetime.now().isoformat()
-                }).execute()
+            supabase.table('projects').upsert({
+                'user_email': 'default_user',
+                'project_name': project_name,
+                'data': project_data,
+                'updated_at': datetime.now().isoformat()
+            }, on_conflict='user_email').execute()
             
             save_time = datetime.now().strftime('%H:%M:%S')
             st.session_state['last_save_status'] = f"✅ Zapisano ręcznie {save_time}"
