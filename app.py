@@ -158,6 +158,11 @@ if '_loaded_from_supabase' not in st.session_state:
 # ---------------------------------------------------------------------------
 
 # Wymagane dla 4 przerywników zdefiniowanych na sztywno
+_project_snapshot = st.session_state.get('_project_data', {})
+_restore_source = {**defaults, **_project_snapshot}
+for _k, _v in _restore_source.items():
+    if _k not in st.session_state:
+        st.session_state[_k] = _v
 st.session_state.setdefault('num_sekcje', 4)
 
 # Wymuszenie poprawnych typów — color_picker wymaga #RRGGBB, number_input wymaga int.
