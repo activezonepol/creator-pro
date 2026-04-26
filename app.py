@@ -960,37 +960,44 @@ with col_form:
             st.session_state[f"sek_2_img"] = optimize_img(_up_s.getvalue())
 
     elif page == "Strona Tytułowa":
-        _guard(["t_date", "country_name", "country_code", "t_main", "t_sub",  
-                "t_klient", "t_kierunek", "t_pax", "t_hotel", "t_trans", "hide_logo_cli"])  
-        tit_keys = [
-            't_date', 'country_name', 'country_code', 't_main', 't_sub',
-            't_klient', 't_kierunek', 't_pax', 't_hotel', 't_trans',
-            'img_hero_t', 'logo_az', 'logo_cli', 'hide_logo_cli',
-        ]
-        section_template_manager(tit_keys, "TYT", "strona-tytulowa", "tit")
-        st.text_input("Termin:", key="t_date", on_change=lambda: (parse_date_and_days(), save_to_supabase()))
-        st.selectbox("Kraj docelowy:", list(COUNTRIES_DICT.keys()), key="country_name")
-        st.session_state['country_code'] = COUNTRIES_DICT[st.session_state['country_name']]
-        for k, l in [
-            ('t_main', 'Tytuł H1'), ('t_sub', 'Podtytuł'), ('t_klient', 'Klient'),
-            ('t_kierunek', 'Kierunek'), ('t_pax', 'Liczba osób'),
-            ('t_hotel', 'Hotel'), ('t_trans', 'Dojazd'),
-        ]:
-            st.text_input(l, key=k)
-        u1 = st.file_uploader("Zdjęcie główne (4:5)", key="tyt_hero")
-        if u1:
-            st.session_state['img_hero_t'] = optimize_img(u1.getvalue())
-            save_to_supabase()
-        c1, c2 = st.columns(2)
-        u2 = c1.file_uploader("Logo Firmy", key="tyt_logo_az")
-        if u2:
-            st.session_state['logo_az'] = optimize_logo(u2.getvalue())
-            save_to_supabase()
-        u3 = c2.file_uploader("Logo Klienta", key="tyt_logo_cli")
-        if u3:
-            st.session_state['logo_cli'] = optimize_logo(u3.getvalue())
-            save_to_supabase()
-        c2.checkbox("Ukryj logo klienta na stronie tytułowej", key="hide_logo_cli")
+    _guard(["t_date", "country_name", "country_code", "t_main", "t_sub",  
+            "t_klient", "t_kierunek", "t_pax", "t_hotel", "t_trans", "hide_logo_cli"])  
+    tit_keys = [
+        't_date', 'country_name', 'country_code', 't_main', 't_sub',
+        't_klient', 't_kierunek', 't_pax', 't_hotel', 't_trans',
+        'img_hero_t', 'logo_az', 'logo_cli', 'hide_logo_cli',
+    ]
+    section_template_manager(tit_keys, "TYT", "strona-tytulowa", "tit")
+    
+    # Uwaga: Jeśli parse_date_and_days nadal wymaga save_to_supabase(), 
+    # dodaj je wewnątrz swojej funkcji parse_date_and_days zamiast tutaj.
+    st.text_input("Termin:", key="t_date", on_change=lambda: parse_date_and_days())
+    
+    st.selectbox("Kraj docelowy:", list(COUNTRIES_DICT.keys()), key="country_name")
+    st.session_state['country_code'] = COUNTRIES_DICT[st.session_state['country_name']]
+    
+    for k, l in [
+        ('t_main', 'Tytuł H1'), ('t_sub', 'Podtytuł'), ('t_klient', 'Klient'),
+        ('t_kierunek', 'Kierunek'), ('t_pax', 'Liczba osób'),
+        ('t_hotel', 'Hotel'), ('t_trans', 'Dojazd'),
+    ]:
+        st.text_input(l, key=k)
+        
+    u1 = st.file_uploader("Zdjęcie główne (4:5)", key="tyt_hero")
+    if u1:
+        save_image_to_session_and_storage('img_hero_t', u1.getvalue())
+        
+    c1, c2 = st.columns(2)
+    
+    u2 = c1.file_uploader("Logo Firmy", key="tyt_logo_az")
+    if u2:
+        save_image_to_session_and_storage('logo_az', u2.getvalue(), is_logo=True)
+        
+    u3 = c2.file_uploader("Logo Klienta", key="tyt_logo_cli")
+    if u3:
+        save_image_to_session_and_storage('logo_cli', u3.getvalue(), is_logo=True)
+        
+    c2.checkbox("Ukryj logo klienta na stronie tytułowej", key="hide_logo_cli")
 
     # -----------------------------------------------------------------------
     # OPIS KIERUNKU
