@@ -588,6 +588,14 @@ def save_to_supabase():
     """Zapisz projekt do Supabase - wywołuj w on_change inputów"""
     _save_texts_to_db()
 
+# MIGRACJA: jednorazowa, po zdefiniowaniu wszystkich funkcji
+if not st.session_state.get('_migration_done'):
+    migrated = migrate_bytes_to_storage(supabase)
+    if migrated:
+        _save_texts_to_db()
+        st.session_state['_debug_loaded'] = st.session_state.get('_debug_loaded', '') + f" | Zmigrowano {len(migrated)} zdjęć do Storage"
+    st.session_state['_migration_done'] = True
+
 # ---------------------------------------------------------------------------
 # TRYB KLIENTA
 # ---------------------------------------------------------------------------
