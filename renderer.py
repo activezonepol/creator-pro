@@ -529,22 +529,20 @@ def get_b64_cached(raw_bytes, ratio):
 
 
 def get_b64(key, ratio=(4, 5)):
+    """
+    Pobiera zdjęcie z session_state.
+    Obsługuje dwa formaty:
+    - bytes: stary format (przed migracją) → przetwarza przez get_b64_cached
+    - str URL: nowy format (po migracji do Storage) → zwraca URL bezpośrednio
+    """
     r = st.session_state.get(key)
     if not r:
         return None
-    return get_b64_cached(r, ratio)
-
-
-@st.cache_data(max_entries=20)
-def get_logo_b64(raw_bytes):
-    if not raw_bytes:
-        return None
-    try:
-        if isinstance(raw_bytes, str):
-            return raw_bytes
-        return base64.b64encode(raw_bytes).decode('utf-8')
-    except Exception:
-        return None
+    if isinstance(r, str) and r.startswith('http'):
+        return r  # URL - zwracamy bezpośrednio
+    if isinstance(r, bytes):
+        return get_b64_cached(r, ratio)  # bytes - przetwarzamy jak dotychczas
+    return None
 
 
 # ---------------------------------------------------------------------------
