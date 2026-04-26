@@ -977,7 +977,10 @@ def _lhtml():
     b64 = get_logo_b64(st.session_state.get('logo_az'))
     if not b64:
         return ""
-    return f'<div class="top-right-logo-container"><img src="data:image/png;base64,{b64}"></div>'
+    
+    # Używamy _logo_tag, co automatycznie zadba o poprawny format src
+    # i zachowuje strukturę Twojego kontenera
+    return f'<div class="top-right-logo-container">{_logo_tag(b64)}</div>'
 
 
 def _fhtml():
