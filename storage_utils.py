@@ -98,11 +98,18 @@ def upload_image(supabase_client, key: str, raw_bytes: bytes,
             pass  # Plik może nie istnieć - OK
 
         # Upload nowego pliku
-        supabase_client.storage.from_(STORAGE_BUCKET).upload(
-            path=storage_path,
-            file=optimized_bytes,
-            file_options={"content-type": content_type, "upsert": "true"}
-        )
+        try:
+            supabase_client.storage.from_(STORAGE_BUCKET).upload(
+                path=storage_path,
+                file=optimized_bytes,
+                file_options={"content-type": content_type}
+            )
+        except Exception:
+            supabase_client.storage.from_(STORAGE_BUCKET).update(
+                path=storage_path,
+                file=optimized_bytes,
+                file_options={"content-type": content_type}
+            )
 
         # 3. Pobierz publiczny URL
         url_response = supabase_client.storage.from_(STORAGE_BUCKET).get_public_url(storage_path)
