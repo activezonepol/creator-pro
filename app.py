@@ -369,6 +369,41 @@ def _build_proj_dict():
             pass
     return proj
 
+def _build_text_dict():
+    """
+    Serializuje session_state do słownika BEZ zdjęć — tylko teksty i konfiguracja.
+    Używany przez auto-save co 10s. Mały JSON (<50KB), szybki zapis.
+    Zdjęcia są URL-ami w Storage — ich stringi WCHODZĄ do tego słownika.
+    Bytes (stary format przed migracją) są pomijane.
+    """
+    proj = {}
+    skip_prefixes = ('FormSubmitter', '$$', 'up_', 'fn_', 'dl_', 'btn_', 'sb_',
+                     'pa_add_', 'sek_img_up', 'attr_add_btn', 'attrnav_',
+                     'attrup_', 'attrdn_', 'attrdel_', 'attr_select',
+                     'nav_top_radio', 'nav_bot_radio')
+    internal_keys = {'_session_id', '_ls_loaded', '_ls_restore', '_scroll_pos',
+                     'ready_export_html', 'show_link_info', '_attr_focused',
+                     'STATE_BACKUP', '_supabase_data', '_loaded_from_supabase',
+                     'last_supabase_save', 'last_save_status', '_user_edited',
+                     '_debug_loaded', '_project_data'}
+
+    for k, v in st.session_state.items():
+        if k in EXCLUDE_EXPORT_KEYS or k in internal_keys:
+            continue
+        if any(k.startswith(p) for p in skip_prefixes):
+            continue
+        # Pomijamy bytes (zdjęcia w starym formacie)
+        if isinstance(v, bytes):
+            continue
+        try:
+            if isinstance(v, (date, datetime)):
+                proj[k] = v.isoformat()
+            elif isinstance(v, (str, int, float, bool, list, dict)) or v is None:
+                proj[k] = v
+        except Exception:
+            pass
+    return proj
+
 
 def _validate_and_load_json(uploaded_file, expected_keys=None):
     """
