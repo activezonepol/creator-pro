@@ -1663,16 +1663,17 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             p_sub  = str(get_data(f'psub_{i}')  or '').replace(chr(10), '<br>')
             p_opis = str(get_data(f'popis_{i}') or '').replace(chr(10), '<br>')
 
-            <div class="gallery-row" style="padding-top:0; padding-bottom:5px;">
-                        <div class="gallery-thumb">
-                            {_img_tag(tk1_p, 'FOT 1', 'width:100%;height:100%;object-fit:cover;')}
-                        </div>
-                        <div class="gallery-thumb">
-                            {_img_tag(tk2_p, 'FOT 2', 'width:100%;height:100%;object-fit:cover;')}
-                        </div>
-                        <div class="gallery-thumb">
-                            {_img_tag(tk3_p, 'FOT 3', 'width:100%;height:100%;object-fit:cover;')}
-                        </div>
+            hp.append(_shtml(f"""{lh}<div class="premium-layout" id="place_{i}">
+                <div class="photo-col">{imk_p}{bb_p}</div>
+                <div class="info-col" style="padding-top:30px; justify-content:flex-start;">
+                    <div class="app-overline-style" style="margin-bottom:15px;"><span>{p_over}</span></div>
+                    <div class="title-h1" style="margin-bottom:5px; font-size:{fs_h1_val-6}px;">{p_main}</div>
+                    <div class="title-sub" style="margin-bottom:15px;">{p_sub}</div>
+                    <div style="flex-grow:1;"><p style="font-size:{fs_t}px; line-height:1.6; color:{c_t};">{p_opis}</p></div>
+                    <div class="gallery-row" style="padding-top:0; padding-bottom:5px;">
+                        <div class="gallery-thumb">{_img_tag(tk1_p, 'FOT 1', 'width:100%;height:100%;object-fit:cover;')}</div>
+                        <div class="gallery-thumb">{_img_tag(tk2_p, 'FOT 2', 'width:100%;height:100%;object-fit:cover;')}</div>
+                        <div class="gallery-thumb">{_img_tag(tk3_p, 'FOT 3', 'width:100%;height:100%;object-fit:cover;')}</div>
                     </div>
                 </div>
             </div>{fh}""", f"place_{i}"))
