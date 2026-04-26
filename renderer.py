@@ -1082,8 +1082,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
 
     # --- Slajd tytułowy ---
     i1 = get_b64('img_hero_t', (4, 5))
-    im1 = (f"<img src='data:image/jpeg;base64,{i1}' style='width:100%;height:100%;object-fit:cover;'>"
-           if i1 else _get_ph('ZDJĘCIE GŁÓWNE'))
+    im1 = _img_tag(i1, 'ZDJĘCIE GŁÓWNE')
     rcli = get_data('logo_cli')
     hide_cli = get_data('hide_logo_cli', False)
     lcli_b64 = get_logo_b64(rcli)
