@@ -1721,8 +1721,6 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         iscr = get_b64('img_app_screen', (9, 16))
         scr_html = _img_tag(iscr, 'EKRAN APP', 'width:100%;height:100%;object-fit:contain;object-position:top;display:block;background:#fff;')
         # object-fit:contain żeby ekran nie był przycinany, object-position:top żeby góra była widoczna
-        scr_html = (f'<img class="phone-screen" src="data:image/jpeg;base64,{iscr}" style="width:100%;height:100%;object-fit:contain;object-position:top;display:block;background:#fff;">'
-                    if iscr else '<div class="photo-placeholder" style="background:#fff;">EKRAN APP</div>')
         fh_app = "".join([f"<li>{f.strip()}</li>" for f in get_data('app_features', '').split('\n') if f.strip()])
         hp.append(_shtml(f"""{lh}<div style="position:relative;height:100%;width:100%;display:flex; overflow:hidden;">
             <div style="flex:0 0 52%; max-width:52%; z-index:2; display:flex; flex-direction:column; padding-right:16px; padding-top:24px; justify-content:flex-start;">
