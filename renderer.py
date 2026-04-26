@@ -990,6 +990,16 @@ def _logo_tag(b64_or_url):
     src = b64_or_url if str(b64_or_url).startswith(('http', 'data:image')) else f"data:image/png;base64,{b64_or_url}"
     return f'<img src="{src}" style="max-height:100%; max-width:150px; object-fit:contain;">'
 
+def get_logo_b64(raw_bytes):
+    if not raw_bytes:
+        return None
+    if isinstance(raw_bytes, str):
+        return raw_bytes
+    try:
+        return base64.b64encode(raw_bytes).decode('utf-8')
+    except Exception:
+        return None
+        
 def _lhtml():
     b64 = get_logo_b64(st.session_state.get('logo_az'))
     if not b64:
