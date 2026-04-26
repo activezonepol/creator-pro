@@ -837,7 +837,7 @@ with col_form:
     # STRONA TYTUŁOWA
     # -----------------------------------------------------------------------
     if page == "  ↳ Przerywnik hotel":
-        # _guard(["sek_0_title", "sek_0_sub", "sek_hide_0", "sek_0_bg", "sek_0_txt"]) 
+        _guard(["sek_0_title", "sek_0_sub", "sek_hide_0", "sek_0_bg", "sek_0_txt"]) 
         _bg_default = st.session_state.get('color_h1', '#003366')
         for _ck, _cv in [(f"sek_0_bg", _bg_default), (f"sek_0_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
@@ -859,7 +859,7 @@ with col_form:
             st.session_state[f"sek_0_img"] = optimize_img(_up_s.getvalue())
 
     elif page == "  ↳ Przerywnik program":
-        # _guard(["sek_3_title", "sek_3_sub", "sek_hide_3", "sek_3_bg", "sek_3_txt"]) 
+        _guard(["sek_3_title", "sek_3_sub", "sek_hide_3", "sek_3_bg", "sek_3_txt"]) 
         _bg_default = st.session_state.get('color_h1', '#003366')
         for _ck, _cv in [(f"sek_3_bg", _bg_default), (f"sek_3_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
@@ -881,7 +881,7 @@ with col_form:
             st.session_state[f"sek_3_img"] = optimize_img(_up_s.getvalue())
 
     elif page == "  ↳ Przerywnik atrakcje":
-        # _guard(["sek_1_title", "sek_1_sub", "sek_hide_1", "sek_1_bg", "sek_1_txt"])  
+        _guard(["sek_1_title", "sek_1_sub", "sek_hide_1", "sek_1_bg", "sek_1_txt"])  
         _bg_default = st.session_state.get('color_h1', '#003366')
         for _ck, _cv in [(f"sek_1_bg", _bg_default), (f"sek_1_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
@@ -903,7 +903,7 @@ with col_form:
             st.session_state[f"sek_1_img"] = optimize_img(_up_s.getvalue())
 
     elif page == "  ↳ Przerywnik o nas":
-        # _guard(["sek_2_title", "sek_2_sub", "sek_hide_2", "sek_2_bg", "sek_2_txt"])  
+        _guard(["sek_2_title", "sek_2_sub", "sek_hide_2", "sek_2_bg", "sek_2_txt"])  
         _bg_default = st.session_state.get('color_h1', '#003366')
         for _ck, _cv in [(f"sek_2_bg", _bg_default), (f"sek_2_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
@@ -925,7 +925,7 @@ with col_form:
             st.session_state[f"sek_2_img"] = optimize_img(_up_s.getvalue())
 
     elif page == "Strona Tytułowa":
-        # _guard(["t_date", "country_name", "country_code", "t_main", "t_sub",  
+        _guard(["t_date", "country_name", "country_code", "t_main", "t_sub",  
                 "t_klient", "t_kierunek", "t_pax", "t_hotel", "t_trans", "hide_logo_cli"])  
         tit_keys = [
             't_date', 'country_name', 'country_code', 't_main', 't_sub',
@@ -961,7 +961,7 @@ with col_form:
     # OPIS KIERUNKU
     # -----------------------------------------------------------------------
     elif page == "Opis Kierunku":
-        # _guard(["k_hide", "k_overline", "k_main", "k_sub", "k_opis",  
+        _guard(["k_hide", "k_overline", "k_main", "k_sub", "k_opis",  
                 "k_facts", "k_facts_title", "k_box_bg", "k_box_txt"]) 
         k_keys = [
             'k_hide', 'k_overline', 'k_main', 'k_sub', 'k_opis',
@@ -1002,7 +1002,7 @@ with col_form:
     # MAPA PODRÓŻY
     # -----------------------------------------------------------------------
     elif page == "Mapa Podróży":
-        # _guard(["map_hide", "map_overline", "map_title", "map_subtitle", "map_desc",
+        _guard(["map_hide", "map_overline", "map_title", "map_subtitle", "map_desc",
                 "map_zoom", "num_map_points", "map_dist_title",             
                 "ors_api_key", "num_dist_pairs"])                                      
         map_keys = [
@@ -1153,7 +1153,7 @@ with col_form:
     # JAK LECIMY
     # -----------------------------------------------------------------------
     elif page == "Jak lecimy?":
-        # _guard(["l_hide", "l_przesiadka", "l_port", "l_czas", "l_overline",  
+        _guard(["l_hide", "l_przesiadka", "l_port", "l_czas", "l_overline",  
                 "l_main", "l_sub", "m_route", "m_luggage",                   
                 "f1", "f2", "f3", "f4", "l_desc", "l_extra"])                
         l_keys = [
@@ -1185,9 +1185,9 @@ with col_form:
     # ZAKWATEROWANIE
     # -----------------------------------------------------------------------
     elif page == "Zakwaterowanie":
-        # _guard(["num_hotels", "hotel_order"])                                          
+        _guard(["num_hotels", "hotel_order"])                                          
         for _hi in range(st.session_state.get("num_hotels", 1)):                      
-            # _guard([f"h_hide_{_hi}", f"h_overline_{_hi}", f"h_title_{_hi}",          
+            _guard([f"h_hide_{_hi}", f"h_overline_{_hi}", f"h_title_{_hi}",          
                     f"h_subtitle_{_hi}", f"h_url_{_hi}", f"h_booking_{_hi}",         
                     f"h_amenities_{_hi}", f"h_text_{_hi}", f"h_advantages_{_hi}"])   
 
@@ -1287,9 +1287,9 @@ with col_form:
     # PROGRAM WYJAZDU
     # -----------------------------------------------------------------------
     elif page == "Program Wyjazdu":
-        # _guard(["prg_hide", "num_days", "p_start_dt"])                                
+        _guard(["prg_hide", "num_days", "p_start_dt"])                                
         for _d in range(st.session_state.get("num_days", 4)):                        
-            # _guard([f"attr_{_d}", f"desc_{_d}"])                                      
+            _guard([f"attr_{_d}", f"desc_{_d}"])                                      
 
         st.checkbox("Ukryj CAŁĄ sekcję Programu w PDF", key="prg_hide")
         st.number_input("Ilość dni:", 1, 15, step=1, key="num_days")
@@ -1385,7 +1385,7 @@ with col_form:
     # APLIKACJA (KOMUNIKACJA)
     # -----------------------------------------------------------------------
     elif page == "Aplikacja (Komunikacja)":
-        # _guard(["app_hide", "app_overline", "app_title",  
+        _guard(["app_hide", "app_overline", "app_title",  
                 "app_subtitle", "app_features"])           
         app_keys = [
             'app_hide', 'app_overline', 'app_title', 'app_subtitle',
@@ -1409,7 +1409,7 @@ with col_form:
     # MATERIAŁY BRANDINGOWE
     # -----------------------------------------------------------------------
     elif page == "Materiały Brandingowe":
-        # _guard(["brand_hide", "brand_overline", "brand_title",  
+        _guard(["brand_hide", "brand_overline", "brand_title",  
                 "brand_subtitle", "brand_features"])             
         bra_keys = [
             'brand_hide', 'brand_overline', 'brand_title', 'brand_subtitle',
@@ -1436,7 +1436,7 @@ with col_form:
     # WIRTUALNY ASYSTENT
     # -----------------------------------------------------------------------
     elif page == "Wirtualny Asystent":
-        # _guard(["va_hide", "va_overline", "va_title", 
+        _guard(["va_hide", "va_overline", "va_title", 
                 "va_subtitle", "va_text"])              
         va_keys = [
             'va_hide', 'va_overline', 'va_title', 'va_subtitle',
@@ -1463,7 +1463,7 @@ with col_form:
     # PILLOW GIFTS
     # -----------------------------------------------------------------------
     elif page == "Pillow Gifts":
-        # _guard(["pg_hide", "pg_overline", "pg_title", "pg_subtitle",  
+        _guard(["pg_hide", "pg_overline", "pg_title", "pg_subtitle",  
                 "pg_text", "pg_features"])                             
         gif_keys = [
             'pg_hide', 'pg_overline', 'pg_title', 'pg_subtitle',
@@ -1492,7 +1492,7 @@ with col_form:
     # KOSZTORYS
     # -----------------------------------------------------------------------
     elif page == "Kosztorys":
-        # _guard(["koszt_hide_1", "koszt_hide_2", "koszt_h1_title", "koszt_title",
+        _guard(["koszt_hide_1", "koszt_hide_2", "koszt_h1_title", "koszt_title",
                 "koszt_pax", "koszt_price", "koszt_hotel", "koszt_dbl", "koszt_sgl",
                 "koszt_zawiera_1", "koszt_zawiera_2", "koszt_nie_zawiera", "koszt_opcje"])
         koszt_keys = [
@@ -1538,7 +1538,7 @@ with col_form:
     # CO O NAS MÓWIĄ
     # -----------------------------------------------------------------------
     elif page == "Co o nas mówią":
-        # _guard(["testim_hide", "testim_overline", "testim_title", 
+        _guard(["testim_hide", "testim_overline", "testim_title", 
                 "testim_subtitle", "testim_count"])                 
 
         opi_keys = [
@@ -1576,7 +1576,7 @@ with col_form:
     # O NAS / ZESPÓŁ
     # -----------------------------------------------------------------------
     elif page == "O Nas (Zespół)":
-        # _guard(["about_hide", "about_overline", "about_title", "about_sub",  
+        _guard(["about_hide", "about_overline", "about_title", "about_sub",  
                 "about_desc", "team_count"])                                  
         nas_keys = [
             'about_hide', 'about_overline', 'about_title', 'about_sub',
