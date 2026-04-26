@@ -538,21 +538,56 @@ def _section_header(label):
         unsafe_allow_html=True,
     )
 
+def save_image_to_session_and_storage(key: str, raw_bytes: bytes,
+                                       is_logo: bool = False) -> None:
+    """
+    Uploaduje zdjęcie do Supabase Storage, zapisuje URL w session_state
+    i aktualizuje _project_data.
 
-def save_to_supabase():
-    """Zapisz projekt do Supabase - wywołuj w on_change inputów"""
+    Args:
+        key: Klucz session_state (np. 'img_hero_t')
+        raw_bytes: Surowe bajty z file_uploader
+        is_logo: True dla logo (PNG), False dla zdjęć (JPEG)
+    """
+    with st.spinner("Wgrywanie zdjęcia..."):
+        url = upload_image(supabase, key, raw_bytes, is_logo=is_logo)
+
+    if url:
+        st.session_state[key] = url
+        # Aktualizuj _project_data
+        if '_project_data' not in st.session_state:
+            st.session_state['_project_data'] = {}
+        st.session_state['_project_data'][key] = url
+        # Zapisz teksty + URL do bazy
+        _save_texts_to_db()
+    else:
+        st.error("❌ Nie udało się wgrać zdjęcia. Spróbuj ponownie.")
+
+
+def _save_texts_to_db():
+    """Zapisuje teksty i URL-e zdjęć do bazy Supabase."""
     try:
-        data = _build_proj_dict()
+        data = _build_text_dict()
         supabase.table('projects').upsert({
             'user_email': 'default_user',
             'project_name': st.session_state.get('t_main', 'Projekt'),
             'data': data,
             'updated_at': datetime.now().isoformat()
         }, on_conflict='user_email').execute()
-        st.session_state['_project_data'] = {k: v for k, v in data.items() if not isinstance(v, bytes)}
-    except Exception:
-        pass
+        st.session_state['_project_data'] = {
+            k: v for k, v in data.items()
+            if not isinstance(v, bytes)
+        }
+        save_time = datetime.now().strftime('%H:%M:%S')
+        st.session_state['last_save_status'] = f"✅ Zapisano {save_time}"
+        st.session_state['last_save_count'] = len(data)
+        st.session_state['last_supabase_save'] = time.time()
+    except Exception as e:
+        st.session_state['last_save_status'] = f"❌ {str(e)[:50]}"
 
+def save_to_supabase():
+    """Zapisz projekt do Supabase - wywołuj w on_change inputów"""
+    _save_texts_to_db()
 
 # ---------------------------------------------------------------------------
 # TRYB KLIENTA
