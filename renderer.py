@@ -1211,10 +1211,12 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     # --- Mapa ---
     if not get_data('map_hide', False):
         m_bg = get_data('img_map_bg_auto')
-        m_bg_html = (
-            f'<img src="data:image/jpeg;base64,{m_bg}" style="width:100%;height:100%;object-fit:fill;opacity:0.85;border-radius:8px;">'
-            if m_bg else
-            f'<div style="width:100%;height:100%;background:#eef2f5;display:flex;align-items:center;justify-content:center;color:#ccc;font-weight:bold;font-size:14px;text-align:center;border-radius:8px;border:2px dashed {acc};">MAPA ZOSTANIE WYGENEROWANA AUTOMATYCZNIE<br>Wprowadź punkty trasy w panelu sterowania</div>'
+        # Używamy _img_tag z Twoim stylem.
+        # Uwaga: dodałem 'opacity:0.85;' do stylu, żeby zachować wygląd z oryginału.
+        m_bg_html = _img_tag(
+            m_bg, 
+            placeholder='MAPA ZOSTANIE WYGENEROWANA AUTOMATYCZNIE<br>Wprowadź punkty trasy w panelu sterowania', 
+            style='width:100%;height:100%;object-fit:fill;opacity:0.85;border-radius:8px;'
         )
         auto_pts = get_data('auto_map_points', [])
         svg_lines = ""
