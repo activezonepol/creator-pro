@@ -118,43 +118,50 @@ if '_loaded_from_supabase' not in st.session_state:
         result = supabase.table('projects').select('data').eq(
             'user_email', 'default_user'
         ).order('updated_at', desc=True).limit(1).execute()
-        
+
         if result.data and result.data[0].get('data'):
             project_data = result.data[0]['data']
-            
-            widget_keys = [
-                'attr_add_btn', 'attr_select', 'nav_top_radio', 'nav_bot_radio',
-                '_supabase_data', 'last_supabase_save', 'last_save_status'
-            ]
+
+            # Usuń klucze widgetów
+            widget_keys = ['attr_add_btn', 'attr_select', 'nav_top_radio',
+                           'nav_bot_radio', '_supabase_data', 'last_supabase_save',
+                           'last_save_status']
             widget_prefixes = ['attrnav_', 'attrup_', 'attrdn_', 'attrdel_']
-            
-            keys_to_remove = []
-            for key in project_data.keys():
-                if key in widget_keys:
-                    keys_to_remove.append(key)
-                elif any(key.startswith(prefix) for prefix in widget_prefixes):
-                    keys_to_remove.append(key)
-            
-            for key in keys_to_remove:
-                project_data.pop(key, None)
-            
-            text_keys = [k for k, v in project_data.items() if isinstance(v, str) and k.startswith('t_')]
+
+            for key in list(project_data.keys()):
+                if key in widget_keys or any(key.startswith(p) for p in widget_prefixes):
+                    project_data.pop(key, None)
+
             load_project_data(project_data)
             loaded_t_main = st.session_state.get('t_main', '???')
-            st.session_state['_debug_loaded'] = f"📥 Wczytano {len(project_data)} kluczy (usunięto {len(keys_to_remove)} widgetów), w tym {len(text_keys)} tekstów t_* | t_main='{loaded_t_main}'"
-            st.session_state['_project_data'] = {k: v for k, v in project_data.items() if not isinstance(v, bytes)}
+            st.session_state['_debug_loaded'] = f"📥 Wczytano {len(project_data)} kluczy | t_main='{loaded_t_main}'"
+            # _project_data trzyma tylko non-bytes (URL-e zdjęć są stringami - wchodzą)
+            st.session_state['_project_data'] = {
+                k: v for k, v in project_data.items()
+                if not isinstance(v, bytes)
+            }
         else:
             st.session_state['_debug_loaded'] = "📥 Brak danych w bazie - użyto defaults"
+            st.session_state['_project_data'] = {}
+
     except Exception as e:
         st.session_state['_debug_loaded'] = f"❌ Błąd load: {str(e)[:50]}"
-    
-    # Uzupełnij defaults dla kluczy których baza nie dostarczyła.
-    # WAŻNE: tylko raz na sesję — wewnątrz bloku startowego.
+        st.session_state['_project_data'] = {}
+
+    # Uzupełnij defaults tylko raz przy starcie
     for k, v in defaults.items():
         if k not in st.session_state:
             st.session_state[k] = v
-    
+
     st.session_state['_loaded_from_supabase'] = True
+
+    # MIGRACJA: jeśli baza miała zdjęcia jako bytes/base64 string,
+    # wgraj je do Storage i zastąp URL-ami
+    migrated = migrate_bytes_to_storage(supabase)
+    if migrated:
+        # Zapisz zaktualizowane URL-e do bazy
+        _save_texts_to_db()
+        st.session_state['_debug_loaded'] += f" | Zmigrowano {len(migrated)} zdjęć do Storage"
 
 # ---------------------------------------------------------------------------
 # (KONIEC SYSTEMU LOCKÓW — dalej idzie reszta Twojego kodu, np. # HELPERY UI)
