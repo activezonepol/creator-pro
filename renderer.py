@@ -1456,8 +1456,12 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     <div style="flex-shrink:0;">{adv_html}</div>
                     <div style="flex:1; min-height:8px;"></div>
                     <div style="display:flex; gap:12px; flex-shrink:0; aspect-ratio:3/1;">
-                        <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background:#fcfcfc;">{f'<img src="data:image/jpeg;base64,{h2}" style="width:100%;height:100%;object-fit:cover;">' if h2 else _get_ph('FOT DÓŁ 1')}</div>
-                        <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background:#fcfcfc;">{f'<img src="data:image/jpeg;base64,{h3}" style="width:100%;height:100%;object-fit:cover;">' if h3 else _get_ph('FOT DÓŁ 2')}</div>
+                        <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background:#fcfcfc;">
+                            {_img_tag(h2, 'FOT DÓŁ 1', 'width:100%;height:100%;object-fit:cover;')}
+                        </div>
+                        <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background:#fcfcfc;">
+                            {_img_tag(h3, 'FOT DÓŁ 2', 'width:100%;height:100%;object-fit:cover;')}
+                        </div>
                     </div>
                 </div></div>{fh}""", f"slide-hotel-{i}"))
 
