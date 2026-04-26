@@ -28,7 +28,10 @@ from renderer import (
     get_road_distance, format_duration,
     get_local_css, build_presentation,
 )
-
+from storage_utils import (
+    upload_image, migrate_bytes_to_storage,
+    get_image_html, get_logo_html,
+)
 # ---------------------------------------------------------------------------
 # SUPABASE CONNECTION
 # ---------------------------------------------------------------------------
