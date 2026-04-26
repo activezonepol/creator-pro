@@ -1399,10 +1399,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             h1b = get_b64(f'img_hotel_1b_{i}', (16, 9))
             h2 = get_b64(f'img_hotel_2_{i}', (16, 9))
             h3 = get_b64(f'img_hotel_3_{i}', (16, 9))
-            h1_html = (f'<img src="data:image/jpeg;base64,{h1}" style="width:100%; height:100%; object-fit:cover;">'
-                        if h1 else _get_ph('ZDJ. LEWE 1'))
-            h1b_html = (f'<img src="data:image/jpeg;base64,{h1b}" style="width:100%; height:100%; object-fit:cover;">'
-                         if h1b else _get_ph('ZDJ. LEWE 2'))
+            h1_html = _img_tag(h1, 'ZDJ. LEWE 1')
+            h1b_html = _img_tag(h1b, 'ZDJ. LEWE 2')
             url_val = str(get_data(f'h_url_{i}', '')).strip()
 
             # POPRAWKA 2: URL w linii z podtytułem (wyrównany do prawej), podlinkowany
