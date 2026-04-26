@@ -1579,8 +1579,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             h1b = get_b64(f'img_hotel_1b_{i}', (16, 9))
             h2 = get_b64(f'img_hotel_2_{i}', (16, 9))
             h3 = get_b64(f'img_hotel_3_{i}', (16, 9))
-            h1_html = (f'<img src="data:image/jpeg;base64,{h1}" style="width:100%; height:100%; object-fit:cover;">' if h1 else _get_ph('ZDJ. LEWE 1'))
-            h1b_html = (f'<img src="data:image/jpeg;base64,{h1b}" style="width:100%; height:100%; object-fit:cover;">' if h1b else _get_ph('ZDJ. LEWE 2'))
+            h1_html = _img_tag(h1, 'ZDJ. LEWE 1', 'width:100%; height:100%; object-fit:cover;')
+            h1b_html = _img_tag(h1b, 'ZDJ. LEWE 2', 'width:100%; height:100%; object-fit:cover;')
             url_val = str(get_data(f'h_url_{i}', '')).strip()
             h_url_html = (f'<div style="font-size:{max(10,fs_t-2)}px; color:{c_t}; opacity:0.8; margin-bottom:15px;"><i class="fa-solid fa-globe" style="color:{acc}; margin-right:5px;"></i> {url_val}</div>' if url_val else '')
             h_amenities = get_data(f'h_amenities_{i}', [])
@@ -1608,8 +1608,12 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     {h_am_html}
                     <div style="flex-grow:1;">{adv_html}</div>
                     <div class="gallery-row" style="padding-top:0; padding-bottom:5px; gap:15px;">
-                        <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{f'<img src="data:image/jpeg;base64,{h2}" style="width:100%;height:100%;object-fit:cover;">' if h2 else _get_ph('FOT DÓŁ 1')}</div>
-                        <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{f'<img src="data:image/jpeg;base64,{h3}" style="width:100%;height:100%;object-fit:cover;">' if h3 else _get_ph('FOT DÓŁ 2')}</div>
+                    <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">
+                        {_img_tag(h2, 'FOT DÓŁ 1', 'width:100%;height:100%;object-fit:cover;')}
+                </div>
+                    <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">
+                        {_img_tag(h3, 'FOT DÓŁ 2', 'width:100%;height:100%;object-fit:cover;')}
+                </div>
                     </div>
                 </div></div>{fh}""", f"slide-hotel-{i}"))
 
