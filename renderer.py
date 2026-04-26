@@ -1175,14 +1175,13 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         hp.append(_shtml(f"""{lh}
         <div class="premium-layout" id="slide-kierunek" style="gap:40px; align-items:stretch;">
 
-            <div style="flex:55; display:flex; gap:15px; height:100%;">
-                <div style="flex:1.2; height:100%; border-radius:8px; overflow:hidden; position:relative; background:#fcfcfc; border:1px solid #eee;">
-                    {f'<img src="data:image/jpeg;base64,{kimg}" style="position:absolute; top:0; left:0; width:200%; height:100%; object-fit:cover; object-position:left center;">' if kimg else _get_ph('ZDJĘCIE')}
+            <div style="flex:1.2; height:100%; border-radius:8px; overflow:hidden; position:relative; background:#fcfcfc; border:1px solid #eee;">
+                    {_img_tag(kimg, 'ZDJĘCIE', 'position:absolute; top:0; left:0; width:200%; height:100%; object-fit:cover; object-position:left center;')}
                 </div>
                 <div style="flex:1; display:flex; flex-direction:column; gap:15px; height:100%;">
                     {box_html}
                     <div style="flex-grow:1; border-top-left-radius:40px; border-bottom-left-radius:8px; border-bottom-right-radius:8px; overflow:hidden; position:relative; background:#fcfcfc; border:1px solid #eee;">
-                        {f'<img src="data:image/jpeg;base64,{kimg}" style="position:absolute; bottom:0; right:0; width:220%; height:140%; object-fit:cover; object-position:right bottom;">' if kimg else _get_ph('ZDJĘCIE')}
+                        {_img_tag(kimg, 'ZDJĘCIE', 'position:absolute; bottom:0; right:0; width:220%; height:140%; object-fit:cover; object-position:right bottom;')}
                     </div>
                 </div>
             </div>
