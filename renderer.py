@@ -1368,7 +1368,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div>{fh}""", "slide-mapa"))
 
     # --- Loty ---
-        if not get_data('l_hide', False):
+    if not get_data('l_hide', False):
         il = get_b64('img_hero_l', (4, 5))
         iml = _img_tag(il, 'FOTO SAMOLOTU')
         f_keys = ['f1', 'f2']
