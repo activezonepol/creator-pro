@@ -1086,8 +1086,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     rcli = get_data('logo_cli')
     hide_cli = get_data('hide_logo_cli', False)
     lcli_b64 = get_logo_b64(rcli)
-    lcli = (f"<img src='data:image/png;base64,{lcli_b64}' style='max-height:100%;max-width:150px;object-fit:contain;'>"
-             if (lcli_b64 and not hide_cli) else "")
+    lcli = _logo_tag(lcli_b64) if (lcli_b64 and not hide_cli) else ""
     lcli_container = f"<div style='margin-bottom:40px;height:60px;display:flex;align-items:center;justify-content:flex-start;'>{lcli}</div>"
     hp.append(_shtml(f"""{lh}<div class="premium-layout"><div class="photo-col">{im1}</div><div class="info-col">
         {lcli_container}
