@@ -1009,29 +1009,6 @@ def _shtml(c, sid=""):
 def _get_ph(t):
     return f'<div class="photo-placeholder">{t}</div>'
 
-
-# ---------------------------------------------------------------------------
-# GŁÓWNA FUNKCJA BUDOWANIA PREZENTACJI
-# ---------------------------------------------------------------------------
-
-
-def _img_tag(src, placeholder='ZDJĘCIE', style='width:100%;height:100%;object-fit:cover;'):
-    """Zwraca tag <img> dla zdjęcia. Obsługuje URL i base64."""
-    if not src:
-        return f"<div class='photo-placeholder'>{placeholder}</div>"
-    if isinstance(src, str) and src.startswith('http'):
-        return f"<img src='{src}' style='{style}'>"
-    return f"<img src='data:image/jpeg;base64,{src}' style='{style}'>"
-
-def _logo_tag(src, style='max-height:100%;max-width:150px;object-fit:contain;'):
-    """Zwraca tag <img> dla logo. Obsługuje URL i base64."""
-    if not src:
-        return ""
-    if isinstance(src, str) and src.startswith('http'):
-        return f"<img src='{src}' style='{style}'>"
-    return f"<img src='data:image/png;base64,{src}' style='{style}'>"
-
-
 def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     """
     Renderuje prezentację używając get_data() - jedynego źródła prawdy.
