@@ -155,15 +155,7 @@ if '_loaded_from_supabase' not in st.session_state:
 
     st.session_state['_loaded_from_supabase'] = True
 
-    # MIGRACJA: jeśli baza miała zdjęcia jako bytes/base64 string,
-    # wgraj je do Storage i zastąp URL-ami
-    migrated = migrate_bytes_to_storage(supabase)
-    if migrated:
-        # Zapisz zaktualizowane URL-e do bazy
-        _save_texts_to_db()
-        st.session_state['_debug_loaded'] += f" | Zmigrowano {len(migrated)} zdjęć do Storage"
-
-# ---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
 # (KONIEC SYSTEMU LOCKÓW — dalej idzie reszta Twojego kodu, np. # HELPERY UI)
 # ---------------------------------------------------------------------------
 
