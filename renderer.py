@@ -1074,31 +1074,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         
         bg_html = _img_tag(bg_img, 'ZDJĘCIE TŁA', 'width:100%;height:100%;object-fit:cover;') if bg_img else f'<div style="width:100%;height:100%;background:{box_bg};"></div>'
         
-        hp.append(_shtml(f"""{lh}
-        <div id="slide-{sid}" style="position:relative; width:100%; height:100%; overflow:hidden; background:{box_bg};">
-            <div style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;">
-                {bg_html}
-            </div>
-            <div style="position:absolute; top:0; left:0; width:65%; height:100%; z-index:2;
-                        background:linear-gradient(to right, {box_bg} 35%, transparent 100%);">
-            </div>
-            <div style="position:absolute; top:50%; left:8%; transform:translateY(-50%); z-index:3; max-width:58%;">
-                <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px;">
-                    <div style="width:32px; height:1px; background:{acc}; opacity:0.7; flex-shrink:0;"></div>
-                    <span style="font-family:'{f_met}'; font-weight:700; font-size:{max(10,fs_met-1)}px;
-                                 letter-spacing:4px; color:{acc}; text-transform:uppercase;">
-                        {sub}
-                    </span>
-                </div>
-                <div style="font-family:'{f_h1}'; font-weight:800; font-size:{min(fs_h1_val+32, 96)}px;
-                            color:{box_txt}; line-height:1.0; text-transform:uppercase;
-                            text-shadow:0px 4px 15px rgba(0,0,0,0.15);">
-                    {title}
-                </div>
-            </div>
-        </div>{fh}""", f"slide-{sid}"))
-        hp.append(_shtml(f"""{lh}
-        <div id="slide-{sid}" style="position:relative; width:100%; height:100%; overflow:hidden; background:{box_bg};">
+         hp.append(_shtml(f"""{lh}
+        <div style="position:relative; width:100%; height:100%; overflow:hidden; background:{box_bg};">
             <div style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1;">
                 {bg_html}
             </div>
