@@ -110,7 +110,7 @@ if 'client_mode' not in st.session_state:
 # ---------------------------------------------------------------------------
 # AUTO-LOAD Z SUPABASE przy starcie sesji
 # ---------------------------------------------------------------------------
-pythonif '_loaded_from_supabase' not in st.session_state:
+if '_loaded_from_supabase' not in st.session_state:
     try:
         result = supabase.table('projects').select('data').eq(
             'user_email', 'default_user'
