@@ -505,26 +505,24 @@ def save_to_supabase():
     """Zapisz projekt do Supabase - wywołuj w on_change inputów"""
     try:
         data = _build_proj_dict()
-        # Sprawdź czy rekord istnieje
         existing = supabase.table('projects').select('id').eq('user_email', 'default_user').execute()
         
         if existing.data:
-            # UPDATE istniejącego rekordu
             supabase.table('projects').update({
                 'project_name': st.session_state.get('t_main', 'Projekt'),
                 'data': data,
                 'updated_at': datetime.now().isoformat()
             }).eq('user_email', 'default_user').execute()
         else:
-            # INSERT nowego rekordu
             supabase.table('projects').insert({
                 'user_email': 'default_user',
                 'project_name': st.session_state.get('t_main', 'Projekt'),
                 'data': data,
                 'updated_at': datetime.now().isoformat()
             }).execute()
+        st.session_state['_project_data'] = {k: v for k, v in data.items() if not isinstance(v, bytes)}
     except Exception:
-        pass  # Cichy błąd
+        pass
 
 
 # ---------------------------------------------------------------------------
