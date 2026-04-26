@@ -1691,9 +1691,10 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     if not get_data('app_hide', False):
         ibg = get_data('img_app_bg')
         ibg_b64 = base64.b64encode(ibg).decode() if ibg else None
-        bg_html = (f'<img src="data:image/jpeg;base64,{ibg_b64}" style="width:100%;height:100%;object-fit:cover;">'
-                   if ibg_b64 else '<div class="photo-placeholder">ZDJĘCIE TŁA</div>')
+        bg_html = _img_tag(ibg_b64, 'ZDJĘCIE TŁA', 'width:100%;height:100%;object-fit:cover;')
+
         iscr = get_b64('img_app_screen', (9, 16))
+        scr_html = _img_tag(iscr, 'EKRAN APP', 'width:100%;height:100%;object-fit:contain;object-position:top;display:block;background:#fff;')
         # object-fit:contain żeby ekran nie był przycinany, object-position:top żeby góra była widoczna
         scr_html = (f'<img class="phone-screen" src="data:image/jpeg;base64,{iscr}" style="width:100%;height:100%;object-fit:contain;object-position:top;display:block;background:#fff;">'
                     if iscr else '<div class="photo-placeholder" style="background:#fff;">EKRAN APP</div>')
@@ -1703,78 +1704,104 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 <div class="app-overline-style"><span>{str(get_data('app_overline',''))}</span></div>
                 <div class="title-h1" style="margin-bottom:10px; font-size:{fs_h1_val-8}px;">{str(get_data('app_title','')).replace(chr(10),'<br>')}</div>
                 <div class="title-sub" style="margin-bottom:14px; font-size:{max(10,fs_sub_val-6)}px;">{str(get_data('app_subtitle','')).replace(chr(10),'<br>')}</div>
-                <ul class="app-list" style="margin-top:0;">{fh_app}</ul></div>
-            <div class="app-image-col" style="top:-30px;right:-45px;bottom:0;">{bg_html}</div>
-            <div class="phone-mockup">{scr_html}</div></div>{fh}""", "slide-app"))
+                <ul class="app-list" style="margin-top:0;">{fh_app}</ul>
+            </div>
+            <div class="app-image-col" style="top:-30px;right:-45px;bottom:0;">
+                {bg_html}
+            </div>
+            <div class="phone-mockup">
+                {scr_html}
+            </div>
+        </div>{fh}""", "slide-app"))
 
     # --- Branding ---
-    if not get_data('brand_hide', False):
         b1 = get_b64('img_brand_1', (1, 1))
         b2 = get_b64('img_brand_2', (1, 1))
         b3 = get_b64('img_brand_3', (16, 9))
-        b1h = (f'<img src="data:image/jpeg;base64,{b1}" style="width:100%;height:100%;object-fit:cover;">' if b1 else _get_ph('ZDJ 1'))
-        b2h = (f'<img src="data:image/jpeg;base64,{b2}" style="width:100%;height:100%;object-fit:cover;">' if b2 else _get_ph('ZDJ 2'))
-        b3h = (f'<img src="data:image/jpeg;base64,{b3}" style="width:100%;height:100%;object-fit:cover;"><div class="brand-gap"></div>' if b3 else _get_ph('ZDJ 3'))
+        
+        b1h = _img_tag(b1, 'ZDJ 1', 'width:100%;height:100%;object-fit:cover;')
+        b2h = _img_tag(b2, 'ZDJ 2', 'width:100%;height:100%;object-fit:cover;')
+        # Pamiętaj o zachowaniu brand-gap, jeśli projekt tego wymaga
+        b3h = _img_tag(b3, 'ZDJ 3', 'width:100%;height:100%;object-fit:cover;') + '<div class="brand-gap"></div>'
         bfh = "".join([f"<li>{f.strip()}</li>" for f in get_data('brand_features', '').split('\n') if f.strip()])
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
-            <div class="info-col" style="flex: 55; padding-right: 30px; padding-top: 24px; justify-content: flex-start;">
-                <div class="app-overline-style"><span>{str(get_data('brand_overline',''))}</span></div>
-                <div class="title-h1" style="margin-bottom: 10px; font-size:{fs_h1_val-8}px;">{str(get_data('brand_title','')).replace(chr(10),'<br>')}</div>
-                <div class="title-sub" style="margin-bottom:14px; font-size:{max(10,fs_sub_val-6)}px;">{str(get_data('brand_subtitle','')).replace(chr(10),'<br>')}</div>
-                <ul class="app-list" style="margin-top:0;">{bfh}</ul>
-            </div>
-            <div style="flex: 50; position: relative; height: 100%;"><div class="brand-collage">
-                <div class="brand-img-1">{b1h}</div><div class="brand-img-2">{b2h}</div><div class="brand-img-3">{b3h}</div>
-            </div></div></div>{fh}""", "slide-branding"))
+                <div class="info-col" style="flex: 55; padding-right: 30px; padding-top: 24px; justify-content: flex-start;">
+                    <div class="app-overline-style"><span>{str(get_data('brand_overline',''))}</span></div>
+                    <div class="title-h1" style="margin-bottom: 10px; font-size:{fs_h1_val-8}px;">{str(get_data('brand_title','')).replace(chr(10),'<br>')}</div>
+                    <div class="title-sub" style="margin-bottom:14px; font-size:{max(10,fs_sub_6)}px;">{str(get_data('brand_subtitle','')).replace(chr(10),'<br>')}</div>
+                    <ul class="app-list" style="margin-top:0;">{bfh}</ul>
+                </div>
+                <div style="flex: 50; position: relative; height: 100%;">
+                    <div class="brand-collage">
+                        <div class="brand-img-1">{b1h}</div>
+                        <div class="brand-img-2">{b2h}</div>
+                        <div class="brand-img-3">{b3h}</div>
+                    </div>
+                </div>
+            </div>{fh}""", "slide-branding"))
 
     # --- Wirtualny asystent ---
     if not get_data('va_hide', False):
         va1 = get_b64('img_va_1', (16, 9))
         va2 = get_b64('img_va_2', (1, 1))
         va3 = get_b64('img_va_3', (1, 1))
-        v1h = (f'<img src="data:image/jpeg;base64,{va1}" style="width:100%;height:100%;object-fit:cover;">' if va1 else _get_ph('ZDJ 1'))
-        v2h = (f'<img src="data:image/jpeg;base64,{va2}" style="width:100%;height:100%;object-fit:cover;">' if va2 else _get_ph('ZDJ 2'))
-        v3h = (f'<img src="data:image/jpeg;base64,{va3}" style="width:100%;height:100%;object-fit:cover;">' if va3 else _get_ph('ZDJ 3'))
+        
+        v1h = _img_tag(va1, 'ZDJ 1', 'width:100%;height:100%;object-fit:cover;')
+        v2h = _img_tag(va2, 'ZDJ 2', 'width:100%;height:100%;object-fit:cover;')
+        v3h = _img_tag(va3, 'ZDJ 3', 'width:100%;height:100%;object-fit:cover;')
+        
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
-            <div style="flex: 45; position: relative; height: 100%;"><div class="va-collage">
-                <div class="va-img-1-wrap va-img-common">{v1h}</div>
-                <div class="va-img-2-wrap va-img-common">{v2h}</div>
-                <div class="va-img-3-wrap va-img-common">{v3h}</div>
-            </div></div>
+            <div style="flex: 45; position: relative; height: 100%;">
+                <div class="va-collage">
+                    <div class="va-img-1-wrap va-img-common">{v1h}</div>
+                    <div class="va-img-2-wrap va-img-common">{v2h}</div>
+                    <div class="va-img-3-wrap va-img-common">{v3h}</div>
+                </div>
+            </div>
             <div class="info-col" style="flex: 55; padding-left: 40px; padding-top: 30px; justify-content: flex-start;">
                 <div class="app-overline-style"><span>{str(get_data('va_overline',''))}</span></div>
                 <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(get_data('va_title','')).replace(chr(10),'<br>')}</div>
                 <div class="title-sub" style="margin-bottom:25px; font-size:{max(12,fs_sub_val-4)}px;">{str(get_data('va_subtitle','')).replace(chr(10),'<br>')}</div>
-                <div style="font-family: '{f_t}'; font-size: {fs_t}px; line-height: 1.6; color: {c_t}; text-align: justify;">{str(get_data('va_text') or '').replace(chr(10),'<br>')}</div>
-            </div></div>{fh}""", "slide-virtual-assistant"))
+                <div style="font-family: '{f_t}'; font-size: {fs_t}px; line-height: 1.6; color: {c_t}; text-align: justify;">
+                    {str(get_data('va_text') or '').replace(chr(10),'<br>')}
+                </div>
+            </div>
+        </div>{fh}""", "slide-virtual-assistant"))
 
     # --- Pillow gifts ---
     if not get_data('pg_hide', False):
         pg1 = get_b64('img_pg_1', (1, 1))
         pg2 = get_b64('img_pg_2', (1, 2.1))
         pg3 = get_b64('img_pg_3', (1, 1))
-        h1_pg = (f'<img src="data:image/jpeg;base64,{pg1}" style="width:100%;height:100%;object-fit:cover;">' if pg1 else _get_ph('ZDJ 1'))
-        h2_pg = (f'<img src="data:image/jpeg;base64,{pg2}" style="width:100%;height:100%;object-fit:cover;">' if pg2 else _get_ph('ZDJ 2 PION'))
-        h3_pg = (f'<img src="data:image/jpeg;base64,{pg3}" style="width:100%;height:100%;object-fit:cover;">' if pg3 else _get_ph('ZDJ 3'))
+        
+        h1_pg = _img_tag(pg1, 'ZDJ 1', 'width:100%;height:100%;object-fit:cover;')
+        h2_pg = _img_tag(pg2, 'ZDJ 2 PION', 'width:100%;height:100%;object-fit:cover;')
+        h3_pg = _img_tag(pg3, 'ZDJ 3', 'width:100%;height:100%;object-fit:cover;')
+        
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
-            <div style="flex:50;position:relative;height:100%;"><div class="pg-collage">
-                <div class="pg-img-1-wrap pg-img-common">{h1_pg}</div>
-                <div class="pg-img-2-wrap pg-img-common">{h2_pg}</div>
-                <div class="pg-img-3-wrap pg-img-common">{h3_pg}</div>
-            </div></div>
+            <div style="flex:50;position:relative;height:100%;">
+                <div class="pg-collage">
+                    <div class="pg-img-1-wrap pg-img-common">{h1_pg}</div>
+                    <div class="pg-img-2-wrap pg-img-common">{h2_pg}</div>
+                    <div class="pg-img-3-wrap pg-img-common">{h3_pg}</div>
+                </div>
+            </div>
             <div class="info-col" style="flex:50;padding-left:40px;padding-top:30px;justify-content:flex-start;">
                 <div class="app-overline-style"><span>{str(get_data('pg_overline',''))}</span></div>
                 <div class="title-h1" style="margin-bottom:10px; font-size:{fs_h1_val-8}px;">{str(get_data('pg_title','')).replace(chr(10),'<br>')}</div>
                 <div class="title-sub" style="margin-bottom:12px; font-size:{max(10,fs_sub_val-6)}px;">{str(get_data('pg_subtitle','')).replace(chr(10),'<br>')}</div>
-                <div style="font-family:'{f_t}';font-size:{max(10,fs_t-1)}px;line-height:1.5;color:{c_t};margin-bottom:10px;">{str(get_data('pg_text') or '').replace(chr(10),'<br>')}</div>
+                <div style="font-family:'{f_t}';font-size:{max(10,fs_t-1)}px;line-height:1.5;color:{c_t};margin-bottom:10px;">
+                    {str(get_data('pg_text') or '').replace(chr(10),'<br>')}
+                </div>
                 {f'<ul class="app-list" style="margin-top:0;">{"".join([f"<li>{x.strip()}</li>" for x in str(get_data("pg_features","")).split(chr(10)) if x.strip()])}</ul>' if get_data('pg_features','').strip() else ''}
-            </div></div>{fh}""", "slide-pillow-gifts"))
+            </div>
+        </div>{fh}""", "slide-pillow-gifts"))
 
     # --- Kosztorys (slajd 1) ---
     if not get_data('koszt_hide_1', False):
         k1 = get_b64('img_koszt_1', (4, 5))
-        imk1 = (f"<img src='data:image/jpeg;base64,{k1}' style='width:100%;height:100%;object-fit:cover;'>"
-                if k1 else _get_ph('ZDJĘCIE KOSZTORYSU'))
+        imk1 = _img_tag(k1, 'ZDJĘCIE KOSZTORYSU', 'width:100%;height:100%;object-fit:cover;')
+        
         zaw1_list = []
         for x in get_data('koszt_zawiera_1', '').split('\n'):
             if not x.strip(): continue
@@ -1783,23 +1810,32 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             else:
                 zaw1_list.append(f"<li>{x.strip()}</li>")
         zaw1_html = f'<ul class="app-list">{"".join(zaw1_list)}</ul>' if zaw1_list else ''
-        hp.append(_shtml(f"""{lh}<div class="premium-layout"><div class="photo-col">{imk1}</div>
+        
+        hp.append(_shtml(f"""{lh}<div class="premium-layout">
+            <div class="photo-col">{imk1}</div>
             <div class="info-col" style="padding-top:30px; justify-content:flex-start;">
-            <div class="app-overline-style" style="margin-bottom:5px;"><span>{str(get_data('koszt_title','KOSZTORYS'))}</span></div>
-            <div class="title-h1" style="margin-bottom:15px; font-size:{fs_h1_val}px;">{str(get_data('koszt_h1_title','KOSZTORYS'))}</div>
-            <div style="background:{acc}; color:white; padding: 25px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
-                <div style="font-size:{max(10,fs_t-2)}px; font-family:'{f_h2}'; font-weight:700; text-transform:uppercase; margin-bottom:5px; opacity:0.9; letter-spacing:1px;">Grupa {get_data('koszt_pax','')} osób | {get_data('koszt_hotel','')}</div>
-                <div style="font-size:{fs_h1_val-8}px; font-weight:800; font-family:'{f_h1}';">CENA: {get_data('koszt_price','')}</div>
+                <div class="app-overline-style" style="margin-bottom:5px;"><span>{str(get_data('koszt_title','KOSZTORYS'))}</span></div>
+                <div class="title-h1" style="margin-bottom:15px; font-size:{fs_h1_val}px;">{str(get_data('koszt_h1_title','KOSZTORYS'))}</div>
+                <div style="background:{acc}; color:white; padding: 25px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+                    <div style="font-size:{max(10,fs_t-2)}px; font-family:'{f_h2}'; font-weight:700; text-transform:uppercase; margin-bottom:5px; opacity:0.9; letter-spacing:1px;">
+                        Grupa {get_data('koszt_pax','')} osób | {get_data('koszt_hotel','')}
+                    </div>
+                    <div style="font-size:{fs_h1_val-8}px; font-weight:800; font-family:'{f_h1}';">
+                        CENA: {get_data('koszt_price','')}
+                    </div>
+                </div>
+                <div style="font-family:'{f_h2}'; font-weight:800; font-size:{fs_t+4}px; color:{c_h2}; margin-bottom:10px; text-transform:uppercase;">
+                    CENA OFERTY OBEJMUJE:
+                </div>
+                <div style="flex-grow:1; overflow-y:auto; padding-right:10px;">{zaw1_html}</div>
             </div>
-            <div style="font-family:'{f_h2}'; font-weight:800; font-size:{fs_t+4}px; color:{c_h2}; margin-bottom:10px; text-transform:uppercase;">CENA OFERTY OBEJMUJE:</div>
-            <div style="flex-grow:1; overflow-y:auto; padding-right:10px;">{zaw1_html}</div>
-            </div></div>{fh}""", "slide-kosztorys-1"))
+        </div>{fh}""", "slide-kosztorys-1"))
 
-    # --- Kosztorys (slajd 2) ---
+   # --- Kosztorys (slajd 2) ---
     if not get_data('koszt_hide_1', False) and not get_data('koszt_hide_2', False):
         k2 = get_b64('img_koszt_2', (4, 5))
-        imk2 = (f"<img src='data:image/jpeg;base64,{k2}' style='width:100%;height:100%;object-fit:cover;'>"
-                if k2 else _get_ph('ZDJĘCIE KOSZTORYSU 2'))
+        imk2 = _img_tag(k2, 'ZDJĘCIE KOSZTORYSU 2', 'width:100%;height:100%;object-fit:cover;')
+        
         zaw2_list = []
         for x in get_data('koszt_zawiera_2', '').split('\n'):
             if not x.strip(): continue
@@ -1808,22 +1844,29 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             else:
                 zaw2_list.append(f"<li>{x.strip()}</li>")
         zaw2_html = f'<ul class="app-list">{"".join(zaw2_list)}</ul>' if zaw2_list else ''
+        
         niezaw_list = [f"<li>{x.strip()}</li>" for x in get_data('koszt_nie_zawiera', '').split('\n') if x.strip()]
         niezaw_html = f'<ul class="app-list" style="margin-top:5px;">{"".join(niezaw_list)}</ul>' if niezaw_list else ''
+        
         opcje = get_data('koszt_opcje', '').strip()
-        opcje_html = (f"""<div style="margin-top:20px;"><div style="font-family:'{f_h2}'; font-weight:800; font-size:{fs_t+2}px; color:{c_h2}; margin-bottom:5px; text-transform:uppercase;">KOSZTY OPCJONALNE:</div><div style="font-family:'{f_t}'; font-size:{fs_t}px; color:{c_t}; white-space:pre-line; line-height:1.5;">{opcje}</div></div>"""
-                      if opcje else '')
+        opcje_html = (f"""<div style="margin-top:20px;">
+                            <div style="font-family:'{f_h2}'; font-weight:800; font-size:{fs_t+2}px; color:{c_h2}; margin-bottom:5px; text-transform:uppercase;">KOSZTY OPCJONALNE:</div>
+                            <div style="font-family:'{f_t}'; font-size:{fs_t}px; color:{c_t}; white-space:pre-line; line-height:1.5;">{opcje}</div>
+                          </div>""" if opcje else '')
+                          
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
             <div class="info-col" style="padding-top:30px; justify-content:flex-start; padding-right:30px;">
                 <i class="fa-solid fa-file-invoice" style="color:{acc}; font-size:36px; margin-bottom:15px; display:block;"></i>
                 <div class="app-overline-style" style="margin-bottom:15px;"><span>KOSZTORYS - CIĄG DALSZY</span></div>
                 {zaw2_html}
-                <div style="font-family:'{f_h2}'; font-weight:800; font-size:{fs_t+2}px; color:{c_h2}; margin-top:15px; margin-bottom:5px; text-transform:uppercase;">NIE POLICZONE W CENIE:</div>
+                <div style="font-family:'{f_h2}'; font-weight:800; font-size:{fs_t+2}px; color:{c_h2}; margin-top:15px; margin-bottom:5px; text-transform:uppercase;">
+                    NIE POLICZONE W CENIE:
+                </div>
                 {niezaw_html}
                 {opcje_html}
             </div>
             <div class="photo-col">{imk2}</div>
-            </div>{fh}""", "slide-kosztorys-2"))
+        </div>{fh}""", "slide-kosztorys-2"))
 
     # --- Przerywnik sek_2 (przed testim) ---
     _render_sek(2)
@@ -1831,19 +1874,25 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     # --- Rekomendacje ---
     if not get_data('testim_hide', False):
         t_main_img = get_b64('img_testim_main', (4, 5))
-        t_main_img_html = (f'<img src="data:image/jpeg;base64,{t_main_img}" style="width:100%;height:100%;object-fit:cover;">'
-                           if t_main_img else _get_ph('ZDJĘCIE GŁÓWNE'))
+        # Główne zdjęcie sekcji
+        t_main_img_html = _img_tag(t_main_img, 'ZDJĘCIE GŁÓWNE', 'width:100%;height:100%;object-fit:cover;')
+        
         t_h = ""
         for i in range(get_data('testim_count', 3)):
             it = get_b64(f'testim_img_{i}', (1, 1))
-            itg = (f"<img src='data:image/jpeg;base64,{it}' style='width:100%;height:100%;object-fit:cover;'>"
-                   if it else _get_ph('LOGO'))
-            t_h += f"""<div class="testim-item"><div class="testim-img-wrapper">{itg}</div>
-                <div class="testim-content">
-                    <div class="testim-head">{str(get_data(f'testim_head_{i}','')).replace(chr(10),'<br>')}</div>
-                    <div class="testim-quote">"{get_data(f'testim_quote_{i}','')}"</div>
-                    <div class="testim-author"><strong>{get_data(f'testim_author_{i}','')}</strong> | {get_data(f'testim_role_{i}','')}</div>
-                </div></div>"""
+            # Zdjęcie (logo) wewnątrz pętli
+            itg = _img_tag(it, 'LOGO', 'width:100%;height:100%;object-fit:cover;')
+            
+            t_h += f"""
+                <div class="testim-item">
+                    <div class="testim-img-wrapper">{itg}</div>
+                    <div class="testim-content">
+                        <div class="testim-head">{str(get_data(f'testim_head_{i}','')).replace(chr(10),'<br>')}</div>
+                        <div class="testim-quote">"{get_data(f'testim_quote_{i}','')}"</div>
+                        <div class="testim-author"><strong>{get_data(f'testim_author_{i}','')}</strong> | {get_data(f'testim_role_{i}','')}</div>
+                    </div>
+                </div>"""
+        
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
             <div class="info-col" style="flex: 55; padding-right: 40px; padding-top: 30px; justify-content: flex-start;">
                 <div class="app-overline-style"><span>{str(get_data('testim_overline','REKOMENDACJE'))}</span></div>
@@ -1852,36 +1901,44 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 <div style="display: flex; flex-direction: column;">{t_h}</div>
             </div>
             <div class="photo-col" style="flex: 45;">{t_main_img_html}</div>
-            </div>{fh}""", "slide-testimonials"))
+        </div>{fh}""", "slide-testimonials"))
 
     # --- O nas / Zespół ---
     if not get_data('about_hide', False):
         tm_h = ""
         tc = get_data('team_count', 2)
         grid_cols = "1fr 1fr" if tc in (2, 4) else f"repeat({tc}, 1fr)"
+        
         for i in range(tc):
             it = get_b64(f't_img_{i}', (1, 1))
-            itg = (f"<img src='data:image/jpeg;base64,{it}' style='width:70px;height:70px;border-radius:50%;border:2px solid {acc};object-fit:cover;'>"
-                   if it else f"<div style='width:70px;height:70px;border-radius:50%;border:2px dashed #ccc;display:flex;align-items:center;justify-content:center;margin:0 auto 10px auto;color:#aaa;font-size:10px;'>ZDJĘCIE</div>")
-            tm_h += f"""<div style='display:flex; flex-direction:column; align-items:flex-start; text-align:left;'>
+            # Używamy _img_tag ze stylem okręgu (border-radius:50%)
+            itg = _img_tag(it, 'ZDJĘCIE', 'width:70px;height:70px;border-radius:50%;border:2px solid ' + acc + ';object-fit:cover;')
+            
+            tm_h += f"""
+            <div style='display:flex; flex-direction:column; align-items:flex-start; text-align:left;'>
                 <div style="margin-bottom:8px;">{itg}</div>
                 <div style='font-family:Montserrat;font-weight:800;font-size:{max(12,fs_t)}px;color:{c_h2};line-height:1.2;margin-bottom:2px;'>{str(get_data(f't_name_{i}',''))}</div>
                 <div style='font-size:{max(9,fs_t-3)}px;color:{acc};font-weight:600;margin-bottom:6px;text-transform:uppercase;'>{str(get_data(f't_role_{i}',''))}</div>
                 <div style='font-size:{max(10,fs_t-2)}px;line-height:1.4;color:{c_t};'>{str(get_data(f't_desc_{i}') or '').replace(chr(10),'<br>')}</div>
             </div>"""
+            
         c_img = get_b64('img_about_clients', (4, 5))
-        c_img_html = (f'<img src="data:image/jpeg;base64,{c_img}" style="width:100%;height:100%;object-fit:cover;">'
-                       if c_img else _get_ph('ZDJĘCIE / LOGA KLIENTÓW'))
+        c_img_html = _img_tag(c_img, 'ZDJĘCIE / LOGA KLIENTÓW', 'width:100%;height:100%;object-fit:cover;')
+        
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
             <div class="info-col" style="flex: 60; padding-right: 40px; padding-top: 30px; justify-content: flex-start; display: flex; flex-direction: column;">
                 <div class="app-overline-style"><span>{str(get_data('about_overline','NASZ ZESPÓŁ'))}</span></div>
                 <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(get_data('about_title','')).replace(chr(10),'<br>')}</div>
                 <div class="title-sub" style="margin-bottom:25px; font-size:{max(12,fs_sub_val-4)}px;">{str(get_data('about_sub','')).replace(chr(10),'<br>')}</div>
-                <div style="font-family: '{f_t}'; font-size: {fs_t}px; line-height: 1.6; color: {c_t}; text-align: justify; margin-bottom: 15px;">{str(get_data('about_desc') or '').replace(chr(10),'<br>')}</div>
-                <div style="display: grid; grid-template-columns: {grid_cols}; gap: 20px; margin-top: auto; border-top: 1px solid #eee; padding-top: 20px;">{tm_h}</div>
+                <div style="font-family: '{f_t}'; font-size: {fs_t}px; line-height: 1.6; color: {c_t}; text-align: justify; margin-bottom: 15px;">
+                    {str(get_data('about_desc') or '').replace(chr(10),'<br>')}
+                </div>
+                <div style="display: grid; grid-template-columns: {grid_cols}; gap: 20px; margin-top: auto; border-top: 1px solid #eee; padding-top: 20px;">
+                    {tm_h}
+                </div>
             </div>
             <div class="photo-col" style="flex: 40; background-color: #fcfcfc;">{c_img_html}</div>
-            </div>{fh}""", "slide-about"))
+        </div>{fh}""", "slide-about"))
 
     # --- Zwróć lub wyświetl ---
     if export_mode:
