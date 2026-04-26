@@ -970,18 +970,31 @@ def get_local_css(return_str=False):
 
 
 # ---------------------------------------------------------------------------
-# HELPERY SLAJDÓW
+# HELPERY SLAJDÓW - ZMODERNIZOWANE
 # ---------------------------------------------------------------------------
+
+def _img_tag(b64_or_url, placeholder_text='ZDJĘCIE', style='width:100%;height:100%;object-fit:cover;'):
+    """Standardowy tag dla zdjęć w aplikacji."""
+    if not b64_or_url:
+        return _get_ph(placeholder_text)
+    
+    # Jeśli to URL, używamy go bezpośrednio, jeśli base64 – dodajemy prefix
+    src = b64_or_url if str(b64_or_url).startswith(('http', 'data:image')) else f"data:image/jpeg;base64,{b64_or_url}"
+    return f'<img src="{src}" style="{style}">'
+
+def _logo_tag(b64_or_url):
+    """Standardowy tag dla logotypów."""
+    if not b64_or_url:
+        return ""
+    
+    src = b64_or_url if str(b64_or_url).startswith(('http', 'data:image')) else f"data:image/png;base64,{b64_or_url}"
+    return f'<img src="{src}" style="max-height:100%; max-width:150px; object-fit:contain;">'
 
 def _lhtml():
     b64 = get_logo_b64(st.session_state.get('logo_az'))
     if not b64:
         return ""
-    
-    # Używamy _logo_tag, co automatycznie zadba o poprawny format src
-    # i zachowuje strukturę Twojego kontenera
     return f'<div class="top-right-logo-container">{_logo_tag(b64)}</div>'
-
 
 def _fhtml():
     return (
@@ -990,10 +1003,8 @@ def _fhtml():
         f'<span class="page-counter"></span></div>'
     )
 
-
 def _shtml(c, sid=""):
     return f'<div class="slide-scaler" id="{sid}"><div class="slide-page">{c}</div></div>'
-
 
 def _get_ph(t):
     return f'<div class="photo-placeholder">{t}</div>'
