@@ -627,6 +627,7 @@ if 'last_supabase_save' not in st.session_state:
 current_time = time.time()
 
 if current_time - st.session_state['last_supabase_save'] > 10:
+    _save_texts_to_db()
     try:
         project_data = _build_proj_dict()
         project_name = st.session_state.get('t_main', 'Nowy projekt')
