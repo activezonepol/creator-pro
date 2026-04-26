@@ -1003,42 +1003,40 @@ with col_form:
     # OPIS KIERUNKU
     # -----------------------------------------------------------------------
     elif page == "Opis Kierunku":
-        _guard(["k_hide", "k_overline", "k_main", "k_sub", "k_opis",  
-                "k_facts", "k_facts_title", "k_box_bg", "k_box_txt"]) 
-        k_keys = [
-            'k_hide', 'k_overline', 'k_main', 'k_sub', 'k_opis',
-            'k_facts', 'k_facts_title', 'k_box_bg', 'k_box_txt', 'img_hero_k',
-        ]
-        section_template_manager(k_keys, "KIE", st.session_state.get('k_main', 'czarnogora'), "kie")
-        st.checkbox("Ukryj ten slajd w PDF", key="k_hide")
-        st.text_input("Mały nadtytuł (overline):", key="k_overline",
-)
-        st.text_input("Nazwa kierunku (duży tytuł H1):", key="k_main")
-        st.text_input("Podtytuł:", key="k_sub")
-        st.text_area("Opis (prawa kolumna):", height=160, key="k_opis",
-                     help="Główny opis kierunku po prawej stronie slajdu.")
+    _guard(["k_hide", "k_overline", "k_main", "k_sub", "k_opis",  
+            "k_facts", "k_facts_title", "k_box_bg", "k_box_txt"]) 
+    k_keys = [
+        'k_hide', 'k_overline', 'k_main', 'k_sub', 'k_opis',
+        'k_facts', 'k_facts_title', 'k_box_bg', 'k_box_txt', 'img_hero_k',
+    ]
+    section_template_manager(k_keys, "KIE", st.session_state.get('k_main', 'czarnogora'), "kie")
+    st.checkbox("Ukryj ten slajd w PDF", key="k_hide")
+    st.text_input("Mały nadtytuł (overline):", key="k_overline")
+    st.text_input("Nazwa kierunku (duży tytuł H1):", key="k_main")
+    st.text_input("Podtytuł:", key="k_sub")
+    st.text_area("Opis (prawa kolumna):", height=160, key="k_opis",
+                 help="Główny opis kierunku po prawej stronie slajdu.")
 
-        _section_header("BOX Z FAKTAMI (lewa kolumna)")
-        # Walidacja kolorów boksu
-        for _ck, _cv in [('k_box_bg', st.session_state.get('color_h1', '#003366')),
-                         ('k_box_txt', '#ffffff')]:
-            _v = st.session_state.get(_ck, _cv)
-            if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
-                st.session_state[_ck] = _cv
-        cb1, cb2 = st.columns(2)
-        cb1.color_picker("Kolor tła boksu", key="k_box_bg")
-        cb2.color_picker("Kolor tekstu w boksie", key="k_box_txt")
-        st.text_input("Tytuł boksu (np. FAKTY):", key="k_facts_title",
-)
-        st.text_area(
-            "Fakty (Format: 'Etykieta: Wartość'):", height=160, key="k_facts",
-            help="Każda linia = jeden wpis. 'Etykieta: Wartość' pogrubia etykietę.",
-        )
+    _section_header("BOX Z FAKTAMI (lewa kolumna)")
+    # Walidacja kolorów boksu
+    for _ck, _cv in [('k_box_bg', st.session_state.get('color_h1', '#003366')),
+                     ('k_box_txt', '#ffffff')]:
+        _v = st.session_state.get(_ck, _cv)
+        if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
+            st.session_state[_ck] = _cv
+    cb1, cb2 = st.columns(2)
+    cb1.color_picker("Kolor tła boksu", key="k_box_bg")
+    cb2.color_picker("Kolor tekstu w boksie", key="k_box_txt")
+    st.text_input("Tytuł boksu (np. FAKTY):", key="k_facts_title")
+    st.text_area(
+        "Fakty (Format: 'Etykieta: Wartość'):", height=160, key="k_facts",
+        help="Każda linia = jeden wpis. 'Etykieta: Wartość' pogrubia etykietę.",
+    )
 
-        _section_header("ZDJĘCIE (jedno zdjęcie w dwóch ramkach)")
-        u4 = st.file_uploader("Zdjęcie kierunku:", key="kie_hero")
-        if u4:
-            st.session_state['img_hero_k'] = optimize_img(u4.getvalue())
+    _section_header("ZDJĘCIE (jedno zdjęcie w dwóch ramkach)")
+    u4 = st.file_uploader("Zdjęcie kierunku:", key="kie_hero")
+    if u4:
+        save_image_to_session_and_storage('img_hero_k', u4.getvalue())
 
     # -----------------------------------------------------------------------
     # MAPA PODRÓŻY
@@ -1195,459 +1193,497 @@ with col_form:
     # JAK LECIMY
     # -----------------------------------------------------------------------
     elif page == "Jak lecimy?":
-        _guard(["l_hide", "l_przesiadka", "l_port", "l_czas", "l_overline",  
-                "l_main", "l_sub", "m_route", "m_luggage",                   
-                "f1", "f2", "f3", "f4", "l_desc", "l_extra"])                
-        l_keys = [
-            'l_hide', 'l_przesiadka', 'l_port', 'l_czas', 'l_overline', 'l_main',
-            'l_sub', 'm_route', 'm_luggage', 'f1', 'f2', 'f3', 'f4',
-            'l_desc', 'l_extra', 'img_hero_l',
-        ]
-        section_template_manager(l_keys, "LOT", "jak-lecimy", "lot")
-        st.checkbox("Ukryj ten slajd w PDF", key="l_hide")
-        st.text_input("Mały nadtytuł:", key="l_overline")
-        st.text_input("Tytuł (H1):", key="l_main")
-        for k, l in [('l_sub', 'Podtytuł'), ('m_route', 'Trasa'), ('m_luggage', 'Bagaż'),
-                     ('f1', 'Lot 1'), ('f2', 'Lot 2')]:
+    _guard(["l_hide", "l_przesiadka", "l_port", "l_czas", "l_overline",  
+            "l_main", "l_sub", "m_route", "m_luggage",                   
+            "f1", "f2", "f3", "f4", "l_desc", "l_extra"])                
+    l_keys = [
+        'l_hide', 'l_przesiadka', 'l_port', 'l_czas', 'l_overline', 'l_main',
+        'l_sub', 'm_route', 'm_luggage', 'f1', 'f2', 'f3', 'f4',
+        'l_desc', 'l_extra', 'img_hero_l',
+    ]
+    section_template_manager(l_keys, "LOT", "jak-lecimy", "lot")
+    st.checkbox("Ukryj ten slajd w PDF", key="l_hide")
+    st.text_input("Mały nadtytuł:", key="l_overline")
+    st.text_input("Tytuł (H1):", key="l_main")
+    for k, l in [('l_sub', 'Podtytuł'), ('m_route', 'Trasa'), ('m_luggage', 'Bagaż'),
+                 ('f1', 'Lot 1'), ('f2', 'Lot 2')]:
+        st.text_input(l, key=k)
+    if st.checkbox("Lot z przesiadką", key="l_przesiadka"):
+        _section_header("DANE PRZESIADKI I KOLEJNE ODCINKI LOTU")
+        c1, c2 = st.columns(2)
+        c1.text_input("Port przesiadkowy:", key="l_port")
+        c2.text_input("Długość przesiadki:", key="l_czas")
+        for k, l in [('f3', 'Lot 3'), ('f4', 'Lot 4')]:
             st.text_input(l, key=k)
-        if st.checkbox("Lot z przesiadką", key="l_przesiadka"):
-            _section_header("DANE PRZESIADKI I KOLEJNE ODCINKI LOTU")
-            c1, c2 = st.columns(2)
-            c1.text_input("Port przesiadkowy:", key="l_port")
-            c2.text_input("Długość przesiadki:", key="l_czas")
-            for k, l in [('f3', 'Lot 3'), ('f4', 'Lot 4')]:
-                st.text_input(l, key=k)
-        for k, l in [('l_desc', 'Opis'), ('l_extra', 'Dodatkowe info')]:
-            st.text_area(l, key=k)
-        u5 = st.file_uploader("Foto Samolotu", key="lot_hero")
-        if u5:
-            st.session_state['img_hero_l'] = optimize_img(u5.getvalue())
-
+    for k, l in [('l_desc', 'Opis'), ('l_extra', 'Dodatkowe info')]:
+        st.text_area(l, key=k)
+        
+    u5 = st.file_uploader("Foto Samolotu", key="lot_hero")
+    if u5:
+        save_image_to_session_and_storage('img_hero_l', u5.getvalue())
     # -----------------------------------------------------------------------
     # ZAKWATEROWANIE
     # -----------------------------------------------------------------------
     elif page == "Zakwaterowanie":
-        _guard(["num_hotels", "hotel_order"])                                          
-        for _hi in range(st.session_state.get("num_hotels", 1)):                      
-            _guard([f"h_hide_{_hi}", f"h_overline_{_hi}", f"h_title_{_hi}",          
-                    f"h_subtitle_{_hi}", f"h_url_{_hi}", f"h_booking_{_hi}",         
-                    f"h_amenities_{_hi}", f"h_text_{_hi}", f"h_advantages_{_hi}"])   
+    _guard(["num_hotels", "hotel_order"])                                       
+    for _hi in range(st.session_state.get("num_hotels", 1)):                    
+        _guard([f"h_hide_{_hi}", f"h_overline_{_hi}", f"h_title_{_hi}",         
+                f"h_subtitle_{_hi}", f"h_url_{_hi}", f"h_booking_{_hi}",        
+                f"h_amenities_{_hi}", f"h_text_{_hi}", f"h_advantages_{_hi}"])  
 
-        st.number_input("Liczba hoteli:", 1, 3, step=1, key="num_hotels")
-        _rebuild_slide_order()
-        hotel_order = _get_hotel_order()
+    st.number_input("Liczba hoteli:", 1, 3, step=1, key="num_hotels")
+    _rebuild_slide_order()
+    hotel_order = _get_hotel_order()
 
-        # Panel kolejności hoteli
-        if len(hotel_order) > 1:
-            _section_header("KOLEJNOŚĆ HOTELI W PREZENTACJI")
-            for pos, hi in enumerate(hotel_order):
-                name = str(st.session_state.get(f'h_title_{hi}', f'Hotel {hi+1}')).split('\n')[0][:35] or f'Hotel {hi+1}'
-                col_lbl, col_up, col_dn = st.columns([8, 1, 1])
-                col_lbl.markdown(
-                    f"<div style='padding:6px 10px; background:#f1f5f9; border-radius:4px; "
-                    f"border-left:3px solid #003366; font-size:12px; color:#1e293b;'>"
-                    f"<strong style='color:#003366; font-size:10px; text-transform:uppercase; "
-                    f"letter-spacing:1px;'>Hotel {pos+1}</strong><br>{name}</div>",
-                    unsafe_allow_html=True,
-                )
-                if pos > 0:
-                    col_up.button("▲", key=f"ho_up_{pos}",
-                                  on_click=_move_hotel, args=(pos, -1),
-                                  use_container_width=True)
-                if pos < len(hotel_order) - 1:
-                    col_dn.button("▼", key=f"ho_dn_{pos}",
-                                  on_click=_move_hotel, args=(pos, 1),
-                                  use_container_width=True)
+    # Panel kolejności hoteli
+    if len(hotel_order) > 1:
+        _section_header("KOLEJNOŚĆ HOTELI W PREZENTACJI")
+        for pos, hi in enumerate(hotel_order):
+            name = str(st.session_state.get(f'h_title_{hi}', f'Hotel {hi+1}')).split('\n')[0][:35] or f'Hotel {hi+1}'
+            col_lbl, col_up, col_dn = st.columns([8, 1, 1])
+            col_lbl.markdown(
+                f"<div style='padding:6px 10px; background:#f1f5f9; border-radius:4px; "
+                f"border-left:3px solid #003366; font-size:12px; color:#1e293b;'>"
+                f"<strong style='color:#003366; font-size:10px; text-transform:uppercase; "
+                f"letter-spacing:1px;'>Hotel {pos+1}</strong><br>{name}</div>",
+                unsafe_allow_html=True,
+            )
+            if pos > 0:
+                col_up.button("▲", key=f"ho_up_{pos}",
+                              on_click=_move_hotel, args=(pos, -1),
+                              use_container_width=True)
+            if pos < len(hotel_order) - 1:
+                col_dn.button("▼", key=f"ho_dn_{pos}",
+                              on_click=_move_hotel, args=(pos, 1),
+                              use_container_width=True)
 
-        st.divider()
-        for i in range(st.session_state['num_hotels']):
-            with st.expander(f"Hotel {i+1}" + (f" — {str(st.session_state.get(f'h_title_{i}','')).split(chr(10))[0][:30]}" if st.session_state.get(f'h_title_{i}') else "")):
-                st.button("POKAŻ PODGLĄD", key=f"btn_show_hot_{i}",
-                          on_click=set_focus, args=(f"slide-hotel-{i}",), use_container_width=True)
-                for dk, dv in [
-                    (f'h_hide_{i}', False), (f'h_overline_{i}', 'ZAKWATEROWANIE'),
-                    (f'h_title_{i}', f'NAZWA HOTELU {i+1} 5*'),
-                    (f'h_subtitle_{i}', 'Komfort i elegancja na najwyższym poziomie'),
-                    (f'h_url_{i}', 'www.przykładowy-hotel.com'), (f'h_booking_{i}', '8.9'),
-                    (f'h_amenities_{i}', ["Basen", "SPA", "Wi-Fi", "Restauracja", "Plaża"]),
-                    (f'h_text_{i}', 'Zapewniamy zakwaterowanie w starannie wyselekcjonowanym hotelu.'),
-                    (f'h_advantages_{i}', 'Położenie tuż przy prywatnej plaży'),
-                ]:
-                    if dk not in st.session_state:
-                        st.session_state[dk] = dv
-                h_keys = [
-                    f'h_hide_{i}', f'h_overline_{i}', f'h_title_{i}', f'h_subtitle_{i}',
-                    f'h_url_{i}', f'h_booking_{i}', f'h_amenities_{i}', f'h_text_{i}',
-                    f'h_advantages_{i}', f'img_hotel_1_{i}', f'img_hotel_1b_{i}',
-                    f'img_hotel_2_{i}', f'img_hotel_3_{i}',
-                ]
-                section_template_manager(
-                    h_keys, "HOT", st.session_state.get(f'h_title_{i}', f'hotel-{i+1}'),
-                    f"hot_{i}", index=i,
-                )
-                st.checkbox("Ukryj ten slajd w PDF", key=f"h_hide_{i}",
-                            on_change=set_focus, args=(f"slide-hotel-{i}",))
-                st.text_input("Mały nadtytuł:", key=f"h_overline_{i}",
-                              on_change=set_focus, args=(f"slide-hotel-{i}",))
-                st.text_area("Nazwa hotelu (H1):", key=f"h_title_{i}",
-                             on_change=set_focus, args=(f"slide-hotel-{i}",))
-                st.text_input("Podtytuł:", key=f"h_subtitle_{i}",
-                              on_change=set_focus, args=(f"slide-hotel-{i}",))
-                c1, c2 = st.columns(2)
-                c1.text_input("Strona www:", key=f"h_url_{i}",
-                              on_change=set_focus, args=(f"slide-hotel-{i}",))
-                c2.text_input("Ocena Booking.com:", key=f"h_booking_{i}",
-                              on_change=set_focus, args=(f"slide-hotel-{i}",))
-                st.multiselect("Udogodnienia (ikonki):", list(hotel_icons.keys()),
-                               key=f"h_amenities_{i}", on_change=set_focus,
-                               args=(f"slide-hotel-{i}",))
-                st.text_area("Opis hotelu:", height=200, key=f"h_text_{i}",
-                             on_change=set_focus, args=(f"slide-hotel-{i}",))
-                st.text_area("Atuty hotelu:", height=100, key=f"h_advantages_{i}",
-                             on_change=set_focus, args=(f"slide-hotel-{i}",))
-                cl1, cl2 = st.columns(2)
-                u_h1 = cl1.file_uploader("Zdj. Lewe Górne", key=f"uh1_{i}",
-                                         on_change=set_focus, args=(f"slide-hotel-{i}",))
-                if u_h1:
-                    st.session_state[f'img_hotel_1_{i}'] = optimize_img(u_h1.getvalue())
-                u_h1b = cl2.file_uploader("Zdj. Lewe Dolne", key=f"uh1b_{i}",
-                                          on_change=set_focus, args=(f"slide-hotel-{i}",))
-                if u_h1b:
-                    st.session_state[f'img_hotel_1b_{i}'] = optimize_img(u_h1b.getvalue())
-                c3, c4 = st.columns(2)
-                u_h2 = c3.file_uploader("Zdj. Dolne 1", key=f"uh2_{i}",
-                                        on_change=set_focus, args=(f"slide-hotel-{i}",))
-                if u_h2:
-                    st.session_state[f'img_hotel_2_{i}'] = optimize_img(u_h2.getvalue())
-                u_h3 = c4.file_uploader("Zdj. Dolne 2", key=f"uh3_{i}",
-                                        on_change=set_focus, args=(f"slide-hotel-{i}",))
-                if u_h3:
-                    st.session_state[f'img_hotel_3_{i}'] = optimize_img(u_h3.getvalue())
-
+    st.divider()
+    for i in range(st.session_state['num_hotels']):
+        with st.expander(f"Hotel {i+1}" + (f" — {str(st.session_state.get(f'h_title_{i}','')).split(chr(10))[0][:30]}" if st.session_state.get(f'h_title_{i}') else "")):
+            st.button("POKAŻ PODGLĄD", key=f"btn_show_hot_{i}",
+                      on_click=set_focus, args=(f"slide-hotel-{i}",), use_container_width=True)
+            
+            # (Pozostawiam Twoją logikę inicjalizacji kluczy w session_state)
+            for dk, dv in [
+                (f'h_hide_{i}', False), (f'h_overline_{i}', 'ZAKWATEROWANIE'),
+                (f'h_title_{i}', f'NAZWA HOTELU {i+1} 5*'),
+                (f'h_subtitle_{i}', 'Komfort i elegancja na najwyższym poziomie'),
+                (f'h_url_{i}', 'www.przykładowy-hotel.com'), (f'h_booking_{i}', '8.9'),
+                (f'h_amenities_{i}', ["Basen", "SPA", "Wi-Fi", "Restauracja", "Plaża"]),
+                (f'h_text_{i}', 'Zapewniamy zakwaterowanie w starannie wyselekcjonowanym hotelu.'),
+                (f'h_advantages_{i}', 'Położenie tuż przy prywatnej plaży'),
+            ]:
+                if dk not in st.session_state:
+                    st.session_state[dk] = dv
+            
+            # Formularze edycyjne
+            st.checkbox("Ukryj ten slajd w PDF", key=f"h_hide_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+            st.text_input("Mały nadtytuł:", key=f"h_overline_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+            st.text_area("Nazwa hotelu (H1):", key=f"h_title_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+            st.text_input("Podtytuł:", key=f"h_subtitle_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+            
+            c1, c2 = st.columns(2)
+            c1.text_input("Strona www:", key=f"h_url_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+            c2.text_input("Ocena Booking.com:", key=f"h_booking_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+            
+            st.multiselect("Udogodnienia (ikonki):", list(hotel_icons.keys()), key=f"h_amenities_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+            st.text_area("Opis hotelu:", height=200, key=f"h_text_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+            st.text_area("Atuty hotelu:", height=100, key=f"h_advantages_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+            
+            # UPLOAD ZDJĘĆ - Nowy standard:
+            cl1, cl2 = st.columns(2)
+            u_h1 = cl1.file_uploader("Zdj. Lewe Górne", key=f"uh1_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+            if u_h1:
+                save_image_to_session_and_storage(f'img_hotel_1_{i}', u_h1.getvalue())
+                
+            u_h1b = cl2.file_uploader("Zdj. Lewe Dolne", key=f"uh1b_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+            if u_h1b:
+                save_image_to_session_and_storage(f'img_hotel_1b_{i}', u_h1b.getvalue())
+                
+            c3, c4 = st.columns(2)
+            u_h2 = c3.file_uploader("Zdj. Dolne 1", key=f"uh2_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+            if u_h2:
+                save_image_to_session_and_storage(f'img_hotel_2_{i}', u_h2.getvalue())
+                
+            u_h3 = c4.file_uploader("Zdj. Dolne 2", key=f"uh3_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+            if u_h3:
+                save_image_to_session_and_storage(f'img_hotel_3_{i}', u_h3.getvalue())
 
     # -----------------------------------------------------------------------
     # PROGRAM WYJAZDU
     # -----------------------------------------------------------------------
-    elif page == "Program Wyjazdu":
-        _guard(["prg_hide", "num_days", "p_start_dt"])                                
-        for _d in range(st.session_state.get("num_days", 4)):                        
-            _guard([f"attr_{_d}", f"desc_{_d}"])                                      
+   elif page == "Program Wyjazdu":
+    _guard(["prg_hide", "num_days", "p_start_dt"])                                   
+    for _d in range(st.session_state.get("num_days", 4)):                      
+        _guard([f"attr_{_d}", f"desc_{_d}"])                                   
 
-        st.checkbox("Ukryj CAŁĄ sekcję Programu w PDF", key="prg_hide")
-        st.number_input("Ilość dni:", 1, 15, step=1, key="num_days")
-        st.date_input("Data startu:", key="p_start_dt")
-        for d in range(st.session_state.get("num_days", 4)):
-            with st.expander(f"Dzień {d+1}"):
-                for dk in [f"attr_{d}", f"desc_{d}"]:
-                    if dk not in st.session_state:
-                        st.session_state[dk] = ""
-                d_keys = [f'img_d_{d}', f'attr_{d}', f'desc_{d}']
-                section_template_manager(d_keys, "PRG", f"Dzien_{d+1}", f"prg_{d}", index=d)
-                ud = st.file_uploader(f"Foto D{d+1} (16:9)", key=f"prg_img_{d}")
-                if ud:
-                    st.session_state[f"img_d_{d}"] = optimize_img(ud.getvalue())
-                st.text_input(f"Highlights D{d+1}", key=f"attr_{d}")
-                st.text_area(f"Opis D{d+1}", key=f"desc_{d}")
+    st.checkbox("Ukryj CAŁĄ sekcję Programu w PDF", key="prg_hide")
+    st.number_input("Ilość dni:", 1, 15, step=1, key="num_days")
+    st.date_input("Data startu:", key="p_start_dt")
+    
+    for d in range(st.session_state.get("num_days", 4)):
+        with st.expander(f"Dzień {d+1}"):
+            for dk in [f"attr_{d}", f"desc_{d}"]:
+                if dk not in st.session_state:
+                    st.session_state[dk] = ""
+            
+            d_keys = [f'img_d_{d}', f'attr_{d}', f'desc_{d}']
+            section_template_manager(d_keys, "PRG", f"Dzien_{d+1}", f"prg_{d}", index=d)
+            
+            ud = st.file_uploader(f"Foto D{d+1} (16:9)", key=f"prg_img_{d}")
+            if ud:
+                save_image_to_session_and_storage(f'img_d_{d}', ud.getvalue())
+                
+            st.text_input(f"Highlights D{d+1}", key=f"attr_{d}")
+            st.text_area(f"Opis D{d+1}", key=f"desc_{d}")
 
     # -----------------------------------------------------------------------
     # OPISY MIEJSC (nowy układ wg wzoru)
     # -----------------------------------------------------------------------
     elif _is_attr_page:
-        # Wyciągnij indeks z nazwy strony np. "  ↳ Atrakcja 1" -> pos=0 -> idx
-        # Wyciągnij idx bezpośrednio z ATTR:idx:nazwa (idx = rzeczywisty indeks danych)
-        _i = int(page.split(":")[1]) if page.startswith("ATTR:") else None
-        if _i is None or _i >= _attr_count():
-            st.warning("Nie znaleziono atrakcji.")
-        else:
-            _pos = next((p for p, ix in enumerate(_attr_order()) if ix == _i), 0)
-            day_options_global = build_day_options(
-                st.session_state.get('p_start_dt', date.today()),
-                int(st.session_state.get('num_days', 5)),
-            )
-            for _dk, _dv in [
-                (f"amain_{_i}", ""), (f"asub_{_i}", ""),
-                (f"aday_{_i}", "Brak przypisania"), (f"atype_{_i}", "Atrakcja"),
-                (f"aopis_{_i}", ""), (f"ahide_{_i}", False),
-            ]:
-                if _dk not in st.session_state:
-                    st.session_state[_dk] = _dv
+    # Wyciągnij idx bezpośrednio z ATTR:idx:nazwa
+    _i = int(page.split(":")[1]) if page.startswith("ATTR:") else None
+    if _i is None or _i >= _attr_count():
+        st.warning("Nie znaleziono atrakcji.")
+    else:
+        _pos = next((p for p, ix in enumerate(_attr_order()) if ix == _i), 0)
+        day_options_global = build_day_options(
+            st.session_state.get('p_start_dt', date.today()),
+            int(st.session_state.get('num_days', 5)),
+        )
+        for _dk, _dv in [
+            (f"amain_{_i}", ""), (f"asub_{_i}", ""),
+            (f"aday_{_i}", "Brak przypisania"), (f"atype_{_i}", "Atrakcja"),
+            (f"aopis_{_i}", ""), (f"ahide_{_i}", False),
+        ]:
+            if _dk not in st.session_state:
+                st.session_state[_dk] = _dv
 
-            # Auto-scroll: tylko gdy zmieniono aktywną atrakcję
-            if st.session_state.get('_attr_focused') != _i:
-                st.session_state['_attr_focused'] = _i
-                set_focus(f"attr_{_i}")
-            a_keys = [f'ahide_{_i}', f'amain_{_i}', f'asub_{_i}',
-                      f'aday_{_i}', f'atype_{_i}', f'aopis_{_i}',
-                      f'ah_{_i}', f'at1_{_i}', f'at2_{_i}', f'at3_{_i}']
-            section_template_manager(a_keys, "ATR",
-                st.session_state.get(f"amain_{_i}") or f"Atrakcja_{_pos+1}",
-                f"atr_{_i}", index=_i)
-
-            st.checkbox("Ukryj ten slajd w PDF", key=f"ahide_{_i}",
-                        on_change=set_focus, args=(f"attr_{_i}",))
-            st.text_input("Nazwa:", key=f"amain_{_i}",
-                          on_change=set_focus, args=(f"attr_{_i}",))
-            st.text_input("Podtytuł:", key=f"asub_{_i}",
-                          on_change=set_focus, args=(f"attr_{_i}",))
-            _curr = st.session_state.get(f"aday_{_i}", day_options_global[0])
-            if _curr not in day_options_global:
-                st.session_state[f"aday_{_i}"] = day_options_global[0]
-            st.selectbox("Przypisz do dnia:", day_options_global, key=f"aday_{_i}",
-                         on_change=set_focus, args=(f"attr_{_i}",))
+        # Auto-scroll: tylko gdy zmieniono aktywną atrakcję
+        if st.session_state.get('_attr_focused') != _i:
+            st.session_state['_attr_focused'] = _i
+            set_focus(f"attr_{_i}")
             
-            # Przycisk powrotu do programu (jeśli atrakcja przypisana do dnia)
-            assigned_day = st.session_state.get(f"aday_{_i}", "Brak przypisania")
-            if assigned_day != "Brak przypisania":
-                if st.button(f"⬅️ Wróć do Programu ({assigned_day})", 
-                            key=f"back_to_program_{_i}", 
-                            use_container_width=True, 
-                            type="secondary"):
-                    st.session_state['last_page'] = "Program Wyjazdu"
-                    st.rerun()
-            
-            st.selectbox("Ikona:", ["Brak"] + list(icon_map.keys()), key=f"atype_{_i}",
-                         on_change=set_focus, args=(f"attr_{_i}",))
-            st.text_area("Opis:", key=f"aopis_{_i}",
-                         on_change=set_focus, args=(f"attr_{_i}",))
-            _upa = st.file_uploader("Foto Główne", key=f"atr_hero_{_i}",
-                                    on_change=set_focus, args=(f"attr_{_i}",))
-            if _upa: st.session_state[f"ah_{_i}"] = optimize_img(_upa.getvalue())
-            _ac1, _ac2, _ac3 = st.columns(3)
-            _uat1 = _ac1.file_uploader("Fot. 1", key=f"atr_th1_{_i}",
-                                       on_change=set_focus, args=(f"attr_{_i}",))
-            if _uat1: st.session_state[f"at1_{_i}"] = optimize_img(_uat1.getvalue())
-            _uat2 = _ac2.file_uploader("Fot. 2", key=f"atr_th2_{_i}",
-                                       on_change=set_focus, args=(f"attr_{_i}",))
-            if _uat2: st.session_state[f"at2_{_i}"] = optimize_img(_uat2.getvalue())
-            _uat3 = _ac3.file_uploader("Fot. 3", key=f"atr_th3_{_i}",
-                                       on_change=set_focus, args=(f"attr_{_i}",))
-            if _uat3: st.session_state[f"at3_{_i}"] = optimize_img(_uat3.getvalue())
+        a_keys = [f'ahide_{_i}', f'amain_{_i}', f'asub_{_i}',
+                  f'aday_{_i}', f'atype_{_i}', f'aopis_{_i}',
+                  f'ah_{_i}', f'at1_{_i}', f'at2_{_i}', f'at3_{_i}']
+        section_template_manager(a_keys, "ATR",
+            st.session_state.get(f"amain_{_i}") or f"Atrakcja_{_pos+1}",
+            f"atr_{_i}", index=_i)
 
+        st.checkbox("Ukryj ten slajd w PDF", key=f"ahide_{_i}",
+                    on_change=set_focus, args=(f"attr_{_i}",))
+        st.text_input("Nazwa:", key=f"amain_{_i}",
+                      on_change=set_focus, args=(f"attr_{_i}",))
+        st.text_input("Podtytuł:", key=f"asub_{_i}",
+                      on_change=set_focus, args=(f"attr_{_i}",))
+        
+        _curr = st.session_state.get(f"aday_{_i}", day_options_global[0])
+        if _curr not in day_options_global:
+            st.session_state[f"aday_{_i}"] = day_options_global[0]
+        st.selectbox("Przypisz do dnia:", day_options_global, key=f"aday_{_i}",
+                     on_change=set_focus, args=(f"attr_{_i}",))
+        
+        # Przycisk powrotu do programu
+        assigned_day = st.session_state.get(f"aday_{_i}", "Brak przypisania")
+        if assigned_day != "Brak przypisania":
+            if st.button(f"⬅️ Wróć do Programu ({assigned_day})", 
+                         key=f"back_to_program_{_i}", 
+                         use_container_width=True, 
+                         type="secondary"):
+                st.session_state['last_page'] = "Program Wyjazdu"
+                st.rerun()
+        
+        st.selectbox("Ikona:", ["Brak"] + list(icon_map.keys()), key=f"atype_{_i}",
+                     on_change=set_focus, args=(f"attr_{_i}",))
+        st.text_area("Opis:", key=f"aopis_{_i}",
+                     on_change=set_focus, args=(f"attr_{_i}",))
+        
+        # --- ZDJĘCIA ---
+        _upa = st.file_uploader("Foto Główne", key=f"atr_hero_{_i}",
+                                on_change=set_focus, args=(f"attr_{_i}",))
+        if _upa:
+            save_image_to_session_and_storage(f'ah_{_i}', _upa.getvalue())
+            
+        _ac1, _ac2, _ac3 = st.columns(3)
+        _uat1 = _ac1.file_uploader("Fot. 1", key=f"atr_th1_{_i}",
+                                   on_change=set_focus, args=(f"attr_{_i}",))
+        if _uat1:
+            save_image_to_session_and_storage(f'at1_{_i}', _uat1.getvalue())
+            
+        _uat2 = _ac2.file_uploader("Fot. 2", key=f"atr_th2_{_i}",
+                                   on_change=set_focus, args=(f"attr_{_i}",))
+        if _uat2:
+            save_image_to_session_and_storage(f'at2_{_i}', _uat2.getvalue())
+            
+        _uat3 = _ac3.file_uploader("Fot. 3", key=f"atr_th3_{_i}",
+                                   on_change=set_focus, args=(f"attr_{_i}",))
+        if _uat3:
+            save_image_to_session_and_storage(f'at3_{_i}', _uat3.getvalue())
     # -----------------------------------------------------------------------
     # APLIKACJA (KOMUNIKACJA)
     # -----------------------------------------------------------------------
     elif page == "Aplikacja (Komunikacja)":
-        _guard(["app_hide", "app_overline", "app_title",  
-                "app_subtitle", "app_features"])           
-        app_keys = [
-            'app_hide', 'app_overline', 'app_title', 'app_subtitle',
-            'app_features', 'img_app_bg', 'img_app_screen',
-        ]
-        section_template_manager(app_keys, "APP", "Aplikacja", "app")
-        st.checkbox("Ukryj slajd", key="app_hide")
-        st.text_input("Mały nadtytuł:", key="app_overline")
-        st.text_area("Główny tytuł H1:", key="app_title")
-        st.text_input("Podtytuł:", key="app_subtitle")
-        st.text_area("Punkty na liście:", height=200, key="app_features")
-        c1, c2 = st.columns(2)
-        u_bg = c1.file_uploader("Zdj. tła (Prawa str.)", key="app_bg")
-        if u_bg:
-            st.session_state['img_app_bg'] = optimize_img(u_bg.getvalue())
-        u_sc = c2.file_uploader("Ekran Aplikacji", key="app_sc")
-        if u_sc:
-            st.session_state['img_app_screen'] = optimize_img(u_sc.getvalue())
+    _guard(["app_hide", "app_overline", "app_title",  
+            "app_subtitle", "app_features"])            
+    app_keys = [
+        'app_hide', 'app_overline', 'app_title', 'app_subtitle',
+        'app_features', 'img_app_bg', 'img_app_screen',
+    ]
+    section_template_manager(app_keys, "APP", "Aplikacja", "app")
+    
+    st.checkbox("Ukryj slajd", key="app_hide")
+    st.text_input("Mały nadtytuł:", key="app_overline")
+    st.text_area("Główny tytuł H1:", key="app_title")
+    st.text_input("Podtytuł:", key="app_subtitle")
+    st.text_area("Punkty na liście:", height=200, key="app_features")
+    
+    c1, c2 = st.columns(2)
+    
+    u_bg = c1.file_uploader("Zdj. tła (Prawa str.)", key="app_bg")
+    if u_bg:
+        save_image_to_session_and_storage('img_app_bg', u_bg.getvalue())
+        
+    u_sc = c2.file_uploader("Ekran Aplikacji", key="app_sc")
+    if u_sc:
+        save_image_to_session_and_storage('img_app_screen', u_sc.getvalue())
 
     # -----------------------------------------------------------------------
     # MATERIAŁY BRANDINGOWE
     # -----------------------------------------------------------------------
     elif page == "Materiały Brandingowe":
-        _guard(["brand_hide", "brand_overline", "brand_title",  
-                "brand_subtitle", "brand_features"])             
-        bra_keys = [
-            'brand_hide', 'brand_overline', 'brand_title', 'brand_subtitle',
-            'brand_features', 'img_brand_1', 'img_brand_2', 'img_brand_3',
-        ]
-        section_template_manager(bra_keys, "BRA", "Branding", "bra")
-        st.checkbox("Ukryj slajd", key="brand_hide")
-        st.text_input("Mały nadtytuł:", key="brand_overline")
-        st.text_area("Główny tytuł H1:", key="brand_title")
-        st.text_input("Podtytuł:", key="brand_subtitle")
-        st.text_area("Punkty na liście (Enter = nowy punkt):", height=300, key="brand_features")
-        c1, c2, c3 = st.columns(3)
-        u1 = c1.file_uploader("Zdj 1 (Lewa góra)", key="bra_img_1")
-        if u1:
-            st.session_state['img_brand_1'] = optimize_img(u1.getvalue())
-        u2 = c2.file_uploader("Zdj 2 (Prawa góra)", key="bra_img_2")
-        if u2:
-            st.session_state['img_brand_2'] = optimize_img(u2.getvalue())
-        u3 = c3.file_uploader("Zdj 3 (Dół)", key="bra_img_3")
-        if u3:
-            st.session_state['img_brand_3'] = optimize_img(u3.getvalue())
+    _guard(["brand_hide", "brand_overline", "brand_title",  
+            "brand_subtitle", "brand_features"])             
+    bra_keys = [
+        'brand_hide', 'brand_overline', 'brand_title', 'brand_subtitle',
+        'brand_features', 'img_brand_1', 'img_brand_2', 'img_brand_3',
+    ]
+    section_template_manager(bra_keys, "BRA", "Branding", "bra")
+    
+    st.checkbox("Ukryj slajd", key="brand_hide")
+    st.text_input("Mały nadtytuł:", key="brand_overline")
+    st.text_area("Główny tytuł H1:", key="brand_title")
+    st.text_input("Podtytuł:", key="brand_subtitle")
+    st.text_area("Punkty na liście (Enter = nowy punkt):", height=300, key="brand_features")
+    
+    c1, c2, c3 = st.columns(3)
+    
+    u1 = c1.file_uploader("Zdj 1 (Lewa góra)", key="bra_img_1")
+    if u1:
+        save_image_to_session_and_storage('img_brand_1', u1.getvalue())
+        
+    u2 = c2.file_uploader("Zdj 2 (Prawa góra)", key="bra_img_2")
+    if u2:
+        save_image_to_session_and_storage('img_brand_2', u2.getvalue())
+        
+    u3 = c3.file_uploader("Zdj 3 (Dół)", key="bra_img_3")
+    if u3:
+        save_image_to_session_and_storage('img_brand_3', u3.getvalue())
 
     # -----------------------------------------------------------------------
     # WIRTUALNY ASYSTENT
     # -----------------------------------------------------------------------
     elif page == "Wirtualny Asystent":
-        _guard(["va_hide", "va_overline", "va_title", 
-                "va_subtitle", "va_text"])              
-        va_keys = [
-            'va_hide', 'va_overline', 'va_title', 'va_subtitle',
-            'va_text', 'img_va_1', 'img_va_2', 'img_va_3',
-        ]
-        section_template_manager(va_keys, "VA", "Asystent", "va")
-        st.checkbox("Ukryj slajd", key="va_hide")
-        st.text_input("Mały nadtytuł:", key="va_overline")
-        st.text_area("Główny tytuł H1:", key="va_title")
-        st.text_input("Podtytuł:", key="va_subtitle")
-        st.text_area("Treść oferty:", height=300, key="va_text")
-        c1, c2, c3 = st.columns(3)
-        u1 = c1.file_uploader("Zdj 1 (Szerokie)", key="va_img_1")
-        if u1:
-            st.session_state['img_va_1'] = optimize_img(u1.getvalue())
-        u2 = c2.file_uploader("Zdj 2 (Lewy dół)", key="va_img_2")
-        if u2:
-            st.session_state['img_va_2'] = optimize_img(u2.getvalue())
-        u3 = c3.file_uploader("Zdj 3 (Prawy dół)", key="va_img_3")
-        if u3:
-            st.session_state['img_va_3'] = optimize_img(u3.getvalue())
+    _guard(["va_hide", "va_overline", "va_title", 
+            "va_subtitle", "va_text"])             
+    va_keys = [
+        'va_hide', 'va_overline', 'va_title', 'va_subtitle',
+        'va_text', 'img_va_1', 'img_va_2', 'img_va_3',
+    ]
+    section_template_manager(va_keys, "VA", "Asystent", "va")
+    
+    st.checkbox("Ukryj slajd", key="va_hide")
+    st.text_input("Mały nadtytuł:", key="va_overline")
+    st.text_area("Główny tytuł H1:", key="va_title")
+    st.text_input("Podtytuł:", key="va_subtitle")
+    st.text_area("Treść oferty:", height=300, key="va_text")
+    
+    c1, c2, c3 = st.columns(3)
+    
+    u1 = c1.file_uploader("Zdj 1 (Szerokie)", key="va_img_1")
+    if u1:
+        save_image_to_session_and_storage('img_va_1', u1.getvalue())
+        
+    u2 = c2.file_uploader("Zdj 2 (Lewy dół)", key="va_img_2")
+    if u2:
+        save_image_to_session_and_storage('img_va_2', u2.getvalue())
+        
+    u3 = c3.file_uploader("Zdj 3 (Prawy dół)", key="va_img_3")
+    if u3:
+        save_image_to_session_and_storage('img_va_3', u3.getvalue())
 
     # -----------------------------------------------------------------------
     # PILLOW GIFTS
     # -----------------------------------------------------------------------
     elif page == "Pillow Gifts":
-        _guard(["pg_hide", "pg_overline", "pg_title", "pg_subtitle",  
-                "pg_text", "pg_features"])                             
-        gif_keys = [
-            'pg_hide', 'pg_overline', 'pg_title', 'pg_subtitle',
-            'pg_text', 'pg_features', 'img_pg_1', 'img_pg_2', 'img_pg_3',
-        ]
-        section_template_manager(gif_keys, "GIF", "Gifts", "gif")
-        st.checkbox("Ukryj slajd", key="pg_hide")
-        st.text_input("Mały nadtytuł:", key="pg_overline")
-        st.text_area("Główny tytuł H1:", key="pg_title")
-        st.text_input("Podtytuł:", key="pg_subtitle")
-        st.text_area("Opis (tekst główny):", height=200, key="pg_text")
-        st.text_area("Punktory (każda linia = jeden punkt):", height=150, key="pg_features",
-                     help="Każda linia to jeden punkt z kwadratowym punktorkiem ■")
-        c1, c2, c3 = st.columns(3)
-        u1 = c1.file_uploader("Zdjęcie 1", key="pg_img_1")
-        if u1:
-            st.session_state['img_pg_1'] = optimize_img(u1.getvalue())
-        u2 = c2.file_uploader("Zdjęcie 2 (Pionowe)", key="pg_img_2")
-        if u2:
-            st.session_state['img_pg_2'] = optimize_img(u2.getvalue())
-        u3 = c3.file_uploader("Zdjęcie 3", key="pg_img_3")
-        if u3:
-            st.session_state['img_pg_3'] = optimize_img(u3.getvalue())
+    _guard(["pg_hide", "pg_overline", "pg_title", "pg_subtitle",  
+            "pg_text", "pg_features"])                             
+    gif_keys = [
+        'pg_hide', 'pg_overline', 'pg_title', 'pg_subtitle',
+        'pg_text', 'pg_features', 'img_pg_1', 'img_pg_2', 'img_pg_3',
+    ]
+    section_template_manager(gif_keys, "GIF", "Gifts", "gif")
+    
+    st.checkbox("Ukryj slajd", key="pg_hide")
+    st.text_input("Mały nadtytuł:", key="pg_overline")
+    st.text_area("Główny tytuł H1:", key="pg_title")
+    st.text_input("Podtytuł:", key="pg_subtitle")
+    st.text_area("Opis (tekst główny):", height=200, key="pg_text")
+    st.text_area("Punktory (każda linia = jeden punkt):", height=150, key="pg_features",
+                 help="Każda linia to jeden punkt z kwadratowym punktorkiem ■")
+    
+    c1, c2, c3 = st.columns(3)
+    
+    u1 = c1.file_uploader("Zdjęcie 1", key="pg_img_1")
+    if u1:
+        save_image_to_session_and_storage('img_pg_1', u1.getvalue())
+        
+    u2 = c2.file_uploader("Zdjęcie 2 (Pionowe)", key="pg_img_2")
+    if u2:
+        save_image_to_session_and_storage('img_pg_2', u2.getvalue())
+        
+    u3 = c3.file_uploader("Zdjęcie 3", key="pg_img_3")
+    if u3:
+        save_image_to_session_and_storage('img_pg_3', u3.getvalue())
 
     # -----------------------------------------------------------------------
     # KOSZTORYS
     # -----------------------------------------------------------------------
     elif page == "Kosztorys":
-        _guard(["koszt_hide_1", "koszt_hide_2", "koszt_h1_title", "koszt_title",
-                "koszt_pax", "koszt_price", "koszt_hotel", "koszt_dbl", "koszt_sgl",
-                "koszt_zawiera_1", "koszt_zawiera_2", "koszt_nie_zawiera", "koszt_opcje"])
-        koszt_keys = [
-            'koszt_hide_1', 'koszt_hide_2', 'koszt_h1_title', 'koszt_title',
-            'koszt_pax', 'koszt_price', 'koszt_hotel', 'koszt_dbl', 'koszt_sgl',
-            'koszt_zawiera_1', 'koszt_zawiera_2', 'koszt_nie_zawiera',
-            'koszt_opcje', 'img_koszt_1', 'img_koszt_2',
-        ]
-        section_template_manager(koszt_keys, "KOS", "Kosztorys", "koszt")
-        c1, c2 = st.columns(2)
-        c1.checkbox("Ukryj CAŁY Kosztorys (Slajd 1 i 2)", key="koszt_hide_1")
-        c2.checkbox("Ukryj TYLKO Slajd 2 (Ciąg dalszy)", key="koszt_hide_2")
-        st.text_input("Tytuł H1 (duży, górna część):", key="koszt_h1_title")
-        st.text_input("Overline (mały nadtytuł):", key="koszt_title")
-        _section_header("GŁÓWNE DANE TABELI")
-        c1, c2 = st.columns(2)
-        c1.text_input("Wielkość grupy:", key="koszt_pax")
-        c2.text_input("Cena:", key="koszt_price")
-        st.text_input("Wybrany Hotel / Standard:", key="koszt_hotel")
-        c1, c2 = st.columns(2)
-        c1.text_input("Ilość pokoi DBL:", key="koszt_dbl")
-        c2.text_input("Ilość pokoi SGL:", key="koszt_sgl")
-        _section_header("AUTO-UZUPEŁNIANIE")
-        if st.button("GENERUJ LISTĘ KOSZTÓW Z OFERTY", type="primary", use_container_width=True):
-            auto_generate_kosztorys()
-            st.success("Lista kosztów wygenerowana pomyślnie.")
-            st.rerun()
-        _section_header("TREŚĆ KOSZTORYSU")
-        st.text_area("Cena zawiera (Część 1 - Slajd 1):", height=200, key="koszt_zawiera_1")
-        st.text_area("Cena zawiera (Część 2 - Slajd 2):", height=150, key="koszt_zawiera_2")
-        st.text_area("Nie policzone w cenie:", height=100, key="koszt_nie_zawiera")
-        st.text_area("Koszty opcjonalne:", height=100, key="koszt_opcje")
-        _section_header("ZDJĘCIA")
-        c1, c2 = st.columns(2)
-        u1 = c1.file_uploader("Zdjęcie (Slajd 1)", key="koszt_img_1")
-        if u1:
-            st.session_state['img_koszt_1'] = optimize_img(u1.getvalue())
-        u2 = c2.file_uploader("Zdjęcie (Slajd 2)", key="koszt_img_2")
-        if u2:
-            st.session_state['img_koszt_2'] = optimize_img(u2.getvalue())
+    _guard(["koszt_hide_1", "koszt_hide_2", "koszt_h1_title", "koszt_title",
+            "koszt_pax", "koszt_price", "koszt_hotel", "koszt_dbl", "koszt_sgl",
+            "koszt_zawiera_1", "koszt_zawiera_2", "koszt_nie_zawiera", "koszt_opcje"])
+    koszt_keys = [
+        'koszt_hide_1', 'koszt_hide_2', 'koszt_h1_title', 'koszt_title',
+        'koszt_pax', 'koszt_price', 'koszt_hotel', 'koszt_dbl', 'koszt_sgl',
+        'koszt_zawiera_1', 'koszt_zawiera_2', 'koszt_nie_zawiera',
+        'koszt_opcje', 'img_koszt_1', 'img_koszt_2',
+    ]
+    section_template_manager(koszt_keys, "KOS", "Kosztorys", "koszt")
+    
+    c1, c2 = st.columns(2)
+    c1.checkbox("Ukryj CAŁY Kosztorys (Slajd 1 i 2)", key="koszt_hide_1")
+    c2.checkbox("Ukryj TYLKO Slajd 2 (Ciąg dalszy)", key="koszt_hide_2")
+    
+    st.text_input("Tytuł H1 (duży, górna część):", key="koszt_h1_title")
+    st.text_input("Overline (mały nadtytuł):", key="koszt_title")
+    
+    _section_header("GŁÓWNE DANE TABELI")
+    c1, c2 = st.columns(2)
+    c1.text_input("Wielkość grupy:", key="koszt_pax")
+    c2.text_input("Cena:", key="koszt_price")
+    st.text_input("Wybrany Hotel / Standard:", key="koszt_hotel")
+    
+    c1, c2 = st.columns(2)
+    c1.text_input("Ilość pokoi DBL:", key="koszt_dbl")
+    c2.text_input("Ilość pokoi SGL:", key="koszt_sgl")
+    
+    _section_header("AUTO-UZUPEŁNIANIE")
+    if st.button("GENERUJ LISTĘ KOSZTÓW Z OFERTY", type="primary", use_container_width=True):
+        auto_generate_kosztorys()
+        st.success("Lista kosztów wygenerowana pomyślnie.")
+        st.rerun()
+        
+    _section_header("TREŚĆ KOSZTORYSU")
+    st.text_area("Cena zawiera (Część 1 - Slajd 1):", height=200, key="koszt_zawiera_1")
+    st.text_area("Cena zawiera (Część 2 - Slajd 2):", height=150, key="koszt_zawiera_2")
+    st.text_area("Nie policzone w cenie:", height=100, key="koszt_nie_zawiera")
+    st.text_area("Koszty opcjonalne:", height=100, key="koszt_opcje")
+    
+    _section_header("ZDJĘCIA")
+    c1, c2 = st.columns(2)
+    u1 = c1.file_uploader("Zdjęcie (Slajd 1)", key="koszt_img_1")
+    if u1:
+        save_image_to_session_and_storage('img_koszt_1', u1.getvalue())
+        
+    u2 = c2.file_uploader("Zdjęcie (Slajd 2)", key="koszt_img_2")
+    if u2:
+        save_image_to_session_and_storage('img_koszt_2', u2.getvalue())
 
     # -----------------------------------------------------------------------
     # CO O NAS MÓWIĄ
     # -----------------------------------------------------------------------
-    elif page == "Co o nas mówią":
-        _guard(["testim_hide", "testim_overline", "testim_title", 
-                "testim_subtitle", "testim_count"])                 
+   elif page == "Co o nas mówią":
+    _guard(["testim_hide", "testim_overline", "testim_title", 
+            "testim_subtitle", "testim_count"])                   
 
-        opi_keys = [
-            'testim_hide', 'testim_overline', 'testim_title', 'testim_subtitle',
-            'img_testim_main', 'testim_count',
-        ]
-        for i in range(st.session_state.get('testim_count', 3)):
-            opi_keys.extend([f'testim_img_{i}', f'testim_head_{i}',
-                             f'testim_quote_{i}', f'testim_author_{i}', f'testim_role_{i}'])
-        section_template_manager(opi_keys, "OPI", "Opinie", "opi")
-        st.checkbox("Ukryj ten slajd w PDF", key="testim_hide")
-        st.text_input("Mały nadtytuł:", key="testim_overline")
-        st.text_area("Główny tytuł H1:", key="testim_title")
-        st.text_area("Podtytuł:", key="testim_subtitle")
-        u_main = st.file_uploader("Zdjęcie główne slajdu", key="opi_main")
-        if u_main:
-            st.session_state['img_testim_main'] = optimize_img(u_main.getvalue())
-        st.number_input("Liczba opinii:", 1, 4, step=1, key="testim_count")
-        for i in range(st.session_state['testim_count']):
-            for dk in [f"testim_head_{i}", f"testim_quote_{i}",
-                       f"testim_author_{i}", f"testim_role_{i}"]:
-                if dk not in st.session_state:
-                    st.session_state[dk] = ""
-            with st.expander(f"Opinia {i+1}"):
-                u_testim = st.file_uploader("Zdjęcie / Logo", key=f"opi_img_{i}")
-                if u_testim:
-                    st.session_state[f"testim_img_{i}"] = optimize_img(u_testim.getvalue())
-                st.text_input("Nagłówek", key=f"testim_head_{i}")
-                st.text_area("Treść rekomendacji", key=f"testim_quote_{i}")
-                c1, c2 = st.columns(2)
-                c1.text_input("Autor (Pogrubiony)", key=f"testim_author_{i}")
-                c2.text_input("Stanowisko", key=f"testim_role_{i}")
+    opi_keys = [
+        'testim_hide', 'testim_overline', 'testim_title', 'testim_subtitle',
+        'img_testim_main', 'testim_count',
+    ]
+    for i in range(st.session_state.get('testim_count', 3)):
+        opi_keys.extend([f'testim_img_{i}', f'testim_head_{i}',
+                         f'testim_quote_{i}', f'testim_author_{i}', f'testim_role_{i}'])
+    section_template_manager(opi_keys, "OPI", "Opinie", "opi")
+    
+    st.checkbox("Ukryj ten slajd w PDF", key="testim_hide")
+    st.text_input("Mały nadtytuł:", key="testim_overline")
+    st.text_area("Główny tytuł H1:", key="testim_title")
+    st.text_area("Podtytuł:", key="testim_subtitle")
+    
+    u_main = st.file_uploader("Zdjęcie główne slajdu", key="opi_main")
+    if u_main:
+        save_image_to_session_and_storage('img_testim_main', u_main.getvalue())
+        
+    st.number_input("Liczba opinii:", 1, 4, step=1, key="testim_count")
+    
+    for i in range(st.session_state['testim_count']):
+        for dk in [f"testim_head_{i}", f"testim_quote_{i}",
+                   f"testim_author_{i}", f"testim_role_{i}"]:
+            if dk not in st.session_state:
+                st.session_state[dk] = ""
+        
+        with st.expander(f"Opinia {i+1}"):
+            u_testim = st.file_uploader("Zdjęcie / Logo", key=f"opi_img_{i}")
+            if u_testim:
+                save_image_to_session_and_storage(f'testim_img_{i}', u_testim.getvalue())
+                
+            st.text_input("Nagłówek", key=f"testim_head_{i}")
+            st.text_area("Treść rekomendacji", key=f"testim_quote_{i}")
+            
+            c1, c2 = st.columns(2)
+            c1.text_input("Autor (Pogrubiony)", key=f"testim_author_{i}")
+            c2.text_input("Stanowisko", key=f"testim_role_{i}")
 
     # -----------------------------------------------------------------------
     # O NAS / ZESPÓŁ
     # -----------------------------------------------------------------------
     elif page == "O Nas (Zespół)":
-        _guard(["about_hide", "about_overline", "about_title", "about_sub",  
-                "about_desc", "team_count"])                                  
-        nas_keys = [
-            'about_hide', 'about_overline', 'about_title', 'about_sub',
-            'about_desc', 'about_panel_title', 'about_panel_text',
-            'team_count', 'img_about_clients',
-        ]
-        for i in range(st.session_state.get('team_count', 2)):
-            nas_keys.extend([f't_name_{i}', f't_role_{i}', f't_desc_{i}', f't_img_{i}'])
-        section_template_manager(nas_keys, "NAS", "Zespol", "nas")
-        st.checkbox("Ukryj ten slajd w PDF", key="about_hide")
-        st.text_input("Mały nadtytuł:", key="about_overline")
-        st.text_area("Główny tytuł H1:", key="about_title")
-        st.text_input("Podtytuł:", key="about_sub")
-        st.text_area("Opis główny:", height=150, key="about_desc")
-        u_clients = st.file_uploader("Zdjęcie prawe (Klienci / Logotypy)", key="nas_clients")
-        if u_clients:
-            st.session_state['img_about_clients'] = optimize_img(u_clients.getvalue())
-        st.number_input("Liczba osób w zespole:", 1, 4, step=1, key="team_count")
-        for i in range(st.session_state['team_count']):
-            for dk in [f"t_name_{i}", f"t_role_{i}", f"t_desc_{i}"]:
-                if dk not in st.session_state:
-                    st.session_state[dk] = ""
-            with st.expander(f"Osoba {i+1}"):
-                st.text_input("Imię i nazwisko", key=f"t_name_{i}")
-                st.text_input("Stanowisko", key=f"t_role_{i}")
-                st.text_area("Krótki opis", key=f"t_desc_{i}")
-                u_team = st.file_uploader("Zdjęcie (okrągłe)", key=f"nas_img_{i}")
-                if u_team:
-                    st.session_state[f"t_img_{i}"] = optimize_img(u_team.getvalue())
+    _guard(["about_hide", "about_overline", "about_title", "about_sub",  
+            "about_desc", "team_count"])                                 
+    nas_keys = [
+        'about_hide', 'about_overline', 'about_title', 'about_sub',
+        'about_desc', 'about_panel_title', 'about_panel_text',
+        'team_count', 'img_about_clients',
+    ]
+    for i in range(st.session_state.get('team_count', 2)):
+        nas_keys.extend([f't_name_{i}', f't_role_{i}', f't_desc_{i}', f't_img_{i}'])
+    section_template_manager(nas_keys, "NAS", "Zespol", "nas")
+    
+    st.checkbox("Ukryj ten slajd w PDF", key="about_hide")
+    st.text_input("Mały nadtytuł:", key="about_overline")
+    st.text_area("Główny tytuł H1:", key="about_title")
+    st.text_input("Podtytuł:", key="about_sub")
+    st.text_area("Opis główny:", height=150, key="about_desc")
+    
+    u_clients = st.file_uploader("Zdjęcie prawe (Klienci / Logotypy)", key="nas_clients")
+    if u_clients:
+        save_image_to_session_and_storage('img_about_clients', u_clients.getvalue())
+        
+    st.number_input("Liczba osób w zespole:", 1, 4, step=1, key="team_count")
+    
+    for i in range(st.session_state['team_count']):
+        for dk in [f"t_name_{i}", f"t_role_{i}", f"t_desc_{i}"]:
+            if dk not in st.session_state:
+                st.session_state[dk] = ""
+        with st.expander(f"Osoba {i+1}"):
+            st.text_input("Imię i nazwisko", key=f"t_name_{i}")
+            st.text_input("Stanowisko", key=f"t_role_{i}")
+            st.text_area("Krótki opis", key=f"t_desc_{i}")
+            
+            u_team = st.file_uploader("Zdjęcie (okrągłe)", key=f"nas_img_{i}")
+            if u_team:
+                save_image_to_session_and_storage(f't_img_{i}', u_team.getvalue())
 
     # -----------------------------------------------------------------------
     # WYGLĄD I KOLORY
