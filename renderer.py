@@ -1505,7 +1505,9 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     ch += f"""<div style="flex:1;display:flex;flex-direction:column;" id="program_day_{di}">
                         <div class="day-header">DZIEŃ {di+1}</div>
                         <div class="day-date">{cdt.strftime('%d.%m.%Y')} - {pl_days_map[cdt.weekday()]}</div>
-                        <div class="prog-img-container">{f'<img src="data:image/jpeg;base64,{id_img}" style="width:100%;height:100%;object-fit:cover;">' if id_img else _get_ph('FOTO DNIA')}</div>
+                        <div class="prog-img-container">
+                            {_img_tag(id_img, 'FOTO DNIA', 'width:100%;height:100%;object-fit:cover;')}
+                    </div>
                         <div class="prog-attr">{str(get_data(f'attr_{di}') or '').replace(chr(10),'<br>')}</div>
                         {mh}
                         <p style="font-size:13px; margin-top:10px; line-height: 1.5;">{str(get_data(f'desc_{di}') or '').replace(chr(10),'<br>')}</p>
