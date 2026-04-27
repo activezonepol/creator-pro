@@ -102,8 +102,8 @@ def upload_image(supabase_client, key: str, raw_bytes: bytes,
         # Upload nowego pliku
         try:
             result = supabase_client.storage.from_(STORAGE_BUCKET).upload(
-                path=storage_path,
-                file=optimized_bytes,
+                storage_path,
+                optimized_bytes,
                 file_options={"content-type": content_type}
             )
             st.info(f"Upload result: {result}")
