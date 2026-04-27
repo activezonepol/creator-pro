@@ -8,6 +8,7 @@ OSTATNIA AKTUALIZACJA: 2024-04-23 15:35 UTC
 NAPRAWIONO: StreamlitValueAssignmentNotAllowedError - buttony atrakcji → selectbox
 """
 import re
+from storage_utils import upload_image
 import json
 import hashlib
 import base64
