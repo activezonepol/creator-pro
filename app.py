@@ -328,9 +328,10 @@ def _build_proj_dict():
                      'nav_top_radio', 'nav_bot_radio')
     # Klucze wewnętrzne które nie powinny trafić do pliku projektu
     internal_keys = {'_session_id', '_ls_loaded', '_ls_restore', '_scroll_pos',
-                     'ready_export_html', 'show_link_info', '_attr_focused', 'STATE_BACKUP',
-                     '_supabase_data', '_loaded_from_supabase', 'last_supabase_save', 
-                     'last_save_status', '_user_edited', '_debug_loaded'}
+                 'ready_export_html', 'show_link_info', '_attr_focused',
+                 'STATE_BACKUP', '_supabase_data', '_loaded_from_supabase',
+                 'last_supabase_save', 'last_save_status', '_user_edited',
+                 '_debug_loaded', '_project_data'}
     skip_keys = {
         'tyt_hero', 'tyt_logo_az', 'tyt_logo_cli',
         'kie_hero', 'kie_th1', 'kie_th2', 'kie_th3', 'lot_hero',
