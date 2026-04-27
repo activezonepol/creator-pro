@@ -365,13 +365,13 @@ def load_project_data(project_data: dict):
 
         # 4. Specjalistyczne typy
         if k in IMAGE_KEYS and isinstance(v, str):
-    if v.startswith('http'):
-        st.session_state[k] = v  
-    else:
-        try:
-            st.session_state[k] = base64.b64decode(v)
-        except Exception:
-            st.session_state[k] = v
+            if v.startswith('http'):
+                st.session_state[k] = v  
+        else:
+            try:
+                st.session_state[k] = base64.b64decode(v)
+            except Exception:
+                st.session_state[k] = v
         elif k == 'p_start_dt' and isinstance(v, str):
             try:
                 st.session_state[k] = date.fromisoformat(v)
