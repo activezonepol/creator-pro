@@ -1606,11 +1606,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         elif item_type == 'attr':
             if get_data(f"ahide_{i}"):
                 continue
-            
-            # W trybie edycji: renderuj TYLKO aktualną atrakcję
-            if not export_mode and current_page != f"ATTR:{i}":
-                continue
-            
+                        
             iah = get_b64(f'ah_{i}', (4, 5))
             a1 = get_b64(f'at1_{i}', (1, 1))
             a2 = get_b64(f'at2_{i}', (1, 1))
