@@ -9,6 +9,7 @@ NAPRAWIONO: StreamlitValueAssignmentNotAllowedError - buttony atrakcji → selec
 """
 import re
 import json
+import hashlib
 import base64
 from datetime import date, datetime
 import time
@@ -39,35 +40,51 @@ supabase = init_supabase()
 # ---------------------------------------------------------------------------
 def _upload_image(raw_bytes, state_key, is_logo=False):
     """
-    Uploaduje zdjecie do Supabase Storage bucket nexa-images.
-    Zapisuje publiczny URL do session_state[state_key].
-    Zwraca URL lub None przy bledzie.
-    Fallback: zapisuje bytes lokalnie zeby nie stracic zdjecia.
+    Uploaduje zdjęcie do Storage, zapobiegając re-uploadom przez hashowanie.
+    Zapisuje publiczny URL do session_state. Nie zanieczyszcza bazy surowymi bajtami.
     """
-    # Optymalizuj raz
+    if not raw_bytes:
+        return None
+
+    # 1. Szybki hash pliku, aby sprawdzić, czy już go wgraliśmy do Storage
+    file_hash = hashlib.md5(raw_bytes).hexdigest()
+    hash_key = f"_hash_{state_key}"
+
+    # Jeśli hash się zgadza i w stanie jest już URL (string), pomiń cały proces (eliminuje 6 sekund lagu)
+    existing_val = st.session_state.get(state_key)
+    if st.session_state.get(hash_key) == file_hash and isinstance(existing_val, str) and existing_val.startswith("http"):
+        return existing_val
+
+    # Optymalizuj tylko raz, gdy to nowy plik
     optimized = optimize_logo(raw_bytes) if is_logo else optimize_img(raw_bytes)
     if not optimized:
         return None
 
-    # Fallback juz dostepny — zapisz bytes na wypadek bledu Storage
-    st.session_state[state_key] = optimized
+    # Zapisz bajty TYLKO do pamięci RAM, pod kluczem wykluczonym z DB,
+    # aby UI nie straciło obrazka, ale żeby nie trafił do Postgresa.
+    st.session_state[f"_bytes_{state_key}"] = optimized
 
     try:
         ext = "png" if is_logo else "jpg"
-        path = f"{state_key}.{ext}"
+        # 2. Unikalna ścieżka pliku - rozwiązuje problem nadpisywania plików między różnymi projektami!
+        path = f"{state_key}_{file_hash[:10]}.{ext}"
         content_type = "image/png" if is_logo else "image/jpeg"
+        
         supabase.storage.from_("nexa-images").upload(
             path,
             optimized,
             file_options={"content-type": content_type, "upsert": "true"},
         )
         url = supabase.storage.from_("nexa-images").get_public_url(path)
+        
+        # 3. Zapisujemy sukces - czyścimy ewentualne pozostałości bajtów i ustawiamy czysty URL
         st.session_state[state_key] = url
+        st.session_state[hash_key] = file_hash  # Oznacz plik jako przeprocesowany
         st.session_state["_last_upload_ok"] = f"OK {state_key}"
         return url
+        
     except Exception as e:
-        # Pokaz blad zeby wiedziec co nie dziala
-        st.session_state["_last_upload_error"] = f"Storage blad ({state_key}): {e}"
+        st.session_state["_last_upload_error"] = f"Storage błąd ({state_key}): {e}"
         return None
 
 # ---------------------------------------------------------------------------
@@ -321,17 +338,20 @@ def _rebuild_slide_order():
     _get_hotel_order()
     _attr_order()
 def _build_proj_dict():
-    """Serializuje session_state do słownika gotowego do zapisu JSON."""
+    """Serializuje session_state do słownika gotowego do zapisu JSON (dla bazy DB i eksportu)."""
     proj = {}
-    # Prefiksy i klucze widgetów które NIE MOGĄ być zapisane (kolizja z Streamlit)
+    
+    # Prefiksy i klucze widgetów które NIE MOGĄ być zapisane
     skip_prefixes = ('FormSubmitter', '$$', 'up_', 'fn_', 'dl_', 'btn_', 'sb_', 'pa_add_', 'sek_img_up',
                      'attr_add_btn', 'attrnav_', 'attrup_', 'attrdn_', 'attrdel_', 'attr_select',
-                     'nav_top_radio', 'nav_bot_radio')
+                     'nav_top_radio', 'nav_bot_radio', '_hash_', '_bytes_') # Dodane _hash_ i _bytes_
+                     
     # Klucze wewnętrzne które nie powinny trafić do pliku projektu
     internal_keys = {'_session_id', '_ls_loaded', '_ls_restore', '_scroll_pos',
                      'ready_export_html', 'show_link_info', '_attr_focused', 'STATE_BACKUP',
                      '_supabase_data', '_loaded_from_supabase', 'last_supabase_save', 
-                     'last_save_status', '_user_edited', '_debug_loaded'}
+                     'last_save_status', '_user_edited', '_debug_loaded', 'last_save_count'}
+                     
     skip_keys = {
         'tyt_hero', 'tyt_logo_az', 'tyt_logo_cli',
         'kie_hero', 'kie_th1', 'kie_th2', 'kie_th3', 'lot_hero',
@@ -339,11 +359,10 @@ def _build_proj_dict():
         'va_img_1', 'va_img_2', 'va_img_3',
         'pg_img_1', 'pg_img_2', 'pg_img_3',
         'koszt_img_1', 'koszt_img_2', 'opi_main', 'nas_clients',
-        # file_uploader przerywników (UploadedFile, nie bytes — dane trafiają do sek_*_img)
         'sek_img_up_0', 'sek_img_up_1', 'sek_img_up_2', 'sek_img_up_3',
-        # file_uploader miniatur miejsc
         'plc_img3_0', 'plc_img4_0',
     }
+    
     dyn_skip = re.compile(
         r'^(uh1|uh1b|uh2|uh3|prg_img|'
         r'plc_img1|plc_img2|plc_img3|plc_img4|'
@@ -351,6 +370,7 @@ def _build_proj_dict():
         r'opi_img|nas_img|'
         r'sek_img_up)_\d+$'
     )
+    
     for k, v in st.session_state.items():
         if k in EXCLUDE_EXPORT_KEYS or k in internal_keys:
             continue
@@ -358,15 +378,21 @@ def _build_proj_dict():
             continue
         if k in skip_keys or dyn_skip.match(k):
             continue
+            
         try:
+            # KRYTYCZNA ZMIANA:
+            # Całkowicie usuwamy konwersję bytes -> Base64.
+            # Zamiast tego ignorujemy bajty. W bazie zapisze się tylko URL obrazu (String),
+            # co zmniejszy rozmiar payloadu z kilkunastu Megabajtów do kilkuset Kilobajtów.
             if isinstance(v, bytes):
-                proj[k] = base64.b64encode(v).decode()
+                continue
             elif isinstance(v, (date, datetime)):
                 proj[k] = v.isoformat()
             elif isinstance(v, (str, int, float, bool, list, dict)) or v is None:
                 proj[k] = v
         except Exception:
             pass
+            
     return proj
 def _validate_and_load_json(uploaded_file, expected_keys=None):
     """
