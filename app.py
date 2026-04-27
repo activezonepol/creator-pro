@@ -1573,7 +1573,7 @@ with col_form:
     # -----------------------------------------------------------------------
     # CO O NAS MÓWIĄ
     # -----------------------------------------------------------------------
-   elif page == "Co o nas mówią":
+    elif page == "Co o nas mówią":
     _guard(["testim_hide", "testim_overline", "testim_title", 
             "testim_subtitle", "testim_count"])                   
 
