@@ -552,7 +552,7 @@ if not st.session_state.get('client_mode', False):
     current_time = time.time()
 
     # Zapisujemy tylko jeśli minęło 20 sekund
-    if current_time - st.session_state['last_supabase_save'] > 20:
+    if current_time - st.session_state['last_supabase_save'] > 120:
         
         # Resetujemy zegar NATYCHMIAST (przed zapisem)
         st.session_state['last_supabase_save'] = current_time
