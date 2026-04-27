@@ -176,7 +176,8 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
             if st.button("↑ WCZYTAJ SZABLON", key=f"btn_apply_{uploader_key}",
                          use_container_width=True, type="primary"):
                 # Bezpieczne ładowanie z walidacją
-                data, error = _validate_and_load_json(uploaded_file, expected_keys=section_keys)
+                expected_keys_no_index = [re.sub(f'_{index}$', '', k) if index else k for k in section_keys]
+                data, error = _validate_and_load_json(uploaded_file, expected_keys=expected_keys_no_index)
                 
                 if error:
                     st.error(f"❌ {error}")
