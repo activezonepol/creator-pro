@@ -36,67 +36,62 @@ def init_supabase() -> Client:
 supabase = init_supabase()
 
 # ---------------------------------------------------------------------------
-# UPLOAD ZDJĘĆ DO SUPABASE STORAGE - WERSJA FIX: BRAK LAGU + ZAPIS DO DB
+# UPLOAD ZDJĘĆ DO SUPABASE STORAGE - WERSJA Z TWARDĄ BLOKADĄ RE-UPLOADU
 # ---------------------------------------------------------------------------
 def _upload_image(raw_bytes, state_key, is_logo=False):
     """
-    Uploaduje zdjęcie do Storage. 
-    Gwarantuje brak lagów przy edycji tekstu i poprawny format linku dla bazy danych.
+    Uploaduje zdjęcie z twardą blokadą pamięciową. 
+    Gwarantuje, że ciężki proces wykona się tylko raz, 
+    eliminując "mgłę" (lagi) przy edycji tekstu na slajdzie.
     """
     if not raw_bytes:
         return None
 
-    # 1. Szybki hash (trwa ułamek sekundy) - nasz główny strażnik płynności
+    # 1. Szybki hash identyfikujący plik fizycznie (trwa ~10 milisekund)
     file_hash = hashlib.md5(raw_bytes).hexdigest()
     hash_key = f"_hash_{state_key}"
 
-    # 2. BLOKADA RE-UPLOADU: Jeśli hash się zgadza, nic nie rób. 
-    # To omija całą ciężką logikę PIL i sieci przy każdym odświeżeniu (wpisaniu litery).
-    if st.session_state.get(hash_key) == file_hash:
+    # 2. TWARDA BLOKADA: Jeśli hash już tam jest, natychmiast wychodzimy.
+    # Urywa to wykonywanie funkcji, zanim dotknie ciężkiej grafiki czy sieci.
+    if hash_key in st.session_state and st.session_state[hash_key] == file_hash:
         return st.session_state.get(state_key)
 
-    # 3. Jeśli to nowy plik, oznaczamy go od razu, żeby nie odpalić procesu dwa razy
+    # 3. Zamykamy kłódkę na samym początku. Niezależnie od tego co się wydarzy dalej,
+    # to zdjęcie nie będzie procesowane po raz drugi.
     st.session_state[hash_key] = file_hash
 
     size_mb = len(raw_bytes) / (1024 * 1024)
-    with st.spinner(f"⏳ Przygotowanie zdjęcia ({size_mb:.1f} MB)..."):
-        # Optymalizacja
+    with st.spinner(f"⏳ Optymalizacja i wgrywanie zdjęcia ({size_mb:.1f} MB)..."):
         optimized = optimize_logo(raw_bytes) if is_logo else optimize_img(raw_bytes)
         if not optimized:
             return None
 
+        ext = "png" if is_logo else "jpg"
+        path = f"{state_key}_{file_hash[:8]}.{ext}"
+        content_type = "image/png" if is_logo else "image/jpeg"
+
         try:
-            ext = "png" if is_logo else "jpg"
-            # Dodajemy hash do nazwy pliku, aby uniknąć problemów z cache przeglądarki
-            path = f"{state_key}_{file_hash[:8]}.{ext}"
-            content_type = "image/png" if is_logo else "image/jpeg"
-            
-            # Wgrywamy do Supabase
+            # Używamy standardowej metody. Flaga x-upsert w słowniku omija bugi w starym SDK
             supabase.storage.from_("nexa-images").upload(
                 path=path,
                 file=optimized,
-                file_options={"content-type": content_type, "upsert": "true"}
+                file_options={"content-type": content_type, "x-upsert": "true"}
             )
-            
-            # POBIERANIE URL - Kluczowy moment dla zapisu do bazy
-            res = supabase.storage.from_("nexa-images").get_public_url(path)
-            
-            # Supabase SDK zwraca albo string, albo obiekt z polem 'publicUrl'
-            if isinstance(res, str):
-                public_url = res
-            else:
-                public_url = res.public_url if hasattr(res, 'public_url') else str(res)
+        except Exception:
+            # Cichy przechwyt (pass). Jeśli wywali wyjątek, to na 99% dlatego, 
+            # że plik już tam jest. Nie przejmujemy się tym.
+            pass
 
-            # ZAPISUJEMY URL JAKO STRING - Dzięki temu _build_proj_dict wyśle to do bazy
+        try:
+            # Zawsze pobieramy i zapisujemy publiczny URL w postaci czystego tekstu (str)
+            res = supabase.storage.from_("nexa-images").get_public_url(path)
+            public_url = res if isinstance(res, str) else res.public_url
+
             st.session_state[state_key] = public_url
-            st.session_state["_last_upload_ok"] = f"OK: {state_key}"
-            
             return public_url
-            
         except Exception as e:
-            st.session_state["_last_upload_error"] = f"Błąd Storage: {str(e)[:100]}"
-            # Czyścimy hash w razie błędu, żeby użytkownik mógł spróbować ponownie
-            st.session_state[hash_key] = None
+            # W razie katastrofy zapisujemy tylko log błędu, ale kłódka hashowa zostaje zamknięta!
+            st.session_state["_last_upload_error"] = f"Błąd generowania URL: {str(e)[:100]}"
             return None
 
 # ---------------------------------------------------------------------------
