@@ -543,9 +543,18 @@ if st.session_state['client_mode']:
 # ---------------------------------------------------------------------------
 if 'last_supabase_save' not in st.session_state:
     st.session_state['last_supabase_save'] = 0
+
 current_time = time.time()
+
 # Auto-save co 10 sekund (nie 2s - za częste zapisy obciążają bazę)
 if current_time - st.session_state['last_supabase_save'] > 10:
+    
+    # ⚠️ KRYTYCZNA ZMIANA: Resetujemy zegar natychmiast na samym początku!
+    # Dzięki temu, nawet jeśli baza poniżej wyrzuci błąd (timeout), 
+    # skrypt i tak da aplikacji 10 sekund "oddechu" zanim spróbuje znowu.
+    # To zapobiega całkowicie lagom przy wpisywaniu kolejnych liter.
+    st.session_state['last_supabase_save'] = current_time
+    
     try:
         project_data = _build_proj_dict()
         project_name = st.session_state.get('t_main', 'Nowy projekt')
@@ -572,14 +581,14 @@ if current_time - st.session_state['last_supabase_save'] > 10:
                 'updated_at': datetime.now().isoformat()
             }).execute()
         
-        st.session_state['last_supabase_save'] = current_time
         # Status zapisu (widoczny dla użytkownika)
         save_time = datetime.now().strftime('%H:%M:%S')
         st.session_state['last_save_status'] = f"✅ Zapisano {save_time}"
         st.session_state['last_save_count'] = len(project_data)
+        
     except Exception as e:
-        # Cichy błąd - nie przerywaj renderowania
-        st.session_state['last_save_status'] = f"❌ {str(e)[:50]}"
+        # Cichy błąd - nie przerywaj renderowania, zegar jest już zresetowany
+        st.session_state['last_save_status'] = f"❌ Błąd zapisu (timeout)"
         
 # ---------------------------------------------------------------------------
 # SIDEBAR — NAWIGACJA
