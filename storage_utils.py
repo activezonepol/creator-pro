@@ -99,17 +99,15 @@ def upload_image(supabase_client, key: str, raw_bytes: bytes,
 
         # Upload nowego pliku
         try:
-            supabase_client.storage.from_(STORAGE_BUCKET).upload(
+            result = supabase_client.storage.from_(STORAGE_BUCKET).upload(
                 path=storage_path,
                 file=optimized_bytes,
                 file_options={"content-type": content_type}
             )
-        except Exception:
-            supabase_client.storage.from_(STORAGE_BUCKET).update(
-                path=storage_path,
-                file=optimized_bytes,
-                file_options={"content-type": content_type}
-            )
+            st.info(f"Upload result: {result}")
+        except Exception as upload_err:
+            st.error(f"Upload error: {str(upload_err)[:300]}")
+            return None
 
         # 3. Pobierz publiczny URL
         url_response = supabase_client.storage.from_(STORAGE_BUCKET).get_public_url(storage_path)
