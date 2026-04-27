@@ -1309,16 +1309,16 @@ with col_form:
                 st.session_state.get(f"amain_{_i}") or f"Atrakcja_{_pos+1}",
                 f"atr_{_i}", index=_i)
             st.checkbox("Ukryj ten slajd w PDF", key=f"ahide_{_i}",
-                        on_change=set_focus, args=(f"attr_{_i}",))
+                        
             st.text_input("Nazwa:", key=f"amain_{_i}",
-                          on_change=set_focus, args=(f"attr_{_i}",))
+                          
             st.text_input("Podtytuł:", key=f"asub_{_i}",
-                          on_change=set_focus, args=(f"attr_{_i}",))
+                          
             _curr = st.session_state.get(f"aday_{_i}", day_options_global[0])
             if _curr not in day_options_global:
                 st.session_state[f"aday_{_i}"] = day_options_global[0]
             st.selectbox("Przypisz do dnia:", day_options_global, key=f"aday_{_i}",
-                         on_change=set_focus, args=(f"attr_{_i}",))
+                         
             
             # Przycisk powrotu do programu (jeśli atrakcja przypisana do dnia)
             assigned_day = st.session_state.get(f"aday_{_i}", "Brak przypisania")
@@ -1331,21 +1331,21 @@ with col_form:
                     st.rerun()
             
             st.selectbox("Ikona:", ["Brak"] + list(icon_map.keys()), key=f"atype_{_i}",
-                         on_change=set_focus, args=(f"attr_{_i}",))
+                         
             st.text_area("Opis:", key=f"aopis_{_i}",
-                         on_change=set_focus, args=(f"attr_{_i}",))
+                         
             _upa = st.file_uploader("Foto Główne", key=f"atr_hero_{_i}",
-                                    on_change=set_focus, args=(f"attr_{_i}",))
+                                    
             if _upa: _upload_image(_upa.getvalue(), f"ah_{_i}")
             _ac1, _ac2, _ac3 = st.columns(3)
             _uat1 = _ac1.file_uploader("Fot. 1", key=f"atr_th1_{_i}",
-                                       on_change=set_focus, args=(f"attr_{_i}",))
+                                       
             if _uat1: _upload_image(_uat1.getvalue(), f"at1_{_i}")
             _uat2 = _ac2.file_uploader("Fot. 2", key=f"atr_th2_{_i}",
-                                       on_change=set_focus, args=(f"attr_{_i}",))
+                                       
             if _uat2: _upload_image(_uat2.getvalue(), f"at2_{_i}")
             _uat3 = _ac3.file_uploader("Fot. 3", key=f"atr_th3_{_i}",
-                                       on_change=set_focus, args=(f"attr_{_i}",))
+                                       
             if _uat3: _upload_image(_uat3.getvalue(), f"at3_{_i}")
     # -----------------------------------------------------------------------
     # APLIKACJA (KOMUNIKACJA)
