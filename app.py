@@ -542,54 +542,54 @@ if st.session_state['client_mode']:
 # ---------------------------------------------------------------------------
 # AUTO-SAVE DO SUPABASE - Bezpieczny upsert z ID
 # ---------------------------------------------------------------------------
-if 'last_supabase_save' not in st.session_state:
-    st.session_state['last_supabase_save'] = 0
+if not st.session_state.get('client_mode', False):
+    if 'last_supabase_save' not in st.session_state:
+        st.session_state['last_supabase_save'] = 0
 
-current_time = time.time()
+    current_time = time.time()
 
-# Auto-save co 10 sekund (nie 2s - za częste zapisy obciążają bazę)
-if current_time - st.session_state['last_supabase_save'] > 10:
-    
-    # ⚠️ KRYTYCZNA ZMIANA: Resetujemy zegar natychmiast na samym początku!
-    # Dzięki temu, nawet jeśli baza poniżej wyrzuci błąd (timeout), 
-    # skrypt i tak da aplikacji 10 sekund "oddechu" zanim spróbuje znowu.
-    # To zapobiega całkowicie lagom przy wpisywaniu kolejnych liter.
-    st.session_state['last_supabase_save'] = current_time
-    
-    try:
-        project_data = _build_proj_dict()
-        project_name = st.session_state.get('t_main', 'Nowy projekt')
+    # Zapisujemy tylko jeśli minęło 20 sekund
+    if current_time - st.session_state['last_supabase_save'] > 20:
         
-        # Sprawdź czy istnieje rekord dla tego użytkownika
-        existing = supabase.table('projects').select('id').eq(
-            'user_email', 'default_user'
-        ).order('updated_at', desc=True).limit(1).execute()
+        # Resetujemy zegar NATYCHMIAST (przed zapisem)
+        st.session_state['last_supabase_save'] = current_time
         
-        if existing.data:
-            # UPDATE istniejącego rekordu
-            project_id = existing.data[0]['id']
-            supabase.table('projects').update({
-                'project_name': project_name,
-                'data': project_data,
-                'updated_at': datetime.now().isoformat()
-            }).eq('id', project_id).execute()
-        else:
-            # INSERT nowego rekordu
-            supabase.table('projects').insert({
-                'user_email': 'default_user',
-                'project_name': project_name,
-                'data': project_data,
-                'updated_at': datetime.now().isoformat()
-            }).execute()
-        
-        # Status zapisu (widoczny dla użytkownika)
-        save_time = datetime.now().strftime('%H:%M:%S')
-        st.session_state['last_save_status'] = f"✅ Zapisano {save_time}"
-        st.session_state['last_save_count'] = len(project_data)
-        
-    except Exception as e:
-        # Cichy błąd - nie przerywaj renderowania, zegar jest już zresetowany
-        st.session_state['last_save_status'] = f"❌ Błąd zapisu (timeout)"
+        try:
+            project_data = _build_proj_dict()
+            project_name = st.session_state.get('t_main', 'Nowy projekt')
+            
+            # Sprawdź czy istnieje rekord
+            existing = supabase.table('projects').select('id').eq(
+                'user_email', 'default_user'
+            ).order('updated_at', desc=True).limit(1).execute()
+            
+            if existing.data:
+                # UPDATE
+                project_id = existing.data[0]['id']
+                supabase.table('projects').update({
+                    'project_name': project_name,
+                    'data': project_data,
+                    'updated_at': datetime.now().isoformat()
+                }).eq('id', project_id).execute()
+            else:
+                # INSERT
+                supabase.table('projects').insert({
+                    'user_email': 'default_user',
+                    'project_name': project_name,
+                    'data': project_data,
+                    'updated_at': datetime.now().isoformat()
+                }).execute()
+            
+            # Sukces
+            save_time = datetime.now().strftime('%H:%M:%S')
+            st.session_state['last_save_status'] = f"✅ Zapisano {save_time}"
+            st.session_state['last_save_count'] = len(project_data)
+            st.toast(f"✅ Projekt zapisany o {save_time}", icon="💾")
+            
+        except Exception as e:
+            # Błąd
+            st.session_state['last_save_status'] = f"❌ Błąd zapisu"
+            st.toast("⚠️ Błąd zapisu bazy", icon="⚠️")
         
 # ---------------------------------------------------------------------------
 # SIDEBAR — NAWIGACJA
