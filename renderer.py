@@ -940,18 +940,6 @@ def _logo_tag(b64_or_url, style='max-height:100%; max-width:150px; object-fit:co
     src = b64_or_url if str(b64_or_url).startswith(('http', 'data:image')) else f'data:image/png;base64,{b64_or_url}'
     return f'<img src="{src}" style="{style}">'
 
-def get_logo_b64(raw):
-    """Konwertuje logo (bytes lub URL) do formatu używanego w HTML."""
-    if not raw:
-        return None
-    if isinstance(raw, str):
-        return raw  # URL - zwracamy bezpośrednio
-    try:
-        return base64.b64encode(raw).decode('utf-8')
-    except Exception:
-        return None
-
-
 # ---------------------------------------------------------------------------
 # GŁÓWNA FUNKCJA BUDOWANIA PREZENTACJI
 # ---------------------------------------------------------------------------
