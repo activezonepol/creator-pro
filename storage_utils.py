@@ -50,8 +50,10 @@ def upload_image(supabase_client, key: str, raw_bytes: bytes,
         None: Przy błędzie
     """
     if not raw_bytes:
+        st.error("raw_bytes jest pusty!")
         return None
 
+    st.info(f"upload_image wywołana: key={key}, bytes={len(raw_bytes)}")
     try:
         # 1. Optymalizacja zdjęcia
         with Image.open(io.BytesIO(raw_bytes)) as img:
