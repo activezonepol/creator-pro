@@ -484,38 +484,18 @@ def get_b64_cached(raw_bytes, ratio):
     except Exception:
         return None
 def get_b64(key, ratio=(4, 5)):
-    """
-    Pobiera obraz z sesji. 
-    Zwraca gotowy atrybut SRC: albo URL z Supabase, albo string Base64 z przedrostkiem HTML.
-    """
     r = st.session_state.get(key)
     if not r:
         return None
-        
-    if isinstance(r, str) and r.startswith("http"):
-        return r
-        
-    b64_str = get_b64_cached(r, ratio)
-    if b64_str:
-        return f"{b64_str}"
-        
-    return None
-
+    return get_b64_cached(r, ratio)
 @st.cache_data(max_entries=20)
-def get_logo_b64(raw):
-    """Konwertuje logo (bytes lub URL) do gotowego formatu SRC w HTML."""
-    if not raw:
+def get_logo_b64(raw_bytes):
+    if not raw_bytes:
         return None
-        
-    if isinstance(raw, str) and raw.startswith("http"):
-        return raw
-        
     try:
-        if isinstance(raw, str):
-            return f"{raw}"
-            
-        b64 = base64.b64encode(raw).decode('utf-8')
-        return f"{b64}"
+        if isinstance(raw_bytes, str):
+            return raw_bytes
+        return base64.b64encode(raw_bytes).decode('utf-8')
     except Exception:
         return None
 # ---------------------------------------------------------------------------
@@ -915,7 +895,7 @@ def _lhtml():
     b64 = get_logo_b64(st.session_state.get('logo_az'))
     if not b64:
         return ""
-    return f'<div class="top-right-logo-container"><img src="{b64}"></div>'
+    return f'<div class="top-right-logo-container"><img src="data:image/png;base64,{b64}"></div>'
 def _fhtml():
     return (
         f'<div class="page-footer">'
@@ -930,15 +910,27 @@ def _img_tag(b64_or_url, placeholder_text='ZDJĘCIE', style='width:100%;height:1
     """Helper: generuje tag img obsługując URL (Supabase) i base64 (legacy)."""
     if not b64_or_url:
         return _get_ph(placeholder_text)
-    src = b64_or_url if str(b64_or_url).startswith(('http', 'data:image')) else f'{b64_or_url}'
+    src = b64_or_url if str(b64_or_url).startswith(('http', 'data:image')) else f'data:image/jpeg;base64,{b64_or_url}'
     return f'<img src="{src}" style="{style}">'
 
 def _logo_tag(b64_or_url, style='max-height:100%; max-width:150px; object-fit:contain;'):
     """Helper: generuje tag img dla logotypów (PNG)."""
     if not b64_or_url:
         return ''
-    src = b64_or_url if str(b64_or_url).startswith(('http', 'data:image')) else f'{b64_or_url}'
+    src = b64_or_url if str(b64_or_url).startswith(('http', 'data:image')) else f'data:image/png;base64,{b64_or_url}'
     return f'<img src="{src}" style="{style}">'
+
+def get_logo_b64(raw):
+    """Konwertuje logo (bytes lub URL) do formatu używanego w HTML."""
+    if not raw:
+        return None
+    if isinstance(raw, str):
+        return raw  # URL - zwracamy bezpośrednio
+    try:
+        return base64.b64encode(raw).decode('utf-8')
+    except Exception:
+        return None
+
 
 # ---------------------------------------------------------------------------
 # GŁÓWNA FUNKCJA BUDOWANIA PREZENTACJI
@@ -1071,7 +1063,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         box_txt = str(get_data(f'{sid}_txt') or '#ffffff')
         bg_img  = get_b64(f'{sid}_img', (16, 9))
         bg_html = (
-            f'<img src="{bg_img}" style="width:100%;height:100%;object-fit:cover;">' 
+            f'<img src="data:image/jpeg;base64,{bg_img}" style="width:100%;height:100%;object-fit:cover;">' 
             if bg_img else
             f'<div style="width:100%;height:100%;background:{box_bg};"></div>'
         )
@@ -1099,16 +1091,17 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div>
         </div>{fh}""", f"slide-{sid}"))
     # --- Slajd tytułowy ---
-    i1 = get_b64('img_hero_t', (4, 5))
-    im1 = (f"<img src='{i1}' style='width:100%;height:100%;object-fit:cover;'>"
-           if i1 else _get_ph('ZDJĘCIE GŁÓWNE'))
-    rcli = get_data('logo_cli')
-    hide_cli = get_data('hide_logo_cli', False)
-    lcli_b64 = get_logo_b64(rcli)
-    lcli = (f"<img src='{lcli_b64}' style='max-height:100%;max-width:150px;object-fit:contain;'>"
-             if (lcli_b64 and not hide_cli) else "")
-    lcli_container = f"<div style='margin-bottom:40px;height:60px;display:flex;align-items:center;justify-content:flex-start;'>{lcli}</div>"
-    hp.append(_shtml(f"""{lh}<div class="premium-layout"><div class="photo-col">{im1}</div><div class="info-col">
+    if _should_render('slide-title', current_page, export_mode):
+        i1 = get_b64('img_hero_t', (4, 5))
+        im1 = (f"<img src='data:image/jpeg;base64,{i1}' style='width:100%;height:100%;object-fit:cover;'>"
+               if i1 else _get_ph('ZDJĘCIE GŁÓWNE'))
+        rcli = get_data('logo_cli')
+        hide_cli = get_data('hide_logo_cli', False)
+        lcli_b64 = get_logo_b64(rcli)
+        lcli = (f"<img src='data:image/png;base64,{lcli_b64}' style='max-height:100%;max-width:150px;object-fit:contain;'>"
+                 if (lcli_b64 and not hide_cli) else "")
+        lcli_container = f"<div style='margin-bottom:40px;height:60px;display:flex;align-items:center;justify-content:flex-start;'>{lcli}</div>"
+        hp.append(_shtml(f"""{lh}<div class="premium-layout"><div class="photo-col">{im1}</div><div class="info-col">
         {lcli_container}
         <div class="title-h1">{str(get_data('t_main','')).replace(chr(10),'<br>')}</div>
         <div class="title-sub" style="color:{acc}">{str(get_data('t_sub','')).replace(chr(10),'<br>')}</div>
@@ -1172,12 +1165,12 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         <div class="premium-layout" id="slide-kierunek" style="gap:40px; align-items:stretch;">
             <div style="flex:55; display:flex; gap:15px; height:100%;">
                 <div style="flex:1.2; height:100%; border-radius:8px; overflow:hidden; position:relative; background:#fcfcfc; border:1px solid #eee;">
-                    {f'<img src="{kimg}" style="position:absolute; top:0; left:0; width:200%; height:100%; object-fit:cover; object-position:left center;">' if kimg else _get_ph('ZDJĘCIE')}
+                    {f'<img src="data:image/jpeg;base64,{kimg}" style="position:absolute; top:0; left:0; width:200%; height:100%; object-fit:cover; object-position:left center;">' if kimg else _get_ph('ZDJĘCIE')}
                 </div>
                 <div style="flex:1; display:flex; flex-direction:column; gap:15px; height:100%;">
                     {box_html}
                     <div style="flex-grow:1; border-top-left-radius:40px; border-bottom-left-radius:8px; border-bottom-right-radius:8px; overflow:hidden; position:relative; background:#fcfcfc; border:1px solid #eee;">
-                        {f'<img src="{kimg}" style="position:absolute; bottom:0; right:0; width:220%; height:140%; object-fit:cover; object-position:right bottom;">' if kimg else _get_ph('ZDJĘCIE')}
+                        {f'<img src="data:image/jpeg;base64,{kimg}" style="position:absolute; bottom:0; right:0; width:220%; height:140%; object-fit:cover; object-position:right bottom;">' if kimg else _get_ph('ZDJĘCIE')}
                     </div>
                 </div>
             </div>
@@ -1205,7 +1198,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     if _should_render('slide-mapa', current_page, export_mode):
         m_bg = get_data('img_map_bg_auto')
         m_bg_html = (
-            f'<img src="{m_bg}" style="width:100%;height:100%;object-fit:fill;opacity:0.85;border-radius:8px;">'
+            f'<img src="data:image/jpeg;base64,{m_bg}" style="width:100%;height:100%;object-fit:fill;opacity:0.85;border-radius:8px;">'
             if m_bg else
             f'<div style="width:100%;height:100%;background:#eef2f5;display:flex;align-items:center;justify-content:center;color:#ccc;font-weight:bold;font-size:14px;text-align:center;border-radius:8px;border:2px dashed {acc};">MAPA ZOSTANIE WYGENEROWANA AUTOMATYCZNIE<br>Wprowadź punkty trasy w panelu sterowania</div>'
         )
@@ -1333,7 +1326,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     # --- Loty ---
     if _should_render('slide-loty', current_page, export_mode):
         il = get_b64('img_hero_l', (4, 5))
-        iml = (f"<img src='{il}' style='width:100%;height:100%;object-fit:cover;'>"
+        iml = (f"<img src='data:image/jpeg;base64,{il}' style='width:100%;height:100%;object-fit:cover;'>"
                if il else _get_ph('FOTO SAMOLOTU'))
         f_keys = ['f1', 'f2']
         if get_data('l_przesiadka', False):
@@ -1383,9 +1376,9 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             h1b = get_b64(f'img_hotel_1b_{i}', (16, 9))
             h2 = get_b64(f'img_hotel_2_{i}', (16, 9))
             h3 = get_b64(f'img_hotel_3_{i}', (16, 9))
-            h1_html = (f'<img src="{h1}" style="width:100%; height:100%; object-fit:cover;">'
+            h1_html = (f'<img src="data:image/jpeg;base64,{h1}" style="width:100%; height:100%; object-fit:cover;">'
                         if h1 else _get_ph('ZDJ. LEWE 1'))
-            h1b_html = (f'<img src="{h1b}" style="width:100%; height:100%; object-fit:cover;">'
+            h1b_html = (f'<img src="data:image/jpeg;base64,{h1b}" style="width:100%; height:100%; object-fit:cover;">'
                          if h1b else _get_ph('ZDJ. LEWE 2'))
             url_val = str(get_data(f'h_url_{i}', '')).strip()
             # POPRAWKA 2: URL w linii z podtytułem (wyrównany do prawej), podlinkowany
@@ -1439,8 +1432,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     <div style="flex-shrink:0;">{adv_html}</div>
                     <div style="flex:1; min-height:8px;"></div>
                     <div style="display:flex; gap:12px; flex-shrink:0; aspect-ratio:3/1;">
-                        <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background:#fcfcfc;">{f'<img src="{h2}" style="width:100%;height:100%;object-fit:cover;">' if h2 else _get_ph('FOT DÓŁ 1')}</div>
-                        <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background:#fcfcfc;">{f'<img src="{h3}" style="width:100%;height:100%;object-fit:cover;">' if h3 else _get_ph('FOT DÓŁ 2')}</div>
+                        <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background:#fcfcfc;">{f'<img src="data:image/jpeg;base64,{h2}" style="width:100%;height:100%;object-fit:cover;">' if h2 else _get_ph('FOT DÓŁ 1')}</div>
+                        <div style="flex:1; border-radius:8px; overflow:hidden; border:1px solid #eee; background:#fcfcfc;">{f'<img src="data:image/jpeg;base64,{h3}" style="width:100%;height:100%;object-fit:cover;">' if h3 else _get_ph('FOT DÓŁ 2')}</div>
                     </div>
                 </div></div>{fh}""", f"slide-hotel-{i}"))
     # --- Przerywnik sek_3 (przed programem) ---
@@ -1482,7 +1475,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     ch += f"""<div style="flex:1;display:flex;flex-direction:column;" id="program_day_{di}">
                         <div class="day-header">DZIEŃ {di+1}</div>
                         <div class="day-date">{cdt.strftime('%d.%m.%Y')} - {pl_days_map[cdt.weekday()]}</div>
-                        <div class="prog-img-container">{f'<img src="{id_img}" style="width:100%;height:100%;object-fit:cover;">' if id_img else _get_ph('FOTO DNIA')}</div>
+                        <div class="prog-img-container">{f'<img src="data:image/jpeg;base64,{id_img}" style="width:100%;height:100%;object-fit:cover;">' if id_img else _get_ph('FOTO DNIA')}</div>
                         <div class="prog-attr">{str(get_data(f'attr_{di}') or '').replace(chr(10),'<br>')}</div>
                         {mh}
                         <p style="font-size:13px; margin-top:10px; line-height: 1.5;">{str(get_data(f'desc_{di}') or '').replace(chr(10),'<br>')}</p>
@@ -1545,8 +1538,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             h1b = get_b64(f'img_hotel_1b_{i}', (16, 9))
             h2 = get_b64(f'img_hotel_2_{i}', (16, 9))
             h3 = get_b64(f'img_hotel_3_{i}', (16, 9))
-            h1_html = (f'<img src="{h1}" style="width:100%; height:100%; object-fit:cover;">' if h1 else _get_ph('ZDJ. LEWE 1'))
-            h1b_html = (f'<img src="{h1b}" style="width:100%; height:100%; object-fit:cover;">' if h1b else _get_ph('ZDJ. LEWE 2'))
+            h1_html = (f'<img src="data:image/jpeg;base64,{h1}" style="width:100%; height:100%; object-fit:cover;">' if h1 else _get_ph('ZDJ. LEWE 1'))
+            h1b_html = (f'<img src="data:image/jpeg;base64,{h1b}" style="width:100%; height:100%; object-fit:cover;">' if h1b else _get_ph('ZDJ. LEWE 2'))
             url_val = str(get_data(f'h_url_{i}', '')).strip()
             h_url_html = (f'<div style="font-size:{max(10,fs_t-2)}px; color:{c_t}; opacity:0.8; margin-bottom:15px;"><i class="fa-solid fa-globe" style="color:{acc}; margin-right:5px;"></i> {url_val}</div>' if url_val else '')
             h_amenities = get_data(f'h_amenities_{i}', [])
@@ -1574,8 +1567,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     {h_am_html}
                     <div style="flex-grow:1;">{adv_html}</div>
                     <div class="gallery-row" style="padding-top:0; padding-bottom:5px; gap:15px;">
-                        <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{f'<img src="{h2}" style="width:100%;height:100%;object-fit:cover;">' if h2 else _get_ph('FOT DÓŁ 1')}</div>
-                        <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{f'<img src="{h3}" style="width:100%;height:100%;object-fit:cover;">' if h3 else _get_ph('FOT DÓŁ 2')}</div>
+                        <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{f'<img src="data:image/jpeg;base64,{h2}" style="width:100%;height:100%;object-fit:cover;">' if h2 else _get_ph('FOT DÓŁ 1')}</div>
+                        <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{f'<img src="data:image/jpeg;base64,{h3}" style="width:100%;height:100%;object-fit:cover;">' if h3 else _get_ph('FOT DÓŁ 2')}</div>
                     </div>
                 </div></div>{fh}""", f"slide-hotel-{i}"))
         # --- Slajd MIEJSCA (układ: foto pionowe + opis + 3 miniatury) ---
@@ -1583,7 +1576,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             if get_data(f"phide_{i}"):
                 continue
             ik_p = get_b64(f'pimg1_{i}', (4, 5))
-            imk_p = (f"<img src='{ik_p}' style='width:100%;height:100%;object-fit:cover;'>"
+            imk_p = (f"<img src='data:image/jpeg;base64,{ik_p}' style='width:100%;height:100%;object-fit:cover;'>"
                      if ik_p else _get_ph('FOTO MIEJSCA'))
             tk1_p = get_b64(f'pimg2_{i}', (1, 1))
             tk2_p = get_b64(f'pimg3_{i}', (1, 1))
@@ -1604,9 +1597,9 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     <div class="title-sub" style="margin-bottom:15px;">{p_sub}</div>
                     <div style="flex-grow:1;"><p style="font-size:{fs_t}px; line-height:1.6; color:{c_t};">{p_opis}</p></div>
                     <div class="gallery-row" style="padding-top:0; padding-bottom:5px;">
-                        <div class="gallery-thumb">{f'<img src="{tk1_p}" style="width:100%;height:100%;object-fit:cover;">' if tk1_p else _get_ph('FOT 1')}</div>
-                        <div class="gallery-thumb">{f'<img src="{tk2_p}" style="width:100%;height:100%;object-fit:cover;">' if tk2_p else _get_ph('FOT 2')}</div>
-                        <div class="gallery-thumb">{f'<img src="{tk3_p}" style="width:100%;height:100%;object-fit:cover;">' if tk3_p else _get_ph('FOT 3')}</div>
+                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{tk1_p}" style="width:100%;height:100%;object-fit:cover;">' if tk1_p else _get_ph('FOT 1')}</div>
+                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{tk2_p}" style="width:100%;height:100%;object-fit:cover;">' if tk2_p else _get_ph('FOT 2')}</div>
+                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{tk3_p}" style="width:100%;height:100%;object-fit:cover;">' if tk3_p else _get_ph('FOT 3')}</div>
                     </div>
                 </div>
             </div>{fh}""", f"place_{i}"))
@@ -1623,28 +1616,28 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             if md_a:
                 bb_a = f"<a href='#program_day_{int(md_a.group(1)) - 1}' class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
             hp.append(_shtml(f"""{lh}<div class="premium-layout" id="attr_{i}">
-                <div class="photo-col">{f'<img src="{iah}" style="width:100%;height:100%;object-fit:cover;">' if iah else _get_ph('FOTO GŁÓWNE')}{bb_a}</div>
+                <div class="photo-col">{f'<img src="data:image/jpeg;base64,{iah}" style="width:100%;height:100%;object-fit:cover;">' if iah else _get_ph('FOTO GŁÓWNE')}{bb_a}</div>
                 <div class="info-col">
                     {f'<div class="type-icon-box">{icon_map.get(get_data(f"atype_{i}",""),"")}</div>' if get_data(f"atype_{i}") and get_data(f"atype_{i}") != "Brak" else ''}
                     <div class="title-h2">{str(get_data(f'amain_{i}','')).replace(chr(10),'<br>')}</div>
                     <div class="title-sub">{str(get_data(f'asub_{i}','')).replace(chr(10),'<br>')}</div>
                     <div style="flex-grow:1;"><p>{str(get_data(f'aopis_{i}') or '').replace(chr(10),'<br>')}</p></div>
                     <div class="gallery-row">
-                        <div class="gallery-thumb">{f'<img src="{a1}" style="width:100%;height:100%;object-fit:cover;">' if a1 else _get_ph('FOT 1')}</div>
-                        <div class="gallery-thumb">{f'<img src="{a2}" style="width:100%;height:100%;object-fit:cover;">' if a2 else _get_ph('FOT 2')}</div>
-                        <div class="gallery-thumb">{f'<img src="{a3}" style="width:100%;height:100%;object-fit:cover;">' if a3 else _get_ph('FOT 3')}</div>
+                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a1}" style="width:100%;height:100%;object-fit:cover;">' if a1 else _get_ph('FOT 1')}</div>
+                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a2}" style="width:100%;height:100%;object-fit:cover;">' if a2 else _get_ph('FOT 2')}</div>
+                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a3}" style="width:100%;height:100%;object-fit:cover;">' if a3 else _get_ph('FOT 3')}</div>
                     </div></div></div>{fh}""", f"attr_{i}"))
     # --- Aplikacja ---
     if _should_render('slide-app', current_page, export_mode):
         ibg = get_b64('img_app_bg', (16, 9))
         if ibg:
-            _src = ibg if str(ibg).startswith('http') else f'{ibg}'
+            _src = ibg if str(ibg).startswith('http') else f'data:image/jpeg;base64,{ibg}'
             bg_html = f'<img src="{_src}" style="width:100%;height:100%;object-fit:cover;">'
         else:
             bg_html = '<div class="photo-placeholder">ZDJĘCIE TŁA</div>'
         iscr = get_b64('img_app_screen', (9, 16))
         # object-fit:contain żeby ekran nie był przycinany, object-position:top żeby góra była widoczna
-        scr_html = (f'<img class="phone-screen" src="{iscr}" style="width:100%;height:100%;object-fit:contain;object-position:top;display:block;background:#fff;">'
+        scr_html = (f'<img class="phone-screen" src="data:image/jpeg;base64,{iscr}" style="width:100%;height:100%;object-fit:contain;object-position:top;display:block;background:#fff;">'
                     if iscr else '<div class="photo-placeholder" style="background:#fff;">EKRAN APP</div>')
         fh_app = "".join([f"<li>{f.strip()}</li>" for f in get_data('app_features', '').split('\n') if f.strip()])
         hp.append(_shtml(f"""{lh}<div style="position:relative;height:100%;width:100%;display:flex; overflow:hidden;">
@@ -1660,9 +1653,9 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         b1 = get_b64('img_brand_1', (1, 1))
         b2 = get_b64('img_brand_2', (1, 1))
         b3 = get_b64('img_brand_3', (16, 9))
-        b1h = (f'<img src="{b1}" style="width:100%;height:100%;object-fit:cover;">' if b1 else _get_ph('ZDJ 1'))
-        b2h = (f'<img src="{b2}" style="width:100%;height:100%;object-fit:cover;">' if b2 else _get_ph('ZDJ 2'))
-        b3h = (f'<img src="{b3}" style="width:100%;height:100%;object-fit:cover;"><div class="brand-gap"></div>' if b3 else _get_ph('ZDJ 3'))
+        b1h = (f'<img src="data:image/jpeg;base64,{b1}" style="width:100%;height:100%;object-fit:cover;">' if b1 else _get_ph('ZDJ 1'))
+        b2h = (f'<img src="data:image/jpeg;base64,{b2}" style="width:100%;height:100%;object-fit:cover;">' if b2 else _get_ph('ZDJ 2'))
+        b3h = (f'<img src="data:image/jpeg;base64,{b3}" style="width:100%;height:100%;object-fit:cover;"><div class="brand-gap"></div>' if b3 else _get_ph('ZDJ 3'))
         bfh = "".join([f"<li>{f.strip()}</li>" for f in get_data('brand_features', '').split('\n') if f.strip()])
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
             <div class="info-col" style="flex: 55; padding-right: 30px; padding-top: 24px; justify-content: flex-start;">
@@ -1679,9 +1672,9 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         va1 = get_b64('img_va_1', (16, 9))
         va2 = get_b64('img_va_2', (1, 1))
         va3 = get_b64('img_va_3', (1, 1))
-        v1h = (f'<img src="{va1}" style="width:100%;height:100%;object-fit:cover;">' if va1 else _get_ph('ZDJ 1'))
-        v2h = (f'<img src="{va2}" style="width:100%;height:100%;object-fit:cover;">' if va2 else _get_ph('ZDJ 2'))
-        v3h = (f'<img src="{va3}" style="width:100%;height:100%;object-fit:cover;">' if va3 else _get_ph('ZDJ 3'))
+        v1h = (f'<img src="data:image/jpeg;base64,{va1}" style="width:100%;height:100%;object-fit:cover;">' if va1 else _get_ph('ZDJ 1'))
+        v2h = (f'<img src="data:image/jpeg;base64,{va2}" style="width:100%;height:100%;object-fit:cover;">' if va2 else _get_ph('ZDJ 2'))
+        v3h = (f'<img src="data:image/jpeg;base64,{va3}" style="width:100%;height:100%;object-fit:cover;">' if va3 else _get_ph('ZDJ 3'))
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
             <div style="flex: 45; position: relative; height: 100%;"><div class="va-collage">
                 <div class="va-img-1-wrap va-img-common">{v1h}</div>
@@ -1699,9 +1692,9 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         pg1 = get_b64('img_pg_1', (1, 1))
         pg2 = get_b64('img_pg_2', (1, 2.1))
         pg3 = get_b64('img_pg_3', (1, 1))
-        h1_pg = (f'<img src="{pg1}" style="width:100%;height:100%;object-fit:cover;">' if pg1 else _get_ph('ZDJ 1'))
-        h2_pg = (f'<img src="{pg2}" style="width:100%;height:100%;object-fit:cover;">' if pg2 else _get_ph('ZDJ 2 PION'))
-        h3_pg = (f'<img src="{pg3}" style="width:100%;height:100%;object-fit:cover;">' if pg3 else _get_ph('ZDJ 3'))
+        h1_pg = (f'<img src="data:image/jpeg;base64,{pg1}" style="width:100%;height:100%;object-fit:cover;">' if pg1 else _get_ph('ZDJ 1'))
+        h2_pg = (f'<img src="data:image/jpeg;base64,{pg2}" style="width:100%;height:100%;object-fit:cover;">' if pg2 else _get_ph('ZDJ 2 PION'))
+        h3_pg = (f'<img src="data:image/jpeg;base64,{pg3}" style="width:100%;height:100%;object-fit:cover;">' if pg3 else _get_ph('ZDJ 3'))
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
             <div style="flex:50;position:relative;height:100%;"><div class="pg-collage">
                 <div class="pg-img-1-wrap pg-img-common">{h1_pg}</div>
@@ -1718,7 +1711,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     # --- Kosztorys (slajd 1) ---
     if _should_render('slide-kosztorys-1', current_page, export_mode):
         k1 = get_b64('img_koszt_1', (4, 5))
-        imk1 = (f"<img src='{k1}' style='width:100%;height:100%;object-fit:cover;'>"
+        imk1 = (f"<img src='data:image/jpeg;base64,{k1}' style='width:100%;height:100%;object-fit:cover;'>"
                 if k1 else _get_ph('ZDJĘCIE KOSZTORYSU'))
         zaw1_list = []
         for x in get_data('koszt_zawiera_1', '').split('\n'):
@@ -1742,7 +1735,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     # --- Kosztorys (slajd 2) ---
     if _should_render('slide-kosztorys-2', current_page, export_mode):
         k2 = get_b64('img_koszt_2', (4, 5))
-        imk2 = (f"<img src='{k2}' style='width:100%;height:100%;object-fit:cover;'>"
+        imk2 = (f"<img src='data:image/jpeg;base64,{k2}' style='width:100%;height:100%;object-fit:cover;'>"
                 if k2 else _get_ph('ZDJĘCIE KOSZTORYSU 2'))
         zaw2_list = []
         for x in get_data('koszt_zawiera_2', '').split('\n'):
@@ -1773,12 +1766,12 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     # --- Rekomendacje ---
     if _should_render('slide-testimonials', current_page, export_mode):
         t_main_img = get_b64('img_testim_main', (4, 5))
-        t_main_img_html = (f'<img src="{t_main_img}" style="width:100%;height:100%;object-fit:cover;">'
+        t_main_img_html = (f'<img src="data:image/jpeg;base64,{t_main_img}" style="width:100%;height:100%;object-fit:cover;">'
                            if t_main_img else _get_ph('ZDJĘCIE GŁÓWNE'))
         t_h = ""
         for i in range(get_data('testim_count', 3)):
             it = get_b64(f'testim_img_{i}', (1, 1))
-            itg = (f"<img src='{it}' style='width:100%;height:100%;object-fit:cover;'>"
+            itg = (f"<img src='data:image/jpeg;base64,{it}' style='width:100%;height:100%;object-fit:cover;'>"
                    if it else _get_ph('LOGO'))
             t_h += f"""<div class="testim-item"><div class="testim-img-wrapper">{itg}</div>
                 <div class="testim-content">
@@ -1802,7 +1795,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         grid_cols = "1fr 1fr" if tc in (2, 4) else f"repeat({tc}, 1fr)"
         for i in range(tc):
             it = get_b64(f't_img_{i}', (1, 1))
-            itg = (f"<img src='{it}' style='width:70px;height:70px;border-radius:50%;border:2px solid {acc};object-fit:cover;'>"
+            itg = (f"<img src='data:image/jpeg;base64,{it}' style='width:70px;height:70px;border-radius:50%;border:2px solid {acc};object-fit:cover;'>"
                    if it else f"<div style='width:70px;height:70px;border-radius:50%;border:2px dashed #ccc;display:flex;align-items:center;justify-content:center;margin:0 auto 10px auto;color:#aaa;font-size:10px;'>ZDJĘCIE</div>")
             tm_h += f"""<div style='display:flex; flex-direction:column; align-items:flex-start; text-align:left;'>
                 <div style="margin-bottom:8px;">{itg}</div>
@@ -1811,7 +1804,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 <div style='font-size:{max(10,fs_t-2)}px;line-height:1.4;color:{c_t};'>{str(get_data(f't_desc_{i}') or '').replace(chr(10),'<br>')}</div>
             </div>"""
         c_img = get_b64('img_about_clients', (4, 5))
-        c_img_html = (f'<img src="{c_img}" style="width:100%;height:100%;object-fit:cover;">'
+        c_img_html = (f'<img src="data:image/jpeg;base64,{c_img}" style="width:100%;height:100%;object-fit:cover;">'
                        if c_img else _get_ph('ZDJĘCIE / LOGA KLIENTÓW'))
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
             <div class="info-col" style="flex: 60; padding-right: 40px; padding-top: 30px; justify-content: flex-start; display: flex; flex-direction: column;">
@@ -1906,4 +1899,3 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
 </body>
 </html>"""
     components.html(full_html, height=900, scrolling=False)
-            
