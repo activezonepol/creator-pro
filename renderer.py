@@ -1028,6 +1028,44 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     Dane pochodzą z session_state z fallback do Supabase.
     """
     hp = []
+
+    _PRZERYWNIK_MAP = {
+        "  ↳ Przerywnik hotel": 0,
+        "  ↳ Przerywnik program": 3,
+        "  ↳ Przerywnik atrakcje": 1,
+        "  ↳ Przerywnik o nas": 2,
+    }
+    _is_attr = current_page.startswith("ATTR:")
+    _is_przerywnik = current_page in _PRZERYWNIK_MAP
+
+    def _show(slide_id):
+        if export_mode:
+            return True
+        mapping = {
+            "Strona Tytułowa": "slide-title",
+            "Opis Kierunku": "slide-kierunek",
+            "Mapa Podróży": "slide-mapa",
+            "Jak lecimy?": "slide-loty",
+            "Zakwaterowanie": "slide-hotel",
+            "Program Wyjazdu": "slide-program",
+            "Aplikacja (Komunikacja)": "slide-app",
+            "Materiały Brandingowe": "slide-branding",
+            "Wirtualny Asystent": "slide-virtual-assistant",
+            "Pillow Gifts": "slide-pillow-gifts",
+            "Kosztorys": "slide-kosztorys",
+            "Co o nas mówią": "slide-testimonials",
+            "O Nas (Zespół)": "slide-about",
+        }
+        if _is_przerywnik:
+            idx = _PRZERYWNIK_MAP[current_page]
+            return f"sek_{idx}" in slide_id
+        if _is_attr:
+            attr_idx = current_page.split(":")[1]
+            return f"attr_{attr_idx}" in slide_id
+        expected = mapping.get(current_page, "")
+        if not expected:
+            return True
+        return slide_id.startswith(expected)
         
     # Kolory - używaj get_data() zamiast get_data()
     c_h1 = get_data('color_h1', '#003366')
