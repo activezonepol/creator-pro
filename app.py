@@ -350,60 +350,26 @@ def _rebuild_slide_order():
     _get_hotel_order()
     _attr_order()
 def _build_proj_dict():
-    """Serializuje session_state do słownika gotowego do zapisu JSON (dla bazy DB i eksportu)."""
     proj = {}
     
-    # Prefiksy i klucze widgetów które NIE MOGĄ być zapisane
-    skip_prefixes = ('FormSubmitter', '$$', 'up_', 'fn_', 'dl_', 'btn_', 'sb_', 'pa_add_', 'sek_img_up',
-                     'attr_add_btn', 'attrnav_', 'attrup_', 'attrdn_', 'attrdel_', 'attr_select',
-                     'nav_top_radio', 'nav_bot_radio', '_hash_', '_bytes_') # Dodane _hash_ i _bytes_
-                     
-    # Klucze wewnętrzne które nie powinny trafić do pliku projektu
-    internal_keys = {'_session_id', '_ls_loaded', '_ls_restore', '_scroll_pos',
-                     'ready_export_html', 'show_link_info', '_attr_focused', 'STATE_BACKUP',
-                     '_supabase_data', '_loaded_from_supabase', 'last_supabase_save', 
-                     'last_save_status', '_user_edited', '_debug_loaded', 'last_save_count'}
-                     
-    skip_keys = {
-        'tyt_hero', 'tyt_logo_az', 'tyt_logo_cli',
-        'kie_hero', 'kie_th1', 'kie_th2', 'kie_th3', 'lot_hero',
-        'app_bg', 'app_sc', 'bra_img_1', 'bra_img_2', 'bra_img_3',
-        'va_img_1', 'va_img_2', 'va_img_3',
-        'pg_img_1', 'pg_img_2', 'pg_img_3',
-        'koszt_img_1', 'koszt_img_2', 'opi_main', 'nas_clients',
-        'sek_img_up_0', 'sek_img_up_1', 'sek_img_up_2', 'sek_img_up_3',
-        'plc_img3_0', 'plc_img4_0',
-    }
-    
-    dyn_skip = re.compile(
-        r'^(uh1|uh1b|uh2|uh3|prg_img|'
-        r'plc_img1|plc_img2|plc_img3|plc_img4|'
-        r'atr_hero|atr_th1|atr_th2|atr_th3|'
-        r'opi_img|nas_img|'
-        r'sek_img_up)_\d+$'
-    )
+    # Pomiń klucze techniczne i widgety
+    skip_prefixes = ('FormSubmitter', '$$', 'up_', 'btn_', 'sb_', 'nav_', '_hash_', '_bytes_')
     
     for k, v in st.session_state.items():
-        if k in EXCLUDE_EXPORT_KEYS or k in internal_keys:
+        # Pomijaj surowe bajty (zdjęcia w RAM), ale ZOSTAWIAJ linki (stringi)
+        if isinstance(v, bytes):
             continue
+            
         if any(k.startswith(p) for p in skip_prefixes):
-            continue
-        if k in skip_keys or dyn_skip.match(k):
             continue
             
         try:
-            # KRYTYCZNA ZMIANA:
-            # Całkowicie usuwamy konwersję bytes -> Base64.
-            # Zamiast tego ignorujemy bajty. W bazie zapisze się tylko URL obrazu (String),
-            # co zmniejszy rozmiar payloadu z kilkunastu Megabajtów do kilkuset Kilobajtów.
-            if isinstance(v, bytes):
-                continue
-            elif isinstance(v, (date, datetime)):
-                proj[k] = v.isoformat()
-            elif isinstance(v, (str, int, float, bool, list, dict)) or v is None:
+            # Tu trafiają nasze URL-e, bo są typu 'str'
+            if isinstance(v, (str, int, float, bool, list, dict)) or v is None:
                 proj[k] = v
         except Exception:
             pass
+    return proj
             
     return proj
 def _validate_and_load_json(uploaded_file, expected_keys=None):
