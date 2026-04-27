@@ -111,12 +111,14 @@ def _validate_and_load_json(uploaded_file, expected_keys=None):
         if not isinstance(data, dict):
             return None, f"Plik musi zawierać obiekt JSON ({{}}), znaleziono: {type(data).__name__}"
         
-        # 5. Walidacja kluczy (opcjonalna)
+        # 5. Walidacja kluczy (łagodna - kompatybilność ze starymi plikami)
         if expected_keys:
             found_keys = set(data.keys())
             expected_set = set(expected_keys)
-            if not found_keys.intersection(expected_set):
-                return None, f"Brak oczekiwanych kluczy. Znaleziono: {', '.join(list(found_keys)[:5])}"
+            overlap = found_keys.intersection(expected_set)
+            # Wymagaj co najmniej 30% kluczy (dla kompatybilności wstecznej)
+            if len(overlap) < len(expected_set) * 0.3:
+                return None, f"Za mało kluczy. Znaleziono: {', '.join(sorted(list(overlap)[:5]))}"
         
         return data, None
         
