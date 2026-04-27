@@ -24,6 +24,9 @@ from renderer import (
     get_road_distance, format_duration,
     get_local_css, build_presentation,
 )
+# --- INICJALIZACJA UI ---
+if "preview_container" not in st.session_state:
+    st.session_state.preview_container = st.empty()
 # ---------------------------------------------------------------------------
 # SUPABASE CONNECTION
 # ---------------------------------------------------------------------------
