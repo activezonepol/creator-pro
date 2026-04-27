@@ -345,178 +345,43 @@ def _rebuild_slide_order():
     _get_hotel_order()
     _attr_order()
 def _build_proj_dict():
+    """Serializuje session_state do słownika gotowego do zapisu JSON."""
     proj = {}
     
     # Pomiń klucze techniczne i widgety
-    skip_prefixes = ('FormSubmitter', '$$', 'up_', 'btn_', 'sb_', 'nav_', '_hash_', '_bytes_')
-    
+    skip_prefixes = ('FormSubmitter', '$$', 'up_', 'fn_', 'dl_', 'btn_', 'sb_', 'pa_add_', 'sek_img_up',
+                     'attr_add_btn', 'attrnav_', 'attrup_', 'attrdn_', 'attrdel_', 'attr_select',
+                     'nav_top_radio', 'nav_bot_radio', '_hash_', '_bytes_')
+                     
+    internal_keys = {'_session_id', '_ls_loaded', '_ls_restore', '_scroll_pos',
+                     'ready_export_html', 'show_link_info', '_attr_focused', 'STATE_BACKUP',
+                     '_supabase_data', '_loaded_from_supabase', 'last_supabase_save', 
+                     'last_save_status', '_user_edited', '_debug_loaded', 'last_save_count'}
+                     
     for k, v in st.session_state.items():
-        # Pomijaj surowe bajty (zdjęcia w RAM), ale ZOSTAWIAJ linki (stringi)
-        if isinstance(v, bytes):
+        if k in EXCLUDE_EXPORT_KEYS or k in internal_keys:
             continue
-            
         if any(k.startswith(p) for p in skip_prefixes):
             continue
             
+        # 1. ABSOLUTNA BLOKADA: Ignorujemy surowe bajty (zdjęcia w RAM)
+        if isinstance(v, bytes):
+            continue
+            
+        # 2. ABSOLUTNA BLOKADA: Ignorujemy gigantyczne kody starych zdjęć Base64 (powyżej 100 000 znaków).
+        # Przepuszczamy tylko krótkie teksty i linki HTTP.
+        if isinstance(v, str) and len(v) > 100000 and not v.startswith("http"):
+            continue
+            
         try:
-            # Tu trafiają nasze URL-e, bo są typu 'str'
-            if isinstance(v, (str, int, float, bool, list, dict)) or v is None:
+            if isinstance(v, (date, datetime)):
+                proj[k] = v.isoformat()
+            elif isinstance(v, (str, int, float, bool, list, dict)) or v is None:
                 proj[k] = v
         except Exception:
             pass
-    return proj
             
     return proj
-def _validate_and_load_json(uploaded_file, expected_keys=None):
-    """
-    Bezpiecznie ładuje i waliduje JSON z uploaded file.
-    
-    Args:
-        uploaded_file: Plik z st.file_uploader
-        expected_keys: Lista opcjonalnych kluczy do sprawdzenia (None = pomiń walidację)
-    
-    Returns:
-        dict: Załadowane dane lub None w przypadku błędu
-        str: Komunikat błędu lub None jeśli OK
-    """
-    if not uploaded_file:
-        return None, "Brak pliku"
-    
-    try:
-        # 1. Sprawdź czy to JSON
-        uploaded_file.seek(0)  # Reset pozycji pliku
-        content = uploaded_file.read()
-        
-        # 2. Sprawdź czy nie jest pusty
-        if not content or len(content.strip()) == 0:
-            return None, "Plik jest pusty"
-        
-        # 3. Parsuj JSON
-        try:
-            data = json.loads(content)
-        except json.JSONDecodeError as e:
-            return None, f"Nieprawidłowy format JSON: {str(e)[:100]}"
-        
-        # 4. Sprawdź czy to słownik (nie lista, string, etc)
-        if not isinstance(data, dict):
-            return None, f"Plik musi zawierać obiekt JSON ({{}}), znaleziono: {type(data).__name__}"
-        
-        # 5. Walidacja kluczy (opcjonalna)
-        if expected_keys:
-            found_keys = set(data.keys())
-            expected_set = set(expected_keys)
-            if not found_keys.intersection(expected_set):
-                return None, f"Brak oczekiwanych kluczy. Znaleziono: {', '.join(list(found_keys)[:5])}"
-        
-        return data, None
-        
-    except Exception as e:
-        return None, f"Błąd odczytu: {str(e)[:100]}"
-def section_template_manager(section_keys, file_prefix, default_filename, uploader_key, index=None):
-    ATR_KEY_MAP = {"atype": "type", "amain": "main", "asub": "sub", "aopis": "opis"}
-    _acc = st.session_state.get('color_accent', '#FF6600')
-    # Zwijany expander - domyślnie ukryty
-    with st.expander("⚙️ Zarządzanie szablonem sekcji", expanded=False):
-        # Przygotuj dane eksportu
-        export_data = {}
-        for k in section_keys:
-            save_key = k if index is None else re.sub(f'_{index}$', '', k)
-            if file_prefix == "ATR":
-                save_key = ATR_KEY_MAP.get(save_key, save_key)
-            val = st.session_state.get(k)
-            if val is not None:
-                if isinstance(val, bytes):
-                    export_data[save_key] = base64.b64encode(val).decode('utf-8')
-                elif isinstance(val, (date, datetime)):
-                    export_data[save_key] = val.isoformat()
-                else:
-                    export_data[save_key] = val
-        json_str = json.dumps(export_data)
-        cc = st.session_state.get('country_code', 'OTH')
-        base_slug = create_slug(default_filename)
-        full_filename = f"{cc}-{file_prefix}-{base_slug}.json"
-        _display = default_filename.replace("_", " ").title() if default_filename else "Slajd"
-        # ── KOMPAKTOWY LAYOUT 3 KOLUMNY ──────────────────────────────────
-        col1, col2, col3 = st.columns([1.2, 1, 1])
-        
-        with col1:
-            st.markdown(
-                f"<div style='font-size:11px;font-weight:600;color:#334155;padding:8px 0;'>"
-                f"<span style='color:{_acc};'>★</span> {_display}</div>",
-                unsafe_allow_html=True,
-            )
-        
-        with col2:
-            st.download_button(
-                "↓ ZAPISZ", json_str, full_filename,
-                key=f"dl_{uploader_key}", use_container_width=True,
-            )
-        
-        with col3:
-            uploaded_file = st.file_uploader(
-                "↑ WCZYTAJ", type=['json'], key=f"up_{uploader_key}",
-                label_visibility="collapsed",
-            )
-        
-        # Button Wczytaj w osobnym wierszu (pełna szerokość)
-        if uploaded_file:
-            if st.button("↑ WCZYTAJ SZABLON", key=f"btn_apply_{uploader_key}",
-                         use_container_width=True, type="primary"):
-                # Bezpieczne ładowanie z walidacją
-                data, error = _validate_and_load_json(uploaded_file, expected_keys=section_keys)
-                
-                if error:
-                    st.error(f"❌ {error}")
-                else:
-                    try:
-                        filtered_data = {}
-                        for k in section_keys:
-                            save_key = k
-                            load_key = k if index is None else re.sub(f'_{index}$', '', k)
-                            if file_prefix == "ATR":
-                                load_key = ATR_KEY_MAP.get(load_key, load_key)
-                            if load_key in data:
-                                filtered_data[save_key] = data[load_key]
-                        
-                        if not filtered_data:
-                            st.warning("⚠️ Nie znaleziono pasujących danych w pliku")
-                        else:
-                            load_project_data(filtered_data)
-                            st.success(f"✅ Wczytano {len(filtered_data)} pól")
-                            st.rerun()
-                    except Exception as e:
-                        st.error(f"❌ Błąd przetwarzania danych: {str(e)[:100]}")
-def _section_header(label):
-    st.markdown(
-        f"<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; "
-        f"margin-top: 15px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; "
-        f"letter-spacing: 1px;'>{label}</div>",
-        unsafe_allow_html=True,
-    )
-def save_to_supabase():
-    """Zapisz projekt do Supabase - wywołuj w on_change inputów"""
-    try:
-        data = _build_proj_dict()
-        # Sprawdź czy rekord istnieje
-        existing = supabase.table('projects').select('id').eq('user_email', 'default_user').execute()
-        
-        if existing.data:
-            # UPDATE istniejącego rekordu
-            supabase.table('projects').update({
-                'project_name': st.session_state.get('t_main', 'Projekt'),
-                'data': data,
-                'updated_at': datetime.now().isoformat()
-            }).eq('user_email', 'default_user').execute()
-        else:
-            # INSERT nowego rekordu
-            supabase.table('projects').insert({
-                'user_email': 'default_user',
-                'project_name': st.session_state.get('t_main', 'Projekt'),
-                'data': data,
-                'updated_at': datetime.now().isoformat()
-            }).execute()
-    except Exception:
-        pass  # Cichy błąd
 # ---------------------------------------------------------------------------
 # TRYB KLIENTA
 # ---------------------------------------------------------------------------
