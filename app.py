@@ -523,22 +523,20 @@ def _build_proj_dict():
 # TRYB KLIENTA
 # ---------------------------------------------------------------------------
 if st.session_state['client_mode']:
-    accent_color = st.session_state.get('color_accent', '#FF6600')
-    st.markdown(
-        f"<style>div.stButton {{ position: fixed !important; top: 20px !important; left: 20px !important; "
-        f"z-index: 999999 !important; width: auto !important; }} "
-        f"div.stButton > button {{ background-color: {accent_color} !important; color: white !important; "
-        f"border: none !important; border-radius: 30px !important; padding: 15px 25px !important; "
-        f"font-family: 'Montserrat', sans-serif !important; font-size: 14px !important; font-weight: 700 !important; "
-        f"box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important; display: flex !important; align-items: center !important; "
-        f"justify-content: center !important; width: auto !important; white-space: nowrap !important; }} "
-        f"div.stButton > button:hover {{ transform: scale(1.02); opacity: 0.9; }}</style>",
-        unsafe_allow_html=True,
-    )
+    # ... (Twój kod ze stylem CSS zostaje bez zmian) ...
+    
     if st.button("ZAKOŃCZ PODGLĄD"):
         st.session_state['client_mode'] = False
         st.rerun()
-    build_presentation()
+    
+    # --- ZMIANA W TYM MIEJSCU ---
+    # Zamiast bezpośredniego wywołania, używamy kontenera:
+    if "client_preview" not in st.session_state:
+        st.session_state.client_preview = st.empty()
+    
+    with st.session_state.client_preview.container():
+        build_presentation()
+        
     st.stop()
     
 # ---------------------------------------------------------------------------
