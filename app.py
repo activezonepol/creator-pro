@@ -393,7 +393,7 @@ def _build_text_dict():
         if any(k.startswith(p) for p in skip_prefixes):
             continue
         # Pomijamy bytes (zdjęcia w starym formacie)
-        if isinstance(v, bytes):
+       if isinstance(v, bytes) or v is None:
             continue
         try:
             if isinstance(v, (date, datetime)):
