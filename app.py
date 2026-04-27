@@ -39,32 +39,35 @@ supabase = init_supabase()
 # ---------------------------------------------------------------------------
 def _upload_image(raw_bytes, state_key, is_logo=False):
     """
-    Uploaduje zdjęcie do Supabase Storage bucket nexa-images.
+    Uploaduje zdjecie do Supabase Storage bucket nexa-images.
     Zapisuje publiczny URL do session_state[state_key].
-    Zwraca URL lub None przy błędzie.
-    Fallback: zapisuje bytes lokalnie żeby nie stracić zdjęcia.
+    Zwraca URL lub None przy bledzie.
+    Fallback: zapisuje bytes lokalnie zeby nie stracic zdjecia.
     """
+    # Optymalizuj raz
+    optimized = optimize_logo(raw_bytes) if is_logo else optimize_img(raw_bytes)
+    if not optimized:
+        return None
+
+    # Fallback juz dostepny — zapisz bytes na wypadek bledu Storage
+    st.session_state[state_key] = optimized
+
     try:
-        optimized = optimize_logo(raw_bytes) if is_logo else optimize_img(raw_bytes)
-        if not optimized:
-            return None
         ext = "png" if is_logo else "jpg"
         path = f"{state_key}.{ext}"
+        content_type = "image/png" if is_logo else "image/jpeg"
         supabase.storage.from_("nexa-images").upload(
-            path, optimized,
-            {"content-type": "image/png" if is_logo else "image/jpeg", "upsert": "true"}
+            path,
+            optimized,
+            file_options={"content-type": content_type, "upsert": "true"},
         )
         url = supabase.storage.from_("nexa-images").get_public_url(path)
         st.session_state[state_key] = url
+        st.session_state["_last_upload_ok"] = f"OK {state_key}"
         return url
-    except Exception:
-        # Fallback: zapisz bytes lokalnie
-        try:
-            optimized = optimize_logo(raw_bytes) if is_logo else optimize_img(raw_bytes)
-            if optimized:
-                st.session_state[state_key] = optimized
-        except Exception:
-            pass
+    except Exception as e:
+        # Pokaz blad zeby wiedziec co nie dziala
+        st.session_state["_last_upload_error"] = f"Storage blad ({state_key}): {e}"
         return None
 
 # ---------------------------------------------------------------------------
@@ -600,6 +603,14 @@ with st.sidebar:
         unsafe_allow_html=True
     )
     
+    # Status uploadu zdjęć (błąd lub sukces)
+    _upload_err = st.session_state.pop("_last_upload_error", None)
+    _upload_ok  = st.session_state.pop("_last_upload_ok", None)
+    if _upload_err:
+        st.error(f"🖼 {_upload_err}")
+    elif _upload_ok:
+        st.success(f"🖼 Zdjęcie wgrane do Storage")
+
     st.markdown("---")
     
     # ---------------------------------------------------------------------------
