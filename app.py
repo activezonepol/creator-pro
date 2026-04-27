@@ -64,7 +64,7 @@ def _build_proj_dict():
             
         # 2. ABSOLUTNA BLOKADA: Ignorujemy gigantyczne kody starych zdjęć Base64 (powyżej 100 000 znaków).
         # Przepuszczamy tylko krótkie teksty i linki HTTP.
-        if isinstance(v, str) and len(v) > 100000 and not v.startswith("http"):
+        if isinstance(v, str) and len(v) > 50000 and not v.startswith("http"):
             continue
             
         try:
