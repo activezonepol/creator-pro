@@ -36,57 +36,67 @@ def init_supabase() -> Client:
 supabase = init_supabase()
 
 # ---------------------------------------------------------------------------
-# UPLOAD ZDJĘĆ DO SUPABASE STORAGE
+# UPLOAD ZDJĘĆ DO SUPABASE STORAGE - WERSJA FIX: BRAK LAGU + ZAPIS DO DB
 # ---------------------------------------------------------------------------
 def _upload_image(raw_bytes, state_key, is_logo=False):
     """
-    Uploaduje zdjęcie do Storage, zapobiegając re-uploadom przez hashowanie.
-    Zawiera wskaźnik ładowania (spinner) dla lepszego UX przy dużych plikach.
+    Uploaduje zdjęcie do Storage. 
+    Gwarantuje brak lagów przy edycji tekstu i poprawny format linku dla bazy danych.
     """
     if not raw_bytes:
         return None
 
-    # 1. Szybki hash pliku
+    # 1. Szybki hash (trwa ułamek sekundy) - nasz główny strażnik płynności
     file_hash = hashlib.md5(raw_bytes).hexdigest()
     hash_key = f"_hash_{state_key}"
 
-    # Jeśli hash się zgadza i w stanie jest już URL (string), pomiń proces
-    existing_val = st.session_state.get(state_key)
-    if st.session_state.get(hash_key) == file_hash and isinstance(existing_val, str) and existing_val.startswith("http"):
-        return existing_val
+    # 2. BLOKADA RE-UPLOADU: Jeśli hash się zgadza, nic nie rób. 
+    # To omija całą ciężką logikę PIL i sieci przy każdym odświeżeniu (wpisaniu litery).
+    if st.session_state.get(hash_key) == file_hash:
+        return st.session_state.get(state_key)
 
-    # Obliczamy rozmiar w MB dla ładnego komunikatu
+    # 3. Jeśli to nowy plik, oznaczamy go od razu, żeby nie odpalić procesu dwa razy
+    st.session_state[hash_key] = file_hash
+
     size_mb = len(raw_bytes) / (1024 * 1024)
-    
-    # 2. Uruchamiamy wizualny spinner, żeby UI nie wydawało się "martwe"
-    with st.spinner(f"⏳ Optymalizacja i zapis zdjęcia ({size_mb:.1f} MB)..."):
-        # Optymalizuj tylko raz
+    with st.spinner(f"⏳ Przygotowanie zdjęcia ({size_mb:.1f} MB)..."):
+        # Optymalizacja
         optimized = optimize_logo(raw_bytes) if is_logo else optimize_img(raw_bytes)
         if not optimized:
             return None
 
-        # Zapisz bajty TYLKO do pamięci RAM (wykluczone z bazy)
-        st.session_state[f"_bytes_{state_key}"] = optimized
-
         try:
             ext = "png" if is_logo else "jpg"
-            path = f"{state_key}_{file_hash[:10]}.{ext}"
+            # Dodajemy hash do nazwy pliku, aby uniknąć problemów z cache przeglądarki
+            path = f"{state_key}_{file_hash[:8]}.{ext}"
             content_type = "image/png" if is_logo else "image/jpeg"
             
+            # Wgrywamy do Supabase
             supabase.storage.from_("nexa-images").upload(
-                path,
-                optimized,
-                file_options={"content-type": content_type, "upsert": "true"},
+                path=path,
+                file=optimized,
+                file_options={"content-type": content_type, "upsert": "true"}
             )
-            url = supabase.storage.from_("nexa-images").get_public_url(path)
             
-            st.session_state[state_key] = url
-            st.session_state[hash_key] = file_hash
-            st.session_state["_last_upload_ok"] = f"OK {state_key}"
-            return url
+            # POBIERANIE URL - Kluczowy moment dla zapisu do bazy
+            res = supabase.storage.from_("nexa-images").get_public_url(path)
+            
+            # Supabase SDK zwraca albo string, albo obiekt z polem 'publicUrl'
+            if isinstance(res, str):
+                public_url = res
+            else:
+                public_url = res.public_url if hasattr(res, 'public_url') else str(res)
+
+            # ZAPISUJEMY URL JAKO STRING - Dzięki temu _build_proj_dict wyśle to do bazy
+            st.session_state[state_key] = public_url
+            st.session_state["_last_upload_ok"] = f"OK: {state_key}"
+            
+            return public_url
             
         except Exception as e:
-            st.session_state["_last_upload_error"] = f"Storage błąd ({state_key}): {e}"
+            st.session_state["_last_upload_error"] = f"Błąd Storage: {str(e)[:100]}"
+            # Czyścimy hash w razie błędu, żeby użytkownik mógł spróbować ponownie
+            st.session_state[hash_key] = None
             return None
 
 # ---------------------------------------------------------------------------
