@@ -1716,7 +1716,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         </div>{fh}""", "slide-app"))
 
     # --- Branding ---
-        if not get_data('brand_hide', False):
+    if not get_data('brand_hide', False):
         b1 = get_b64('img_brand_1', (1, 1))
         b2 = get_b64('img_brand_2', (1, 1))
         b3 = get_b64('img_brand_3', (16, 9))
@@ -1833,7 +1833,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div>
         </div>{fh}""", "slide-kosztorys-1"))
 
-   # --- Kosztorys (slajd 2) ---
+    # --- Kosztorys (slajd 2) ---
     if not get_data('koszt_hide_1', False) and not get_data('koszt_hide_2', False):
         k2 = get_b64('img_koszt_2', (4, 5))
         imk2 = _img_tag(k2, 'ZDJĘCIE KOSZTORYSU 2', 'width:100%;height:100%;object-fit:cover;')
