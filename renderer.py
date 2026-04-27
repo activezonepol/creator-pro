@@ -484,18 +484,38 @@ def get_b64_cached(raw_bytes, ratio):
     except Exception:
         return None
 def get_b64(key, ratio=(4, 5)):
+    """
+    Pobiera obraz z sesji. 
+    Zwraca gotowy atrybut SRC: albo URL z Supabase, albo string Base64 z przedrostkiem HTML.
+    """
     r = st.session_state.get(key)
     if not r:
         return None
-    return get_b64_cached(r, ratio)
+        
+    if isinstance(r, str) and r.startswith("http"):
+        return r
+        
+    b64_str = get_b64_cached(r, ratio)
+    if b64_str:
+        return f"data:image/jpeg;base64,{b64_str}"
+        
+    return None
+
 @st.cache_data(max_entries=20)
-def get_logo_b64(raw_bytes):
-    if not raw_bytes:
+def get_logo_b64(raw):
+    """Konwertuje logo (bytes lub URL) do gotowego formatu SRC w HTML."""
+    if not raw:
         return None
+        
+    if isinstance(raw, str) and raw.startswith("http"):
+        return raw
+        
     try:
-        if isinstance(raw_bytes, str):
-            return raw_bytes
-        return base64.b64encode(raw_bytes).decode('utf-8')
+        if isinstance(raw, str):
+            return f"data:image/png;base64,{raw}"
+            
+        b64 = base64.b64encode(raw).decode('utf-8')
+        return f"data:image/png;base64,{b64}"
     except Exception:
         return None
 # ---------------------------------------------------------------------------
