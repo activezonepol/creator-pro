@@ -512,10 +512,10 @@ def get_logo_b64(raw):
         
     try:
         if isinstance(raw, str):
-            return f"data:image/png;base64,{raw}"
+            return f"{raw}"
             
         b64 = base64.b64encode(raw).decode('utf-8')
-        return f"data:image/png;base64,{b64}"
+        return f"{b64}"
     except Exception:
         return None
 # ---------------------------------------------------------------------------
@@ -915,7 +915,7 @@ def _lhtml():
     b64 = get_logo_b64(st.session_state.get('logo_az'))
     if not b64:
         return ""
-    return f'<div class="top-right-logo-container"><img src="data:image/png;base64,{b64}"></div>'
+    return f'<div class="top-right-logo-container"><img src="{b64}"></div>'
 def _fhtml():
     return (
         f'<div class="page-footer">'
@@ -937,7 +937,7 @@ def _logo_tag(b64_or_url, style='max-height:100%; max-width:150px; object-fit:co
     """Helper: generuje tag img dla logotypów (PNG)."""
     if not b64_or_url:
         return ''
-    src = b64_or_url if str(b64_or_url).startswith(('http', 'data:image')) else f'data:image/png;base64,{b64_or_url}'
+    src = b64_or_url if str(b64_or_url).startswith(('http', 'data:image')) else f'{b64_or_url}'
     return f'<img src="{src}" style="{style}">'
 
 # ---------------------------------------------------------------------------
@@ -1105,7 +1105,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     rcli = get_data('logo_cli')
     hide_cli = get_data('hide_logo_cli', False)
     lcli_b64 = get_logo_b64(rcli)
-    lcli = (f"<img src='data:image/png;base64,{lcli_b64}' style='max-height:100%;max-width:150px;object-fit:contain;'>"
+    lcli = (f"<img src='{lcli_b64}' style='max-height:100%;max-width:150px;object-fit:contain;'>"
              if (lcli_b64 and not hide_cli) else "")
     lcli_container = f"<div style='margin-bottom:40px;height:60px;display:flex;align-items:center;justify-content:flex-start;'>{lcli}</div>"
     hp.append(_shtml(f"""{lh}<div class="premium-layout"><div class="photo-col">{im1}</div><div class="info-col">
