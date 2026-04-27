@@ -1282,7 +1282,7 @@ with col_form:
     # -----------------------------------------------------------------------
     # PROGRAM WYJAZDU
     # -----------------------------------------------------------------------
-   elif page == "Program Wyjazdu":
+    elif page == "Program Wyjazdu":
     _guard(["prg_hide", "num_days", "p_start_dt"])                                   
     for _d in range(st.session_state.get("num_days", 4)):                      
         _guard([f"attr_{_d}", f"desc_{_d}"])                                   
