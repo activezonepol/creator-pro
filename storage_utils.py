@@ -72,4 +72,19 @@ def cleanup_session_bytes_to_storage(supabase_client):
                 migrated += 1
             else:
                 failed.append(key)
+
+    def run_migration_flow(supabase_client):
+    """Orkiestrator migracji: czyści, zapisuje i powiadamia."""
+    migrated_count, failed = cleanup_session_bytes_to_storage(supabase_client)
+    
+    if migrated_count > 0:
+        save_to_supabase()
+        st.success(f"✅ Zmigrowano {migrated_count} zdjęć i zaktualizowano bazę.")
+    
+    if failed:
+        st.error(f"❌ Nie udało się zmigrować: {', '.join(failed)}")
+        
+    if migrated_count == 0 and not failed:
+        st.info("ℹ️ Brak zdjęć w pamięci do migracji.")
+        
     return migrated, failed
