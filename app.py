@@ -1194,13 +1194,43 @@ with col_form:
                     h_keys, "HOT", st.session_state.get(f'h_title_{i}', f'hotel-{i+1}'),
                     f"hot_{i}", index=i,
                 )
-                st.checkbox("Ukryj ten slajd w PDF", key=f"h_hide_{i}")
-                safe_text_input("Mały nadtytuł:", key=f"h_overline_{i}")
-                safe_text_area("Nazwa hotelu (H1):", key=f"h_title_{i}")
-                safe_text_input("Podtytuł:", key=f"h_subtitle_{i}")
+                st.checkbox(
+                    "Ukryj ten slajd w PDF",
+                    key=f"h_hide_{i}",
+                    on_change=set_focus,
+                    args=(f"slide-hotel-{i}",),
+                )
+                safe_text_input(
+                    "Mały nadtytuł:",
+                    key=f"h_overline_{i}",
+                    on_change=set_focus,
+                    args=(f"slide-hotel-{i}",),
+                )
+                safe_text_area(
+                    "Nazwa hotelu (H1):",
+                    key=f"h_title_{i}",
+                    on_change=set_focus,
+                    args=(f"slide-hotel-{i}",),
+                )
+                safe_text_input(
+                    "Podtytuł:",
+                    key=f"h_subtitle_{i}",
+                    on_change=set_focus,
+                    args=(f"slide-hotel-{i}",),
+                )
                 c1, c2 = st.columns(2)
-                c1.text_input("Strona www:", key=f"h_url_{i}")
-                c2.text_input("Ocena Booking.com:", key=f"h_booking_{i}")
+                c1.text_input(
+                    "Strona www:",
+                    key=f"h_url_{i}",
+                    on_change=set_focus,
+                    args=(f"slide-hotel-{i}",),
+                )
+                c2.text_input(
+                    "Ocena Booking.com:",
+                    key=f"h_booking_{i}",
+                    on_change=set_focus,
+                    args=(f"slide-hotel-{i}",),
+                )
                 st.multiselect(
                     "Udogodnienia (ikonki):",
                     list(hotel_icons.keys()),
@@ -1208,20 +1238,52 @@ with col_form:
                     on_change=set_focus,
                     args=(f"slide-hotel-{i}",),
                 )
-                safe_text_area("Opis hotelu:", height=200, key=f"h_text_{i}")
-                safe_text_area("Atuty hotelu:", height=100, key=f"h_advantages_{i}")
+                safe_text_area(
+                    "Opis hotelu:",
+                    height=200,
+                    key=f"h_text_{i}",
+                    on_change=set_focus,
+                    args=(f"slide-hotel-{i}",),
+                )
+                safe_text_area(
+                    "Atuty hotelu:",
+                    height=100,
+                    key=f"h_advantages_{i}",
+                    on_change=set_focus,
+                    args=(f"slide-hotel-{i}",),
+                )
                 cl1, cl2 = st.columns(2)
-                u_h1 = cl1.file_uploader("Zdj. Lewe Górne", key=f"uh1_{i}")
+                u_h1 = cl1.file_uploader(
+                    "Zdj. Lewe Górne",
+                    key=f"uh1_{i}",
+                    on_change=set_focus,
+                    args=(f"slide-hotel-{i}",),
+                )
                 if u_h1:
                     _upload_image(u_h1.getvalue(), f'img_hotel_1_{i}')
-                u_h1b = cl2.file_uploader("Zdj. Lewe Dolne", key=f"uh1b_{i}")
+                u_h1b = cl2.file_uploader(
+                    "Zdj. Lewe Dolne",
+                    key=f"uh1b_{i}",
+                    on_change=set_focus,
+                    args=(f"slide-hotel-{i}",),
+                )
                 if u_h1b:
                     _upload_image(u_h1b.getvalue(), f'img_hotel_1b_{i}')
                 c3, c4 = st.columns(2)
-                u_h2 = c3.file_uploader("Zdj. Dolne 1", key=f"uh2_{i}")
+                u_h2 = c3.file_uploader(
+                    "Zdj. Dolne 1",
+                    key=f"uh2_{i}",
+                    on_change=set_focus,
+                    args=(f"slide-hotel-{i}",),
+                )
                 if u_h2:
                     _upload_image(u_h2.getvalue(), f'img_hotel_2_{i}')
-                u_h3 = c4.file_uploader("Zdj. Dolne 2", key=f"uh3_{i}")
+                u_h3 = c4.file_uploader(
+                    "Zdj. Dolne 2",
+                    key=f"uh3_{i}",
+                    on_change=set_focus,
+                    args=(f"slide-hotel-{i}",),
+                )
                 if u_h3:
                     _upload_image(u_h3.getvalue(), f'img_hotel_3_{i}')
     # -----------------------------------------------------------------------
@@ -1278,45 +1340,93 @@ with col_form:
             section_template_manager(a_keys, "ATR",
                 st.session_state.get(f"amain_{_i}") or f"Atrakcja_{_pos+1}",
                 f"atr_{_i}", index=_i)
-            st.checkbox("Ukryj ten slajd w PDF", key=f"ahide_{_i}",
-                        
-            safe_text_input("Nazwa:", key=f"amain_{_i}",
-                          
-            safe_text_input("Podtytuł:", key=f"asub_{_i}",
-                          
+            st.checkbox(
+                "Ukryj ten slajd w PDF",
+                key=f"ahide_{_i}",
+                on_change=set_focus,
+                args=(f"attr_{_i}",),
+            )
+            safe_text_input(
+                "Nazwa:",
+                key=f"amain_{_i}",
+                on_change=set_focus,
+                args=(f"attr_{_i}",),
+            )
+            safe_text_input(
+                "Podtytuł:",
+                key=f"asub_{_i}",
+                on_change=set_focus,
+                args=(f"attr_{_i}",),
+            )
             _curr = st.session_state.get(f"aday_{_i}", day_options_global[0])
             if _curr not in day_options_global:
                 st.session_state[f"aday_{_i}"] = day_options_global[0]
-            st.selectbox("Przypisz do dnia:", day_options_global, key=f"aday_{_i}",
-                         
-            
+            st.selectbox(
+                "Przypisz do dnia:",
+                day_options_global,
+                key=f"aday_{_i}",
+                on_change=set_focus,
+                args=(f"attr_{_i}",),
+            )
+
             # Przycisk powrotu do programu (jeśli atrakcja przypisana do dnia)
             assigned_day = st.session_state.get(f"aday_{_i}", "Brak przypisania")
             if assigned_day != "Brak przypisania":
-                if st.button(f"⬅️ Wróć do Programu ({assigned_day})", 
-                            key=f"back_to_program_{_i}", 
-                            use_container_width=True, 
-                            type="secondary"):
+                if st.button(
+                    f"⬅️ Wróć do Programu ({assigned_day})",
+                    key=f"back_to_program_{_i}",
+                    use_container_width=True,
+                    type="secondary",
+                ):
                     st.session_state['last_page'] = "Program Wyjazdu"
                     st.rerun()
-            
-            st.selectbox("Ikona:", ["Brak"] + list(icon_map.keys()), key=f"atype_{_i}",
-                         
-            safe_text_area("Opis:", key=f"aopis_{_i}",
-                         
-            _upa = st.file_uploader("Foto Główne", key=f"atr_hero_{_i}",
-                                    
-            if _upa: _upload_image(_upa.getvalue(), f"ah_{_i}")
+
+            st.selectbox(
+                "Ikona:",
+                ["Brak"] + list(icon_map.keys()),
+                key=f"atype_{_i}",
+                on_change=set_focus,
+                args=(f"attr_{_i}",),
+            )
+            safe_text_area(
+                "Opis:",
+                key=f"aopis_{_i}",
+                on_change=set_focus,
+                args=(f"attr_{_i}",),
+            )
+            _upa = st.file_uploader(
+                "Foto Główne",
+                key=f"atr_hero_{_i}",
+                on_change=set_focus,
+                args=(f"attr_{_i}",),
+            )
+            if _upa:
+                _upload_image(_upa.getvalue(), f"ah_{_i}")
             _ac1, _ac2, _ac3 = st.columns(3)
-            _uat1 = _ac1.file_uploader("Fot. 1", key=f"atr_th1_{_i}",
-                                       
-            if _uat1: _upload_image(_uat1.getvalue(), f"at1_{_i}")
-            _uat2 = _ac2.file_uploader("Fot. 2", key=f"atr_th2_{_i}",
-                                       
-            if _uat2: _upload_image(_uat2.getvalue(), f"at2_{_i}")
-            _uat3 = _ac3.file_uploader("Fot. 3", key=f"atr_th3_{_i}",
-                                       
-            if _uat3: _upload_image(_uat3.getvalue(), f"at3_{_i}")
+            _uat1 = _ac1.file_uploader(
+                "Fot. 1",
+                key=f"atr_th1_{_i}",
+                on_change=set_focus,
+                args=(f"attr_{_i}",),
+            )
+            if _uat1:
+                _upload_image(_uat1.getvalue(), f"at1_{_i}")
+            _uat2 = _ac2.file_uploader(
+                "Fot. 2",
+                key=f"atr_th2_{_i}",
+                on_change=set_focus,
+                args=(f"attr_{_i}",),
+            )
+            if _uat2:
+                _upload_image(_uat2.getvalue(), f"at2_{_i}")
+            _uat3 = _ac3.file_uploader(
+                "Fot. 3",
+                key=f"atr_th3_{_i}",
+                on_change=set_focus,
+                args=(f"attr_{_i}",),
+            )
+            if _uat3:
+                _upload_image(_uat3.getvalue(), f"at3_{_i}")
     # -----------------------------------------------------------------------
     # APLIKACJA (KOMUNIKACJA)
     # -----------------------------------------------------------------------
