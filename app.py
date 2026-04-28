@@ -601,6 +601,19 @@ with st.sidebar:
         st.success(f"🖼 Zdjęcie wgrane do Storage")
 
     st.markdown("---")
+# --- BEZPIECZNIK MIGRACJI (Wklejamy tutaj) ---
+    if any(isinstance(st.session_state.get(k), bytes) for k in IMAGE_KEYS):
+        st.warning("⚠️ Wykryto zdjęcia w pamięci RAM. Zalecana migracja do chmury.")
+        if st.button("🔄 Migruj zdjęcia do Storage", type="primary"):
+            with st.spinner("Trwa migracja zdjęć do chmury..."):
+                migrated_count, failed = cleanup_session_bytes_to_storage(supabase)
+                
+                if migrated_count > 0:
+                    save_to_supabase()
+                    st.success(f"✅ Zmigrowano {migrated_count} zdjęć i zapisano projekt.")
+                    st.rerun()
+                if failed:
+                    st.error(f"❌ Nie udało się zmigrować: {', '.join(failed)}")
     
     # ---------------------------------------------------------------------------
     # RESZTA SIDEBARA
