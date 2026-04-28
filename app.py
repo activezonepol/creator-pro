@@ -44,7 +44,7 @@ def input_field(label, key, type="input", **kwargs):
     if temp_key not in st.session_state:
         st.session_state[temp_key] = st.session_state.get(key, '')
     if type == "area":
-        return st.text_area(label, key=temp_key, on_change=lambda: st.session_state.update({key: st.session_state[temp_key]}), **kwargs)
+        return safe_text_area(label, key=temp_key, on_change=lambda: st.session_state.update({key: st.session_state[temp_key]}), **kwargs)
     return safe_text_input(label, key=temp_key, on_change=lambda: st.session_state.update({key: st.session_state[temp_key]}), **kwargs)
 
 
@@ -1002,7 +1002,7 @@ with col_form:
 )
         safe_text_input("Nazwa kierunku (duży tytuł H1):", key="k_main")
         safe_text_input("Podtytuł:", key="k_sub")
-        st.text_area("Opis (prawa kolumna):", height=160, key="k_opis",
+        safe_text_area("Opis (prawa kolumna):", height=160, key="k_opis",
                      help="Główny opis kierunku po prawej stronie slajdu.")
         _section_header("BOX Z FAKTAMI (lewa kolumna)")
         # Walidacja kolorów boksu
@@ -1016,7 +1016,7 @@ with col_form:
         cb2.color_picker("Kolor tekstu w boksie", key="k_box_txt")
         safe_text_input("Tytuł boksu (np. FAKTY):", key="k_facts_title",
 )
-        st.text_area(
+        safe_text_area(
             "Fakty (Format: 'Etykieta: Wartość'):", height=160, key="k_facts",
             help="Każda linia = jeden wpis. 'Etykieta: Wartość' pogrubia etykietę.",
         )
@@ -1041,9 +1041,9 @@ with col_form:
         section_template_manager(map_keys, "MAP", "mapa-podrozy", "map")
         st.checkbox("Ukryj slajd", key="map_hide")
         safe_text_input("Mały nadtytuł:", key="map_overline")
-        st.text_area("Główny tytuł H1:", key="map_title")
+        safe_text_area("Główny tytuł H1:", key="map_title")
         safe_text_input("Podtytuł:", key="map_subtitle")
-        st.text_area("Opis pod mapą:", height=100, key="map_desc")
+        safe_text_area("Opis pod mapą:", height=100, key="map_desc")
         _section_header("AUTOMATYCZNY KREATOR MAPY")
         map_zoom = st.slider("Zoom startowy (auto-zoom dostosuje dla wielu punktów):", 4, 12, key="map_zoom")
         st.number_input("Liczba punktów na trasie:", 1, 10, step=1, key="num_map_points")
@@ -1193,7 +1193,7 @@ with col_form:
             for k, l in [('f3', 'Lot 3'), ('f4', 'Lot 4')]:
                 safe_text_input(l, key=k)
         for k, l in [('l_desc', 'Opis'), ('l_extra', 'Dodatkowe info')]:
-            st.text_area(l, key=k)
+            safe_text_area(l, key=k)
         u5 = st.file_uploader("Foto Samolotu", key="lot_hero")
         if u5:
             _upload_image(u5.getvalue(), 'img_hero_l')
@@ -1260,7 +1260,7 @@ with col_form:
                             
                 safe_text_input("Mały nadtytuł:", key=f"h_overline_{i}",
                               
-                st.text_area("Nazwa hotelu (H1):", key=f"h_title_{i}",
+                safe_text_area("Nazwa hotelu (H1):", key=f"h_title_{i}",
                              
                 safe_text_input("Podtytuł:", key=f"h_subtitle_{i}",
                               
@@ -1272,9 +1272,9 @@ with col_form:
                 st.multiselect("Udogodnienia (ikonki):", list(hotel_icons.keys()),
                                key=f"h_amenities_{i}", on_change=set_focus,
                                args=(f"slide-hotel-{i}",))
-                st.text_area("Opis hotelu:", height=200, key=f"h_text_{i}",
+                safe_text_area("Opis hotelu:", height=200, key=f"h_text_{i}",
                              
-                st.text_area("Atuty hotelu:", height=100, key=f"h_advantages_{i}",
+                safe_text_area("Atuty hotelu:", height=100, key=f"h_advantages_{i}",
                              
                 cl1, cl2 = st.columns(2)
                 u_h1 = cl1.file_uploader("Zdj. Lewe Górne", key=f"uh1_{i}",
@@ -1315,7 +1315,7 @@ with col_form:
                 if ud:
                     _upload_image(ud.getvalue(), f"img_d_{d}")
                 safe_text_input(f"Highlights D{d+1}", key=f"attr_{d}")
-                st.text_area(f"Opis D{d+1}", key=f"desc_{d}")
+                safe_text_area(f"Opis D{d+1}", key=f"desc_{d}")
     # -----------------------------------------------------------------------
     # OPISY MIEJSC (nowy układ wg wzoru)
     # -----------------------------------------------------------------------
@@ -1372,7 +1372,7 @@ with col_form:
             
             st.selectbox("Ikona:", ["Brak"] + list(icon_map.keys()), key=f"atype_{_i}",
                          
-            st.text_area("Opis:", key=f"aopis_{_i}",
+            safe_text_area("Opis:", key=f"aopis_{_i}",
                          
             _upa = st.file_uploader("Foto Główne", key=f"atr_hero_{_i}",
                                     
@@ -1400,9 +1400,9 @@ with col_form:
         section_template_manager(app_keys, "APP", "Aplikacja", "app")
         st.checkbox("Ukryj slajd", key="app_hide")
         safe_text_input("Mały nadtytuł:", key="app_overline")
-        st.text_area("Główny tytuł H1:", key="app_title")
+        safe_text_area("Główny tytuł H1:", key="app_title")
         safe_text_input("Podtytuł:", key="app_subtitle")
-        st.text_area("Punkty na liście:", height=200, key="app_features")
+        safe_text_area("Punkty na liście:", height=200, key="app_features")
         c1, c2 = st.columns(2)
         u_bg = c1.file_uploader("Zdj. tła (Prawa str.)", key="app_bg")
         if u_bg:
@@ -1423,9 +1423,9 @@ with col_form:
         section_template_manager(bra_keys, "BRA", "Branding", "bra")
         st.checkbox("Ukryj slajd", key="brand_hide")
         safe_text_input("Mały nadtytuł:", key="brand_overline")
-        st.text_area("Główny tytuł H1:", key="brand_title")
+        safe_text_area("Główny tytuł H1:", key="brand_title")
         safe_text_input("Podtytuł:", key="brand_subtitle")
-        st.text_area("Punkty na liście (Enter = nowy punkt):", height=300, key="brand_features")
+        safe_text_area("Punkty na liście (Enter = nowy punkt):", height=300, key="brand_features")
         c1, c2, c3 = st.columns(3)
         u1 = c1.file_uploader("Zdj 1 (Lewa góra)", key="bra_img_1")
         if u1:
@@ -1449,9 +1449,9 @@ with col_form:
         section_template_manager(va_keys, "VA", "Asystent", "va")
         st.checkbox("Ukryj slajd", key="va_hide")
         safe_text_input("Mały nadtytuł:", key="va_overline")
-        st.text_area("Główny tytuł H1:", key="va_title")
+        safe_text_area("Główny tytuł H1:", key="va_title")
         safe_text_input("Podtytuł:", key="va_subtitle")
-        st.text_area("Treść oferty:", height=300, key="va_text")
+        safe_text_area("Treść oferty:", height=300, key="va_text")
         c1, c2, c3 = st.columns(3)
         u1 = c1.file_uploader("Zdj 1 (Szerokie)", key="va_img_1")
         if u1:
@@ -1475,10 +1475,10 @@ with col_form:
         section_template_manager(gif_keys, "GIF", "Gifts", "gif")
         st.checkbox("Ukryj slajd", key="pg_hide")
         safe_text_input("Mały nadtytuł:", key="pg_overline")
-        st.text_area("Główny tytuł H1:", key="pg_title")
+        safe_text_area("Główny tytuł H1:", key="pg_title")
         safe_text_input("Podtytuł:", key="pg_subtitle")
-        st.text_area("Opis (tekst główny):", height=200, key="pg_text")
-        st.text_area("Punktory (każda linia = jeden punkt):", height=150, key="pg_features",
+        safe_text_area("Opis (tekst główny):", height=200, key="pg_text")
+        safe_text_area("Punktory (każda linia = jeden punkt):", height=150, key="pg_features",
                      help="Każda linia to jeden punkt z kwadratowym punktorkiem ■")
         c1, c2, c3 = st.columns(3)
         u1 = c1.file_uploader("Zdjęcie 1", key="pg_img_1")
@@ -1523,10 +1523,10 @@ with col_form:
             st.success("Lista kosztów wygenerowana pomyślnie.")
             st.rerun()
         _section_header("TREŚĆ KOSZTORYSU")
-        st.text_area("Cena zawiera (Część 1 - Slajd 1):", height=200, key="koszt_zawiera_1")
-        st.text_area("Cena zawiera (Część 2 - Slajd 2):", height=150, key="koszt_zawiera_2")
-        st.text_area("Nie policzone w cenie:", height=100, key="koszt_nie_zawiera")
-        st.text_area("Koszty opcjonalne:", height=100, key="koszt_opcje")
+        safe_text_area("Cena zawiera (Część 1 - Slajd 1):", height=200, key="koszt_zawiera_1")
+        safe_text_area("Cena zawiera (Część 2 - Slajd 2):", height=150, key="koszt_zawiera_2")
+        safe_text_area("Nie policzone w cenie:", height=100, key="koszt_nie_zawiera")
+        safe_text_area("Koszty opcjonalne:", height=100, key="koszt_opcje")
         _section_header("ZDJĘCIA")
         c1, c2 = st.columns(2)
         u1 = c1.file_uploader("Zdjęcie (Slajd 1)", key="koszt_img_1")
@@ -1551,8 +1551,8 @@ with col_form:
         section_template_manager(opi_keys, "OPI", "Opinie", "opi")
         st.checkbox("Ukryj ten slajd w PDF", key="testim_hide")
         safe_text_input("Mały nadtytuł:", key="testim_overline")
-        st.text_area("Główny tytuł H1:", key="testim_title")
-        st.text_area("Podtytuł:", key="testim_subtitle")
+        safe_text_area("Główny tytuł H1:", key="testim_title")
+        safe_text_area("Podtytuł:", key="testim_subtitle")
         u_main = st.file_uploader("Zdjęcie główne slajdu", key="opi_main")
         if u_main:
             _upload_image(u_main.getvalue(), 'img_testim_main')
@@ -1567,7 +1567,7 @@ with col_form:
                 if u_testim:
                     _upload_image(u_testim.getvalue(), f"testim_img_{i}")
                 safe_text_input("Nagłówek", key=f"testim_head_{i}")
-                st.text_area("Treść rekomendacji", key=f"testim_quote_{i}")
+                safe_text_area("Treść rekomendacji", key=f"testim_quote_{i}")
                 c1, c2 = st.columns(2)
                 c1.text_input("Autor (Pogrubiony)", key=f"testim_author_{i}")
                 c2.text_input("Stanowisko", key=f"testim_role_{i}")
@@ -1587,9 +1587,9 @@ with col_form:
         section_template_manager(nas_keys, "NAS", "Zespol", "nas")
         st.checkbox("Ukryj ten slajd w PDF", key="about_hide")
         safe_text_input("Mały nadtytuł:", key="about_overline")
-        st.text_area("Główny tytuł H1:", key="about_title")
+        safe_text_area("Główny tytuł H1:", key="about_title")
         safe_text_input("Podtytuł:", key="about_sub")
-        st.text_area("Opis główny:", height=150, key="about_desc")
+        safe_text_area("Opis główny:", height=150, key="about_desc")
         u_clients = st.file_uploader("Zdjęcie prawe (Klienci / Logotypy)", key="nas_clients")
         if u_clients:
             _upload_image(u_clients.getvalue(), 'img_about_clients')
@@ -1601,7 +1601,7 @@ with col_form:
             with st.expander(f"Osoba {i+1}"):
                 safe_text_input("Imię i nazwisko", key=f"t_name_{i}")
                 safe_text_input("Stanowisko", key=f"t_role_{i}")
-                st.text_area("Krótki opis", key=f"t_desc_{i}")
+                safe_text_area("Krótki opis", key=f"t_desc_{i}")
                 u_team = st.file_uploader("Zdjęcie (okrągłe)", key=f"nas_img_{i}")
                 if u_team:
                     _upload_image(u_team.getvalue(), f"t_img_{i}")
