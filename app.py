@@ -32,6 +32,7 @@ from storage_utils import (
     get_image_html, 
     get_logo_html,
     cleanup_session_bytes_to_storage,
+    run_migration_flow,
 )
 # --- INICJALIZACJA UI ---
 if "preview_container" not in st.session_state:
