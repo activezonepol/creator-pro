@@ -907,13 +907,14 @@ def _shtml(c, sid=""):
 def _get_ph(t):
     return f'<div class="photo-placeholder">{t}</div>'
 def _img_tag(b64_or_url, placeholder_text='ZDJĘCIE', style='width:100%;height:100%;object-fit:cover;'):
+    """Generuje tag <img>. Automatycznie rozpoznaje czy dostał URL czy Base64."""
     if not b64_or_url:
-        return f'<div class="photo-placeholder">{placeholder_text}</div>'
+        return _get_ph(placeholder_text)
     
-    # Jeśli to URL (zaczyna się od http)
+    # Jeśli to URL ze Storage
     if str(b64_or_url).startswith('http'):
         src = b64_or_url
-    # Jeśli to Base64 (dane przetworzone przez get_b64)
+    # Jeśli to dane Base64
     else:
         src = f'data:image/jpeg;base64,{b64_or_url}'
         
