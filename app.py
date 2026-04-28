@@ -8,7 +8,6 @@ OSTATNIA AKTUALIZACJA: 2024-04-23 15:35 UTC
 NAPRAWIONO: StreamlitValueAssignmentNotAllowedError - buttony atrakcji → selectbox
 """
 import re
-from storage_utils import upload_image
 import json
 import hashlib
 import base64
@@ -26,9 +25,45 @@ from renderer import (
     get_road_distance, format_duration,
     get_local_css, build_presentation,
 )
+from storage_utils import (
+    upload_image, migrate_bytes_to_storage,
+    get_image_html, get_logo_html,
+)
 # --- INICJALIZACJA UI ---
 if "preview_container" not in st.session_state:
     st.session_state.preview_container = st.empty()
+
+# ---------------------------------------------------------------------------
+# HELPERY INPUTÓW I UPLOADU
+# ---------------------------------------------------------------------------
+
+def input_field(label, key, type="input", **kwargs):
+    """Czysta funkcja do obsługi pól edycji. Użyj jej zamiast st.text_input / st.text_area."""
+    temp_key = f"temp_{key}"
+    if temp_key not in st.session_state:
+        st.session_state[temp_key] = st.session_state.get(key, '')
+    if type == "area":
+        return st.text_area(label, key=temp_key, on_change=lambda: st.session_state.update({key: st.session_state[temp_key]}), **kwargs)
+    return st.text_input(label, key=temp_key, on_change=lambda: st.session_state.update({key: st.session_state[temp_key]}), **kwargs)
+
+
+def _upload_image(file_bytes, session_key, is_logo=False):
+    """Czysty wrapper do uploadu zdjęć. Uploaduje do Storage i zapisuje URL do session_state."""
+    if not file_bytes:
+        return
+    
+    # Pobierz supabase z cache'a (zainicjalizowany poniżej)
+    from streamlit import session_state as ss
+    sb = init_supabase()  # ← Zawsze zwraca ten sam obiekt (cached)
+    
+    url = upload_image(sb, session_key, file_bytes, is_logo=is_logo)
+    if url:
+        st.session_state[session_key] = url
+        st.session_state["_last_upload_ok"] = True
+    else:
+        st.session_state["_last_upload_error"] = "Błąd uploadu"
+
+# ---------------------------------------------------------------------------
 # ---------------------------------------------------------------------------
 # SUPABASE CONNECTION
 # ---------------------------------------------------------------------------
