@@ -528,7 +528,8 @@ def _build_proj_dict():
     # Pomiń klucze techniczne i widgety
     skip_prefixes = ('FormSubmitter', '$$', 'up_', 'fn_', 'dl_', 'btn_', 'sb_', 'pa_add_', 'sek_img_up',
                      'attr_add_btn', 'attrnav_', 'attrup_', 'attrdn_', 'attrdel_', 'attr_select',
-                     'nav_top_radio', 'nav_bot_radio', '_hash_', '_bytes_')
+                     'nav_top_radio', 'nav_bot_radio', '_hash_', '_bytes_',
+                     'buffer_')
                      
     internal_keys = {'_session_id', '_ls_loaded', '_ls_restore', '_scroll_pos',
                      'ready_export_html', 'show_link_info', '_attr_focused', 'STATE_BACKUP',
