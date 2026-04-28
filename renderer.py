@@ -1577,7 +1577,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     </div>
                 </div></div>{fh}""", f"slide-hotel-{i}"))
 
-        # --- Slajd MIEJSCA (układ: foto pionowe + opis + 3 miniatury) ---
+    # --- Slajd MIEJSCA (układ: foto pionowe + opis + 3 miniatury) ---
         elif item_type == 'place':
             if get_data(f"phide_{i}"):
                 continue
@@ -1614,13 +1614,14 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     </div>
                 </div>
             </div>{fh}""", f"place_{i}"))
-        # --- Slajd ATRAKCJI ---
+            
+    # --- Slajd ATRAKCJI ---
         elif item_type == 'attr':
             if get_data(f"ahide_{i}"):
                 continue
             
-            # ✅ KRYTYCZNA OPTYMALIZACJA: Leniwe renderowanie (odcina lagi)
-            if not export_mode and current_page != "Opis atrakcji" and current_page != f"ATTR:{i}":
+            # ✅ POPRAWNA BLOKADA (ZGODNA Z MENU):
+            if not export_mode and not _should_render(f"attr_{i}", current_page, export_mode):
                 continue
                         
             iah = get_b64(f'ah_{i}', (4, 5))
@@ -1643,6 +1644,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                         <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a2}" style="width:100%;height:100%;object-fit:cover;">' if a2 else _get_ph('FOT 2')}</div>
                         <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a3}" style="width:100%;height:100%;object-fit:cover;">' if a3 else _get_ph('FOT 3')}</div>
                     </div></div></div>{fh}""", f"attr_{i}"))
+                    
     # --- Aplikacja ---
     if _should_render('slide-app', current_page, export_mode):
         ibg = get_b64('img_app_bg', (16, 9))
@@ -1664,6 +1666,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 <ul class="app-list" style="margin-top:0;">{fh_app}</ul></div>
             <div class="app-image-col" style="top:-30px;right:-45px;bottom:0;">{bg_html}</div>
             <div class="phone-mockup">{scr_html}</div></div>{fh}""", "slide-app"))
+            
     # --- Branding ---
     if _should_render('slide-branding', current_page, export_mode):
         b1 = get_b64('img_brand_1', (1, 1))
