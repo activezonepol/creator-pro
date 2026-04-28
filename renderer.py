@@ -484,20 +484,19 @@ def get_b64_cached(raw_bytes, ratio):
     except Exception:
         return None
 def get_b64(key, ratio=(4, 5)):
-    r = st.session_state.get(key)
-    if not r:
+    val = st.session_state.get(key)
+    if not val:
         return None
-    return get_b64_cached(r, ratio)
-@st.cache_data(max_entries=20)
-def get_logo_b64(raw_bytes):
-    if not raw_bytes:
-        return None
-    try:
-        if isinstance(raw_bytes, str):
-            return raw_bytes
-        return base64.b64encode(raw_bytes).decode('utf-8')
-    except Exception:
-        return None
+    
+    # Jeśli to URL ze Storage - zwróć go bezpośrednio, HTML go obsłuży
+    if isinstance(val, str) and val.startswith("http"):
+        return val 
+        
+    # Jeśli to surowe bajty (stary system lub świeży upload) - kadruj i koduj
+    if isinstance(val, bytes):
+        return get_b64_cached(val, ratio)
+        
+    return None
 # ---------------------------------------------------------------------------
 # MAPY OSM
 # ---------------------------------------------------------------------------
