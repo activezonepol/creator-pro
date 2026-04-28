@@ -1194,42 +1194,34 @@ with col_form:
                     h_keys, "HOT", st.session_state.get(f'h_title_{i}', f'hotel-{i+1}'),
                     f"hot_{i}", index=i,
                 )
-                st.checkbox("Ukryj ten slajd w PDF", key=f"h_hide_{i}",
-                            
-                safe_text_input("Mały nadtytuł:", key=f"h_overline_{i}",
-                              
-                safe_text_area("Nazwa hotelu (H1):", key=f"h_title_{i}",
-                             
-                safe_text_input("Podtytuł:", key=f"h_subtitle_{i}",
-                              
+                st.checkbox("Ukryj ten slajd w PDF", key=f"h_hide_{i}")
+                safe_text_input("Mały nadtytuł:", key=f"h_overline_{i}")
+                safe_text_area("Nazwa hotelu (H1):", key=f"h_title_{i}")
+                safe_text_input("Podtytuł:", key=f"h_subtitle_{i}")
                 c1, c2 = st.columns(2)
-                c1.text_input("Strona www:", key=f"h_url_{i}",
-                              
-                c2.text_input("Ocena Booking.com:", key=f"h_booking_{i}",
-                              
-                st.multiselect("Udogodnienia (ikonki):", list(hotel_icons.keys()),
-                               key=f"h_amenities_{i}", on_change=set_focus,
-                               args=(f"slide-hotel-{i}",))
-                safe_text_area("Opis hotelu:", height=200, key=f"h_text_{i}",
-                             
-                safe_text_area("Atuty hotelu:", height=100, key=f"h_advantages_{i}",
-                             
+                c1.text_input("Strona www:", key=f"h_url_{i}")
+                c2.text_input("Ocena Booking.com:", key=f"h_booking_{i}")
+                st.multiselect(
+                    "Udogodnienia (ikonki):",
+                    list(hotel_icons.keys()),
+                    key=f"h_amenities_{i}",
+                    on_change=set_focus,
+                    args=(f"slide-hotel-{i}",),
+                )
+                safe_text_area("Opis hotelu:", height=200, key=f"h_text_{i}")
+                safe_text_area("Atuty hotelu:", height=100, key=f"h_advantages_{i}")
                 cl1, cl2 = st.columns(2)
-                u_h1 = cl1.file_uploader("Zdj. Lewe Górne", key=f"uh1_{i}",
-                                         
+                u_h1 = cl1.file_uploader("Zdj. Lewe Górne", key=f"uh1_{i}")
                 if u_h1:
                     _upload_image(u_h1.getvalue(), f'img_hotel_1_{i}')
-                u_h1b = cl2.file_uploader("Zdj. Lewe Dolne", key=f"uh1b_{i}",
-                                          
+                u_h1b = cl2.file_uploader("Zdj. Lewe Dolne", key=f"uh1b_{i}")
                 if u_h1b:
                     _upload_image(u_h1b.getvalue(), f'img_hotel_1b_{i}')
                 c3, c4 = st.columns(2)
-                u_h2 = c3.file_uploader("Zdj. Dolne 1", key=f"uh2_{i}",
-                                        
+                u_h2 = c3.file_uploader("Zdj. Dolne 1", key=f"uh2_{i}")
                 if u_h2:
                     _upload_image(u_h2.getvalue(), f'img_hotel_2_{i}')
-                u_h3 = c4.file_uploader("Zdj. Dolne 2", key=f"uh3_{i}",
-                                        
+                u_h3 = c4.file_uploader("Zdj. Dolne 2", key=f"uh3_{i}")
                 if u_h3:
                     _upload_image(u_h3.getvalue(), f'img_hotel_3_{i}')
     # -----------------------------------------------------------------------
