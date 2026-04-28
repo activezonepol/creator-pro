@@ -16,6 +16,7 @@ from datetime import date, datetime
 import time
 import streamlit as st
 from supabase import create_client, Client
+from my_components import safe_text_input, safe_text_area
 from renderer import (
     COUNTRIES_DICT, FONTS_LIST, hotel_icons, icon_map, defaults, IMAGE_KEYS,
     EXCLUDE_EXPORT_KEYS, pl_days_map,
