@@ -1582,8 +1582,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             if get_data(f"phide_{i}"):
                 continue
                 
-            # ✅ KRYTYCZNA OPTYMALIZACJA: Leniwe renderowanie (odcina lagi)
-            if not export_mode and current_page != "Opisy miejsc" and current_page != f"PLACE:{i}":
+            # ✅ POPRAWNA BLOKADA (ZGODNA Z MENU):
+            if not export_mode and not _should_render(f"place_{i}", current_page, export_mode):
                 continue
 
             ik_p = get_b64(f'pimg1_{i}', (4, 5))
@@ -1614,7 +1614,6 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     </div>
                 </div>
             </div>{fh}""", f"place_{i}"))
-
         # --- Slajd ATRAKCJI ---
         elif item_type == 'attr':
             if get_data(f"ahide_{i}"):
