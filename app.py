@@ -562,48 +562,12 @@ if not st.session_state.get('client_mode', False):
 
     current_time = time.time()
 
-    # Zapisujemy tylko jeśli minęło 20 sekund
+    # Zapisujemy tylko jeśli minęło 30 sekund
     if current_time - st.session_state['last_supabase_save'] > 30:
         
-        # Resetujemy zegar NATYCHMIAST (przed zapisem)
-        st.session_state['last_supabase_save'] = current_time
-        
-        try:
-            project_data = _build_proj_dict()
-            project_name = st.session_state.get('t_main', 'Nowy projekt')
-            
-            # Sprawdź czy istnieje rekord
-            existing = supabase.table('projects').select('id').eq(
-                'user_email', 'default_user'
-            ).order('updated_at', desc=True).limit(1).execute()
-            
-            if existing.data:
-                # UPDATE
-                project_id = existing.data[0]['id']
-                supabase.table('projects').update({
-                    'project_name': project_name,
-                    'data': project_data,
-                    'updated_at': datetime.now().isoformat()
-                }).eq('id', project_id).execute()
-            else:
-                # INSERT
-                supabase.table('projects').insert({
-                    'user_email': 'default_user',
-                    'project_name': project_name,
-                    'data': project_data,
-                    'updated_at': datetime.now().isoformat()
-                }).execute()
-            
-            # Sukces
-            save_time = datetime.now().strftime('%H:%M:%S')
-            st.session_state['last_save_status'] = f"✅ Zapisano {save_time}"
-            st.session_state['last_save_count'] = len(project_data)
-            st.toast(f"✅ Projekt zapisany o {save_time}", icon="💾")
-            
-        except Exception as e:
-            # Błąd
-            st.session_state['last_save_status'] = f"❌ Błąd zapisu"
-            st.toast("⚠️ Błąd zapisu bazy", icon="⚠️")
+        # Wywołujemy zaktualizowaną, systemową funkcję zapisu
+        # (Funkcja sama resetuje zegar, filtruje zdjęcia i wysyła powiadomienie)
+        save_to_supabase()
         
 # ---------------------------------------------------------------------------
 # SIDEBAR — NAWIGACJA
