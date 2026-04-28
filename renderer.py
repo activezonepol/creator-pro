@@ -484,15 +484,16 @@ def get_b64_cached(raw_bytes, ratio):
     except Exception:
         return None
 def get_b64(key, ratio=(4, 5)):
+    """Pobiera zdjęcie dla HTML. Obsługuje URL (Storage) oraz surowe bajty (Base64)."""
     val = st.session_state.get(key)
     if not val:
         return None
     
-    # Jeśli to URL ze Storage - zwróć go bezpośrednio, HTML go obsłuży
-    if isinstance(val, str) and val.startswith("http"):
-        return val 
+    # Jeśli to link URL ze Storage - zwróć go bezpośrednio (płynne działanie)
+    if isinstance(val, str) and val.startswith('http'):
+        return val
         
-    # Jeśli to surowe bajty (stary system lub świeży upload) - kadruj i koduj
+    # Jeśli to surowe dane (stary format) - przelicz do Base64
     if isinstance(val, bytes):
         return get_b64_cached(val, ratio)
         
