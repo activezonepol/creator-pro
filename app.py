@@ -12,6 +12,7 @@ from storage_utils import upload_image
 import json
 import hashlib
 import base64
+import uuid
 from datetime import date, datetime
 import time
 import streamlit as st
