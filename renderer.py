@@ -906,12 +906,18 @@ def _shtml(c, sid=""):
 def _get_ph(t):
     return f'<div class="photo-placeholder">{t}</div>'
 def _img_tag(b64_or_url, placeholder_text='ZDJĘCIE', style='width:100%;height:100%;object-fit:cover;'):
-    """Helper: generuje tag img obsługując URL (Supabase) i base64 (legacy)."""
     if not b64_or_url:
-        return _get_ph(placeholder_text)
-    src = b64_or_url if str(b64_or_url).startswith(('http', 'data:image')) else f'data:image/jpeg;base64,{b64_or_url}'
+        return f'<div class="photo-placeholder">{placeholder_text}</div>'
+    
+    # Jeśli to URL (zaczyna się od http)
+    if str(b64_or_url).startswith('http'):
+        src = b64_or_url
+    # Jeśli to Base64 (dane przetworzone przez get_b64)
+    else:
+        src = f'data:image/jpeg;base64,{b64_or_url}'
+        
     return f'<img src="{src}" style="{style}">'
-
+    
 def _logo_tag(b64_or_url, style='max-height:100%; max-width:150px; object-fit:contain;'):
     """Helper: generuje tag img dla logotypów (PNG)."""
     if not b64_or_url:
