@@ -27,8 +27,11 @@ from renderer import (
     get_local_css, build_presentation,
 )
 from storage_utils import (
-    upload_image, migrate_bytes_to_storage,
-    get_image_html, get_logo_html,
+    upload_image, 
+    migrate_bytes_to_storage,
+    get_image_html, 
+    get_logo_html,
+    cleanup_session_bytes_to_storage, # Dodaj tę linię
 )
 # --- INICJALIZACJA UI ---
 if "preview_container" not in st.session_state:
