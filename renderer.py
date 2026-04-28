@@ -1529,10 +1529,16 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             )
         ]
     for item_type, i in [(str(t), int(idx)) for t, idx in _pa_order]:
+        
         # --- Slajd HOTELU (zachowany dla kompatybilności) ---
         if item_type == 'hotel':
             if get_data(f'h_hide_{i}', False):
                 continue
+                
+            # ✅ KRYTYCZNA OPTYMALIZACJA: Leniwe renderowanie (odcina lagi)
+            if not export_mode and not _should_render(f"slide-hotel-{i}", current_page, export_mode):
+                continue
+                
             h1 = get_b64(f'img_hotel_1_{i}', (16, 9))
             h1b = get_b64(f'img_hotel_1b_{i}', (16, 9))
             h2 = get_b64(f'img_hotel_2_{i}', (16, 9))
@@ -1570,10 +1576,16 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                         <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{f'<img src="data:image/jpeg;base64,{h3}" style="width:100%;height:100%;object-fit:cover;">' if h3 else _get_ph('FOT DÓŁ 2')}</div>
                     </div>
                 </div></div>{fh}""", f"slide-hotel-{i}"))
+
         # --- Slajd MIEJSCA (układ: foto pionowe + opis + 3 miniatury) ---
         elif item_type == 'place':
             if get_data(f"phide_{i}"):
                 continue
+                
+            # ✅ KRYTYCZNA OPTYMALIZACJA: Leniwe renderowanie (odcina lagi)
+            if not export_mode and current_page != "Opisy miejsc" and current_page != f"PLACE:{i}":
+                continue
+
             ik_p = get_b64(f'pimg1_{i}', (4, 5))
             imk_p = (f"<img src='data:image/jpeg;base64,{ik_p}' style='width:100%;height:100%;object-fit:cover;'>"
                      if ik_p else _get_ph('FOTO MIEJSCA'))
@@ -1602,9 +1614,14 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     </div>
                 </div>
             </div>{fh}""", f"place_{i}"))
+
         # --- Slajd ATRAKCJI ---
         elif item_type == 'attr':
             if get_data(f"ahide_{i}"):
+                continue
+            
+            # ✅ KRYTYCZNA OPTYMALIZACJA: Leniwe renderowanie (odcina lagi)
+            if not export_mode and current_page != "Opis atrakcji" and current_page != f"ATTR:{i}":
                 continue
                         
             iah = get_b64(f'ah_{i}', (4, 5))
