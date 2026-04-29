@@ -1,21 +1,59 @@
 import streamlit as st
 from supabase import Client
+from datetime import datetime
+import time
+
+# Ten import jest tu kluczowy i musi zostać użyty w głównej funkcji
 from data_utils import _build_proj_dict
 
-# Stała nazw tabeli - jeśli zmienisz nazwę w Supabase, zmieniasz tylko tutaj
-TABLE_OFFERS = "offers"
+# ---------------------------------------------------------------------------
+# 1. GŁÓWNY ZAPIS SYSTEMOWY (Do obsługi auto-save w app.py)
+# ---------------------------------------------------------------------------
+def save_to_supabase():
+    """Systemowy, bezpieczny zapis projektu. Nie wymaga argumentów w app.py!"""
+    # Pobieramy klienta bazy z sesji
+    supabase_client = st.session_state.get('supabase')
+    if not supabase_client:
+        print("Błąd: Brak klienta supabase w st.session_state!")
+        return
 
-def save_to_supabase(supabase_client: Client, data: dict):
-    """
-    Ogólna funkcja zapisu/aktualizacji (upsert) do bazy danych.
-    data: słownik z danymi oferty, np. {'id': 1, 'title': 'Oferta 1', ...}
-    """
     try:
-        response = supabase_client.table(TABLE_OFFERS).upsert(data).execute()
-        return response
+        # Używamy zaimportowanej funkcji do zbudowania danych
+        project_data = _build_proj_dict()
+        project_name = st.session_state.get('t_main', 'Nowy projekt')
+        
+        # Szukamy istniejącego projektu
+        existing = supabase_client.table('projects').select('id').eq('user_email', 'default_user').order('updated_at', desc=True).limit(1).execute()
+        
+        if existing.data:
+            project_id = existing.data[0]['id']
+            supabase_client.table('projects').update({
+                'project_name': project_name,
+                'data': project_data,
+                'updated_at': datetime.now().isoformat()
+            }).eq('id', project_id).execute()
+        else:
+            supabase_client.table('projects').insert({
+                'user_email': 'default_user',
+                'project_name': project_name,
+                'data': project_data,
+                'updated_at': datetime.now().isoformat()
+            }).execute()
+            
+        save_time = datetime.now().strftime('%H:%M:%S')
+        st.session_state['last_save_status'] = f"✅ Zapisano {save_time}"
+        st.session_state['last_save_count'] = len(project_data)
+        st.session_state['last_supabase_save'] = time.time()
+        
     except Exception as e:
-        st.error(f"Błąd zapisu do bazy: {e}")
-        return None
+        st.session_state['last_save_status'] = "❌ Błąd bazy"
+        print(f"Błąd Supabase: {e}")
+
+
+# ---------------------------------------------------------------------------
+# 2. DODATKOWE FUNKCJE DLA TABELI OFERT (Zgodnie z Twoim życzeniem)
+# ---------------------------------------------------------------------------
+TABLE_OFFERS = "offers"
 
 def fetch_all_offers(supabase_client: Client):
     """Pobiera wszystkie oferty z tabeli."""
