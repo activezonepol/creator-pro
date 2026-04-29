@@ -813,16 +813,16 @@ with col_form:
         u1 = st.file_uploader("Zdjęcie główne (4:5)", key="up_tyt_hero")
         if u1:
             _upload_image(u1.getvalue(), 'img_hero_t')
-            save_to_supabase()
+           # ❌ USUNIĘTO save_to_supabase()
         c1, c2 = st.columns(2)
         u2 = c1.file_uploader("Logo Firmy", key="up_tyt_logo_az")
         if u2:
             _upload_image(u2.getvalue(), 'logo_az', is_logo=True)
-            save_to_supabase()
+            # ❌ USUNIĘTO save_to_supabase()
         u3 = c2.file_uploader("Logo Klienta", key="up_tyt_logo_cli")
         if u3:
             _upload_image(u3.getvalue(), 'logo_cli', is_logo=True)
-            save_to_supabase()
+            # ❌ USUNIĘTO save_to_supabase()
         c2.checkbox("Ukryj logo klienta na stronie tytułowej", key="hide_logo_cli")
     # -----------------------------------------------------------------------
     # OPIS KIERUNKU
@@ -1353,7 +1353,7 @@ with col_form:
         safe_text_input("Podtytuł:", key="brand_subtitle")
         safe_text_area("Punkty na liście (Enter = nowy punkt):", height=300, key="brand_features")
         c1, c2, c3 = st.columns(3)
-        u1 = c1.file_uploader("Zdj 1 (Lewa góra)", key="bra_img_1")
+        u1 = c1.file_uploader("Zdj 1 (Lewa góra)", key="up_bra_img_1")
         if u1:
             _upload_image(u1.getvalue(), 'img_brand_1')
             
@@ -1381,7 +1381,7 @@ with col_form:
         safe_text_input("Podtytuł:", key="va_subtitle")
         safe_text_area("Treść oferty:", height=300, key="va_text")
         c1, c2, c3 = st.columns(3)
-        u1 = c1.file_uploader("Zdj 1 (Szerokie)", key="va_img_1")
+        u1 = c1.file_uploader("Zdj 1 (Szerokie)", key="up_va_img_1")
         if u1:
             _upload_image(u1.getvalue(), 'img_va_1')
             
@@ -1411,7 +1411,7 @@ with col_form:
         safe_text_area("Punktory (każda linia = jeden punkt):", height=150, key="pg_features",
                      help="Każda linia to jeden punkt z kwadratowym punktorkiem ■")
         c1, c2, c3 = st.columns(3)
-        u1 = c1.file_uploader("Zdjęcie 1", key="pg_img_1")
+        u1 = c1.file_uploader("Zdjęcie 1", key="up_pg_img_1")
         if u1:
             _upload_image(u1.getvalue(), 'img_pg_1')
             
@@ -1461,7 +1461,7 @@ with col_form:
         safe_text_area("Koszty opcjonalne:", height=100, key="koszt_opcje")
         _section_header("ZDJĘCIA")
         c1, c2 = st.columns(2)
-        u1 = c1.file_uploader("Zdjęcie (Slajd 1)", key="koszt_img_1")
+        u1 = c1.file_uploader("Zdjęcie (Slajd 1)", key="up_koszt_img_1")
         if u1:
             _upload_image(u1.getvalue(), 'img_koszt_1')
             
@@ -1527,7 +1527,7 @@ with col_form:
         safe_text_area("Główny tytuł H1:", key="about_title")
         safe_text_input("Podtytuł:", key="about_sub")
         safe_text_area("Opis główny:", height=150, key="about_desc")
-        u_clients = st.file_uploader("Zdjęcie prawe (Klienci / Logotypy)", key="nas_clients")
+        u_clients = st.file_uploader("Zdjęcie prawe (Klienci / Logotypy)", key="up_nas_clients")
         if u_clients:
             _upload_image(u_clients.getvalue(), 'img_about_clients')
         st.number_input("Liczba osób w zespole:", 1, 4, step=1, key="team_count")
