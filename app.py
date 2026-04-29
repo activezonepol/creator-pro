@@ -748,14 +748,18 @@ with col_form:
         if _up_s:
             _upload_image(_up_s.getvalue(), f"sek_0_img")
     elif page == "  ↳ Przerywnik program":
-        _guard(["sek_3_title", "sek_3_sub", "sek_hide_3", "sek_3_bg", "sek_3_txt"]) 
+        # 1. Dodano sek_3_sub_color do zabezpieczenia
+        _guard(["sek_3_title", "sek_3_sub", "sek_hide_3", "sek_3_bg", "sek_3_txt", "sek_3_sub_color"]) 
         
         # KRYTYCZNA POPRAWKA: Wymuszenie wartości bool dla checkboxa
         if not isinstance(st.session_state.get("sek_hide_3"), bool):
             st.session_state["sek_hide_3"] = False
 
         _bg_default = st.session_state.get('color_h1', '#003366')
-        for _ck, _cv in [(f"sek_3_bg", _bg_default), (f"sek_3_txt", '#ffffff')]:
+        _sub_default = st.session_state.get('color_sub', '#FF6600') # Pobranie domyślnego pomarańczu
+        
+        # 2. Zabezpieczenie przed czarnym kolorem poszerzone o nadtytuł
+        for _ck, _cv in [(f"sek_3_bg", _bg_default), (f"sek_3_txt", '#ffffff'), (f"sek_3_sub_color", _sub_default)]:
             _v = st.session_state.get(_ck, _cv)
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
                 st.session_state[_ck] = _cv
@@ -767,9 +771,13 @@ with col_form:
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_3")
         safe_text_input("Duży tytuł (uppercase):", key=f"sek_3_title")
         safe_text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_3_sub")
-        _ic1, _ic2 = st.columns(2)
+        
+        # 3. Trzy kolumny zamiast dwóch, żeby zmieścić nowy picker
+        _ic1, _ic2, _ic3 = st.columns(3)
         _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_3_bg")
         _ic2.color_picker("Kolor tytułu:", key=f"sek_3_txt")
+        _ic3.color_picker("Kolor nadtytułu:", key=f"sek_3_sub_color")
+        
         _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"up_sek_img_up_3")
         if _up_s:
             _upload_image(_up_s.getvalue(), f"sek_3_img")
