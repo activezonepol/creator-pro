@@ -809,16 +809,16 @@ with col_form:
             ('t_hotel', 'Hotel'), ('t_trans', 'Dojazd'),
         ]:
             safe_text_input(l, key=k)
-        u1 = st.file_uploader("Zdjęcie główne (4:5)", key="tyt_hero")
+        u1 = st.file_uploader("Zdjęcie główne (4:5)", key="up_tyt_hero")
         if u1:
             _upload_image(u1.getvalue(), 'img_hero_t')
             save_to_supabase()
         c1, c2 = st.columns(2)
-        u2 = c1.file_uploader("Logo Firmy", key="tyt_logo_az")
+        u2 = c1.file_uploader("Logo Firmy", key="up_tyt_logo_az")
         if u2:
             _upload_image(u2.getvalue(), 'logo_az', is_logo=True)
             save_to_supabase()
-        u3 = c2.file_uploader("Logo Klienta", key="tyt_logo_cli")
+        u3 = c2.file_uploader("Logo Klienta", key="up_tyt_logo_cli")
         if u3:
             _upload_image(u3.getvalue(), 'logo_cli', is_logo=True)
             save_to_supabase()
