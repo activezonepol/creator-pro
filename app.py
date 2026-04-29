@@ -747,14 +747,21 @@ with col_form:
             _upload_image(_up_s.getvalue(), f"sek_0_img")
     elif page == "  ↳ Przerywnik program":
         _guard(["sek_3_title", "sek_3_sub", "sek_hide_3", "sek_3_bg", "sek_3_txt"]) 
+        
+        # KRYTYCZNA POPRAWKA: Wymuszenie wartości bool dla checkboxa
+        if not isinstance(st.session_state.get("sek_hide_3"), bool):
+            st.session_state["sek_hide_3"] = False
+
         _bg_default = st.session_state.get('color_h1', '#003366')
         for _ck, _cv in [(f"sek_3_bg", _bg_default), (f"sek_3_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
                 st.session_state[_ck] = _cv
+                
         st.button("POKAŻ PODGLĄD", key=f"btn_sek_3",
                   on_click=set_focus, args=(f"slide-sek_3",),
                   use_container_width=True)
+                  
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_3")
         safe_text_input("Duży tytuł (uppercase):", key=f"sek_3_title")
         safe_text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_3_sub")
