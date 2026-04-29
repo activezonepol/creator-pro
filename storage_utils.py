@@ -2,6 +2,7 @@ import io
 import streamlit as st
 from PIL import Image, ImageOps
 from renderer import IMAGE_KEYS
+from db_utils import save_to_supabase
 
 # Zmienne globalne - poprawne
 STORAGE_BUCKET = "nexa-images"
