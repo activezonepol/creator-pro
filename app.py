@@ -122,9 +122,16 @@ def _validate_and_load_json(uploaded_file, expected_keys=None):
 def section_template_manager(section_keys, file_prefix, default_filename, uploader_key, index=None):
     ATR_KEY_MAP = {"atype": "type", "amain": "main", "asub": "sub", "aopis": "opis"}
     _acc = st.session_state.get('color_accent', '#FF6600')
-    # Zwijany expander - domyślnie ukryty
-    with st.expander("⚙️ Zarządzanie szablonem sekcji", expanded=False):
-        # Przygotuj dane eksportu
+    
+    # 1. ZMIANA: Przypisujemy panel (expander) do zmiennej "exp"
+    exp = st.expander("⚙️ Zarządzanie szablonem sekcji", expanded=False)
+    
+    # 2. ZMIANA: Jeśli panel jest ZAMKNIĘTY, funkcja się zatrzymuje (oszczędzamy czas!)
+    if not exp.expanded:
+        return
+
+    # 3. ZMIANA: Jeśli panel jest otwarty, robimy obliczenia
+    with exp:
         export_data = {}
         for k in section_keys:
             save_key = k if index is None else re.sub(f'_{index}$', '', k)
