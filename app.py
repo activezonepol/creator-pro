@@ -748,17 +748,25 @@ with col_form:
         if _up_s:
             _upload_image(_up_s.getvalue(), f"sek_0_img")
     elif page == "  ↳ Przerywnik program":
-        # 1. Dodano sek_3_sub_color do zabezpieczenia
+        # 1. Zabezpieczenie kluczy (dodany sek_3_sub_color)
         _guard(["sek_3_title", "sek_3_sub", "sek_hide_3", "sek_3_bg", "sek_3_txt", "sek_3_sub_color"]) 
         
         # KRYTYCZNA POPRAWKA: Wymuszenie wartości bool dla checkboxa
         if not isinstance(st.session_state.get("sek_hide_3"), bool):
             st.session_state["sek_hide_3"] = False
 
+        # Pobieranie globalnych domyślnych kolorów dla resetu
         _bg_default = st.session_state.get('color_h1', '#003366')
-        _sub_default = st.session_state.get('color_sub', '#FF6600') # Pobranie domyślnego pomarańczu
+        _sub_default = st.session_state.get('color_sub', '#FF6600')
         
-        # 2. Zabezpieczenie przed czarnym kolorem poszerzone o nadtytuł
+        # 2. PRZYCISK RESETU (tylko dla tej sekcji)
+        if st.button("🔄 Resetuj kolory przerywnika", use_container_width=True):
+            st.session_state["sek_3_bg"] = _bg_default
+            st.session_state["sek_3_txt"] = "#ffffff"
+            st.session_state["sek_3_sub_color"] = _sub_default
+            st.rerun()
+
+        # 3. Zabezpieczenie przed "czarnym zerem"
         for _ck, _cv in [(f"sek_3_bg", _bg_default), (f"sek_3_txt", '#ffffff'), (f"sek_3_sub_color", _sub_default)]:
             _v = st.session_state.get(_ck, _cv)
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
@@ -769,12 +777,15 @@ with col_form:
                   use_container_width=True)
                   
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_3")
+        
+        st.markdown("---") # Oddzielenie przycisków od pól tekstowych
+        
         safe_text_input("Duży tytuł (uppercase):", key=f"sek_3_title")
         safe_text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_3_sub")
         
-        # 3. Trzy kolumny zamiast dwóch, żeby zmieścić nowy picker
+        # 4. Trzy kolumny z kolorami
         _ic1, _ic2, _ic3 = st.columns(3)
-        _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_3_bg")
+        _ic1.color_picker("Kolor tła:", key=f"sek_3_bg")
         _ic2.color_picker("Kolor tytułu:", key=f"sek_3_txt")
         _ic3.color_picker("Kolor nadtytułu:", key=f"sek_3_sub_color")
         
