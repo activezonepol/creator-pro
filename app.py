@@ -15,6 +15,7 @@ import uuid
 from datetime import date, datetime
 import time
 import streamlit as st
+from db_utils import save_to_supabase, fetch_all_offers
 from supabase import create_client, Client
 from my_components import safe_text_input, safe_text_area
 from renderer import (
