@@ -856,7 +856,7 @@ with col_form:
             help="Każda linia = jeden wpis. 'Etykieta: Wartość' pogrubia etykietę.",
         )
         _section_header("ZDJĘCIE (jedno zdjęcie w dwóch ramkach)")
-        u4 = st.file_uploader("Zdjęcie kierunku:", key="kie_hero")
+        u4 = st.file_uploader("Zdjęcie kierunku:", key="up_kie_hero")
         if u4:
             _upload_image(u4.getvalue(), 'img_hero_k')
     # -----------------------------------------------------------------------
@@ -1029,7 +1029,7 @@ with col_form:
                 safe_text_input(l, key=k)
         for k, l in [('l_desc', 'Opis'), ('l_extra', 'Dodatkowe info')]:
             safe_text_area(l, key=k)
-        u5 = st.file_uploader("Foto Samolotu", key="lot_hero")
+        u5 = st.file_uploader("Foto Samolotu", key="up_lot_hero")
         if u5:
             _upload_image(u5.getvalue(), 'img_hero_l')
     # -----------------------------------------------------------------------
@@ -1150,37 +1150,20 @@ with col_form:
                     args=(f"slide-hotel-{i}",),
                 )
                 cl1, cl2 = st.columns(2)
-                u_h1 = cl1.file_uploader(
-                    "Zdj. Lewe Górne",
-                    key=f"uh1_{i}",
-                    on_change=set_focus,
-                    args=(f"slide-hotel-{i}",),
-                )
+                u_h1 = cl1.file_uploader("Zdj. Lewe Górne", key=f"up_uh1_{i}")
                 if u_h1:
                     _upload_image(u_h1.getvalue(), f'img_hotel_1_{i}')
-                u_h1b = cl2.file_uploader(
-                    "Zdj. Lewe Dolne",
-                    key=f"uh1b_{i}",
-                    on_change=set_focus,
-                    args=(f"slide-hotel-{i}",),
-                )
+                
+                u_h1b = cl2.file_uploader("Zdj. Lewe Dolne", key=f"up_uh1b_{i}")
                 if u_h1b:
                     _upload_image(u_h1b.getvalue(), f'img_hotel_1b_{i}')
+
                 c3, c4 = st.columns(2)
-                u_h2 = c3.file_uploader(
-                    "Zdj. Dolne 1",
-                    key=f"uh2_{i}",
-                    on_change=set_focus,
-                    args=(f"slide-hotel-{i}",),
-                )
+                u_h2 = c3.file_uploader("Zdj. Dolne 1", key=f"up_uh2_{i}")
                 if u_h2:
                     _upload_image(u_h2.getvalue(), f'img_hotel_2_{i}')
-                u_h3 = c4.file_uploader(
-                    "Zdj. Dolne 2",
-                    key=f"uh3_{i}",
-                    on_change=set_focus,
-                    args=(f"slide-hotel-{i}",),
-                )
+                
+                u_h3 = c4.file_uploader("Zdj. Dolne 2", key=f"up_uh3_{i}")
                 if u_h3:
                     _upload_image(u_h3.getvalue(), f'img_hotel_3_{i}')
     # -----------------------------------------------------------------------
@@ -1200,13 +1183,12 @@ with col_form:
                         st.session_state[dk] = ""
                 d_keys = [f'img_d_{d}', f'attr_{d}', f'desc_{d}']
                 section_template_manager(d_keys, "PRG", f"Dzien_{d+1}", f"prg_{d}", index=d)
-                ud = st.file_uploader(f"Foto D{d+1} (16:9)", key=f"prg_img_{d}")
+                
+                ud = st.file_uploader(f"Foto D{d+1} (16:9)", key=f"up_prg_img_{d}")
                 if ud:
-                    _upload_image(ud.getvalue(), f"img_d_{d}")
-                safe_text_input(f"Highlights D{d+1}", key=f"attr_{d}")
-                safe_text_area(f"Opis D{d+1}", key=f"desc_{d}")
+                    _upload_image(ud.getvalue(), f'img_d_{d}')
     # -----------------------------------------------------------------------
-    # OPISY MIEJSC (nowy układ wg wzoru)
+    # OPISY MIEJSC-ATRAKCJI (nowy układ wg wzoru)
     # -----------------------------------------------------------------------
     elif _is_attr_page:
         # Wyciągnij indeks z nazwy strony np. "  ↳ Atrakcja 1" -> pos=0 -> idx
@@ -1293,32 +1275,37 @@ with col_form:
             )
             _upa = st.file_uploader(
                 "Foto Główne",
-                key=f"atr_hero_{_i}",
+                key=f"up_atr_hero_{_i}",
                 on_change=set_focus,
                 args=(f"attr_{_i}",),
             )
             if _upa:
+                # Klucz docelowy ah_{_i} zostaje, bo to on przechowuje lekki link URL
                 _upload_image(_upa.getvalue(), f"ah_{_i}")
+
             _ac1, _ac2, _ac3 = st.columns(3)
+            
             _uat1 = _ac1.file_uploader(
                 "Fot. 1",
-                key=f"atr_th1_{_i}",
+                key=f"up_atr_th1_{_i}",
                 on_change=set_focus,
                 args=(f"attr_{_i}",),
             )
             if _uat1:
                 _upload_image(_uat1.getvalue(), f"at1_{_i}")
+
             _uat2 = _ac2.file_uploader(
                 "Fot. 2",
-                key=f"atr_th2_{_i}",
+                key=f"up_atr_th2_{_i}",
                 on_change=set_focus,
                 args=(f"attr_{_i}",),
             )
             if _uat2:
                 _upload_image(_uat2.getvalue(), f"at2_{_i}")
+
             _uat3 = _ac3.file_uploader(
                 "Fot. 3",
-                key=f"atr_th3_{_i}",
+                key=f"up_atr_th3_{_i}",
                 on_change=set_focus,
                 args=(f"attr_{_i}",),
             )
@@ -1341,10 +1328,11 @@ with col_form:
         safe_text_input("Podtytuł:", key="app_subtitle")
         safe_text_area("Punkty na liście:", height=200, key="app_features")
         c1, c2 = st.columns(2)
-        u_bg = c1.file_uploader("Zdj. tła (Prawa str.)", key="app_bg")
+        u_bg = c1.file_uploader("Zdj. tła (Prawa str.)", key="up_app_bg")
         if u_bg:
             _upload_image(u_bg.getvalue(), 'img_app_bg')
-        u_sc = c2.file_uploader("Ekran Aplikacji", key="app_sc")
+            
+        u_sc = c2.file_uploader("Ekran Aplikacji", key="up_app_sc")
         if u_sc:
             _upload_image(u_sc.getvalue(), 'img_app_screen')
     # -----------------------------------------------------------------------
@@ -1367,10 +1355,12 @@ with col_form:
         u1 = c1.file_uploader("Zdj 1 (Lewa góra)", key="bra_img_1")
         if u1:
             _upload_image(u1.getvalue(), 'img_brand_1')
-        u2 = c2.file_uploader("Zdj 2 (Prawa góra)", key="bra_img_2")
+            
+        u2 = c2.file_uploader("Zdj 2 (Prawa góra)", key="up_bra_img_2")
         if u2:
             _upload_image(u2.getvalue(), 'img_brand_2')
-        u3 = c3.file_uploader("Zdj 3 (Dół)", key="bra_img_3")
+            
+        u3 = c3.file_uploader("Zdj 3 (Dół)", key="up_bra_img_3")
         if u3:
             _upload_image(u3.getvalue(), 'img_brand_3')
     # -----------------------------------------------------------------------
@@ -1393,10 +1383,12 @@ with col_form:
         u1 = c1.file_uploader("Zdj 1 (Szerokie)", key="va_img_1")
         if u1:
             _upload_image(u1.getvalue(), 'img_va_1')
-        u2 = c2.file_uploader("Zdj 2 (Lewy dół)", key="va_img_2")
+            
+        u2 = c2.file_uploader("Zdj 2 (Lewy dół)", key="up_va_img_2")
         if u2:
             _upload_image(u2.getvalue(), 'img_va_2')
-        u3 = c3.file_uploader("Zdj 3 (Prawy dół)", key="va_img_3")
+            
+        u3 = c3.file_uploader("Zdj 3 (Prawy dół)", key="up_va_img_3")
         if u3:
             _upload_image(u3.getvalue(), 'img_va_3')
     # -----------------------------------------------------------------------
@@ -1421,10 +1413,12 @@ with col_form:
         u1 = c1.file_uploader("Zdjęcie 1", key="pg_img_1")
         if u1:
             _upload_image(u1.getvalue(), 'img_pg_1')
-        u2 = c2.file_uploader("Zdjęcie 2 (Pionowe)", key="pg_img_2")
+            
+        u2 = c2.file_uploader("Zdjęcie 2 (Pionowe)", key="up_pg_img_2")
         if u2:
             _upload_image(u2.getvalue(), 'img_pg_2')
-        u3 = c3.file_uploader("Zdjęcie 3", key="pg_img_3")
+            
+        u3 = c3.file_uploader("Zdjęcie 3", key="up_pg_img_3")
         if u3:
             _upload_image(u3.getvalue(), 'img_pg_3')
     # -----------------------------------------------------------------------
@@ -1469,7 +1463,8 @@ with col_form:
         u1 = c1.file_uploader("Zdjęcie (Slajd 1)", key="koszt_img_1")
         if u1:
             _upload_image(u1.getvalue(), 'img_koszt_1')
-        u2 = c2.file_uploader("Zdjęcie (Slajd 2)", key="koszt_img_2")
+            
+        u2 = c2.file_uploader("Zdjęcie (Slajd 2)", key="up_koszt_img_2")
         if u2:
             _upload_image(u2.getvalue(), 'img_koszt_2')
     # -----------------------------------------------------------------------
@@ -1490,7 +1485,7 @@ with col_form:
         safe_text_input("Mały nadtytuł:", key="testim_overline")
         safe_text_area("Główny tytuł H1:", key="testim_title")
         safe_text_area("Podtytuł:", key="testim_subtitle")
-        u_main = st.file_uploader("Zdjęcie główne slajdu", key="opi_main")
+        u_main = st.file_uploader("Zdjęcie główne slajdu", key="up_opi_main")
         if u_main:
             _upload_image(u_main.getvalue(), 'img_testim_main')
         st.number_input("Liczba opinii:", 1, 4, step=1, key="testim_count")
@@ -1500,11 +1495,15 @@ with col_form:
                 if dk not in st.session_state:
                     st.session_state[dk] = ""
             with st.expander(f"Opinia {i+1}"):
-                u_testim = st.file_uploader("Zdjęcie / Logo", key=f"opi_img_{i}")
+                u_testim = st.file_uploader("Zdjęcie / Logo", key=f"up_opi_img_{i}")
                 if u_testim:
+                    # Zapisujemy pod kluczem testim_img_{i} - to będzie lekki link URL
                     _upload_image(u_testim.getvalue(), f"testim_img_{i}")
+                
+                # Klucze tekstowe zostają bez zmian - są lekkie i muszą być w bazie
                 safe_text_input("Nagłówek", key=f"testim_head_{i}")
                 safe_text_area("Treść rekomendacji", key=f"testim_quote_{i}")
+                
                 c1, c2 = st.columns(2)
                 c1.text_input("Autor (Pogrubiony)", key=f"testim_author_{i}")
                 c2.text_input("Stanowisko", key=f"testim_role_{i}")
@@ -1539,8 +1538,10 @@ with col_form:
                 safe_text_input("Imię i nazwisko", key=f"t_name_{i}")
                 safe_text_input("Stanowisko", key=f"t_role_{i}")
                 safe_text_area("Krótki opis", key=f"t_desc_{i}")
-                u_team = st.file_uploader("Zdjęcie (okrągłe)", key=f"nas_img_{i}")
+                u_team = st.file_uploader("Zdjęcie (okrągłe)", key=f"up_nas_img_{i}")
                 if u_team:
+                    # Klucz docelowy t_img_{i} zostaje bez zmian, 
+                    # aby link URL trafił do właściwego miejsca w projekcie.
                     _upload_image(u_team.getvalue(), f"t_img_{i}")
     # -----------------------------------------------------------------------
     # WYGLĄD I KOLORY
