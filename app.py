@@ -675,37 +675,10 @@ col_save, col_add = st.columns([1, 1])
 with col_save:
     if "manual_save_btn" in st.session_state: del st.session_state["manual_save_btn"]
     if st.button("💾 ZAPISZ TERAZ", use_container_width=True, type="primary", key="manual_save_btn"):
-        try:
-            project_data = _build_proj_dict()
-            project_name = st.session_state.get('t_main', 'Nowy projekt')
-            
-            existing = supabase.table('projects').select('id').eq(
-                'user_email', 'default_user'
-            ).order('updated_at', desc=True).limit(1).execute()
-            
-            if existing.data:
-                project_id = existing.data[0]['id']
-                supabase.table('projects').update({
-                    'project_name': project_name,
-                    'data': project_data,
-                    'updated_at': datetime.now().isoformat()
-                }).eq('id', project_id).execute()
-            else:
-                supabase.table('projects').insert({
-                    'user_email': 'default_user',
-                    'project_name': project_name,
-                    'data': project_data,
-                    'updated_at': datetime.now().isoformat()
-                }).execute()
-            
-            save_time = datetime.now().strftime('%H:%M:%S')
-            st.session_state['last_save_status'] = f"✅ Zapisano ręcznie {save_time}"
-            st.session_state['last_save_count'] = len(project_data)
-            st.session_state['last_supabase_save'] = time.time()
-            st.success("✅ Projekt zapisany!")
+        with st.spinner("Zapisuję projekt..."):
+            save_to_supabase()
+            st.success("✅ Projekt zapisany ręcznie!")
             st.rerun()
-        except Exception as e:
-            st.error(f"❌ Błąd zapisu: {str(e)[:100]}")
 with col_add:
     if st.button("➕ Dodaj atrakcję", key="btn_add_attraction_main", type="primary", use_container_width=True):
         _attr_add()
