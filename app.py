@@ -80,6 +80,7 @@ def init_supabase() -> Client:
     key = st.secrets["supabase"]["key"]
     return create_client(url, key)
 supabase = init_supabase()
+st.session_state['supabase'] = supabase
 
 def _validate_and_load_json(uploaded_file, expected_keys=None):
     """
