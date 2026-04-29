@@ -643,8 +643,11 @@ with st.sidebar:
         label_visibility="collapsed",
         on_change=lambda: st.session_state.update({'last_page': st.session_state['nav_bot_radio']})
     )
-    # Nagłówek zakładki (używa _last który jest już zdefiniowany)
-    _inter_pages = {"  ↳ Przerywnik hotel", "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}
+    # Nagłówek zakładki 
+    # Zmieniamy nazwę zmiennej, żeby "odpiąć" ją od starej logiki podglądu, 
+    # ale zachować listę dla nagłówków w panelu bocznym.
+    _inter_pages_list = {"  ↳ Przerywnik hotel", "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}
+    _inter_pages = set() # To oszukuje filtr podglądu i pokazuje całą ofertę
     _is_attr_page = _last.startswith("ATTR:")
 # ---------------------------------------------------------------------------
 # USTALANIE AKTYWNEJ STRONY (po sidebarze)
