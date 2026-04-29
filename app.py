@@ -340,13 +340,17 @@ _SIZE_DEFS = {
 }
 for _k, _v in _COLOR_DEFS.items():
     _cur = st.session_state.setdefault(_k, _v)
-    if not (isinstance(_cur, str) and _cur.startswith('#') and len(_cur) == 7):
+    # NAPRAWA BUG #5: Reset jeśli czarny (błąd) LUB niepoprawny format
+    if _cur == '#000000' or not (isinstance(_cur, str) and _cur.startswith('#') and len(_cur) == 7):
         st.session_state[_k] = _v
 for _k, _v in _SIZE_DEFS.items():
     _cur = st.session_state.setdefault(_k, _v)
     try:
         _int_val = max(8, int(float(_cur or _v)))
-        if _int_val != _cur:
+        # NAPRAWA BUG #5: Reset jeśli wartość = 8 (minimum, prawdopodobnie błąd zapisu)
+        if _int_val == 8 and _v != 8:
+            st.session_state[_k] = _v
+        elif _int_val != _cur:
             st.session_state[_k] = _int_val
     except Exception:
         st.session_state[_k] = _v
