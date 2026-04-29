@@ -1,10 +1,11 @@
 import io
 import streamlit as st
 from PIL import Image, ImageOps
+
 from renderer import IMAGE_KEYS
 from db_utils import save_to_supabase
 
-# Zmienne globalne - poprawne
+# Zmienne globalne
 STORAGE_BUCKET = "nexa-images"
 STORAGE_USER = "default_user"
 
@@ -35,16 +36,20 @@ def upload_image(supabase_client, key: str, raw_bytes: bytes, max_dim: int = 100
                 img.save(buf, format="JPEG", quality=80, optimize=True)
                 content_type, file_ext = "image/jpeg", "jpg"
             optimized_bytes = buf.getvalue()
+            
         storage_path = f"{STORAGE_USER}/{key}.{file_ext}"
+        
         try:
             supabase_client.storage.from_(STORAGE_BUCKET).remove([storage_path])
         except Exception:
             pass
+            
         supabase_client.storage.from_(STORAGE_BUCKET).upload(
             storage_path, optimized_bytes, file_options={"content-type": content_type}
         )
         return supabase_client.storage.from_(STORAGE_BUCKET).get_public_url(storage_path)
-    except Exception:
+    except Exception as e:
+        print(f"Błąd uploadu: {e}") 
         return None
 
 def cleanup_session_bytes_to_storage(supabase_client):
@@ -60,15 +65,34 @@ def cleanup_session_bytes_to_storage(supabase_client):
                 migrated += 1
             else:
                 failed.append(key)
-    return migrated, failed # Tu kończy się ta funkcja
+    return migrated, failed
 
 def run_migration_flow(supabase_client):
     """Orkiestrator migracji: czyści, zapisuje i powiadamia."""
     migrated_count, failed = cleanup_session_bytes_to_storage(supabase_client)
     if migrated_count > 0:
-        save_to_supabase()
+        save_to_supabase() 
         st.success(f"✅ Zmigrowano {migrated_count} zdjęć i zaktualizowano bazę.")
     if failed:
         st.error(f"❌ Nie udało się zmigrować: {', '.join(failed)}")
     if migrated_count == 0 and not failed:
         st.info("ℹ️ Brak zdjęć w pamięci do migracji.")
+
+# ---------------------------------------------------------------------------
+# FUNKCJE POMOCNICZE (RENDEROWANIE HTML) ORAZ ALIAS
+# ---------------------------------------------------------------------------
+def get_image_html(url: str, max_width: str = "100%") -> str:
+    """Zwraca tag HTML img dla zwykłego zdjęcia."""
+    if not url:
+        return ""
+    return f'<img src="{url}" style="max-width: {max_width}; border-radius: 8px; object-fit: cover;">'
+
+def get_logo_html(url: str, max_height: str = "80px") -> str:
+    """Zwraca tag HTML img sformatowany specjalnie pod logo (bez zniekształceń)."""
+    if not url:
+        return ""
+    return f'<img src="{url}" style="max-height: {max_height}; max-width: 100%; object-fit: contain;">'
+
+def migrate_bytes_to_storage(supabase_client):
+    """Alias dla nowej funkcji (dla kompatybilności wstecznej z app.py)."""
+    return cleanup_session_bytes_to_storage(supabase_client)
