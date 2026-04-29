@@ -1569,11 +1569,13 @@ with col_form:
             'font_size_h1': 48, 'font_size_h2': 36, 'font_size_sub': 26,
             'font_size_text': 14, 'font_size_metric': 16,
         }
+        
         for k, v in color_defaults.items():
             val = st.session_state.get(k, v)
             # NAPRAWA BUG #5: Reset jeśli czarny LUB niepoprawny format
             if val == '#000000' or not (isinstance(val, str) and val.startswith('#') and len(val) == 7):
                 st.session_state[k] = v
+                
         for k, v in size_defaults.items():
             val = st.session_state.get(k, v)
             try:
@@ -1585,6 +1587,22 @@ with col_form:
                     st.session_state[k] = _int_val
             except Exception:
                 st.session_state[k] = v
+
+        # --- TUTAJ OD RYSuJĄCY WIDGETY ---
+        for (f_key, c_key, s_key, label) in [
+            ('font_h1', 'color_h1', 'font_size_h1', 'H1'),
+            ('font_h2', 'color_h2', 'font_size_h2', 'H2'),
+            ('font_sub', 'color_sub', 'font_size_sub', 'Podt.'),
+            ('font_text', 'color_text', 'font_size_text', 'Tekstu'),
+            ('font_metric', 'color_metric', 'font_size_metric', 'Wyr.'),
+        ]:
+            c1, c2, c3 = st.columns([2, 1, 1])
+            c1.selectbox(f"Czcionka {label}", FONTS_LIST, key=f_key)
+            c2.color_picker(f"Kolor {label}", key=c_key)
+            c3.number_input("Rozmiar (px)", min_value=8, max_value=120,
+                            step=1, format="%d", key=s_key)
+                            
+        st.color_picker("Akcent", key="color_accent")
     # -----------------------------------------------------------------------
     # ZAPISZ / WCZYTAJ PROJEKT
     # -----------------------------------------------------------------------
