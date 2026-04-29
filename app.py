@@ -1559,8 +1559,7 @@ with col_form:
     # WYGLĄD I KOLORY
     # -----------------------------------------------------------------------
     elif page == "Wygląd i Kolory":
-        # Upewnij się że wszystkie wartości kolorów i rozmiarów są poprawne
-        # zanim Streamlit wyrenderuje widgety
+        # 1. Dokładnie Twoje kolory z kodu
         color_defaults = {
             'color_h1': '#003366', 'color_h2': '#003366', 'color_sub': '#FF6600',
             'color_accent': '#FF6600', 'color_text': '#333333', 'color_metric': '#003366',
@@ -1569,26 +1568,31 @@ with col_form:
             'font_size_h1': 48, 'font_size_h2': 36, 'font_size_sub': 26,
             'font_size_text': 14, 'font_size_metric': 16,
         }
-        
+
+        # Zabezpieczenie: Przycisk resetu (gdyby znów wszystko zrobiło się czarne)
+        if st.button("🔄 RESETUJ KOLORY DO DOMYŚLNYCH"):
+            for k, v in color_defaults.items():
+                st.session_state[k] = v
+            st.rerun()
+
+        # Blokada czarnych kolorów zepsutych przez bazę danych
         for k, v in color_defaults.items():
             val = st.session_state.get(k, v)
-            # NAPRAWA BUG #5: Reset jeśli czarny LUB niepoprawny format
-            if val == '#000000' or not (isinstance(val, str) and val.startswith('#') and len(val) == 7):
+            if val == '#000000' or val == '#000' or not (isinstance(val, str) and val.startswith('#') and len(val) == 7):
                 st.session_state[k] = v
                 
         for k, v in size_defaults.items():
             val = st.session_state.get(k, v)
             try:
                 _int_val = int(float(val)) if val else v
-                # NAPRAWA BUG #5: Reset jeśli wartość = 8 (minimum, prawdopodobnie błąd)
-                if _int_val == 8 and v != 8:
+                if _int_val <= 8:
                     st.session_state[k] = v
                 elif _int_val != val:
                     st.session_state[k] = _int_val
             except Exception:
                 st.session_state[k] = v
 
-        # --- TUTAJ OD RYSuJĄCY WIDGETY ---
+        # Dokładnie Twój oryginalny układ rysowania (bez bloków "with")
         for (f_key, c_key, s_key, label) in [
             ('font_h1', 'color_h1', 'font_size_h1', 'H1'),
             ('font_h2', 'color_h2', 'font_size_h2', 'H2'),
