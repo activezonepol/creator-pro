@@ -788,8 +788,9 @@ with col_form:
         _ic1, _ic2 = st.columns(2)
         _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_2_bg")
         _ic2.color_picker("Kolor tytułu:", key=f"sek_2_txt")
-        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"sek_img_up_2")
+        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"up_sek_img_up_2")
         if _up_s:
+            # Tu zostawiamy sek_2_img – to pod tym kluczem zapisze się lekki link URL
             _upload_image(_up_s.getvalue(), f"sek_2_img")
     elif page == "Strona Tytułowa":
         _guard(["t_date", "country_name", "country_code", "t_main", "t_sub",  
