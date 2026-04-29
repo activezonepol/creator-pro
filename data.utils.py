@@ -5,40 +5,38 @@ from datetime import date, datetime
 from renderer import EXCLUDE_EXPORT_KEYS
 
 def _build_proj_dict():
-    """Serializuje session_state do słownika gotowego do zapisu JSON."""
+    """
+    BUDOWA DOCELOWA: Pobiera tylko klucze zdefiniowane jako dane projektowe.
+    Całkowicie izoluje projekt od stanu widgetów Streamlita.
+    """
     proj = {}
     
-    # Pomiń klucze techniczne, widgety oraz bufory z my_components
-    skip_prefixes = ('FormSubmitter', '$$', 'up_', 'fn_', 'dl_', 'btn_', 'sb_', 'pa_add_', 'sek_img_up',
-                     'attr_add_btn', 'attrnav_', 'attrup_', 'attrdn_', 'attrdel_', 'attr_select',
-                     'nav_top_radio', 'nav_bot_radio', '_hash_', '_bytes_', 'buffer_', 'temp_')
-                     
-    internal_keys = {'_session_id', '_ls_loaded', '_ls_restore', '_scroll_pos',
-                     'ready_export_html', 'show_link_info', '_attr_focused', 'STATE_BACKUP',
-                     '_supabase_data', '_loaded_from_supabase', 'last_supabase_save', 
-                     'last_save_status', '_user_edited', '_debug_loaded', 'last_save_count'}
-                     
+    # Definiujemy prefiksy, które zawierają czyste dane (teksty, wybrane opcje)
+    # t_ = tytuły, k_ = kierunek, l_ = loty, h_ = hotel, p_ = program, a_ = atrakcje
+    valid_prefixes = ('t_', 'k_', 'l_', 'h_', 'p_', 'a_', 'font_', 'color_', 'font_size_', 'num_', 'sek_')
+    
+    # Definiujemy klucze zdjęć, ale TYLKO te, które przechowują linki URL (stringi)
+    from renderer import IMAGE_KEYS
+
     for k, v in st.session_state.items():
-        if k in EXCLUDE_EXPORT_KEYS or k in internal_keys:
-            continue
-        if any(k.startswith(p) for p in skip_prefixes):
-            continue
+        # A. Bierzemy tylko klucze z dozwolonymi prefiksami LUB jawne klucze zdjęć
+        if k.startswith(valid_prefixes) or k in IMAGE_KEYS:
             
-        # 1. ABSOLUTNA BLOKADA: Ignorujemy surowe bajty (zdjęcia w RAM)
-        if isinstance(v, bytes):
-            continue
-            
-        # 2. ABSOLUTNA BLOKADA: Ignorujemy gigantyczne kody starych zdjęć Base64.
-        # Przepuszczamy tylko krótkie teksty i publiczne linki HTTP ze Storage.
-        if isinstance(v, str) and len(v) > 50000 and not v.startswith("http"):
-            continue
-            
-        try:
-            if isinstance(v, (date, datetime)):
-                proj[k] = v.isoformat()
-            elif isinstance(v, (str, int, float, bool, list, dict)) or v is None:
+            # B. KRYTYCZNA WALIDACJA: 
+            # Nawet jeśli klucz jest poprawny, sprawdzamy czy wartość nie jest "śmieciem" binarnym
+            if v is None:
+                proj[k] = None
+                continue
+
+            # Jeśli to jest URL ze Storage lub krótki tekst - zapisujemy
+            if isinstance(v, (str, int, float, bool, list, dict)):
+                # Blokada bezpieczeństwa: jeśli string jest podejrzanie długi (> 1MB), to nie jest tekst
+                if isinstance(v, str) and len(v) > 100000: 
+                    continue
                 proj[k] = v
-        except Exception:
-            pass
             
+            # Daty zamieniamy na tekst ISO
+            elif isinstance(v, (date, datetime)):
+                proj[k] = v.isoformat()
+
     return proj
