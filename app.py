@@ -793,47 +793,94 @@ with col_form:
         if _up_s:
             _upload_image(_up_s.getvalue(), f"sek_3_img")
     elif page == "  ↳ Przerywnik atrakcje":
-        _guard(["sek_1_title", "sek_1_sub", "sek_hide_1", "sek_1_bg", "sek_1_txt"])  
+        # 1. Zabezpieczenie kluczy (dodany sek_1_sub_color)
+        _guard(["sek_1_title", "sek_1_sub", "sek_hide_1", "sek_1_bg", "sek_1_txt", "sek_1_sub_color"])  
+        
+        # KRYTYCZNA POPRAWKA: Wymuszenie wartości bool dla checkboxa
         if not isinstance(st.session_state.get("sek_hide_1"), bool):
             st.session_state["sek_hide_1"] = False
+
+        # Pobieranie globalnych domyślnych kolorów dla resetu
         _bg_default = st.session_state.get('color_h1', '#003366')
-        for _ck, _cv in [(f"sek_1_bg", _bg_default), (f"sek_1_txt", '#ffffff')]:
+        _sub_default = st.session_state.get('color_sub', '#FF6600')
+
+        # 2. PRZYCISK RESETU (tylko dla tej sekcji)
+        if st.button("🔄 Resetuj kolory przerywnika", use_container_width=True, key="res_sek_1"):
+            st.session_state["sek_1_bg"] = _bg_default
+            st.session_state["sek_1_txt"] = "#ffffff"
+            st.session_state["sek_1_sub_color"] = _sub_default
+            st.rerun()
+
+        # 3. Zabezpieczenie przed "czarnym zerem"
+        for _ck, _cv in [(f"sek_1_bg", _bg_default), (f"sek_1_txt", '#ffffff'), (f"sek_1_sub_color", _sub_default)]:
             _v = st.session_state.get(_ck, _cv)
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
                 st.session_state[_ck] = _cv
+
         st.button("POKAŻ PODGLĄD", key=f"btn_sek_1",
                   on_click=set_focus, args=(f"slide-sek_1",),
                   use_container_width=True)
+        
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_1")
+        
+        st.markdown("---") # Oddzielenie przycisków od pól tekstowych
+
         safe_text_input("Duży tytuł (uppercase):", key=f"sek_1_title")
         safe_text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_1_sub")
-        _ic1, _ic2 = st.columns(2)
-        _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_1_bg")
+        
+        # 4. Trzy kolumny zamiast dwóch
+        _ic1, _ic2, _ic3 = st.columns(3)
+        _ic1.color_picker("Kolor tła:", key=f"sek_1_bg")
         _ic2.color_picker("Kolor tytułu:", key=f"sek_1_txt")
+        _ic3.color_picker("Kolor nadtytułu:", key=f"sek_1_sub_color")
+
         _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"up_sek_img_up_1")
         if _up_s:
             _upload_image(_up_s.getvalue(), f"sek_1_img")
     elif page == "  ↳ Przerywnik o nas":
-        _guard(["sek_2_title", "sek_2_sub", "sek_hide_2", "sek_2_bg", "sek_2_txt"])  
-        _bg_default = st.session_state.get('color_h1', '#003366')
+        # 1. Zabezpieczenie kluczy (dodany sek_2_sub_color)
+        _guard(["sek_2_title", "sek_2_sub", "sek_hide_2", "sek_2_bg", "sek_2_txt", "sek_2_sub_color"])  
+        
+        # KRYTYCZNA POPRAWKA: Wymuszenie wartości bool dla checkboxa
         if not isinstance(st.session_state.get("sek_hide_2"), bool):
             st.session_state["sek_hide_2"] = False
-        for _ck, _cv in [(f"sek_2_bg", _bg_default), (f"sek_2_txt", '#ffffff')]:
+
+        # Pobieranie globalnych domyślnych kolorów dla resetu
+        _bg_default = st.session_state.get('color_h1', '#003366')
+        _sub_default = st.session_state.get('color_sub', '#FF6600')
+
+        # 2. PRZYCISK RESETU (tylko dla tej sekcji)
+        if st.button("🔄 Resetuj kolory przerywnika", use_container_width=True, key="res_sek_2"):
+            st.session_state["sek_2_bg"] = _bg_default
+            st.session_state["sek_2_txt"] = "#ffffff"
+            st.session_state["sek_2_sub_color"] = _sub_default
+            st.rerun()
+
+        # 3. Zabezpieczenie przed "czarnym zerem"
+        for _ck, _cv in [(f"sek_2_bg", _bg_default), (f"sek_2_txt", '#ffffff'), (f"sek_2_sub_color", _sub_default)]:
             _v = st.session_state.get(_ck, _cv)
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
                 st.session_state[_ck] = _cv
+
         st.button("POKAŻ PODGLĄD", key=f"btn_sek_2",
                   on_click=set_focus, args=(f"slide-sek_2",),
                   use_container_width=True)
+        
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_2")
+        
+        st.markdown("---") # Oddzielenie przycisków od pól tekstowych
+
         safe_text_input("Duży tytuł (uppercase):", key=f"sek_2_title")
         safe_text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_2_sub")
-        _ic1, _ic2 = st.columns(2)
-        _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_2_bg")
+        
+        # 4. Trzy kolumny zamiast dwóch
+        _ic1, _ic2, _ic3 = st.columns(3)
+        _ic1.color_picker("Kolor tła:", key=f"sek_2_bg")
         _ic2.color_picker("Kolor tytułu:", key=f"sek_2_txt")
+        _ic3.color_picker("Kolor nadtytułu:", key=f"sek_2_sub_color")
+
         _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"up_sek_img_up_2")
         if _up_s:
-            # Tu zostawiamy sek_2_img – to pod tym kluczem zapisze się lekki link URL
             _upload_image(_up_s.getvalue(), f"sek_2_img")
     elif page == "Strona Tytułowa":
         _guard(["t_date", "country_name", "country_code", "t_main", "t_sub",  
