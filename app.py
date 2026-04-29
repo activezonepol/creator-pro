@@ -728,6 +728,8 @@ with col_form:
     # -----------------------------------------------------------------------
     if page == "  ↳ Przerywnik hotel":
         _guard(["sek_0_title", "sek_0_sub", "sek_hide_0", "sek_0_bg", "sek_0_txt"]) 
+        if not isinstance(st.session_state.get("sek_hide_0"), bool):
+            st.session_state["sek_hide_0"] = False
         _bg_default = st.session_state.get('color_h1', '#003366')
         for _ck, _cv in [(f"sek_0_bg", _bg_default), (f"sek_0_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
@@ -773,6 +775,8 @@ with col_form:
             _upload_image(_up_s.getvalue(), f"sek_3_img")
     elif page == "  ↳ Przerywnik atrakcje":
         _guard(["sek_1_title", "sek_1_sub", "sek_hide_1", "sek_1_bg", "sek_1_txt"])  
+        if not isinstance(st.session_state.get("sek_hide_1"), bool):
+            st.session_state["sek_hide_0"] = False
         _bg_default = st.session_state.get('color_h1', '#003366')
         for _ck, _cv in [(f"sek_1_bg", _bg_default), (f"sek_1_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
@@ -793,6 +797,8 @@ with col_form:
     elif page == "  ↳ Przerywnik o nas":
         _guard(["sek_2_title", "sek_2_sub", "sek_hide_2", "sek_2_bg", "sek_2_txt"])  
         _bg_default = st.session_state.get('color_h1', '#003366')
+        if not isinstance(st.session_state.get("sek_hide_2"), bool):
+            st.session_state["sek_hide_0"] = False
         for _ck, _cv in [(f"sek_2_bg", _bg_default), (f"sek_2_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
