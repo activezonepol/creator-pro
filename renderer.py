@@ -21,23 +21,20 @@ import unicodedata
 from datetime import datetime, timedelta, date
 import streamlit as st
 from PIL import Image, ImageOps
+
 # ---------------------------------------------------------------------------
-# BEZPIECZNY ODCZYT DANYCH - Jedyne źródło prawdy
+# BEZPIECZNY ODCZYT DANYCH
 # ---------------------------------------------------------------------------
 def get_data(key, default=None):
-    """
-    Bezpieczny odczyt danych z session_state.
-    Supabase jest ładowany tylko raz przy starcie w app.py.
-    """
-    # 1. Sprawdź session_state
+    """Bezpieczny odczyt z sesji z fallbackiem do cache'u Supabase."""
     if key in st.session_state and st.session_state[key] is not None:
         return st.session_state[key]
-    # 2. Sprawdź cache Supabase (załadowany przy starcie w app.py)
+    
     supabase_data = st.session_state.get('_supabase_data', {})
-    if key in supabase_data:
+    if isinstance(supabase_data, dict) and key in supabase_data:
         st.session_state[key] = supabase_data[key]
         return supabase_data[key]
-    # 3. Zwróć default
+        
     return default
 # ---------------------------------------------------------------------------
 # STAŁE I DANE
