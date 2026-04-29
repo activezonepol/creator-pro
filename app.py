@@ -776,7 +776,7 @@ with col_form:
     elif page == "  ↳ Przerywnik atrakcje":
         _guard(["sek_1_title", "sek_1_sub", "sek_hide_1", "sek_1_bg", "sek_1_txt"])  
         if not isinstance(st.session_state.get("sek_hide_1"), bool):
-            st.session_state["sek_hide_0"] = False
+            st.session_state["sek_hide_1"] = False
         _bg_default = st.session_state.get('color_h1', '#003366')
         for _ck, _cv in [(f"sek_1_bg", _bg_default), (f"sek_1_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
@@ -798,7 +798,7 @@ with col_form:
         _guard(["sek_2_title", "sek_2_sub", "sek_hide_2", "sek_2_bg", "sek_2_txt"])  
         _bg_default = st.session_state.get('color_h1', '#003366')
         if not isinstance(st.session_state.get("sek_hide_2"), bool):
-            st.session_state["sek_hide_0"] = False
+            st.session_state["sek_hide_2"] = False
         for _ck, _cv in [(f"sek_2_bg", _bg_default), (f"sek_2_txt", '#ffffff')]:
             _v = st.session_state.get(_ck, _cv)
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
