@@ -1,1 +1,35 @@
+import streamlit as st
+from supabase import Client
 
+# Stała nazw tabeli - jeśli zmienisz nazwę w Supabase, zmieniasz tylko tutaj
+TABLE_OFFERS = "offers"
+
+def save_to_supabase(supabase_client: Client, data: dict):
+    """
+    Ogólna funkcja zapisu/aktualizacji (upsert) do bazy danych.
+    data: słownik z danymi oferty, np. {'id': 1, 'title': 'Oferta 1', ...}
+    """
+    try:
+        response = supabase_client.table(TABLE_OFFERS).upsert(data).execute()
+        return response
+    except Exception as e:
+        st.error(f"Błąd zapisu do bazy: {e}")
+        return None
+
+def fetch_all_offers(supabase_client: Client):
+    """Pobiera wszystkie oferty z tabeli."""
+    try:
+        response = supabase_client.table(TABLE_OFFERS).select("*").execute()
+        return response.data
+    except Exception as e:
+        st.error(f"Błąd pobierania danych: {e}")
+        return []
+
+def delete_offer(supabase_client: Client, offer_id: int):
+    """Usuwa ofertę na podstawie jej ID."""
+    try:
+        supabase_client.table(TABLE_OFFERS).delete().eq("id", offer_id).execute()
+        return True
+    except Exception as e:
+        st.error(f"Błąd usuwania oferty: {e}")
+        return False
