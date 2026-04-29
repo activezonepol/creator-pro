@@ -213,42 +213,6 @@ def _section_header(label):
         unsafe_allow_html=True,
     )
 
-def save_to_supabase():
-    """Systemowy, bezpieczny zapis projektu. Wywoływany przez on_change i auto-save."""
-    try:
-        # Pobieramy dane przefiltrowane (bez gigantycznych zdjęć Base64)
-        project_data = _build_proj_dict()
-        project_name = st.session_state.get('t_main', 'Nowy projekt')
-        
-        # Szukamy istniejącego projektu dla tego użytkownika
-        existing = supabase.table('projects').select('id').eq('user_email', 'default_user').order('updated_at', desc=True).limit(1).execute()
-        
-        if existing.data:
-            # UPDATE (Aktualizacja istniejącego wpisu)
-            project_id = existing.data[0]['id']
-            supabase.table('projects').update({
-                'project_name': project_name,
-                'data': project_data,
-                'updated_at': datetime.now().isoformat()
-            }).eq('id', project_id).execute()
-        else:
-            # INSERT (Nowy wpis, jeśli baza jest pusta)
-            supabase.table('projects').insert({
-                'user_email': 'default_user',
-                'project_name': project_name,
-                'data': project_data,
-                'updated_at': datetime.now().isoformat()
-            }).execute()
-            
-        save_time = datetime.now().strftime('%H:%M:%S')
-        st.session_state['last_save_status'] = f"✅ Zapisano {save_time}"
-        st.session_state['last_save_count'] = len(project_data)
-        st.session_state['last_supabase_save'] = time.time()
-        
-    except Exception as e:
-        st.session_state['last_save_status'] = "❌ Błąd bazy"
-        print(f"Błąd Supabase: {e}")
-
 # ---------------------------------------------------------------------------
 # KONFIGURACJA STRONY
 # ---------------------------------------------------------------------------
