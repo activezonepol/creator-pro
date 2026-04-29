@@ -1,6 +1,6 @@
 import streamlit as st
 from supabase import Client
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 
 # Ten import jest tu kluczowy i musi zostać użyty w głównej funkcji
@@ -30,17 +30,20 @@ def save_to_supabase():
             supabase_client.table('projects').update({
                 'project_name': project_name,
                 'data': project_data,
-                'updated_at': datetime.now().isoformat()
+                'updated_at': datetime.utcnow().isoformat()
             }).eq('id', project_id).execute()
         else:
             supabase_client.table('projects').insert({
                 'user_email': 'default_user',
                 'project_name': project_name,
                 'data': project_data,
-                'updated_at': datetime.now().isoformat()
+                'updated_at': datetime.utcnow().isoformat()
             }).execute()
             
-        save_time = datetime.now().strftime('%H:%M:%S')
+        # KOREKTA CZASU: Pobieramy czas UTC i dodajemy 2 godziny (czas polski)
+        now_pl = datetime.utcnow() + timedelta(hours=2)
+        save_time = now_pl.strftime('%H:%M:%S')
+        
         st.session_state['last_save_status'] = f"✅ Zapisano {save_time}"
         st.session_state['last_save_count'] = len(project_data)
         st.session_state['last_supabase_save'] = time.time()
