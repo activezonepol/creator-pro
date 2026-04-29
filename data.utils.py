@@ -5,38 +5,32 @@ from datetime import date, datetime
 from renderer import EXCLUDE_EXPORT_KEYS
 
 def _build_proj_dict():
-    """
-    BUDOWA DOCELOWA: Pobiera tylko klucze zdefiniowane jako dane projektowe.
-    Całkowicie izoluje projekt od stanu widgetów Streamlita.
-    """
     proj = {}
     
-    # Definiujemy prefiksy, które zawierają czyste dane (teksty, wybrane opcje)
-    # t_ = tytuły, k_ = kierunek, l_ = loty, h_ = hotel, p_ = program, a_ = atrakcje
-    valid_prefixes = ('t_', 'k_', 'l_', 'h_', 'p_', 'a_', 'font_', 'color_', 'font_size_', 'num_', 'sek_')
+    # Klucze techniczne Streamlita i inne śmieci
+    internal_keys = ['_upload_status', '_save_count', '_last_save']
     
-    # Definiujemy klucze zdjęć, ale TYLKO te, które przechowują linki URL (stringi)
-    from renderer import IMAGE_KEYS
-
     for k, v in st.session_state.items():
-        # A. Bierzemy tylko klucze z dozwolonymi prefiksami LUB jawne klucze zdjęć
-        if k.startswith(valid_prefixes) or k in IMAGE_KEYS:
+        # 1. KLUCZOWY FILTR: Ignoruj wszystko co zaczyna się od 'up_'
+        # To tutaj odrzucamy te ciężkie pliki, które ważyły 8MB
+        if k.startswith('up_') or k.startswith('_') or k in internal_keys:
+            continue
             
-            # B. KRYTYCZNA WALIDACJA: 
-            # Nawet jeśli klucz jest poprawny, sprawdzamy czy wartość nie jest "śmieciem" binarnym
-            if v is None:
-                proj[k] = None
-                continue
+        # 2. FILTR TYPÓW: Zapisuj tylko lekkie dane (tekst, linki, liczby)
+        if not isinstance(v, (str, int, float, bool, list, dict, date, datetime)) or v is None:
+            continue
 
-            # Jeśli to jest URL ze Storage lub krótki tekst - zapisujemy
-            if isinstance(v, (str, int, float, bool, list, dict)):
-                # Blokada bezpieczeństwa: jeśli string jest podejrzanie długi (> 1MB), to nie jest tekst
-                if isinstance(v, str) and len(v) > 100000: 
-                    continue
-                proj[k] = v
-            
-            # Daty zamieniamy na tekst ISO
-            elif isinstance(v, (date, datetime)):
+        # 3. BEZPIECZNIK: Jeśli string jest nienaturalnie długi (>10 tyś znaków)
+        # i nie jest linkiem, to znaczy że to ukryte zdjęcie - pomin je.
+        if isinstance(v, str) and len(v) > 10000 and not v.startswith("http"):
+            continue
+
+        try:
+            if isinstance(v, (date, datetime)):
                 proj[k] = v.isoformat()
-
+            else:
+                proj[k] = v
+        except Exception:
+            pass
+            
     return proj
