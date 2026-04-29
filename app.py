@@ -731,7 +731,7 @@ with col_form:
         _ic1, _ic2 = st.columns(2)
         _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_0_bg")
         _ic2.color_picker("Kolor tytułu:", key=f"sek_0_txt")
-        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"sek_img_up_0")
+        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"up_sek_img_up_0")
         if _up_s:
             _upload_image(_up_s.getvalue(), f"sek_0_img")
     elif page == "  ↳ Przerywnik program":
@@ -750,7 +750,7 @@ with col_form:
         _ic1, _ic2 = st.columns(2)
         _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_3_bg")
         _ic2.color_picker("Kolor tytułu:", key=f"sek_3_txt")
-        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"sek_img_up_3")
+        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"up_sek_img_up_3")
         if _up_s:
             _upload_image(_up_s.getvalue(), f"sek_3_img")
     elif page == "  ↳ Przerywnik atrakcje":
@@ -769,7 +769,7 @@ with col_form:
         _ic1, _ic2 = st.columns(2)
         _ic1.color_picker("Kolor gradientu/tła:", key=f"sek_1_bg")
         _ic2.color_picker("Kolor tytułu:", key=f"sek_1_txt")
-        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"sek_img_up_1")
+        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"up_sek_img_up_1")
         if _up_s:
             _upload_image(_up_s.getvalue(), f"sek_1_img")
     elif page == "  ↳ Przerywnik o nas":
