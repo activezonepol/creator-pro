@@ -510,7 +510,7 @@ with st.sidebar:
     
     st.markdown(
         f"<div style='background:#f0f9ff;border-left:3px solid #0ea5e9;padding:8px 12px;margin-bottom:15px;border-radius:4px;'>"
-        f"<div style='font-size:11px;font-weight:600;color:#0369a1;margin-bottom:4px;'>AUTO-ZAPIS (co 30s)</div>"
+        f"<div style='font-size:11px;font-weight:600;color:#0369a1;margin-bottom:4px;'>AUTO-ZAPIS BANAN</div>"
         f"<div style='font-size:10px;color:#64748b;'>{save_status}</div>"
         f"<div style='font-size:9px;color:#94a3b8;margin-top:2px;'>{save_count} pól w bazie</div>"
         f"</div>",
