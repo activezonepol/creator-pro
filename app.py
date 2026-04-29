@@ -1645,7 +1645,7 @@ with col_form:
         "margin-bottom: 10px; letter-spacing: 1px;'>SZYBKIE AKCJE (CAŁA OFERTA)</div>",
         unsafe_allow_html=True,
     )
-    # Auto-zapis do Supabase działa w tle co 5 sekund - brak potrzeby ręcznego zapisu
+    # Auto-zapis do Supabase działa w tle co 30 sekund - brak potrzeby ręcznego zapisu
     if st.button("PRZYGOTUJ OFERTĘ DO POBRANIA", type="secondary", use_container_width=True):
         with st.spinner("Generowanie ostatecznego pliku oferty..."):
             export_content = build_presentation(export_mode=True)
