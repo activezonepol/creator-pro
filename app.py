@@ -43,17 +43,6 @@ if "preview_container" not in st.session_state:
 # ---------------------------------------------------------------------------
 # HELPERY INPUTÓW I UPLOADU
 # ---------------------------------------------------------------------------
-
-def input_field(label, key, type="input", **kwargs):
-    """Czysta funkcja do obsługi pól edycji. Użyj jej zamiast st.text_input / st.text_area."""
-    temp_key = f"temp_{key}"
-    if temp_key not in st.session_state:
-        st.session_state[temp_key] = st.session_state.get(key, '')
-    if type == "area":
-        return safe_text_area(label, key=temp_key, on_change=lambda: st.session_state.update({key: st.session_state[temp_key]}), **kwargs)
-    return safe_text_input(label, key=temp_key, on_change=lambda: st.session_state.update({key: st.session_state[temp_key]}), **kwargs)
-
-
 def _upload_image(file_bytes, session_key, is_logo=False):
     """Czysty wrapper do uploadu zdjęć. Uploaduje do Storage i zapisuje URL do session_state."""
     if not file_bytes:
