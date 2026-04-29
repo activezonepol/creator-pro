@@ -751,9 +751,9 @@ with col_form:
             if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
                 st.session_state[_ck] = _cv
 
-        st.button("POKAŻ PODGLĄD", key=f"btn_sek_0",
-                  on_click=set_focus, args=(f"slide-sek_0",),
-                  use_container_width=True)
+        st.button("POKAŻ PODGLĄD", key="btn_sek_0",
+          on_click=set_focus, args=("slide-sek_0",), # Zmienione z f"slide-sek_0" na "slide-sek_0"
+          use_container_width=True)
         
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_0")
         
@@ -797,7 +797,7 @@ with col_form:
                 st.session_state[_ck] = _cv
                 
         st.button("POKAŻ PODGLĄD", key=f"btn_sek_3",
-                  on_click=set_focus, args=(f"slide-sek_3",),
+                  on_click=set_focus, args=("slide-sek_3",),
                   use_container_width=True)
                   
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_3")
@@ -842,7 +842,7 @@ with col_form:
                 st.session_state[_ck] = _cv
 
         st.button("POKAŻ PODGLĄD", key=f"btn_sek_1",
-                  on_click=set_focus, args=(f"slide-sek_1",),
+                  on_click=set_focus, args=("slide-sek_1",),
                   use_container_width=True)
         
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_1")
@@ -887,7 +887,7 @@ with col_form:
                 st.session_state[_ck] = _cv
 
         st.button("POKAŻ PODGLĄD", key=f"btn_sek_2",
-                  on_click=set_focus, args=(f"slide-sek_2",),
+                  on_click=set_focus, args=("slide-sek_2",),
                   use_container_width=True)
         
         st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_2")
