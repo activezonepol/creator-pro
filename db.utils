@@ -1,5 +1,6 @@
 import streamlit as st
 from supabase import Client
+from data_utils import _build_proj_dict
 
 # Stała nazw tabeli - jeśli zmienisz nazwę w Supabase, zmieniasz tylko tutaj
 TABLE_OFFERS = "offers"
