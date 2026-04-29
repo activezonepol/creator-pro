@@ -1594,17 +1594,28 @@ with col_form:
     # ZAPISZ / WCZYTAJ PROJEKT
     # -----------------------------------------------------------------------
     elif page == "Zapisz / Wczytaj Projekt":
-        proj = _build_proj_dict()
-        proj_json = json.dumps(proj, ensure_ascii=False)
         st.markdown("##### Auto-zapis do bazy danych")
-        st.info("📊 Twój projekt jest automatycznie zapisywany do bazy Supabase co 5 sekund. Dane przeżywają restart aplikacji i są dostępne zawsze.")
+        # Poprawiony tekst na 30 sekund
+        st.info("📊 Twój projekt jest automatycznie zapisywany do bazy Supabase co 30 sekund. Dane przeżywają restart aplikacji i są dostępne zawsze.")
         st.markdown("---")
         st.markdown("##### Plik JSON na dysk / OneDrive")
-        st.download_button(
-            "POBIERZ PLIK PROJEKTU (JSON)", proj_json,
-            get_project_filename(), use_container_width=True,
-            help="Zapisz projekt jako plik .json na swój komputer lub OneDrive",
-        )
+        
+        # KRYTYCZNA ZMIANA: Generujemy ciężki plik JSON TYLKO, gdy klikniesz przycisk
+        if st.button("PRZYGOTUJ PLIK JSON DO POBRANIA", type="primary"):
+            with st.spinner("Generowanie pliku..."):
+                proj = _build_proj_dict()
+                st.session_state['temp_proj_json'] = json.dumps(proj, ensure_ascii=False)
+                
+        # Pokazujemy przycisk pobierania dopiero, gdy plik jest gotowy
+        if 'temp_proj_json' in st.session_state:
+            st.download_button(
+                "📥 POBIERZ PLIK PROJEKTU (JSON)", 
+                st.session_state['temp_proj_json'],
+                get_project_filename(), 
+                use_container_width=True,
+                help="Zapisz projekt jako plik .json na swój komputer lub OneDrive",
+            )
+            
         st.markdown("---")
         st.markdown("**Wczytaj projekt z pliku .json**")
         upf = st.file_uploader(
