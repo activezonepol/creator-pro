@@ -705,7 +705,9 @@ with col_form:
    # =====================================================================
     # GŁÓWNA LOGIKA WYŚWIETLANIA FORMULARZY (KROK 2 - CZĘŚĆ 1)
     # =====================================================================
-
+    # --- DEFINICJA ZMIENNYCH DLA CAŁEJ APLIKACJI ---
+    _n_attr = st.session_state.get('num_attr', 0)
+    _n_hotels = st.session_state.get('liczba_hoteli', 0)
     # -----------------------------------------------------------------------
     # 1. STRONA TYTUŁOWA
     # -----------------------------------------------------------------------
