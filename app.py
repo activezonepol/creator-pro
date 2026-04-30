@@ -329,10 +329,6 @@ if '_loaded_from_supabase' not in st.session_state:
 for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
-# Pokaż status load w sidebarze (debug)
-if '_debug_loaded' in st.session_state:
-    with st.sidebar:
-        st.caption(st.session_state['_debug_loaded'])
 # Wymagane dla 4 przerywników zdefiniowanych na sztywno
 st.session_state.setdefault('num_sekcje', 4)
 # Wymuszenie poprawnych typów — color_picker wymaga #RRGGBB, number_input wymaga int.
@@ -504,6 +500,9 @@ _n_hotels = st.session_state.get('liczba_hoteli', 0)
 # SIDEBAR — NAWIGACJA (WERSJA CZYSTA I KOMPLETNA)
 # ---------------------------------------------------------------------------
 with st.sidebar:
+    # Pokaż status load w sidebarze (debug)
+    if '_debug_loaded' in st.session_state:
+        st.caption(st.session_state['_debug_loaded'])
     # 1. STATUS AUTO-SAVE
     save_status = st.session_state.get('last_save_status', '⏳ Czekam na zmiany...')
     save_count = st.session_state.get('last_save_count', 0)
