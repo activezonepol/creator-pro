@@ -501,84 +501,35 @@ if not st.session_state.get('client_mode', False):
 # ---------------------------------------------------------------------------
     
 with st.sidebar:
-    # ---------------------------------------------------------------------------
-    # STATUS AUTO-SAVE (na samej górze - zawsze widoczny)
-    # ---------------------------------------------------------------------------
+    # 1. STATUS AUTO-SAVE
     save_status = st.session_state.get('last_save_status', '⏳ Czekam na zmiany...')
     save_count = st.session_state.get('last_save_count', 0)
-    
     st.markdown(
         f"<div style='background:#f0f9ff;border-left:3px solid #0ea5e9;padding:8px 12px;margin-bottom:15px;border-radius:4px;'>"
         f"<div style='font-size:11px;font-weight:600;color:#0369a1;margin-bottom:4px;'>AUTO-ZAPIS BANAN</div>"
         f"<div style='font-size:10px;color:#64748b;'>{save_status}</div>"
         f"<div style='font-size:9px;color:#94a3b8;margin-top:2px;'>{save_count} pól w bazie</div>"
-        f"</div>",
-        unsafe_allow_html=True
+        f"</div>", unsafe_allow_html=True
     )
     
-    # Status uploadu zdjęć (błąd lub sukces)
-    _upload_err = st.session_state.pop("_last_upload_error", None)
-    _upload_ok  = st.session_state.pop("_last_upload_ok", None)
-    if _upload_err:
-        st.error(f"🖼 {_upload_err}")
-    elif _upload_ok:
-        st.success(f"🖼 Zdjęcie wgrane do Storage")
+    # 2. MIGRACJA ZDJĘĆ
+    if any(isinstance(st.session_state.get(k), bytes) for k in IMAGE_KEYS):
+        st.warning("⚠️ Wykryto zdjęcia w pamięci. Zalecana migracja.")
+        if st.button("🔄 Migruj zdjęcia do Storage", type="primary"):
+            migrated_count, failed = cleanup_session_bytes_to_storage(supabase)
+            if migrated_count > 0:
+                save_to_supabase()
+                st.success(f"✅ Zmigrowano {migrated_count} zdjęć.")
+                st.rerun()
 
     st.markdown("---")
-# --- BEZPIECZNIK MIGRACJI (Wklejamy tutaj) ---
-    if any(isinstance(st.session_state.get(k), bytes) for k in IMAGE_KEYS):
-        st.warning("⚠️ Wykryto zdjęcia w pamięci RAM. Zalecana migracja do chmury.")
-        if st.button("🔄 Migruj zdjęcia do Storage", type="primary"):
-            with st.spinner("Trwa migracja zdjęć do chmury..."):
-                migrated_count, failed = cleanup_session_bytes_to_storage(supabase)
-                
-                if migrated_count > 0:
-                    save_to_supabase()
-                    st.success(f"✅ Zmigrowano {migrated_count} zdjęć i zapisano projekt.")
-                    st.rerun()
-                if failed:
-                    st.error(f"❌ Nie udało się zmigrować: {', '.join(failed)}")
     
-    # ---------------------------------------------------------------------------
-    # RESZTA SIDEBARA
-    # ---------------------------------------------------------------------------
+    # 3. CSS DLA PRZYCISKÓW W SIDEBARZE
     _acc = st.session_state.get('color_accent', '#FF6600')
-    _h1c = st.session_state.get('color_h1', '#003366')
-    # CSS: primary button w sidebarze = kolor akcentu (pomarańczowy)
     st.markdown(
-        f"<style>"
-        f"section[data-testid='stSidebar'] button[kind='primary']{{background-color:{_acc}!important;border-color:{_acc}!important;color:white!important;}}"
-        f"section[data-testid='stSidebar'] [data-testid='stButton']:has(button[key*='aord_up_']) button,"
-        f"section[data-testid='stSidebar'] [data-testid='stButton']:has(button[key*='aord_dn_']) button"
-        f"{{padding:0!important;min-height:22px!important;font-size:11px!important;"
-        f"background:transparent!important;border:none!important;color:#94a3b8!important;box-shadow:none!important;}}"
-        f"section[data-testid='stSidebar'] [data-testid='stButton']:has(button[key*='aord_del_']) button"
-        f"{{padding:0!important;min-height:22px!important;font-size:11px!important;"
-        f"background-color:#ef4444!important;border-color:#ef4444!important;color:white!important;}}"
-        f"</style>",
-        unsafe_allow_html=True,
+        f"<style>button[kind='primary']{{background-color:{_acc}!important;border-color:{_acc}!important;color:white!important;}}"
+        f"</style>", unsafe_allow_html=True
     )
-    _n_attr = _attr_count()
-    _attr_pages = [_attr_page_name(pos) for pos in range(_n_attr)]
-    # Nawigacja górna — bez atrakcji
-    _nav_top = ["Strona Tytułowa", "Opis Kierunku", "Mapa Podróży", "Jak lecimy?",
-                "  ↳ Przerywnik hotel", "Zakwaterowanie",
-                "  ↳ Przerywnik program", "Program Wyjazdu",
-                "  ↳ Przerywnik atrakcje"]
-    # Nawigacja dolna — bez atrakcji
-    _nav_bot = ["Aplikacja (Komunikacja)", "Materiały Brandingowe", "Wirtualny Asystent",
-                "Pillow Gifts", "Kosztorys",
-                "  ↳ Przerywnik o nas", "Co o nas mówią", "O Nas (Zespół)",
-                "Wygląd i Kolory", "Zapisz / Wczytaj Projekt"]
-    _nav_all = _nav_top + _attr_pages + _nav_bot
-    _last = st.session_state.get('last_page', _nav_all[0])
-    _default_idx = _nav_all.index(_last) if _last in _nav_all else 0
-    def _fmt_nav(p):
-        if p.startswith("ATTR:"):
-            idx = int(p.split(":")[1])
-            pos = next((pos for pos, ix in enumerate(_attr_order()) if ix == idx), 0)
-            return "  ★ " + _attr_display_name(pos)
-        return p
     # =====================================================================
     # NOWA, JEDNOLITA NAWIGACJA (KROK 1) - ZAKTUALIZOWANE NAZWY
     # =====================================================================
