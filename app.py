@@ -390,81 +390,76 @@ def _move_hotel(idx, direction):
         order[idx], order[new_idx] = order[new_idx], order[idx]
         st.session_state['hotel_order'] = order
 # -----------------------------------------------------------------------
-# ZARZĄDZANIE LISTĄ OPISÓW ATRAKCJI I MIEJSC (pa_items)
-# pa_items = lista słowników: {type: 'place'/'attr', idx: int}
-# -----------------------------------------------------------------------
-# -----------------------------------------------------------------------
 # PROSTY SYSTEM ATRAKCJI — jedna lista attr_order = [0, 1, 2, ...]
 # -----------------------------------------------------------------------
 def _attr_count():
     """Liczba dodanych atrakcji."""
     return st.session_state.get('num_attr', 0)
+
 def _attr_order():
-    """Kolejność atrakcji — lista indeksów. Zawsze unikalna i kompletna."""
+    """Kolejność atrakcji — lista indeksów."""
     n = _attr_count()
     raw = st.session_state.get('attr_order', [])
-    # Deduplikuj zachowując kolejność (naprawia stare zepsute dane)
     seen = set()
     order = []
     for i in raw:
         if i not in seen and i < n:
             seen.add(i)
             order.append(i)
-    # Dodaj brakujące indeksy na końcu
     for i in range(n):
         if i not in seen:
             order.append(i)
     st.session_state['attr_order'] = order
     return order
+
 def _attr_add():
-    """Dodaje nową atrakcję i przechodzi do jej strony."""
+    """Dodaje nową atrakcję i ustawia ją jako aktywną."""
     n = st.session_state.get('num_attr', 0)
     st.session_state['num_attr'] = n + 1
-    # Pobierz order PRZED zwiększeniem num_attr, żeby nie dodawał n automatycznie
-    order = st.session_state.get('attr_order', list(range(n)))
-    order = [i for i in order if i < n]  # oczyść stare
-    order.append(n)  # dodaj nowy idx na końcu
+    order = _attr_order()
+    order.append(n)
     st.session_state['attr_order'] = order
-    # last_page koduje idx (nie pos) żeby być odporny na przestawienia
-    st.session_state['last_page'] = f"ATTR:{n}"
-    st.session_state['scroll_target'] = ""
+    # Ustawiamy nową stronę używając poprawnego formatu dla menu
+    new_name = _attr_display_name(len(order)-1)
+    st.session_state['last_page'] = f"   ★ {new_name}"
+
 def _attr_move(pos, direction):
-    """Przesuwa atrakcję w górę/dół."""
+    """Przesuwa atrakcję i aktualizuje last_page."""
     order = _attr_order()
     new_pos = pos + direction
     if 0 <= new_pos < len(order):
         order[pos], order[new_pos] = order[new_pos], order[pos]
         st.session_state['attr_order'] = order
+        # Po przesunięciu ustawiamy last_page na nową pozycję
+        st.session_state['last_page'] = f"   ★ {_attr_display_name(new_pos)}"
+
 def _attr_delete(pos):
-    """Usuwa atrakcję z listy na pozycji pos."""
+    """Usuwa atrakcję i wraca do przerywnika."""
     order = _attr_order()
     if pos < len(order):
         order.pop(pos)
+        st.session_state['num_attr'] = st.session_state.get('num_attr', 1) - 1
         st.session_state['attr_order'] = order
         st.session_state['last_page'] = "  ↳ Przerywnik atrakcje"
         st.session_state['_attr_focused'] = None
-def _attr_page_name(pos):
-    """Nazwa strony nawigacji dla atrakcji na pozycji pos.
-    Format: ATTR:idx — tylko idx, odporny na zmiany nazwy."""
-    order = _attr_order()
-    idx = order[pos] if pos < len(order) else pos
-    return f"ATTR:{idx}"
+
 def _attr_display_name(pos):
     """Wyświetlana nazwa atrakcji na pozycji pos."""
     order = _attr_order()
-    idx = order[pos] if pos < len(order) else pos
+    if pos >= len(order): return f"Atrakcja {pos + 1}"
+    idx = order[pos]
     name = str(st.session_state.get(f'amain_{idx}', '')).split('\n')[0][:25].strip()
     return name or f"Atrakcja {pos + 1}"
+
 # Wsteczna kompatybilność z renderer.py
 def _get_place_attr_order():
-    order = _attr_order()
-    return [['attr', i] for i in order]
+    return [['attr', i] for i in _attr_order()]
+
 def _move_place_attr(pos, direction):
     _attr_move(pos, direction)
-def _rebuild_slide_order():
-    _get_hotel_order()
-    _attr_order()
 
+def _rebuild_slide_order():
+    _attr_order()
 # ---------------------------------------------------------------------------
 # TRYB KLIENTA
 # ---------------------------------------------------------------------------
