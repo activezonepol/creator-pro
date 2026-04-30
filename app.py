@@ -496,10 +496,9 @@ if not st.session_state.get('client_mode', False):
         # (Funkcja sama resetuje zegar, filtruje zdjęcia i wysyła powiadomienie)
         save_to_supabase()
         
+    # ---------------------------------------------------------------------------
+# SIDEBAR — NAWIGACJA (WERSJA CZYSTA I KOMPLETNA)
 # ---------------------------------------------------------------------------
-# SIDEBAR — NAWIGACJA
-# ---------------------------------------------------------------------------
-    
 with st.sidebar:
     # 1. STATUS AUTO-SAVE
     save_status = st.session_state.get('last_save_status', '⏳ Czekam na zmiany...')
@@ -514,7 +513,7 @@ with st.sidebar:
     
     # 2. MIGRACJA ZDJĘĆ
     if any(isinstance(st.session_state.get(k), bytes) for k in IMAGE_KEYS):
-        st.warning("⚠️ Wykryto zdjęcia w pamięci. Zalecana migracja.")
+        st.warning("⚠️ Wykryto zdjęcia w pamięci.")
         if st.button("🔄 Migruj zdjęcia do Storage", type="primary"):
             migrated_count, failed = cleanup_session_bytes_to_storage(supabase)
             if migrated_count > 0:
@@ -524,12 +523,38 @@ with st.sidebar:
 
     st.markdown("---")
     
-    # 3. CSS DLA PRZYCISKÓW W SIDEBARZE
+    # 3. KROK 1: DEFINICJA LISTY STRON (Tu budujemy menu)
+    # Pamiętaj: ta lista musi być spójna z tym co masz w głównym kodzie!
+    _all_pages = ["Strona tytułowa", "Opis kierunku", "Mapa podróży", "Jak lecimy?", "  ↳ Przerywnik program", "Program wyjazdu", "  ↳ Przerywnik atrakcje", "Opis atrakcji"]
+    if _n_attr > 0:
+        for _ap in range(_n_attr): _all_pages.append(f"   ★ {_attr_display_name(_ap)}")
+    _all_pages.extend(["  ↳ Przerywnik hotel", "Opis hoteli"])
+    _n_hotels_safe = st.session_state.get('liczba_hoteli', 0) 
+    if _n_hotels_safe > 0:
+        for _hp in range(_n_hotels_safe): _all_pages.append(f"   🏨 Hotel {_hp+1}")
+    _all_pages.extend(["  ↳ Przerywnik serwisy dodatkowe", "Aplikacja (komunikacja)", "Materiały brandingowe", "Pillow gifts", "Wirtualny asystent", "Kosztorys str. 1", "Kosztorys str. 2", "  ↳ Przerywnik o nas", "Nasz zespół", "Referencje"])
+
+    # 4. GŁÓWNE MENU RADIO
+    _current_idx = _all_pages.index(_last) if _last in _all_pages else 0
+    page = st.radio("Nawigacja główna", _all_pages, index=_current_idx, key="main_nav_radio", label_visibility="collapsed", 
+                    on_change=lambda: st.session_state.update({'last_page': st.session_state['main_nav_radio']}))
+    
+    st.session_state['last_page'] = page
+    _last = page 
+
+    # 5. ZARZĄDZANIE ATRAKCJAMI
+    st.markdown(f"<div style='padding-top:15px; font-size:12px; font-weight:600;'>ZARZĄDZAJ ATRAKCJAMI ({_n_attr})</div>", unsafe_allow_html=True)
+    if _n_attr > 0:
+        for _ap in range(_n_attr):
+            _ca, _cb, _cc, _cd = st.columns([6, 1, 1, 1])
+            _ca.markdown(f"<div style='font-size:12px;'>{_attr_display_name(_ap)}</div>", unsafe_allow_html=True)
+            if _ap > 0 and _cb.button("▲", key=f"attrup_{_ap}", use_container_width=True): _attr_move(_ap, -1); st.rerun()
+            if _ap < _n_attr - 1 and _cc.button("▼", key=f"attrdn_{_ap}", use_container_width=True): _attr_move(_ap, 1); st.rerun()
+            if _cd.button("✕", key=f"attrdel_{_ap}", use_container_width=True): _attr_delete(_ap); st.rerun()
+
+    # 6. CSS SIDEBARA
     _acc = st.session_state.get('color_accent', '#FF6600')
-    st.markdown(
-        f"<style>button[kind='primary']{{background-color:{_acc}!important;border-color:{_acc}!important;color:white!important;}}"
-        f"</style>", unsafe_allow_html=True
-    )
+    st.markdown(f"<style>button[kind='primary']{{background-color:{_acc}!important;border-color:{_acc}!important;color:white!important;}}</style>", unsafe_allow_html=True)
     # =====================================================================
     # NOWA, JEDNOLITA NAWIGACJA (KROK 1) - ZAKTUALIZOWANE NAZWY
     # =====================================================================
