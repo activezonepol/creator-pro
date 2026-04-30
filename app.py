@@ -1058,24 +1058,26 @@ with col_form:
         st.info("Tutaj wklej kod do edycji ogólnego opisu atrakcji (jeśli taki masz przewidziany w aplikacji).")
 
     # -----------------------------------------------------------------------
-    # DYNAMICZNE OPISY MIEJSC-ATRAKCJI (Pojedyncza atrakcja pod menu)
+    # DYNAMICZNE OPISY MIEJSC-ATRAKCJI (Poprawiona logika)
     # -----------------------------------------------------------------------
     elif "★" in page:
-        # MAGICZNA SZTUCZKA: Odszukujemy ID atrakcji na podstawie klikniętej nazwy w menu!
-        _i = None
-        for _ap in range(_n_attr):
-            if _attr_display_name(_ap) in page:
-                _i = int(_attr_pages[_ap].split(":")[1])
+        # Znajdź pozycję atrakcji w naszej liście menu
+        _pos = -1
+        for i, p in enumerate(_all_pages):
+            if p == page:
+                # Odejmij liczbę elementów stałych przed atrakcjami (mamy 8 stałych stron przed ★)
+                _pos = i - 8 
                 break
-                
-        if _i is None or _i >= _attr_count():
-            st.warning("Nie znaleziono atrakcji.")
-        else:
-            _pos = next((p for p, ix in enumerate(_attr_order()) if ix == _i), 0)
+        
+        if _pos >= 0 and _pos < _n_attr:
+            # Pobierz rzeczywisty indeks z naszej listy kolejności
+            _i = _attr_order()[_pos]
+            
+            # Formularz edycji (pozostała część kodu taka sama jak miałaś)
             day_options_global = build_day_options(
                 st.session_state.get('p_start_dt', date.today()),
                 int(st.session_state.get('num_days', 5)),
-            )
+                
             for _dk, _dv in [
                 (f"amain_{_i}", ""), (f"asub_{_i}", ""),
                 (f"aday_{_i}", "Brak przypisania"), (f"atype_{_i}", "Atrakcja"),
