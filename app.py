@@ -1077,7 +1077,7 @@ with col_form:
             day_options_global = build_day_options(
                 st.session_state.get('p_start_dt', date.today()),
                 int(st.session_state.get('num_days', 5)),
-                
+            )    
             for _dk, _dv in [
                 (f"amain_{_i}", ""), (f"asub_{_i}", ""),
                 (f"aday_{_i}", "Brak przypisania"), (f"atype_{_i}", "Atrakcja"),
