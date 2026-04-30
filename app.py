@@ -635,17 +635,28 @@ with st.sidebar:
     # 2. Ustalenie aktualnej pozycji (zabezpieczenie przed błędem indeksu)
     _current_idx = _all_pages.index(_last) if _last in _all_pages else 0
 
-    # 3. Główne Menu Radio - Jedyny "pilot" do aplikacji
+    # -----------------------------------------------------------------------
+    # GŁÓWNE MENU RADIO - Pilot aplikacji
+    # -----------------------------------------------------------------------
+    # Upewniamy się, że 'last_page' zawsze odzwierciedla stan menu
     page = st.radio(
         "Nawigacja główna",
         _all_pages,
         index=_current_idx,
         key="main_nav_radio",
         label_visibility="collapsed",
-        on_change=lambda: st.session_state.update({'last_page': st.session_state['main_nav_radio']})
+        on_change=lambda: st.session_state.update({
+            'last_page': st.session_state['main_nav_radio']
+        })
     )
+    
+    # Synchronizacja: wymuszamy, aby 'page' było zawsze aktualną stroną
+    st.session_state['last_page'] = page
+    _last = page 
 
-    # 4. Panel zarządzania atrakcjami (tylko strzałki i usuwanie)
+    # -----------------------------------------------------------------------
+    # PANEL ZARZĄDZANIA ATRAKCJAMI
+    # -----------------------------------------------------------------------
     st.markdown(
         f"<div style='display:flex;align-items:center;gap:6px;padding:15px 0 3px 4px;'>"
         f"<span style='color:{_acc};font-size:13px;font-weight:700;'>★</span>"
@@ -659,42 +670,23 @@ with st.sidebar:
             _ap_name = _attr_display_name(_ap)
             _ca, _cb, _cc, _cd = st.columns([6, 1, 1, 1])
             _ca.markdown(f"<div style='font-size:13px; padding-top:6px;'>{_ap_name}</div>", unsafe_allow_html=True)
+            
             if _ap > 0:
-                _cb.button("▲", key=f"attrup_{_ap}", use_container_width=True)
+                if _cb.button("▲", key=f"attrup_{_ap}", use_container_width=True):
+                    _attr_move(_ap, -1)
+                    st.rerun()
             if _ap < _n_attr - 1:
-                _cc.button("▼", key=f"attrdn_{_ap}", use_container_width=True)
-            _cd.button("✕", key=f"attrdel_{_ap}", use_container_width=True)
+                if _cc.button("▼", key=f"attrdn_{_ap}", use_container_width=True):
+                    _attr_move(_ap, 1)
+                    st.rerun()
+            if _cd.button("✕", key=f"attrdel_{_ap}", use_container_width=True):
+                _attr_delete(_ap)
+                st.rerun()
             
     st.caption("💡 Użyj ▲▼ by zmienić kolejność, ✕ by usunąć.")
 
-    # 5. Bezpieczniki podglądu (Wyłączenie izolacji slajdów)
-    _inter_pages_visual = {p for p in _all_pages if "↳" in p}
-    _inter_pages = set() 
-    _is_attr_page = _last.startswith("ATTR:") or "★" in _last
-# ---------------------------------------------------------------------------
-# USTALANIE AKTYWNEJ STRONY (po sidebarze)
-# ---------------------------------------------------------------------------
-# Obsługa buttonów atrakcji (sprawdzanie wartości POZA sidebarem)
-for _ap in range(_n_attr):
-    # Nawigacja
-    if st.session_state.get(f'attrnav_{_ap}', False):
-        st.session_state['last_page'] = _attr_pages[_ap]
-        st.rerun()
-    # Move up
-    if st.session_state.get(f'attrup_{_ap}', False):
-        _attr_move(_ap, -1)
-        st.rerun()
-    # Move down
-    if st.session_state.get(f'attrdn_{_ap}', False):
-        _attr_move(_ap, 1)
-        st.rerun()
-    # Delete
-    if st.session_state.get(f'attrdel_{_ap}', False):
-        _attr_delete(_ap)
-        st.rerun()
-page = _last
-# ---------------------------------------------------------------------------
-# PRZYCISKI: ZAPISZ TERAZ + DODAJ ATRAKCJĘ (POZA sidebarem)
+   ---------------------------------------------------------------------------
+# PRZYCISKI: ZAPISZ TERAZ + DODAJ ATRAKCJĘ
 # ---------------------------------------------------------------------------
 col_save, col_add = st.columns([1, 1])
 with col_save:
@@ -708,36 +700,27 @@ with col_add:
     if st.button("➕ Dodaj atrakcję", key="btn_add_attraction_main", type="primary", use_container_width=True):
         _attr_add()
         st.rerun()
-# Custom CSS dla białego emoji w przycisku
-st.markdown("""
-<style>
-button[data-testid="baseButton-primary"] {
-    color: white !important;
-}
-</style>
-""", unsafe_allow_html=True)
+
+st.markdown("""<style>button[data-testid="baseButton-primary"] { color: white !important; }</style>""", unsafe_allow_html=True)
+
 # ---------------------------------------------------------------------------
-# NAGŁÓWKI STRON
+# NAGŁÓWKI STRON (POPRAWIONA LOGIKA)
 # ---------------------------------------------------------------------------
 with st.container():
-    if page == "Wygląd i Kolory":
-        st.markdown("<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;'>KONFIGURACJA WYGLĄDU</h2>", unsafe_allow_html=True)
-        st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Dostosuj kolory i typografię oferty</div>", unsafe_allow_html=True)
-    elif page == "Zapisz / Wczytaj Projekt":
-        st.markdown("<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;'>ZARZĄDZANIE PROJEKTEM</h2>", unsafe_allow_html=True)
-        st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Eksportuj lub importuj cały plik JSON</div>", unsafe_allow_html=True)
-    elif page in _inter_pages:
+    # 1. Sprawdzamy przerywniki (szukamy strzałki ↳)
+    if "↳" in page:
         _h1_col = st.session_state.get("color_h1", "#003366")
         _page_label = page.strip().lstrip("↳").strip()
         st.markdown(f"<h2 style='color:{_h1_col};margin-bottom:0;font-size:20px;font-weight:700;font-family:Montserrat,sans-serif;text-transform:uppercase;margin-left:12px;border-left:3px solid {_h1_col};padding-left:10px;'>{_page_label}</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;margin-left:12px;'>Slajd przerywnikowy — edytuj treść i wygląd poniżej.</div>", unsafe_allow_html=True)
-    elif _is_attr_page:
+    
+    # 2. Sprawdzamy atrakcje (szukamy gwiazdki ★)
+    elif "★" in page:
         _acc_col = st.session_state.get("color_accent", "#FF6600")
-        _attr_idx = int(page.split(":")[1]) if page.startswith("ATTR:") else 0
-        _attr_pos = next((p for p, ix in enumerate(_attr_order()) if ix == _attr_idx), 0)
-        _label = _attr_display_name(_attr_pos)
-        st.markdown(f"<h2 style='color:{_acc_col};margin-bottom:0;font-size:20px;font-weight:700;font-family:Montserrat,sans-serif;margin-left:12px;border-left:3px solid {_acc_col};padding-left:10px;'>★ {_label}</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='color:{_acc_col};margin-bottom:0;font-size:20px;font-weight:700;font-family:Montserrat,sans-serif;margin-left:12px;border-left:3px solid {_acc_col};padding-left:10px;'>{page.strip()}</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;margin-left:12px;'>Edytuj treść slajdu atrakcji poniżej.</div>", unsafe_allow_html=True)
+    
+    # 3. Standardowe strony
     else:
         st.markdown(f"<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;text-transform:uppercase;'>{page}</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Wprowadź dane dla tej sekcji poniżej:</div>", unsafe_allow_html=True)
