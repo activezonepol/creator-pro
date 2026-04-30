@@ -539,9 +539,20 @@ with st.sidebar:
     _all_pages.extend(["  ↳ Przerywnik serwisy dodatkowe", "Aplikacja (komunikacja)", "Materiały brandingowe", "Pillow gifts", "Wirtualny asystent", "Kosztorys str. 1", "Kosztorys str. 2", "  ↳ Przerywnik o nas", "Nasz zespół", "Referencje"])
 
     # 4. GŁÓWNE MENU RADIO
-    _current_idx = _all_pages.index(_last) if _last in _all_pages else 0
-    page = st.radio("Nawigacja główna", _all_pages, index=_current_idx, key="main_nav_radio", label_visibility="collapsed", 
-                    on_change=lambda: st.session_state.update({'last_page': st.session_state['main_nav_radio']}))
+    # Najpierw pobieramy bezpiecznie ostatnią stronę z sesji
+    _last_page = st.session_state.get('last_page', "Strona tytułowa")
+    
+    # Teraz używamy _last_page zamiast _last
+    _current_idx = _all_pages.index(_last_page) if _last_page in _all_pages else 0
+    
+    page = st.radio(
+        "Nawigacja główna", 
+        _all_pages, 
+        index=_current_idx, 
+        key="main_nav_radio", 
+        label_visibility="collapsed", 
+        on_change=lambda: st.session_state.update({'last_page': st.session_state['main_nav_radio']})
+    )
     
     st.session_state['last_page'] = page
     _last = page 
