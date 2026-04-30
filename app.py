@@ -527,22 +527,33 @@ with st.sidebar:
 
     st.markdown("---")
     
-    # 3. KROK 1: DEFINICJA LISTY STRON (Tu budujemy menu)
-    # Pamiętaj: ta lista musi być spójna z tym co masz w głównym kodzie!
-    _all_pages = ["Strona tytułowa", "Opis kierunku", "Mapa podróży", "Jak lecimy?", "  ↳ Przerywnik program", "Program wyjazdu", "  ↳ Przerywnik atrakcje", "Opis atrakcji"]
+    # 3. KROK 1: BUDOWANIE KOMPLETNEJ LISTY STRON
+    _all_pages = [
+        "Strona tytułowa", "Opis kierunku", "Mapa podróży", "Jak lecimy?",
+        "  ↳ Przerywnik program", "Program wyjazdu", "  ↳ Przerywnik atrakcje", "Opis atrakcji"
+    ]
+    
+    # Dynamiczne atrakcje
     if _n_attr > 0:
-        for _ap in range(_n_attr): _all_pages.append(f"   ★ {_attr_display_name(_ap)}")
+        for _ap in range(_n_attr): _all_pages.append(f"    ★ {_attr_display_name(_ap)}")
+            
+    # Zakwaterowanie
     _all_pages.extend(["  ↳ Przerywnik hotel", "Opis hoteli"])
+    
+    # Dynamiczne hotele
     _n_hotels_safe = st.session_state.get('liczba_hoteli', 0) 
     if _n_hotels_safe > 0:
-        for _hp in range(_n_hotels_safe): _all_pages.append(f"   🏨 Hotel {_hp+1}")
-    _all_pages.extend(["  ↳ Przerywnik serwisy dodatkowe", "Aplikacja (komunikacja)", "Materiały brandingowe", "Pillow gifts", "Wirtualny asystent", "Kosztorys str. 1", "Kosztorys str. 2", "  ↳ Przerywnik o nas", "Nasz zespół", "Referencje"])
+        for _hp in range(_n_hotels_safe): _all_pages.append(f"    🏨 Hotel {_hp+1}")
 
-    # 4. GŁÓWNE MENU RADIO
-    # Najpierw pobieramy bezpiecznie ostatnią stronę z sesji
+    # Sekcje brandingowe i techniczne
+    _all_pages.extend([
+        "  ↳ Przerywnik serwisy dodatkowe", "Aplikacja (komunikacja)", "Materiały brandingowe",
+        "Pillow gifts", "Wirtualny asystent", "Kosztorys str. 1", "Kosztorys str. 2",
+        "  ↳ Przerywnik o nas", "Nasz zespół", "Referencje"
+    ])
+
+    # 4. GŁÓWNE MENU RADIO (Tylko jedno wystąpienie)
     _last_page = st.session_state.get('last_page', "Strona tytułowa")
-    
-    # Teraz używamy _last_page zamiast _last
     _current_idx = _all_pages.index(_last_page) if _last_page in _all_pages else 0
     
     page = st.radio(
@@ -553,92 +564,32 @@ with st.sidebar:
         label_visibility="collapsed", 
         on_change=lambda: st.session_state.update({'last_page': st.session_state['main_nav_radio']})
     )
-    
     st.session_state['last_page'] = page
     _last = page 
 
-    # 5. ZARZĄDZANIE ATRAKCJAMI
-    st.markdown(f"<div style='padding-top:15px; font-size:12px; font-weight:600;'>ZARZĄDZAJ ATRAKCJAMI ({_n_attr})</div>", unsafe_allow_html=True)
+    # 5. PANEL ZARZĄDZANIA ATRAKCJAMI
+    _acc = st.session_state.get('color_accent', '#FF6600')
+    st.markdown(
+        f"<div style='display:flex;align-items:center;gap:6px;padding:15px 0 3px 4px;'>"
+        f"<span style='color:{_acc};font-size:13px;font-weight:700;'>★</span>"
+        f"<span style='font-size:12px;font-weight:600;color:#334155;font-family:Montserrat,sans-serif;'>"
+        f"ZARZĄDZAJ ATRAKCJAMI ({_n_attr})</span></div>",
+        unsafe_allow_html=True,
+    )
+
     if _n_attr > 0:
         for _ap in range(_n_attr):
+            _ap_name = _attr_display_name(_ap)
             _ca, _cb, _cc, _cd = st.columns([6, 1, 1, 1])
-            _ca.markdown(f"<div style='font-size:12px;'>{_attr_display_name(_ap)}</div>", unsafe_allow_html=True)
+            _ca.markdown(f"<div style='font-size:13px; padding-top:6px;'>{_ap_name}</div>", unsafe_allow_html=True)
             if _ap > 0 and _cb.button("▲", key=f"attrup_{_ap}", use_container_width=True): _attr_move(_ap, -1); st.rerun()
             if _ap < _n_attr - 1 and _cc.button("▼", key=f"attrdn_{_ap}", use_container_width=True): _attr_move(_ap, 1); st.rerun()
             if _cd.button("✕", key=f"attrdel_{_ap}", use_container_width=True): _attr_delete(_ap); st.rerun()
+            
+    st.caption("💡 Użyj ▲▼ by zmienić kolejność, ✕ by usunąć.")
 
     # 6. CSS SIDEBARA
-    _acc = st.session_state.get('color_accent', '#FF6600')
     st.markdown(f"<style>button[kind='primary']{{background-color:{_acc}!important;border-color:{_acc}!important;color:white!important;}}</style>", unsafe_allow_html=True)
-    # =====================================================================
-    # NOWA, JEDNOLITA NAWIGACJA (KROK 1) - ZAKTUALIZOWANE NAZWY
-    # =====================================================================
-    st.markdown("**WYBIERZ SEKCJE DO EDYCJI:**")
-
-    # 1. Budujemy listę wszystkich 20 sekcji według Twojej kolejności
-    _all_pages = [
-        "Strona tytułowa",
-        "Opis kierunku",
-        "Mapa podróży",
-        "Jak lecimy?",
-        "  ↳ Przerywnik program",
-        "Program wyjazdu",
-        "  ↳ Przerywnik atrakcje",
-        "Opis atrakcji"
-    ]
-    
-    # Dodajemy dynamiczne ATRAKCJE
-    if _n_attr > 0:
-        for _ap in range(_n_attr):
-            _all_pages.append(f"   ★ {_attr_display_name(_ap)}")
-            
-    # Sekcja Zakwaterowanie
-    _all_pages.extend([
-        "  ↳ Przerywnik hotel",
-        "Opis hoteli"
-    ])
-    
-    # Dodajemy dynamiczne HOTELE (miejsce na przyszły rozwój)
-    _n_hotels_safe = st.session_state.get('liczba_hoteli', 0) 
-    if _n_hotels_safe > 0:
-        for _hp in range(_n_hotels_safe):
-            _all_pages.append(f"   🏨 Hotel {_hp+1}")
-
-    # Reszta sekcji brandingowych i technicznych
-    _all_pages.extend([
-        "  ↳ Przerywnik serwisy dodatkowe",
-        "Aplikacja (komunikacja)",
-        "Materiały brandingowe",
-        "Pillow gifts",
-        "Wirtualny asystent",
-        "Kosztorys str. 1",
-        "Kosztorys str. 2",
-        "  ↳ Przerywnik o nas",     # <--- Zostawiamy nazwę przerywnika
-        "Nasz zespół",             # <--- Zmieniona nazwa slajdu z "O nas"
-        "Referencje"
-    ])
-
-    # 2. Ustalenie aktualnej pozycji (zabezpieczenie przed błędem indeksu)
-    _current_idx = _all_pages.index(_last) if _last in _all_pages else 0
-
-    # -----------------------------------------------------------------------
-    # GŁÓWNE MENU RADIO - Pilot aplikacji
-    # -----------------------------------------------------------------------
-    # Upewniamy się, że 'last_page' zawsze odzwierciedla stan menu
-    page = st.radio(
-        "Nawigacja główna",
-        _all_pages,
-        index=_current_idx,
-        key="main_nav_radio",
-        label_visibility="collapsed",
-        on_change=lambda: st.session_state.update({
-            'last_page': st.session_state['main_nav_radio']
-        })
-    )
-    
-    # Synchronizacja: wymuszamy, aby 'page' było zawsze aktualną stroną
-    st.session_state['last_page'] = page
-    _last = page 
 
     # -----------------------------------------------------------------------
     # PANEL ZARZĄDZANIA ATRAKCJAMI
