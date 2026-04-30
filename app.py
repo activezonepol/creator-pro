@@ -1288,7 +1288,44 @@ with col_form:
     # 11. PRZERYWNIK SERWISY DODATKOWE
     # -----------------------------------------------------------------------
     elif page == "  ↳ Przerywnik serwisy dodatkowe":
-        st.info("Tutaj wkleisz kod formularza dla przerywnika: Serwisy Dodatkowe")
+        # Używamy unikalnych kluczy dla tej sekcji (sek_4)
+        _guard(["sek_4_title", "sek_4_sub", "sek_hide_4", "sek_4_bg", "sek_4_txt", "sek_4_sub_color"])  
+        
+        # Ustawienie wartości domyślnych, jeśli są puste
+        if "sek_4_title" not in st.session_state: st.session_state["sek_4_title"] = "SERWISY DODATKOWE"
+        if "sek_4_sub" not in st.session_state: st.session_state["sek_4_sub"] = "WYMIAR KOMFORTU PREMIUM"
+        
+        if not isinstance(st.session_state.get("sek_hide_4"), bool):
+            st.session_state["sek_hide_4"] = False
+
+        _bg_default = st.session_state.get('color_h1', '#003366')
+        _sub_default = st.session_state.get('color_sub', '#FF6600')
+
+        if st.button("🔄 Resetuj kolory przerywnika", use_container_width=True, key="res_sek_4"):
+            st.session_state["sek_4_bg"] = _bg_default
+            st.session_state["sek_4_txt"] = "#ffffff"
+            st.session_state["sek_4_sub_color"] = _sub_default
+            st.rerun()
+
+        for _ck, _cv in [(f"sek_4_bg", _bg_default), (f"sek_4_txt", '#ffffff'), (f"sek_4_sub_color", _sub_default)]:
+            _v = st.session_state.get(_ck, _cv)
+            if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
+                st.session_state[_ck] = _cv
+
+        st.button("POKAŻ PODGLĄD", key="btn_sek_4", on_click=set_focus, args=("slide-sek_4",), use_container_width=True)
+        st.checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_4")
+        st.markdown("---") 
+
+        safe_text_input("Duży tytuł (uppercase):", key="sek_4_title")
+        safe_text_input("Nadtytuł (overline):", key="sek_4_sub")
+        
+        _ic1, _ic2, _ic3 = st.columns(3)
+        _ic1.color_picker("Kolor tła:", key="sek_4_bg")
+        _ic2.color_picker("Kolor tytułu:", key="sek_4_txt")
+        _ic3.color_picker("Kolor nadtytułu:", key="sek_4_sub_color")
+
+        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key="up_sek_img_up_4")
+        if _up_s: _upload_image(_up_s.getvalue(), "sek_4_img")
     # -----------------------------------------------------------------------
     # 12. APLIKACJA (KOMUNIKACJA)
     # -----------------------------------------------------------------------
