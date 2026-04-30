@@ -36,6 +36,11 @@ from storage_utils import (
     cleanup_session_bytes_to_storage,
     run_migration_flow,
 )
+# --- BEZPIECZNE ZMIENNE GLOBALNE ---
+if 'num_attr' not in st.session_state: st.session_state['num_attr'] = 0
+if 'liczba_hoteli' not in st.session_state: st.session_state['liczba_hoteli'] = 0
+if 'last_page' not in st.session_state: st.session_state['last_page'] = "Strona tytułowa"
+
 # --- INICJALIZACJA UI ---
 if "preview_container" not in st.session_state:
     st.session_state.preview_container = st.empty()
