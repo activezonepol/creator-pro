@@ -48,21 +48,17 @@ def _upload_image(file_bytes, session_key, is_logo=False):
     if not file_bytes:
         return
     
-    # 1. Zamiast 'from ...' wewnątrz, użyj bezpośrednio funkcji, 
-    # którą już masz w swoim kodzie do łączenia z Supabase
-    try:
-        sb = init_supabase() 
-        # 2. Upload
-        url = upload_image(sb, session_key, file_bytes, is_logo=is_logo)
-        
-        if url:
-            st.session_state[session_key] = url
-            st.session_state["_last_upload_ok"] = True
-        else:
-            st.session_state["_last_upload_error"] = "Błąd uploadu: Nie otrzymano URL"
-            
-    except Exception as e:
-        st.session_state["_last_upload_error"] = f"Błąd systemowy: {str(e)}"
+    # Używamy supabase bezpośrednio z sesji lub Twojej funkcji inicjalizacyjnej
+    sb = init_supabase() 
+    
+    # Teraz wywołujemy funkcję z Twojego storage_utils
+    url = upload_image(sb, session_key, file_bytes, is_logo=is_logo)
+    
+    if url:
+        st.session_state[session_key] = url
+        st.session_state["_last_upload_ok"] = True
+    else:
+        st.session_state["_last_upload_error"] = "Błąd uploadu: Brak URL"
 
 # ---------------------------------------------------------------------------
 # SUPABASE CONNECTION
