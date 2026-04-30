@@ -44,20 +44,25 @@ if "preview_container" not in st.session_state:
 # HELPERY INPUTÓW I UPLOADU
 # ---------------------------------------------------------------------------
 def _upload_image(file_bytes, session_key, is_logo=False):
-    """Czysty wrapper do uploadu zdjęć. Uploaduje do Storage i zapisuje URL do session_state."""
+    """Czysty wrapper do uploadu zdjęć."""
     if not file_bytes:
         return
     
-    # Pobierz supabase z cache'a (zainicjalizowany poniżej)
-    from streamlit import session_state as ss
-    sb = init_supabase()  # ← Zawsze zwraca ten sam obiekt (cached)
-    
-    url = upload_image(sb, session_key, file_bytes, is_logo=is_logo)
-    if url:
-        st.session_state[session_key] = url
-        st.session_state["_last_upload_ok"] = True
-    else:
-        st.session_state["_last_upload_error"] = "Błąd uploadu"
+    # 1. Zamiast 'from ...' wewnątrz, użyj bezpośrednio funkcji, 
+    # którą już masz w swoim kodzie do łączenia z Supabase
+    try:
+        sb = init_supabase() 
+        # 2. Upload
+        url = upload_image(sb, session_key, file_bytes, is_logo=is_logo)
+        
+        if url:
+            st.session_state[session_key] = url
+            st.session_state["_last_upload_ok"] = True
+        else:
+            st.session_state["_last_upload_error"] = "Błąd uploadu: Nie otrzymano URL"
+            
+    except Exception as e:
+        st.session_state["_last_upload_error"] = f"Błąd systemowy: {str(e)}"
 
 # ---------------------------------------------------------------------------
 # SUPABASE CONNECTION
