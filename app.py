@@ -481,22 +481,20 @@ if st.session_state['client_mode']:
     st.stop()
     
 # ---------------------------------------------------------------------------
-# AUTO-SAVE DO SUPABASE - Bezpieczny upsert z ID
+# AUTO-SAVE DO SUPABASE
 # ---------------------------------------------------------------------------
 if not st.session_state.get('client_mode', False):
     if 'last_supabase_save' not in st.session_state:
         st.session_state['last_supabase_save'] = 0
-
     current_time = time.time()
-
-    # Zapisujemy tylko jeśli minęło 30 sekund
     if current_time - st.session_state['last_supabase_save'] > 30:
-        
-        # Wywołujemy zaktualizowaną, systemową funkcję zapisu
-        # (Funkcja sama resetuje zegar, filtruje zdjęcia i wysyła powiadomienie)
         save_to_supabase()
-        
-    # ---------------------------------------------------------------------------
+
+# --- DEFINICJA ZMIENNYCH GLOBALNYCH (Bez spacji na początku!) ---
+_n_attr = st.session_state.get('num_attr', 0)
+_n_hotels = st.session_state.get('liczba_hoteli', 0)
+
+# ---------------------------------------------------------------------------
 # SIDEBAR — NAWIGACJA (WERSJA CZYSTA I KOMPLETNA)
 # ---------------------------------------------------------------------------
 with st.sidebar:
@@ -702,12 +700,7 @@ col_form, col_preview = st.columns([0.3, 0.7], gap="medium")
 with col_form:
     _acc = st.session_state.get('color_accent', '#FF6600')
     st.markdown(f"<h3 style='color:{_acc};font-size:16px;margin-bottom:20px;'>EDYCJA SLAJDU</h3>", unsafe_allow_html=True)
-   # =====================================================================
-    # GŁÓWNA LOGIKA WYŚWIETLANIA FORMULARZY (KROK 2 - CZĘŚĆ 1)
-    # =====================================================================
-    # --- DEFINICJA ZMIENNYCH DLA CAŁEJ APLIKACJI ---
-    _n_attr = st.session_state.get('num_attr', 0)
-    _n_hotels = st.session_state.get('liczba_hoteli', 0)
+  
     # -----------------------------------------------------------------------
     # 1. STRONA TYTUŁOWA
     # -----------------------------------------------------------------------
