@@ -584,72 +584,93 @@ with st.sidebar:
             pos = next((pos for pos, ix in enumerate(_attr_order()) if ix == idx), 0)
             return "  ★ " + _attr_display_name(pos)
         return p
-    # Nawigacja górna — RADIO (najstabilniejsze)
+    # =====================================================================
+    # NOWA, JEDNOLITA NAWIGACJA (KROK 1) - ZAKTUALIZOWANE NAZWY
+    # =====================================================================
     st.markdown("**WYBIERZ SEKCJE DO EDYCJI:**")
+
+    # 1. Budujemy listę wszystkich 20 sekcji według Twojej kolejności
+    _all_pages = [
+        "Strona tytułowa",
+        "Opis kierunku",
+        "Mapa podróży",
+        "Jak lecimy?",
+        "  ↳ Przerywnik program",
+        "Program wyjazdu",
+        "  ↳ Przerywnik atrakcje",
+        "Opis atrakcji"
+    ]
     
-    _top_index = _nav_top.index(_last) if _last in _nav_top else 0
-    st.radio(
-        "Nawigacja górna",
-        _nav_top,
-        index=_top_index,
-        key="nav_top_radio",
-        label_visibility="collapsed",
-        on_change=lambda: st.session_state.update({'last_page': st.session_state['nav_top_radio']})
-    )
-    # --- SEKCJA ATRAKCJI wbudowana w nawigację ---
-    # Przycisk ＋ DODAJ ATRAKCJE/MIEJSCE
-    st.markdown(
-        f"<div style='display:flex;align-items:center;gap:6px;"
-        f"padding:3px 0 3px 4px;'>"
-        f"<span style='color:{_acc};font-size:13px;font-weight:700;'>★</span>"
-        f"<span style='font-size:12px;font-weight:600;color:#334155;"
-        f"font-family:Montserrat,sans-serif;'>"
-        f"ATRAKCJE ({_n_attr})</span></div>",
-        unsafe_allow_html=True,
-    )
-    
-    # Lista atrakcji z buttonami zarządzania (bez if st.button - zapisujemy wartości)
+    # Dodajemy dynamiczne ATRAKCJE
     if _n_attr > 0:
         for _ap in range(_n_attr):
-            _ap_key = _attr_pages[_ap]
+            _all_pages.append(f"   ★ {_attr_display_name(_ap)}")
+            
+    # Sekcja Zakwaterowanie
+    _all_pages.extend([
+        "  ↳ Przerywnik hotel",
+        "Opis hoteli"
+    ])
+    
+    # Dodajemy dynamiczne HOTELE (miejsce na przyszły rozwój)
+    _n_hotels_safe = st.session_state.get('liczba_hoteli', 0) 
+    if _n_hotels_safe > 0:
+        for _hp in range(_n_hotels_safe):
+            _all_pages.append(f"   🏨 Hotel {_hp+1}")
+
+    # Reszta sekcji brandingowych i technicznych
+    _all_pages.extend([
+        "  ↳ Przerywnik serwisy dodatkowe",
+        "Aplikacja (komunikacja)",
+        "Materiały brandingowe",
+        "Pillow gifts",
+        "Wirtualny asystent",
+        "Kosztorys str. 1",
+        "Kosztorys str. 2",
+        "  ↳ Przerywnik o nas",     # <--- Zostawiamy nazwę przerywnika
+        "Nasz zespół",             # <--- Zmieniona nazwa slajdu z "O nas"
+        "Referencje"
+    ])
+
+    # 2. Ustalenie aktualnej pozycji (zabezpieczenie przed błędem indeksu)
+    _current_idx = _all_pages.index(_last) if _last in _all_pages else 0
+
+    # 3. Główne Menu Radio - Jedyny "pilot" do aplikacji
+    page = st.radio(
+        "Nawigacja główna",
+        _all_pages,
+        index=_current_idx,
+        key="main_nav_radio",
+        label_visibility="collapsed",
+        on_change=lambda: st.session_state.update({'last_page': st.session_state['main_nav_radio']})
+    )
+
+    # 4. Panel zarządzania atrakcjami (tylko strzałki i usuwanie)
+    st.markdown(
+        f"<div style='display:flex;align-items:center;gap:6px;padding:15px 0 3px 4px;'>"
+        f"<span style='color:{_acc};font-size:13px;font-weight:700;'>★</span>"
+        f"<span style='font-size:12px;font-weight:600;color:#334155;font-family:Montserrat,sans-serif;'>"
+        f"ZARZĄDZAJ ATRAKCJAMI ({_n_attr})</span></div>",
+        unsafe_allow_html=True,
+    )
+
+    if _n_attr > 0:
+        for _ap in range(_n_attr):
             _ap_name = _attr_display_name(_ap)
-            _ap_active = (_last == _ap_key)
-            
             _ca, _cb, _cc, _cd = st.columns([6, 1, 1, 1])
-            
-            # Button nawigacji
-            _ca.button(
-                f"★ {_ap_name}", 
-                key=f"attrnav_{_ap}",
-                use_container_width=True,
-                type="primary" if _ap_active else "secondary"
-            )
-            
-            # Buttony zarządzania
+            _ca.markdown(f"<div style='font-size:13px; padding-top:6px;'>{_ap_name}</div>", unsafe_allow_html=True)
             if _ap > 0:
                 _cb.button("▲", key=f"attrup_{_ap}", use_container_width=True)
             if _ap < _n_attr - 1:
                 _cc.button("▼", key=f"attrdn_{_ap}", use_container_width=True)
             _cd.button("✕", key=f"attrdel_{_ap}", use_container_width=True)
-    
-    st.caption("💡 Zarządzaj kolejnością i usuwaj atrakcje przyciskami ▲▼✕")
-    # Nawigacja dolna — RADIO
-    _bot_index = _nav_bot.index(_last) if _last in _nav_bot else 0
-    st.radio(
-        "Nawigacja dolna",
-        _nav_bot,
-        index=_bot_index,
-        key="nav_bot_radio",
-        label_visibility="collapsed",
-        on_change=lambda: st.session_state.update({'last_page': st.session_state['nav_bot_radio']})
-    )
-    # Tworzymy kopię listy dla celów wizualnych panelu bocznego
-    _inter_pages_visual = {"  ↳ Przerywnik hotel", "  ↳ Przerywnik program", "  ↳ Przerywnik atrakcje", "  ↳ Przerywnik o nas"}
+            
+    st.caption("💡 Użyj ▲▼ by zmienić kolejność, ✕ by usunąć.")
 
-# Czyścimy oryginał, aby silnik podglądu przestał filtrować slajdy
+    # 5. Bezpieczniki podglądu (Wyłączenie izolacji slajdów)
+    _inter_pages_visual = {p for p in _all_pages if "↳" in p}
     _inter_pages = set() 
-
-    _is_attr_page = _last.startswith("ATTR:")
+    _is_attr_page = _last.startswith("ATTR:") or "★" in _last
 # ---------------------------------------------------------------------------
 # USTALANIE AKTYWNEJ STRONY (po sidebarze)
 # ---------------------------------------------------------------------------
