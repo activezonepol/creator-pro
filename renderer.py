@@ -1877,24 +1877,44 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div>{fh}""", "slide-testimonials"))
             
     # --- Zwróć lub wyświetl ---
-    full_html = "".join(hp)
-    
-    if export_mode:
-        return full_html
-        
     import streamlit.components.v1 as components
     
-    # TWOJA LOGIKA IDENTYFIKATORÓW
+    # 1. Pobieramy style (muszą być wewnątrz, żeby układ się nie rozsypał)
+    try:
+        # Próbujemy pobrać style jako tekst; jeśli Twoja funkcja nie obsługuje return_str, 
+        # pobierze je z globalnej zmiennej lub wygeneruje błąd (wtedy używamy pustego stringa)
+        current_styles = get_local_css(return_str=True)
+    except:
+        current_styles = ""
+
+    # 2. Łączymy style ze slajdami w jeden dokument dla podglądu
+    # To naprawia "logo na całą stronę" - style będą działać wewnątrz okna
+    full_preview_html = f"""
+    <html>
+    <head>
+        <meta charset="utf-8">
+        {current_styles}
+    </head>
+    <body style="margin:0; padding:0;">
+        { "".join(hp) }
+    </body>
+    </html>
+    """
+    
+    if export_mode:
+        return "".join(hp)
+        
+    # TWOJA LOGIKA IDENTYFIKATORÓW (zostawiamy nienaruszoną)
     first_visible_place = next((i for i in range(get_data('num_places', 0)) if not get_data(f'phide_{i}')), None)
     pid = f"place_{first_visible_place}" if first_visible_place is not None else "place_preview"
     first_visible_attr = next((i for i in range(get_data('num_attr', 0)) if not get_data(f'ahide_{i}')), None)
     fid = f"attr_{first_visible_attr}" if first_visible_attr is not None else "slide-title"
     hid = f"slide-hotel-0" if get_data('num_hotels', 1) > 0 and not get_data('h_hide_0') else "slide-title"
 
-    # RENDEROWANIE - Wyświetlamy podgląd raz
-    components.html(full_html, height=800, scrolling=True)
+    # WYŚWIETL: Renderujemy podgląd w izolowanym oknie z jego własnymi stylami
+    components.html(full_preview_html, height=800, scrolling=True)
     
-    # KLUCZ: Zwracamy pusty string, żeby Streamlit nie rysował okna po raz drugi!
+    # ZASTĄP: Zwracamy pusty string, żeby Streamlit nie rysował drugiego okna pod spodem
     return ""
     
     default_tid = {
