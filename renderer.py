@@ -1652,6 +1652,9 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                         <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a3}" style="width:100%;height:100%;object-fit:cover;">' if a3 else _get_ph('FOT 3')}</div>
                     </div></div></div>{fh}""", f"attr_{i}"))
                     
+    # --- Serwisy dodatkowe (nowy przerywnik) ---
+    _render_sek(4)     
+    
     # --- 12. Aplikacja ---
     if _should_render('slide-app', current_page, export_mode):
         ibg = get_b64('img_app_bg', (16, 9))
@@ -1787,33 +1790,9 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div>
             <div class="photo-col">{imk2}</div>
             </div>{fh}""", "slide-kosztorys-2"))
-    # --- Przerywnik sek_2 (przed testim) ---
+    # --- 18. Przerywnik nasza agencja (sek_2) ---
     _render_sek(2)
-    # --- 20. Rekomendacje ---
-    if _should_render('slide-testimonials', current_page, export_mode):
-        t_main_img = get_b64('img_testim_main', (4, 5))
-        t_main_img_html = (f'<img src="data:image/jpeg;base64,{t_main_img}" style="width:100%;height:100%;object-fit:cover;">'
-                           if t_main_img else _get_ph('ZDJĘCIE GŁÓWNE'))
-        t_h = ""
-        for i in range(get_data('testim_count', 3)):
-            it = get_b64(f'testim_img_{i}', (1, 1))
-            itg = (f"<img src='data:image/jpeg;base64,{it}' style='width:100%;height:100%;object-fit:cover;'>"
-                   if it else _get_ph('LOGO'))
-            t_h += f"""<div class="testim-item"><div class="testim-img-wrapper">{itg}</div>
-                <div class="testim-content">
-                    <div class="testim-head">{str(get_data(f'testim_head_{i}','')).replace(chr(10),'<br>')}</div>
-                    <div class="testim-quote">"{get_data(f'testim_quote_{i}','')}"</div>
-                    <div class="testim-author"><strong>{get_data(f'testim_author_{i}','')}</strong> | {get_data(f'testim_role_{i}','')}</div>
-                </div></div>"""
-        hp.append(_shtml(f"""{lh}<div class="premium-layout">
-            <div class="info-col" style="flex: 55; padding-right: 40px; padding-top: 30px; justify-content: flex-start;">
-                <div class="app-overline-style"><span>{str(get_data('testim_overline','REKOMENDACJE'))}</span></div>
-                <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(get_data('testim_title','')).replace(chr(10),'<br>')}</div>
-                <div class="title-sub" style="margin-bottom:25px; font-size:{max(12,fs_sub_val-4)}px;">{str(get_data('testim_subtitle','')).replace(chr(10),'<br>')}</div>
-                <div style="display: flex; flex-direction: column;">{t_h}</div>
-            </div>
-            <div class="photo-col" style="flex: 45;">{t_main_img_html}</div>
-            </div>{fh}""", "slide-testimonials"))
+   
     # --- 19. O nas / Zespół ---
     if _should_render('slide-about', current_page, export_mode):
         tm_h = ""
@@ -1842,6 +1821,32 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div>
             <div class="photo-col" style="flex: 40; background-color: #fcfcfc;">{c_img_html}</div>
             </div>{fh}""", "slide-about"))
+     # --- 20. Rekomendacje ---
+    if _should_render('slide-testimonials', current_page, export_mode):
+        t_main_img = get_b64('img_testim_main', (4, 5))
+        t_main_img_html = (f'<img src="data:image/jpeg;base64,{t_main_img}" style="width:100%;height:100%;object-fit:cover;">'
+                           if t_main_img else _get_ph('ZDJĘCIE GŁÓWNE'))
+        t_h = ""
+        for i in range(get_data('testim_count', 3)):
+            it = get_b64(f'testim_img_{i}', (1, 1))
+            itg = (f"<img src='data:image/jpeg;base64,{it}' style='width:100%;height:100%;object-fit:cover;'>"
+                   if it else _get_ph('LOGO'))
+            t_h += f"""<div class="testim-item"><div class="testim-img-wrapper">{itg}</div>
+                <div class="testim-content">
+                    <div class="testim-head">{str(get_data(f'testim_head_{i}','')).replace(chr(10),'<br>')}</div>
+                    <div class="testim-quote">"{get_data(f'testim_quote_{i}','')}"</div>
+                    <div class="testim-author"><strong>{get_data(f'testim_author_{i}','')}</strong> | {get_data(f'testim_role_{i}','')}</div>
+                </div></div>"""
+        hp.append(_shtml(f"""{lh}<div class="premium-layout">
+            <div class="info-col" style="flex: 55; padding-right: 40px; padding-top: 30px; justify-content: flex-start;">
+                <div class="app-overline-style"><span>{str(get_data('testim_overline','REKOMENDACJE'))}</span></div>
+                <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(get_data('testim_title','')).replace(chr(10),'<br>')}</div>
+                <div class="title-sub" style="margin-bottom:25px; font-size:{max(12,fs_sub_val-4)}px;">{str(get_data('testim_subtitle','')).replace(chr(10),'<br>')}</div>
+                <div style="display: flex; flex-direction: column;">{t_h}</div>
+            </div>
+            <div class="photo-col" style="flex: 45;">{t_main_img_html}</div>
+            </div>{fh}""", "slide-testimonials"))
+            
     # --- Zwróć lub wyświetl ---
     if export_mode:
         return "".join(hp)
