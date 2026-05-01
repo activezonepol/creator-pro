@@ -1902,19 +1902,26 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div>{fh}""", "slide-testimonials"))
             
     # --- Zwróć lub wyświetl ---
+    full_html = "".join(hp)
+    
     if export_mode:
-        return "".join(hp)
+        return full_html
+        
     import streamlit.components.v1 as components
+    
+    # TWOJA LOGIKA (Zostaje bez zmian)
     first_visible_place = next(
         (i for i in range(get_data('num_places', 0)) if not get_data(f'phide_{i}')), None
     )
     pid = f"place_{first_visible_place}" if first_visible_place is not None else "place_preview"
+    
     first_visible_attr = next(
         (i for i in range(get_data('num_attr', 0)) if not get_data(f'ahide_{i}')), None
     )
     fid = f"attr_{first_visible_attr}" if first_visible_attr is not None else "slide-title"
     
     hid = f"slide-hotel-0" if get_data('num_hotels', 1) > 0 and not get_data('h_hide_0') else "slide-title"
+    
     default_tid = {
         "Strona tytułowa":                  "slide-title",
         "Opis kierunku":                    "slide-kierunek",
