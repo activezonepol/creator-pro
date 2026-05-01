@@ -1798,7 +1798,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div>{fh}""", "slide-kosztorys-2"))
     # --- Przerywnik sek_2 (przed testim) ---
     _render_sek(2)
-    # --- Rekomendacje ---
+    # --- 20. Rekomendacje ---
     if _should_render('slide-testimonials', current_page, export_mode):
         t_main_img = get_b64('img_testim_main', (4, 5))
         t_main_img_html = (f'<img src="data:image/jpeg;base64,{t_main_img}" style="width:100%;height:100%;object-fit:cover;">'
