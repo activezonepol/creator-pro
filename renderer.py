@@ -889,10 +889,12 @@ def get_local_css(return_str=False):
 # HELPERY SLAJDÓW
 # ---------------------------------------------------------------------------
 def _lhtml():
-    b64 = get_logo_b64(st.session_state.get('logo_az'))
-    if not b64:
+    val = get_logo_b64(st.session_state.get('logo_az'))
+    if not val:
         return ""
-    return f'<div class="top-right-logo-container"><img src="data:image/png;base64,{b64}"></div>'
+    # Jeśli to URL, używamy go bezpośrednio, jeśli nie - dodajemy prefix PNG
+    src = val if str(val).startswith('http') else f'data:image/png;base64,{val}'
+    return f'<div class="top-right-logo-container"><img src="{src}"></div>'
 def _fhtml():
     return (
         f'<div class="page-footer">'
