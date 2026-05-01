@@ -1884,18 +1884,18 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         
     import streamlit.components.v1 as components
     
-    # TWOJA LOGIKA (Zostaje bez zmian)
-    first_visible_place = next(
-        (i for i in range(get_data('num_places', 0)) if not get_data(f'phide_{i}')), None
-    )
+    # TWOJA LOGIKA IDENTYFIKATORÓW
+    first_visible_place = next((i for i in range(get_data('num_places', 0)) if not get_data(f'phide_{i}')), None)
     pid = f"place_{first_visible_place}" if first_visible_place is not None else "place_preview"
-    
-    first_visible_attr = next(
-        (i for i in range(get_data('num_attr', 0)) if not get_data(f'ahide_{i}')), None
-    )
+    first_visible_attr = next((i for i in range(get_data('num_attr', 0)) if not get_data(f'ahide_{i}')), None)
     fid = f"attr_{first_visible_attr}" if first_visible_attr is not None else "slide-title"
-    
     hid = f"slide-hotel-0" if get_data('num_hotels', 1) > 0 and not get_data('h_hide_0') else "slide-title"
+
+    # RENDEROWANIE - Wyświetlamy podgląd raz
+    components.html(full_html, height=800, scrolling=True)
+    
+    # KLUCZ: Zwracamy pusty string, żeby Streamlit nie rysował okna po raz drugi!
+    return ""
     
     default_tid = {
         "Strona tytułowa":                  "slide-title",
