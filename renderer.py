@@ -942,13 +942,6 @@ def get_logo_b64(raw):
 def _should_render(slide_id, current_page, export_mode):
     """
     Centralna logika decydująca czy renderować slajd.
-
-    Łączy dwie odpowiedzialności:
-    1. Czy slajd nie jest ukryty (hide_key w session_state)?
-    2. Czy slajd jest aktywny dla bieżącej strony (tryb edycji)?
-
-    W trybie eksportu renderuje wszystkie nieukryte slajdy.
-    W trybie edycji renderuje tylko slajd odpowiadający current_page.
     """
     # Słownik: slide_id -> klucz "hide" w session_state
     _HIDE_KEYS = {
@@ -960,33 +953,51 @@ def _should_render(slide_id, current_page, export_mode):
         "slide-virtual-assistant":  "va_hide",
         "slide-pillow-gifts":       "pg_hide",
         "slide-kosztorys-1":        "koszt_hide_1",
+        "slide-kosztorys-2":        "koszt_hide_2", # DODANE: Ukrywanie 2. strony kosztorysu
         "slide-testimonials":       "testim_hide",
         "slide-about":              "about_hide",
+        "slide-sek_4":              "sek_hide_4",   # DODANE: Ukrywanie nowych serwisów
     }
 
     # Słownik: nazwa strony -> prefix ID slajdu
     _PAGE_TO_SLIDE = {
+        "Strona tytułowa":          "slide-title",
         "Strona Tytułowa":          "slide-title",
+        "Opis kierunku":            "slide-kierunek",
         "Opis Kierunku":            "slide-kierunek",
+        "Mapa podróży":             "slide-mapa",
         "Mapa Podróży":             "slide-mapa",
         "Jak lecimy?":              "slide-loty",
         "Zakwaterowanie":           "slide-hotel",
+        "Opis hoteli":              "slide-hotel", # DODANE: Nowa nazwa dla hoteli
+        "Program wyjazdu":          "slide-program",
         "Program Wyjazdu":          "slide-program",
+        "Aplikacja (komunikacja)":  "slide-app",
         "Aplikacja (Komunikacja)":  "slide-app",
+        "Materiały brandingowe":    "slide-branding",
+        "Materiały bandingowe":     "slide-branding", # Z literówką ze spisu treści dla bezp.
         "Materiały Brandingowe":    "slide-branding",
-        "Wirtualny Asystent":       "slide-virtual-assistant",
+        "Pillow gifts":             "slide-pillow-gifts",
         "Pillow Gifts":             "slide-pillow-gifts",
+        "Wirtualny asystent":       "slide-virtual-assistant",
+        "Wirtualny Asystent":       "slide-virtual-assistant",
+        "Kosztorys str. 1":         "slide-kosztorys-1", # DODANE
+        "Kosztorys str. 2":         "slide-kosztorys-2", # DODANE
         "Kosztorys":                "slide-kosztorys",
-        "Co o nas mówią":           "slide-testimonials",
+        "O nas":                    "slide-about",       # DODANE
         "O Nas (Zespół)":           "slide-about",
+        "Referencje":               "slide-testimonials", # DODANE
+        "Co o nas mówią":           "slide-testimonials",
     }
 
     # Przerywniki: nazwa strony -> fragment ID slajdu
     _PRZERYWNIK_MAP = {
-        "  ↳ Przerywnik hotel":     "sek_0",
-        "  ↳ Przerywnik program":   "sek_3",
-        "  ↳ Przerywnik atrakcje":  "sek_1",
-        "  ↳ Przerywnik o nas":     "sek_2",
+        "  ↳ Przerywnik hotel":             "sek_0",
+        "  ↳ Przerywnik program":           "sek_3",
+        "  ↳ Przerywnik atrakcje":          "sek_1",
+        "  ↳ Przerywnik o nas":             "sek_2",
+        "  ↳ Przerywnik nasza agencja":     "sek_2", # DODANE: Nowa nazwa dla sek_2
+        "  ↳ Przerywnik serwisy dodatkowe": "sek_4", # DODANE: Całkowicie nowa sekcja 4
     }
 
     # 1. Sprawdź czy slajd nie jest ukryty (dotyczy eksportu i edycji)
@@ -1005,18 +1016,22 @@ def _should_render(slide_id, current_page, export_mode):
         return _PRZERYWNIK_MAP[current_page] in slide_id
 
     # Atrakcje (dynamiczne ID: attr_0, attr_1...)
-    if current_page.startswith("ATTR:"):
-        attr_idx = current_page.split(":")[1]
-        return f"attr_{attr_idx}" in slide_id
-
+    if "★" in current_page or current_page.startswith("ATTR:"):
+        # Jeśli jesteśmy na stronie konkretnej atrakcji, pozwalamy rendererowi 
+        # rysować slajdy atrakcji (JS i tak przewinie do tej właściwej)
+        return "attr_" in slide_id or "slide-sek_1" in slide_id
+        
     # Hotele (dynamiczne ID: slide-hotel-0, slide-hotel-1...)
-    if current_page == "Zakwaterowanie":
-        return slide_id.startswith("slide-hotel")
-
+    if "Hotel " in current_page or current_page == "Zakwaterowanie" or current_page == "Opis hoteli":
+        return slide_id.startswith("slide-hotel") or "slide-sek_0" in slide_id
+            
     # Standardowe strony (statyczne ID)
     expected = _PAGE_TO_SLIDE.get(current_page, "")
     if not expected:
-        return True  # Nieznana strona - renderuj
+        # Jeśli strona nie jest na liście, renderujemy wszystko (bezpiecznik)
+        # ale wykluczamy slajdy, które mają swoje dedykowane sekcje
+        return not any(x in slide_id for x in ["hotel", "attr", "place"])
+        
     return slide_id.startswith(expected)
 
 def build_presentation(current_page="Strona Tytułowa", export_mode=False):
