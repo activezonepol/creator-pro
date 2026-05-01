@@ -995,11 +995,9 @@ def _should_render(slide_id, current_page, export_mode):
         "  ↳ Przerywnik hotel":             "sek_0",
         "  ↳ Przerywnik program":           "sek_3",
         "  ↳ Przerywnik atrakcje":          "sek_1",
-        "  ↳ Przerywnik o nas":             "sek_2",
-        "  ↳ Przerywnik nasza agencja":     "sek_2", # DODANE: Nowa nazwa dla sek_2
-        "  ↳ Przerywnik serwisy dodatkowe": "sek_4", # DODANE: Całkowicie nowa sekcja 4
+        "  ↳ Przerywnik nasza agencja":     "sek_2", 
+        "  ↳ Przerywnik serwisy dodatkowe": "sek_4", 
     }
-
     # 1. Sprawdź czy slajd nie jest ukryty (dotyczy eksportu i edycji)
     hide_key = _HIDE_KEYS.get(slide_id)
     if hide_key and get_data(hide_key, False):
