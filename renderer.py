@@ -1887,7 +1887,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 </div></div>"""
                 
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
-            <div class="info-col" style="flex: 55; padding-right: 40px; padding-top: 30px; justify-content: flex-start;">
+            <div class="info-col" style="flex: 55; padding-right: 40px; padding-top: 15px; justify-content: flex-start;">
                 <div class="app-overline-style"><span>{str(get_data('testim_overline','REKOMENDACJE'))}</span></div>
                 <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(get_data('testim_title','')).replace(chr(10),'<br>')}</div>
                 <div class="title-sub" style="margin-bottom:25px; font-size:{max(12,fs_sub_val-4)}px;">{str(get_data('testim_subtitle','')).replace(chr(10),'<br>')}</div>
