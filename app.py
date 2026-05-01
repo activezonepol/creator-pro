@@ -543,7 +543,7 @@ with st.sidebar:
     _all_pages.append("  ↳ Przerywnik hotel")
     _all_pages.append("Opis hoteli")
     # Hotele dynamiczne
-    for _hp in range(_n_hotels): _all_pages.append(f"    🏨 Hotel {_hp+1}")
+    for _hp in range(_n_hotels): _all_pages.append(f"    ❯ Hotel {_hp+1}")
     
     _all_pages.extend([
         "  ↳ Przerywnik serwisy dodatkowe", 
