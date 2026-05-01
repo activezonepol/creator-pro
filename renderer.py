@@ -1355,7 +1355,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 </div>"""
         hp.append(_shtml(f"""{lh}
             <div class="premium-layout">
-                <div class="info-col" style="flex: 40; padding-right: 30px; padding-top: 30px; justify-content: flex-start;">
+                <div class="info-col" style="flex: 40; padding-right: 30px; padding-top: 15px; justify-content: flex-start;">
                     <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
                         <div style="width:32px; height:1px; background:{acc}; opacity:0.6; flex-shrink:0;"></div>
                         <span style="font-family:'{f_met}'; font-size:{max(9,fs_met-2)}px; font-weight:700;
