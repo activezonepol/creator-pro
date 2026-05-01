@@ -1397,10 +1397,10 @@ with col_form:
         if u2: _upload_image(u2.getvalue(), 'img_koszt_2')
 
     # -----------------------------------------------------------------------
-    # 18. PRZERYWNIK NASZA AGENCJA
+    # 18. PRZERYWNIK O NAS
     # -----------------------------------------------------------------------
-    elif page == "  ↳ Przerywnik nasza agencja":
-        # Wykorzystujemy klucze "sek_2" (czyli Twój stary Przerywnik O Nas)
+    elif page == "  ↳ Przerywnik o nas":
+        # Wykorzystujemy klucze "sek_2" 
         _guard(["sek_2_title", "sek_2_sub", "sek_hide_2", "sek_2_bg", "sek_2_txt", "sek_2_sub_color"])  
         if not isinstance(st.session_state.get("sek_hide_2"), bool):
             st.session_state["sek_hide_2"] = False
