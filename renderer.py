@@ -857,7 +857,7 @@ def get_local_css(return_str=False):
         
         .app-overline-style::after {{ 
             flex: 1; 
-            margin-right: 250px; /* Blokada przed logo - linia skończy się wcześniej */
+            margin-right: 120px; /* Blokada przed logo - linia skończy się wcześniej */
             min-width: 20px;     /* Gwarancja, że kreska nie zniknie całkiem przy długim tekście */
         }}
         .app-list {{ list-style: none; padding: 0; margin-top: 10px; margin-bottom: 10px; }}
