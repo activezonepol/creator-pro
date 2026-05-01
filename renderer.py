@@ -895,21 +895,26 @@ def _lhtml():
     # Jeśli to URL, używamy go bezpośrednio, jeśli nie - dodajemy prefix PNG
     src = val if str(val).startswith('http') else f'data:image/png;base64,{val}'
     return f'<div class="top-right-logo-container"><img src="{src}"></div>'
-    )
+
 def _fhtml():
     return (
         f'<div class="page-footer">'
         f'<span>www.activezone.pl | wszystkie prawa zastrzeżone {datetime.today().year}</span>'
         f'<span class="page-counter"></span></div>'
     )
+
 def _shtml(c, sid=""):
     return f'<div class="slide-scaler" id="{sid}"><div class="slide-page">{c}</div></div>'
+
 def _get_ph(t):
     return f'<div class="photo-placeholder">{t}</div>'
+
 def _img_tag(b64_or_url, placeholder_text='ZDJĘCIE', style='width:100%;height:100%;object-fit:cover;'):
     """Generuje tag <img>. Automatycznie rozpoznaje czy dostał URL czy Base64."""
     if not b64_or_url:
         return _get_ph(placeholder_text)
+    src = b64_or_url if str(b64_or_url).startswith(('http', 'data:image')) else f'data:image/png;base64,{b64_or_url}'
+    return f'<img src="{src}" style="{style}">'
     
     # Jeśli to URL ze Storage
     if str(b64_or_url).startswith('http'):
