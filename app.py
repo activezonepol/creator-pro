@@ -551,17 +551,23 @@ with st.sidebar:
         "  ↳ Przerywnik o nas", "Nasz zespół", "Referencje"
     ])
 
-    # 4. GŁÓWNE MENU RADIO (Tylko jedno wystąpienie)
+    # 4. GŁÓWNE MENU RADIO (Z czyszczeniem scrolla)
     _last_page = st.session_state.get('last_page', "Strona tytułowa")
     _current_idx = _all_pages.index(_last_page) if _last_page in _all_pages else 0
     
+    def _on_nav_change():
+        st.session_state['last_page'] = st.session_state['main_nav_radio']
+        # KRYTYCZNE: Odblokowujemy scroll po kliknięciu w radio!
+        if 'scroll_target' in st.session_state:
+            del st.session_state['scroll_target']
+
     page = st.radio(
         "Nawigacja główna", 
         _all_pages, 
         index=_current_idx, 
         key="main_nav_radio", 
         label_visibility="collapsed", 
-        on_change=lambda: st.session_state.update({'last_page': st.session_state['main_nav_radio']})
+        on_change=_on_nav_change
     )
     st.session_state['last_page'] = page
     _last = page 
