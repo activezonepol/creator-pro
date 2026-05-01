@@ -49,21 +49,25 @@ if "preview_container" not in st.session_state:
 # HELPERY INPUTÓW I UPLOADU
 # ---------------------------------------------------------------------------
 def _upload_image(file_bytes, session_key, is_logo=False):
-    """Czysty wrapper do uploadu zdjęć."""
+    """Przesyła obraz do Supabase i zapisuje URL w sesji."""
     if not file_bytes:
         return
     
-    # Używamy supabase bezpośrednio z sesji lub Twojej funkcji inicjalizacyjnej
-    sb = init_supabase() 
-    
-    # Teraz wywołujemy funkcję z Twojego storage_utils
-    url = upload_image(sb, session_key, file_bytes, is_logo=is_logo)
-    
-    if url:
-        st.session_state[session_key] = url
-        st.session_state["_last_upload_ok"] = True
-    else:
-        st.session_state["_last_upload_error"] = "Błąd uploadu: Brak URL"
+    try:
+        sb = init_supabase() 
+        # Przesyłamy plik i otrzymujemy publiczny URL
+        url = upload_image(sb, session_key, file_bytes, is_logo=is_logo)
+        
+        if url:
+            # ZAPISUJEMY CZYSTY URL (bez base64)
+            st.session_state[session_key] = url
+            st.session_state["_last_upload_ok"] = True
+            # Wymuszamy odświeżenie, żeby podgląd od razu widział nowe logo
+            st.rerun() 
+        else:
+            st.error("Nie udało się uzyskać adresu URL po uploadzie.")
+    except Exception as e:
+        st.error(f"Błąd krytyczny uploadu: {e}")
 
 # ---------------------------------------------------------------------------
 # SUPABASE CONNECTION
