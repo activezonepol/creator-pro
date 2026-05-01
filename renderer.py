@@ -1750,7 +1750,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 <div class="va-img-2-wrap va-img-common">{v2h}</div>
                 <div class="va-img-3-wrap va-img-common">{v3h}</div>
             </div></div>
-            <div class="info-col" style="flex: 55; padding-left: 40px; padding-top: 30px; justify-content: flex-start;">
+            <div class="info-col" style="flex: 55; padding-left: 40px; padding-top: 15px; justify-content: flex-start;">
                 <div class="app-overline-style"><span>{str(get_data('va_overline',''))}</span></div>
                 <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(get_data('va_title','')).replace(chr(10),'<br>')}</div>
                 <div class="title-sub" style="margin-bottom:25px; font-size:{max(12,fs_sub_val-4)}px;">{str(get_data('va_subtitle','')).replace(chr(10),'<br>')}</div>
