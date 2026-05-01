@@ -1806,7 +1806,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div>
             <div class="photo-col" style="flex: 40; background-color: #fcfcfc;">{c_img_html}</div>
             </div>{fh}""", "slide-about"))
-     # --- 20. Rekomendacje ---
+    # --- 20. Rekomendacje ---
     if _should_render('slide-testimonials', current_page, export_mode):
         t_main_img = get_b64('img_testim_main', (4, 5))
         t_main_img_html = (f'<img src="data:image/jpeg;base64,{t_main_img}" style="width:100%;height:100%;object-fit:cover;">'
@@ -1814,18 +1814,23 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         t_h = ""
         for i in range(get_data('testim_count', 3)):
             it = get_b64(f'testim_img_{i}', (1, 1))
+            
+            # --- POPRAWIONE WCIĘCIA TUTAJ ---
             if it:
-    # Sprawdzamy czy to URL, czy base64 (dla logo w rekomendacjach lepiej użyć image/png)
-    src = it if str(it).startswith('http') else f'data:image/png;base64,{it}'
-    itg = f"<img src='{src}' style='width:100%;height:100%;object-fit:contain;'>"
-else:
-    itg = _get_ph('LOGO')
+                # Sprawdzamy czy to URL, czy base64
+                src = it if str(it).startswith('http') else f'data:image/png;base64,{it}'
+                itg = f"<img src='{src}' style='width:100%;height:100%;object-fit:contain;'>"
+            else:
+                itg = _get_ph('LOGO')
+            # -------------------------------
+            
             t_h += f"""<div class="testim-item"><div class="testim-img-wrapper">{itg}</div>
                 <div class="testim-content">
                     <div class="testim-head">{str(get_data(f'testim_head_{i}','')).replace(chr(10),'<br>')}</div>
                     <div class="testim-quote">"{get_data(f'testim_quote_{i}','')}"</div>
                     <div class="testim-author"><strong>{get_data(f'testim_author_{i}','')}</strong> | {get_data(f'testim_role_{i}','')}</div>
                 </div></div>"""
+                
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
             <div class="info-col" style="flex: 55; padding-right: 40px; padding-top: 30px; justify-content: flex-start;">
                 <div class="app-overline-style"><span>{str(get_data('testim_overline','REKOMENDACJE'))}</span></div>
