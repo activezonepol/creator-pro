@@ -1062,8 +1062,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         sid = f"sek_{i}"
         if get_data(f'sek_hide_{i}', False):
             return
-        _title_defs = {0: 'ZAKWATEROWANIE', 1: 'ATRAKCJE', 2: 'REKOMENDACJE', 3: 'PROGRAM'}
-        _sub_defs   = {0: 'NASZE HOTELE', 1: 'PROGRAM WYJAZDU', 2: 'CO O NAS MÓWIĄ', 3: 'NASZ PLAN WYJAZDU'}
+        _title_defs = {0: 'ZAKWATEROWANIE', 1: 'ATRAKCJE', 2: 'NASZA AGENCJA', 3: 'PROGRAM', 4: 'SERWISY DODATKOWE'}
+        _sub_defs   = {0: 'NASZE HOTELE', 1: 'PROGRAM WYJAZDU', 2: 'O NAS', 3: 'NASZ PLAN WYJAZDU', 4: 'USŁUGI DODATKOWE'}
         title = str(get_data(f'{sid}_title', _title_defs.get(i, 'SEKCJA'))).replace(chr(10), '<br>')
         sub   = str(get_data(f'{sid}_sub',   _sub_defs.get(i, ''))).replace(chr(10), '<br>')
         box_bg  = str(get_data(f'{sid}_bg')  or c_h1)
