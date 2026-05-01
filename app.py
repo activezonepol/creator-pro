@@ -1389,16 +1389,15 @@ with col_form:
         if u2: _upload_image(u2.getvalue(), 'img_koszt_2')
 
     # -----------------------------------------------------------------------
-    # 18. PRZERYWNIK O NAS
+    # 18. PRZERYWNIK NASZA AGENCJA
     # -----------------------------------------------------------------------
-    elif page == "  ↳ Przerywnik o nas":
-        # Wykorzystujemy klucze "sek_2" 
-        _guard(["sek_2_title", "sek_2_sub", "sek_hide_2", "sek_2_bg", "sek_2_txt", "sek_2_sub_color"])  
+    elif page == "  ↳ Przerywnik nasza agencja":
+        _guard(["sek_2_title", "sek_2_sub", "sek_hide_2", "sek_2_bg", "sek_2_txt", "sek_2_sub_color"]) 
         if not isinstance(st.session_state.get("sek_hide_2"), bool):
             st.session_state["sek_hide_2"] = False
 
         _bg_default = st.session_state.get('color_h1', '#003366')
-        _sub_default = st.session_state.get('color_sub', '#FF6600')
+        _sub_default = st.session_state.get('color_accent', '#FF6600')
 
         if st.button("🔄 Resetuj kolory przerywnika", use_container_width=True, key="res_sek_2"):
             st.session_state["sek_2_bg"] = _bg_default
@@ -1406,25 +1405,26 @@ with col_form:
             st.session_state["sek_2_sub_color"] = _sub_default
             st.rerun()
 
-        for _ck, _cv in [(f"sek_2_bg", _bg_default), (f"sek_2_txt", '#ffffff'), (f"sek_2_sub_color", _sub_default)]:
-            _v = st.session_state.get(_ck, _cv)
-            if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
+        # Upewnienie się, że wartości w session_state są poprawne
+        for _ck, _cv in [("sek_2_bg", _bg_default), ("sek_2_txt", '#ffffff'), ("sek_2_sub_color", _sub_default)]:
+            if not st.session_state.get(_ck):
                 st.session_state[_ck] = _cv
 
-        st.button("POKAŻ PODGLĄD", key=f"btn_sek_2", on_click=set_focus, args=("slide-sek_2",), use_container_width=True)
-        st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_2")
+        st.button("POKAŻ PODGLĄD", key="btn_sek_2", on_click=set_focus, args=("slide-sek_2",), use_container_width=True)
+        st.checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_2")
         st.markdown("---") 
 
-        safe_text_input("Duży tytuł (uppercase):", key=f"sek_2_title")
-        safe_text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_2_sub")
+        safe_text_input("Duży tytuł (uppercase):", key="sek_2_title")
+        safe_text_input("Nadtytuł (overline, kolor akcentu):", key="sek_2_sub")
         
         _ic1, _ic2, _ic3 = st.columns(3)
-        _ic1.color_picker("Kolor tła:", key=f"sek_2_bg")
-        _ic2.color_picker("Kolor tytułu:", key=f"sek_2_txt")
-        _ic3.color_picker("Kolor nadtytułu:", key=f"sek_2_sub_color")
+        _ic1.color_picker("Kolor tła:", key="sek_2_bg", value=st.session_state.get("sek_2_bg", _bg_default))
+        _ic2.color_picker("Kolor tytułu:", key="sek_2_txt", value=st.session_state.get("sek_2_txt", "#ffffff"))
+        _ic3.color_picker("Kolor nadtytułu:", key="sek_2_sub_color", value=st.session_state.get("sek_2_sub_color", _sub_default))
 
-        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"up_sek_img_up_2")
-        if _up_s: _upload_image(_up_s.getvalue(), f"sek_2_img")
+        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key="up_sek_img_up_2")
+        if _up_s:
+            _upload_image(_up_s.getvalue(), "sek_2_img")
 
     # -----------------------------------------------------------------------
     # 19. O NAS
