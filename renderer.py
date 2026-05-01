@@ -1823,7 +1823,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div>
             <div class="photo-col" style="flex: 45;">{t_main_img_html}</div>
             </div>{fh}""", "slide-testimonials"))
-    # --- O nas / Zespół ---
+    # --- 19. O nas / Zespół ---
     if _should_render('slide-about', current_page, export_mode):
         tm_h = ""
         tc = get_data('team_count', 2)
