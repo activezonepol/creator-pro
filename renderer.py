@@ -833,14 +833,20 @@ def get_local_css(return_str=False):
             box-sizing: border-box; 
             margin-bottom: 10px;
             white-space: nowrap; /* Gwarancja jednej linii */
-            color: {acc} !important; /* Wymuszenie koloru akcentu */
+            
+            /* DOKŁADNIE TWOJE PARAMETRY ZOBRAZOWANE NA ZRZUCIE: */
+            font-family: '{f_met}'; 
+            font-size: {max(10, fs_met - 2)}px; 
+            font-weight: 700; 
+            letter-spacing: 4px; 
+            color: {acc}; 
+            text-transform: uppercase; 
         }}
         
-        /* KRESKI - Zawsze w kolorze akcentu */
         .app-overline-style::before, .app-overline-style::after {{ 
             content: ""; 
             height: 1px; 
-            background-color: {acc}; /* Kolor akcentu */
+            background-color: {acc}; 
             opacity: 0.5; 
         }}
         
@@ -851,8 +857,8 @@ def get_local_css(return_str=False):
         
         .app-overline-style::after {{ 
             flex: 1; 
-            margin-right: 250px; /* Blokada przed logo */
-            min-width: 20px; 
+            margin-right: 250px; /* Blokada przed logo - linia skończy się wcześniej */
+            min-width: 20px;     /* Gwarancja, że kreska nie zniknie całkiem przy długim tekście */
         }}
         .app-list {{ list-style: none; padding: 0; margin-top: 10px; margin-bottom: 10px; }}
         .app-list li {{ position: relative; padding-left: 18px; margin-bottom: 7px; font-family: '{f_txt}'; font-size: {max(10, fs_t-1)}px; line-height: 1.3; color: {c_t}; font-weight: 400; }}
