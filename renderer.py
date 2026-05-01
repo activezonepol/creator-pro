@@ -832,22 +832,27 @@ def get_local_css(return_str=False):
             width: 100%; 
             box-sizing: border-box; 
             margin-bottom: 10px;
-            white-space: nowrap; /* <--- TO BLOKUJE ROZBICIE NA 2 LINIE */
+            white-space: nowrap; /* Gwarancja jednej linii */
+            color: {acc} !important; /* Wymuszenie koloru akcentu */
         }}
+        
+        /* KRESKI - Zawsze w kolorze akcentu */
         .app-overline-style::before, .app-overline-style::after {{ 
             content: ""; 
             height: 1px; 
-            background-color: {acc}; 
+            background-color: {acc}; /* Kolor akcentu */
             opacity: 0.5; 
         }}
+        
         .app-overline-style::before {{ 
             width: 32px; 
             flex-shrink: 0; 
         }}
+        
         .app-overline-style::after {{ 
             flex: 1; 
-            margin-right: 200px; /* <--- PRZENIESIONE TUTAJ (zmniejszone do 200px dla bezpieczeństwa) */
-            min-width: 30px;     /* <--- GWARANTUJE, ŻE KRESKA ZAWSZE BĘDZIE WIDOCZNA */
+            margin-right: 250px; /* Blokada przed logo */
+            min-width: 20px; 
         }}
         .app-list {{ list-style: none; padding: 0; margin-top: 10px; margin-bottom: 10px; }}
         .app-list li {{ position: relative; padding-left: 18px; margin-bottom: 7px; font-family: '{f_txt}'; font-size: {max(10, fs_t-1)}px; line-height: 1.3; color: {c_t}; font-weight: 400; }}
