@@ -625,16 +625,20 @@ with col_add:
 st.markdown("""<style>button[data-testid="baseButton-primary"] { color: white !important; }</style>""", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
-# NAGŁÓWKI STRON (POPRAWIONA LOGIKA)
+# NAGŁÓWKI STRON (POPRAWIONA LOGIKA Z FONT AWESOME)
 # ---------------------------------------------------------------------------
 with st.container():
     _p = st.session_state.get('last_page', "Strona tytułowa")
     _h_col = st.session_state.get("color_h1", "#003366")
     _acc_col = st.session_state.get("color_accent", "#FF6600")
 
-    # 1. Jeśli to Atrakcja (★) lub Hotel (🏨)
-    if "★" in _p or "🏨" in _p:
-        st.markdown(f"<h2 style='color:{_acc_col};margin-bottom:0;font-size:20px;font-weight:700;font-family:Montserrat,sans-serif;margin-left:12px;border-left:3px solid {_acc_col};padding-left:10px;'>{_p.strip()}</h2>", unsafe_allow_html=True)
+    # 1. Jeśli to Atrakcja (★) lub konkretny Hotel (❯)
+    if "★" in _p or "❯" in _p:
+        # Zamieniamy znaki z menu na prawdziwe ikony wektorowe Font Awesome
+        _display = _p.replace("★", f"<i class='fa-solid fa-star' style='font-size:16px; margin-right:6px; color:{_acc_col};'></i>")
+        _display = _display.replace("❯", f"<i class='fa-solid fa-chevron-right' style='font-size:16px; margin-right:6px; color:{_acc_col};'></i>")
+        
+        st.markdown(f"<h2 style='color:{_acc_col};margin-bottom:0;font-size:20px;font-weight:700;font-family:Montserrat,sans-serif;margin-left:12px;border-left:3px solid {_acc_col};padding-left:10px; display:flex; align-items:center;'>{_display.strip()}</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;margin-left:12px;'>Edytuj treść slajdu poniżej.</div>", unsafe_allow_html=True)
     
     # 2. Jeśli to Przerywnik (↳)
