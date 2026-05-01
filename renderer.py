@@ -825,10 +825,30 @@ def get_local_css(return_str=False):
         .prog-img-container img {{ width: 100%; height: 100%; object-fit: cover; }}
         .prog-attr {{ font-family: '{f_txt}'; font-size: {fs_t + 2}px; color: {acc}; font-weight: 700; margin: 12px 0; border-left: 3px solid {acc}; padding-left: 10px; text-transform: uppercase; line-height: 1.3; }}
         /* TWOJA POPRAWIONA SEKCJA */
-        .app-overline-style {{ display: flex; align-items: center; gap: 10px; font-family: '{f_met}'; font-size: {fs_met - 2}px; font-weight: 700; letter-spacing: 4px; color: {acc}; margin-bottom: 10px; text-transform: uppercase; width: 100%; box-sizing: border-box; padding-right: 250px; }}
-        .app-overline-style::before, .app-overline-style::after {{ content: ""; height: 1px; background-color: {acc}; opacity: 0.5; }}
-        .app-overline-style::before {{ width: 32px; flex-shrink: 0; }}
-        .app-overline-style::after {{ flex: 1; }}
+        .app-overline-style {{ 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            width: 100%; 
+            box-sizing: border-box; 
+            margin-bottom: 10px;
+            white-space: nowrap; /* <--- TO BLOKUJE ROZBICIE NA 2 LINIE */
+        }}
+        .app-overline-style::before, .app-overline-style::after {{ 
+            content: ""; 
+            height: 1px; 
+            background-color: {acc}; 
+            opacity: 0.5; 
+        }}
+        .app-overline-style::before {{ 
+            width: 32px; 
+            flex-shrink: 0; 
+        }}
+        .app-overline-style::after {{ 
+            flex: 1; 
+            margin-right: 200px; /* <--- PRZENIESIONE TUTAJ (zmniejszone do 200px dla bezpieczeństwa) */
+            min-width: 30px;     /* <--- GWARANTUJE, ŻE KRESKA ZAWSZE BĘDZIE WIDOCZNA */
+        }}
         .app-list {{ list-style: none; padding: 0; margin-top: 10px; margin-bottom: 10px; }}
         .app-list li {{ position: relative; padding-left: 18px; margin-bottom: 7px; font-family: '{f_txt}'; font-size: {max(10, fs_t-1)}px; line-height: 1.3; color: {c_t}; font-weight: 400; }}
         .app-list li::before {{ content: '■'; position: absolute; left: 0; top: 1px; color: {c_h2}; font-size: 0.7em; }}
