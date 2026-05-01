@@ -1661,7 +1661,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                         <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a3}" style="width:100%;height:100%;object-fit:cover;">' if a3 else _get_ph('FOT 3')}</div>
                     </div></div></div>{fh}""", f"attr_{i}"))
                     
-    # --- Aplikacja ---
+    # --- 12. Aplikacja ---
     if _should_render('slide-app', current_page, export_mode):
         ibg = get_b64('img_app_bg', (16, 9))
         if ibg:
