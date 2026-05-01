@@ -1857,20 +1857,26 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     
     hid = f"slide-hotel-0" if get_data('num_hotels', 1) > 0 and not get_data('h_hide_0') else "slide-title"
     default_tid = {
-        "Strona Tytułowa": "slide-title", "Opis Kierunku": "slide-kierunek",
-        "Mapa Podróży": "slide-mapa", "Jak lecimy?": "slide-loty",
-        "Zakwaterowanie": hid, "Program Wyjazdu": "slide-program",
-        "Opisy miejsc": pid, "Opis atrakcji": fid,
-        "Kosztorys": "slide-kosztorys-1", "Aplikacja (Komunikacja)": "slide-app",
-        "Materiały Brandingowe": "slide-branding",
-        "Wirtualny Asystent": "slide-virtual-assistant",
-        "Pillow Gifts": "slide-pillow-gifts",
-        "Co o nas mówią": "slide-testimonials", "O Nas (Zespół)": "slide-about",
-        "  ↳ Przerywnik hotel":    "slide-sek_0",
-        "  ↳ Przerywnik program":  "slide-sek_3",
-        "  ↳ Przerywnik atrakcje": "slide-sek_1",
-        "Opis atrakcji i miejsc": "slide-sek_1",
-        "  ↳ Przerywnik o nas":    "slide-sek_2",
+        "Strona tytułowa":                  "slide-title",
+        "Opis kierunku":                    "slide-kierunek",
+        "Mapa podróży":                     "slide-mapa",
+        "Jak lecimy?":                      "slide-loty",
+        "  ↳ Przerywnik program":           "slide-sek_3",
+        "Program wyjazdu":                  "slide-program",
+        "  ↳ Przerywnik atrakcje":          "slide-sek_1",
+        "Opis atrakcji":                    fid,
+        "  ↳ Przerywnik hotel":             "slide-sek_0",
+        "Opis hoteli":                      hid,
+        "  ↳ Przerywnik serwisy dodatkowe": "slide-sek_4",
+        "Aplikacja (komunikacja)":          "slide-app",
+        "Materiały brandingowe":            "slide-branding",
+        "Pillow gifts":                     "slide-pillow-gifts",
+        "Wirtualny asystent":               "slide-virtual-assistant",
+        "Kosztorys str. 1":                 "slide-kosztorys-1",
+        "Kosztorys str. 2":                 "slide-kosztorys-2",
+        "  ↳ Przerywnik nasza agencja":     "slide-sek_2",
+        "O nas":                            "slide-about",
+        "Referencje":                       "slide-testimonials"
     }.get(current_page, "")
     tid = get_data('scroll_target') or default_tid
     if 'scroll_target' in st.session_state:
