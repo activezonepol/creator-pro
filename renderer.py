@@ -1138,41 +1138,45 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div>
         </div>{fh}""", f"slide-{sid}"))
     # --- Slajd tytułowy ---
+    # Pobieramy zdjęcie główne
     i1 = get_b64('img_hero_t', (4, 5))
-    im1 = (f"<img src='data:image/jpeg;base64,{i1}' style='width:100%;height:100%;object-fit:cover;'>"
-           if i1 else _get_ph('ZDJĘCIE GŁÓWNE'))
-           
+    
+    # Sprawdzamy, czy zdjęcie istnieje i czy nie jest pustym ciągiem
+    if i1 and len(str(i1)) > 50:
+        im1 = f"<img src='data:image/jpeg;base64,{i1}' style='width:100%; height:100%; object-fit:cover; display:block;'>"
+    else:
+        im1 = _get_ph('ZDJĘCIE GŁÓWNE')
+
     rcli = get_data('logo_cli')
     hide_cli = get_data('hide_logo_cli', False)
     lcli_val = get_logo_b64(rcli)
     
     if lcli_val and not hide_cli:
-        # Obsługa przezroczystości logo PNG
+        # Obsługa logo z przezroczystością
         src = lcli_val if str(lcli_val).startswith('http') else f'data:image/png;base64,{lcli_val}'
-        lcli = f"<img src='{src}' style='max-height:100%;max-width:150px;object-fit:contain;'>"
+        lcli = f"<img src='{src}' style='max-height:100%; max-width:150px; object-fit:contain;'>"
     else:
         lcli = ""
         
-    lcli_container = f"<div style='margin-bottom:40px;height:60px;display:flex;align-items:center;justify-content:flex-start;'>{lcli}</div>"
+    lcli_container = f"<div style='margin-bottom:40px; height:60px; display:flex; align-items:center; justify-content:flex-start;'>{lcli}</div>"
     
+    # Składanie slajdu - wracamy do Twojego oryginalnego układu kolumn
     hp.append(_shtml(f"""{lh}
-    <div class="premium-layout" style="display:flex; width:100%; height:100%; align-items:stretch;">
-        <div class="photo-col" style="flex:55; height:100%; overflow:hidden;">
+    <div class="premium-layout">
+        <div class="photo-col">
             {im1}
         </div>
-        
-        <div class="info-col" style="flex:45; padding:40px; display:flex; flex-direction:column; justify-content:flex-start; background:white;">
+        <div class="info-col">
             {lcli_container}
-            
-            <div class="title-h1" style="margin-bottom:10px;">
+            <div class="title-h1">
                 {str(get_data('t_main','')).replace(chr(10),'<br>')}
             </div>
             
-            <div class="title-sub" style="color:{acc}; border-bottom:3px solid {acc}; padding-bottom:15px; margin-bottom:30px; width:100%; display:block;">
+            <div class="title-sub" style="color:{acc}; border-bottom: 3px solid {acc}; padding-bottom: 15px; margin-bottom: 25px; width: 100%; display: block;">
                 {str(get_data('t_sub','')).replace(chr(10),'<br>')}
             </div>
             
-            <div class="metric-grid" style="width:100%;">
+            <div class="metric-grid">
                 <div><div class="metric-label">Klient</div><div class="metric-value">{get_data('t_klient','')}</div></div>
                 <div><div class="metric-label">Kierunek</div><div class="metric-value">{get_data('t_kierunek','')}</div></div>
                 <div><div class="metric-label">Termin</div><div class="metric-value">{get_data('t_date','')}</div></div>
