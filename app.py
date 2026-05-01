@@ -628,22 +628,24 @@ st.markdown("""<style>button[data-testid="baseButton-primary"] { color: white !i
 # NAGŁÓWKI STRON (POPRAWIONA LOGIKA)
 # ---------------------------------------------------------------------------
 with st.container():
-    # 1. Sprawdzamy przerywniki (szukamy strzałki ↳)
-    if "↳" in page:
-        _h1_col = st.session_state.get("color_h1", "#003366")
-        _page_label = page.strip().lstrip("↳").strip()
-        st.markdown(f"<h2 style='color:{_h1_col};margin-bottom:0;font-size:20px;font-weight:700;font-family:Montserrat,sans-serif;text-transform:uppercase;margin-left:12px;border-left:3px solid {_h1_col};padding-left:10px;'>{_page_label}</h2>", unsafe_allow_html=True)
-        st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;margin-left:12px;'>Slajd przerywnikowy — edytuj treść i wygląd poniżej.</div>", unsafe_allow_html=True)
+    _p = st.session_state.get('last_page', "Strona tytułowa")
+    _h_col = st.session_state.get("color_h1", "#003366")
+    _acc_col = st.session_state.get("color_accent", "#FF6600")
+
+    # 1. Jeśli to Atrakcja (★) lub Hotel (🏨)
+    if "★" in _p or "🏨" in _p:
+        st.markdown(f"<h2 style='color:{_acc_col};margin-bottom:0;font-size:20px;font-weight:700;font-family:Montserrat,sans-serif;margin-left:12px;border-left:3px solid {_acc_col};padding-left:10px;'>{_p.strip()}</h2>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;margin-left:12px;'>Edytuj treść slajdu poniżej.</div>", unsafe_allow_html=True)
     
-    # 2. Sprawdzamy atrakcje (szukamy gwiazdki ★)
-    elif "★" in page:
-        _acc_col = st.session_state.get("color_accent", "#FF6600")
-        st.markdown(f"<h2 style='color:{_acc_col};margin-bottom:0;font-size:20px;font-weight:700;font-family:Montserrat,sans-serif;margin-left:12px;border-left:3px solid {_acc_col};padding-left:10px;'>{page.strip()}</h2>", unsafe_allow_html=True)
-        st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;margin-left:12px;'>Edytuj treść slajdu atrakcji poniżej.</div>", unsafe_allow_html=True)
+    # 2. Jeśli to Przerywnik (↳)
+    elif "↳" in _p:
+        _page_label = _p.strip().lstrip('↳').strip()
+        st.markdown(f"<h2 style='color:{_h_col};margin-bottom:0;font-size:20px;font-weight:700;font-family:Montserrat,sans-serif;text-transform:uppercase;margin-left:12px;border-left:3px solid {_h_col};padding-left:10px;'>{_page_label}</h2>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;margin-left:12px;'>Slajd przerywnikowy — edytuj treść i wygląd poniżej.</div>", unsafe_allow_html=True)
     
     # 3. Standardowe strony
     else:
-        st.markdown(f"<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;text-transform:uppercase;'>{page}</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;text-transform:uppercase;'>{_p}</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Wprowadź dane dla tej sekcji poniżej:</div>", unsafe_allow_html=True)
 # ---------------------------------------------------------------------------
 # LAYOUT 2 KOLUMNY: Formularz edycji | Podgląd slajdu
