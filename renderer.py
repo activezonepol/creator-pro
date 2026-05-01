@@ -1813,8 +1813,12 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         t_h = ""
         for i in range(get_data('testim_count', 3)):
             it = get_b64(f'testim_img_{i}', (1, 1))
-            itg = (f"<img src='data:image/jpeg;base64,{it}' style='width:100%;height:100%;object-fit:cover;'>"
-                   if it else _get_ph('LOGO'))
+            if it:
+    # Sprawdzamy czy to URL, czy base64 (dla logo w rekomendacjach lepiej użyć image/png)
+    src = it if str(it).startswith('http') else f'data:image/png;base64,{it}'
+    itg = f"<img src='{src}' style='width:100%;height:100%;object-fit:contain;'>"
+else:
+    itg = _get_ph('LOGO')
             t_h += f"""<div class="testim-item"><div class="testim-img-wrapper">{itg}</div>
                 <div class="testim-content">
                     <div class="testim-head">{str(get_data(f'testim_head_{i}','')).replace(chr(10),'<br>')}</div>
