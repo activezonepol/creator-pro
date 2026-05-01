@@ -895,6 +895,7 @@ def _lhtml():
     # Jeśli to URL, używamy go bezpośrednio, jeśli nie - dodajemy prefix PNG
     src = val if str(val).startswith('http') else f'data:image/png;base64,{val}'
     return f'<div class="top-right-logo-container"><img src="{src}"></div>'
+    )
 def _fhtml():
     return (
         f'<div class="page-footer">'
