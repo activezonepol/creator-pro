@@ -1642,7 +1642,11 @@ with col_form:
 with col_preview:
     _acc = st.session_state.get('color_accent', '#FF6600')
     st.markdown(f"<h3 style='color:{_acc};font-size:16px;margin-bottom:20px;'>PODGLĄD SLAJDU</h3>", unsafe_allow_html=True)
+    
     @st.fragment
     def _preview():
-        build_presentation(page)
+        # Pobieramy zawsze świeżą stronę prosto z sesji
+        _current_p = st.session_state.get('last_page', "Strona tytułowa")
+        build_presentation(_current_p)
+        
     _preview()
