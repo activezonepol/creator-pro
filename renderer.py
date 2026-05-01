@@ -1852,7 +1852,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         c_img_html = (f'<img src="data:image/jpeg;base64,{c_img}" style="width:100%;height:100%;object-fit:cover;">'
                        if c_img else _get_ph('ZDJĘCIE / LOGA KLIENTÓW'))
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
-            <div class="info-col" style="flex: 60; padding-right: 40px; padding-top: 30px; justify-content: flex-start; display: flex; flex-direction: column;">
+            <div class="info-col" style="flex: 60; padding-right: 40px; padding-top: 15px; justify-content: flex-start; display: flex; flex-direction: column;">
                 <div class="app-overline-style"><span>{str(get_data('about_overline','NASZ ZESPÓŁ'))}</span></div>
                 <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(get_data('about_title','')).replace(chr(10),'<br>')}</div>
                 <div class="title-sub" style="margin-bottom:25px; font-size:{max(12,fs_sub_val-4)}px;">{str(get_data('about_sub','')).replace(chr(10),'<br>')}</div>
