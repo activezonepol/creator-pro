@@ -772,7 +772,6 @@ def get_local_css(return_str=False):
         "[data-testid='stSidebar'] { display: none !important; } header { display: none !important; }"
         if get_data('client_mode') else ""
     )
-    def get_local_css(return_str=False):
     css = f"""<style>{fonts_css}@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css');{client_css}
         [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {{ font-family: 'Montserrat', sans-serif !important; font-weight: 700 !important; }}
         [data-testid="stSidebar"] label, [data-testid="stSidebar"] div.stMarkdown p, [data-testid="stSidebar"] li {{ font-family: 'Open Sans', sans-serif !important; }}
