@@ -1135,7 +1135,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     # --- Opis kierunku (Pojedynczy Slajd Premium) ---
     if _should_render('slide-kierunek', current_page, export_mode):
         kimg = get_b64('img_hero_k', (1, 1))
-        # Przetwarzanie boxu z faktami
+        
+        # --- 1. DEFINICJA BOKSU (unikalna dla slajdu) ---
         kfacts = str(get_data('k_facts', 'Stolica: \nWaluta: \nRóżnica czasu: \nTemperatury: ') or '')
         kfacts_title = str(get_data('k_facts_title', 'FAKTY') or '')
         facts_lines = []
@@ -1158,7 +1159,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         facts_html_k = ''.join(facts_lines)
         kbox_bg  = str(get_data('k_box_bg')  or c_h1)
         kbox_txt = str(get_data('k_box_txt') or '#ffffff')
-        # Tytuł boksu w stylu overline
+
         facts_title_html = (
             f"<div style='font-family:\"{f_met}\"; font-weight:700; font-size:{max(10, fs_met-2)}px; "
             f"color:{kbox_txt}; text-transform:uppercase; letter-spacing:3px; "
@@ -1166,6 +1167,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             f"border-bottom:1px solid rgba(255,255,255,0.3);'>{kfacts_title}</div>"
             if kfacts_title else ''
         )
+        
         box_html = (
             f"<div style='background-color:{kbox_bg}; color:{kbox_txt}; padding:25px 20px; "
             f"border-bottom-left-radius:40px; border-top-right-radius:8px; "
@@ -1176,10 +1178,13 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             f"border-bottom-left-radius:40px; border-top-right-radius:8px; "
             f"border-top-left-radius:8px; box-shadow:0 10px 20px rgba(0,0,0,0.05);'></div>"
         )
+        # --- KONIEC DEFINICJI BOKSU ---
+
         k_over = str(get_data('k_overline') or 'NASZ KIERUNEK')
         k_main = str(get_data('k_main') or '').replace(chr(10), '<br>')
         k_sub  = str(get_data('k_sub')  or '').replace(chr(10), '<br>')
         k_opis = str(get_data('k_opis') or '').replace(chr(10), '<br>')
+
         hp.append(_shtml(f"""{lh}
         <div class="premium-layout" id="slide-kierunek" style="gap:40px; align-items:stretch;">
             <div style="flex:55; display:flex; gap:15px; height:100%;">
@@ -1188,20 +1193,19 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 </div>
                 <div style="flex:1; display:flex; flex-direction:column; gap:15px; height:100%;">
                     {box_html}
+                    
                     <div style="flex-grow:1; border-top-left-radius:40px; border-bottom-left-radius:8px; border-bottom-right-radius:8px; overflow:hidden; position:relative; background:#fcfcfc; border:1px solid #eee;">
                         {f'<img src="data:image/jpeg;base64,{kimg}" style="position:absolute; bottom:0; right:0; width:220%; height:140%; object-fit:cover; object-position:right bottom;">' if kimg else _get_ph('ZDJĘCIE')}
                     </div>
                 </div>
             </div>
+            
             <div class="info-col" style="flex:45; padding-left:10px; padding-top:15px; justify-content:flex-start;">
-                <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                    <div style="height:1px; background-color:{acc}; opacity:0.5; width:32px; flex-shrink:0;"></div>
-                    <span style="font-family:'{f_met}'; font-size:{max(10,fs_met-2)}px; font-weight:700;
-                                 letter-spacing:4px; color:{acc}; text-transform:uppercase; white-space:nowrap;">
-                        {k_over}
-                    </span>
-                    <div style="height:1px; background-color:{acc}; opacity:0.5; flex:1;"></div>
+                
+                <div class="app-overline-style">
+                    {k_over}
                 </div>
+
                 <div class="title-h1" style="text-align:left; margin-bottom:5px; font-size:{fs_h1_val}px; color:{c_h1}; line-height:1.1;">
                     {k_main}
                 </div>
