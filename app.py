@@ -572,33 +572,10 @@ with st.sidebar:
     st.session_state['last_page'] = page
     _last = page 
 
+    # -----------------------------------------------------------------------
     # 5. PANEL ZARZĄDZANIA ATRAKCJAMI
+    # -----------------------------------------------------------------------
     _acc = st.session_state.get('color_accent', '#FF6600')
-    st.markdown(
-        f"<div style='display:flex;align-items:center;gap:6px;padding:15px 0 3px 4px;'>"
-        f"<span style='color:{_acc};font-size:13px;font-weight:700;'>★</span>"
-        f"<span style='font-size:12px;font-weight:600;color:#334155;font-family:Montserrat,sans-serif;'>"
-        f"ZARZĄDZAJ ATRAKCJAMI ({_n_attr})</span></div>",
-        unsafe_allow_html=True,
-    )
-
-    if _n_attr > 0:
-        for _ap in range(_n_attr):
-            _ap_name = _attr_display_name(_ap)
-            _ca, _cb, _cc, _cd = st.columns([6, 1, 1, 1])
-            _ca.markdown(f"<div style='font-size:13px; padding-top:6px;'>{_ap_name}</div>", unsafe_allow_html=True)
-            if _ap > 0 and _cb.button("▲", key=f"attrup_{_ap}", use_container_width=True): _attr_move(_ap, -1); st.rerun()
-            if _ap < _n_attr - 1 and _cc.button("▼", key=f"attrdn_{_ap}", use_container_width=True): _attr_move(_ap, 1); st.rerun()
-            if _cd.button("✕", key=f"attrdel_{_ap}", use_container_width=True): _attr_delete(_ap); st.rerun()
-            
-    st.caption("💡 Użyj ▲▼ by zmienić kolejność, ✕ by usunąć.")
-
-    # 6. CSS SIDEBARA
-    st.markdown(f"<style>button[kind='primary']{{background-color:{_acc}!important;border-color:{_acc}!important;color:white!important;}}</style>", unsafe_allow_html=True)
-
-    # -----------------------------------------------------------------------
-    # PANEL ZARZĄDZANIA ATRAKCJAMI
-    # -----------------------------------------------------------------------
     st.markdown(
         f"<div style='display:flex;align-items:center;gap:6px;padding:15px 0 3px 4px;'>"
         f"<span style='color:{_acc};font-size:13px;font-weight:700;'>★</span>"
@@ -627,8 +604,12 @@ with st.sidebar:
             
     st.caption("💡 Użyj ▲▼ by zmienić kolejność, ✕ by usunąć.")
 
-#---------------------------------------------------------------------------
+    # 6. CSS SIDEBARA
+    st.markdown(f"<style>button[kind='primary']{{background-color:{_acc}!important;border-color:{_acc}!important;color:white!important;}}</style>", unsafe_allow_html=True)
+
+# ---------------------------------------------------------------------------
 # PRZYCISKI: ZAPISZ TERAZ + DODAJ ATRAKCJĘ
+# (Tutaj kończy się sidebar, więc wcięcie wraca do lewej krawędzi - 0 spacji)
 # ---------------------------------------------------------------------------
 col_save, col_add = st.columns([1, 1])
 with col_save:
