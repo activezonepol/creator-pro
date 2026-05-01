@@ -1139,12 +1139,11 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         </div>{fh}""", f"slide-{sid}"))
     # --- Slajd tytułowy ---
     if _should_render('slide-title', current_page, export_mode):
-        # Pobieramy czyste dane base64
         i1 = get_b64('img_hero_t', (4, 5))
         
-        # Używamy Twojej oryginalnej metody wyświetlania (najbezpieczniejsza dla JPG)
+        # Zabezpieczamy JPG: dodajemy opacity i display, żeby żadne globalne style PNG go nie blokowały
         if i1:
-            im1 = f"<img src='data:image/jpeg;base64,{i1}' style='width:100%;height:100%;object-fit:cover;'>"
+            im1 = f'<img src="data:image/jpeg;base64,{i1}" style="width:100%; height:100%; object-fit:cover; display:block !important; opacity:1 !important;">'
         else:
             im1 = _get_ph('ZDJĘCIE GŁÓWNE')
 
@@ -1154,29 +1153,32 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         
         if lcli_val and not hide_cli:
             src = lcli_val if str(lcli_val).startswith('http') else f'data:image/png;base64,{lcli_val}'
-            lcli = f"<img src='{src}' style='max-height:100%;max-width:150px;object-fit:contain;'>"
+            lcli = f"<img src='{src}' style='max-height:100%; max-width:150px; object-fit:contain;'>"
         else:
             lcli = ""
             
-        lcli_container = f"<div style='margin-bottom:40px;height:60px;display:flex;align-items:center;justify-content:flex-start;'>{lcli}</div>"
+        lcli_container = f"<div style='margin-bottom:40px; height:60px; display:flex; align-items:center; justify-content:flex-start;'>{lcli}</div>"
         
-        # Generowanie HTML slajdu
-        hp.append(_shtml(f"""{lh}<div class="premium-layout"><div class="photo-col">{im1}</div><div class="info-col">
-        {lcli_container}
-        <div class="title-h1">{str(get_data('t_main','')).replace(chr(10),'<br>')}</div>
-        
-        <div class="title-sub" style="color:{acc}; border-bottom: 3px solid {acc}; padding-bottom: 12px; margin-bottom: 25px; width: 100%; display: block;">
-            {str(get_data('t_sub','')).replace(chr(10),'<br>')}
-        </div>
-        
-        <div class="metric-grid">
-            <div><div class="metric-label">Klient</div><div class="metric-value">{get_data('t_klient','')}</div></div>
-            <div><div class="metric-label">Kierunek</div><div class="metric-value">{get_data('t_kierunek','')}</div></div>
-            <div><div class="metric-label">Termin</div><div class="metric-value">{get_data('t_date','')}</div></div>
-            <div><div class="metric-label">Liczba osób</div><div class="metric-value">{get_data('t_pax','')}</div></div>
-            <div><div class="metric-label">Hotel</div><div class="metric-value">{get_data('t_hotel','')}</div></div>
-            <div><div class="metric-label">Dojazd</div><div class="metric-value">{get_data('t_trans','')}</div></div>
-        </div></div></div>{fh}""", "slide-title"))
+        hp.append(_shtml(f"""{lh}<div class="premium-layout">
+            <div class="photo-col">{im1}</div>
+            <div class="info-col">
+                {lcli_container}
+                <div class="title-h1">{str(get_data('t_main','')).replace(chr(10),'<br>')}</div>
+                
+                <div class="title-sub" style="color:{acc}; border-bottom: 3px solid {acc} !important; padding-bottom: 12px; margin-bottom: 25px; width: 100%; display: block !important; opacity: 1 !important;">
+                    {str(get_data('t_sub','')).replace(chr(10),'<br>')}
+                </div>
+                
+                <div class="metric-grid">
+                    <div><div class="metric-label">Klient</div><div class="metric-value">{get_data('t_klient','')}</div></div>
+                    <div><div class="metric-label">Kierunek</div><div class="metric-value">{get_data('t_kierunek','')}</div></div>
+                    <div><div class="metric-label">Termin</div><div class="metric-value">{get_data('t_date','')}</div></div>
+                    <div><div class="metric-label">Liczba osób</div><div class="metric-value">{get_data('t_pax','')}</div></div>
+                    <div><div class="metric-label">Hotel</div><div class="metric-value">{get_data('t_hotel','')}</div></div>
+                    <div><div class="metric-label">Dojazd</div><div class="metric-value">{get_data('t_trans','')}</div></div>
+                </div>
+            </div>
+        </div>{fh}""", "slide-title"))
     
     # --- Opis kierunku (Pojedynczy Slajd Premium) ---
     if _should_render('slide-kierunek', current_page, export_mode):
