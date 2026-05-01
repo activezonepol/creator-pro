@@ -948,39 +948,30 @@ def _should_render(slide_id, current_page, export_mode):
         "slide-kierunek":           "k_hide",
         "slide-mapa":               "map_hide",
         "slide-loty":               "l_hide",
+        "slide-program":            "prg_hide",     # DODANE: Brakowało głównego programu!
         "slide-app":                "app_hide",
         "slide-branding":           "brand_hide",
         "slide-virtual-assistant":  "va_hide",
         "slide-pillow-gifts":       "pg_hide",
         "slide-kosztorys-1":        "koszt_hide_1",
-        "slide-kosztorys-2":        "koszt_hide_2", # DODANE: Ukrywanie 2. strony kosztorysu
+        "slide-kosztorys-2":        "koszt_hide_2", 
         "slide-testimonials":       "testim_hide",
         "slide-about":              "about_hide",
-        "slide-sek_4":              "sek_hide_4",   # DODANE: Ukrywanie nowych serwisów
     }
 
     # Słownik: nazwa strony -> prefix ID slajdu
     _PAGE_TO_SLIDE = {
         "Strona tytułowa":          "slide-title",
-        "Strona Tytułowa":          "slide-title",
         "Opis kierunku":            "slide-kierunek",
-        "Opis Kierunku":            "slide-kierunek",
         "Mapa podróży":             "slide-mapa",
-        "Mapa Podróży":             "slide-mapa",
         "Jak lecimy?":              "slide-loty",
         "Zakwaterowanie":           "slide-hotel",
         "Opis hoteli":              "slide-hotel", # DODANE: Nowa nazwa dla hoteli
         "Program wyjazdu":          "slide-program",
-        "Program Wyjazdu":          "slide-program",
         "Aplikacja (komunikacja)":  "slide-app",
-        "Aplikacja (Komunikacja)":  "slide-app",
         "Materiały brandingowe":    "slide-branding",
-        "Materiały bandingowe":     "slide-branding", # Z literówką ze spisu treści dla bezp.
-        "Materiały Brandingowe":    "slide-branding",
         "Pillow gifts":             "slide-pillow-gifts",
-        "Pillow Gifts":             "slide-pillow-gifts",
         "Wirtualny asystent":       "slide-virtual-assistant",
-        "Wirtualny Asystent":       "slide-virtual-assistant",
         "Kosztorys str. 1":         "slide-kosztorys-1", # DODANE
         "Kosztorys str. 2":         "slide-kosztorys-2", # DODANE
         "Kosztorys":                "slide-kosztorys",
