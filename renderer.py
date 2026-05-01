@@ -1377,47 +1377,61 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     {html_markers}
                 </div>
             </div>{fh}""", "slide-mapa"))
-    # --- Loty ---
+    # --- Jak lecimy ---
     if _should_render('slide-loty', current_page, export_mode):
         il = get_b64('img_hero_l', (4, 5))
         iml = (f"<img src='data:image/jpeg;base64,{il}' style='width:100%;height:100%;object-fit:cover;'>"
                if il else _get_ph('FOTO SAMOLOTU'))
+        
         f_keys = ['f1', 'f2']
         if get_data('l_przesiadka', False):
             f_keys.extend(['f3', 'f4'])
+            
         rows = ""
         for f_key in f_keys:
             f_val = str(get_data(f_key, ''))
             parts = f_val.split(',')
             if len(parts) >= 4:
                 rows += f"<tr><td>{parts[0]}</td><td>{parts[1]}</td><td>{parts[2]}</td><td>{parts[3]}</td></tr>"
+                
         przesiadka_html = ""
         if get_data('l_przesiadka', False):
             przesiadka_html = f"""<div style="background-color: #f8f9fa; border-left: 4px solid {acc}; padding: 15px 20px; margin-top: 15px; margin-bottom: 15px; border-radius: 4px; display: flex; gap: 40px; align-items: center;">
                 <div><div style="font-size: 11px; font-weight: 700; color: {c_h2}; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Port przesiadkowy</div><div style="font-size: {fs_t+2}px; font-weight: 600; color: {c_t};"><i class="fa-solid fa-location-dot" style="color:{acc}; margin-right:6px;"></i>{get_data('l_port','')}</div></div>
                 <div><div style="font-size: 11px; font-weight: 700; color: {c_h2}; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Czas przesiadki</div><div style="font-size: {fs_t+2}px; font-weight: 600; color: {c_t};"><i class="fa-solid fa-clock" style="color:{acc}; margin-right:6px;"></i>{get_data('l_czas','')}</div></div>
             </div>"""
+            
         h_d = f"<p>{str(get_data('l_desc') or '').replace(chr(10),'<br>')}</p>" if str(get_data('l_desc','')).strip() else ""
         h_e = f"<p style='font-size:10px;margin-top:15px;'>{str(get_data('l_extra') or '').replace(chr(10),'<br>')}</p>" if str(get_data('l_extra','')).strip() else ""
-        hp.append(_shtml(f"""{lh}<div class="premium-layout"><div class="photo-col">{iml}</div>
+        
+        hp.append(_shtml(f"""{lh}
+        <div class="premium-layout">
+            <div class="photo-col">{iml}</div>
             <div class="info-col" style="padding-top:30px; justify-content:flex-start;">
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
-                <div style="width:32px; height:1px; background:{acc}; opacity:0.6; flex-shrink:0;"></div>
-                <span style="font-family:'{f_met}'; font-size:{max(9,fs_met-2)}px; font-weight:700;
-                             letter-spacing:4px; color:{acc}; text-transform:uppercase; white-space:nowrap;">
+                
+                <div class="app-overline-style">
                     {str(get_data('l_overline','PRZELOT'))}
-                </span>
-                <div style="flex:1; height:1px; background:{acc}; opacity:0.6;"></div>
+                </div>
+
+                <div class="title-h1" style="margin-bottom:5px; font-size:{fs_h1_val-6}px;">{str(get_data('l_main','JAK LECIMY?')).replace(chr(10),'<br>')}</div>
+                <div class="title-sub" style="margin-bottom:15px;">{str(get_data('l_sub','')).replace(chr(10),'<br>')}</div>
+                {h_d}
+                
+                <div class="metric-grid">
+                    <div><div class="metric-label">Trasa</div><div class="flight-val">{get_data('m_route','')}</div></div>
+                    <div><div class="metric-label">Limit bagażu</div><div class="flight-val">{get_data('m_luggage','')}</div></div>
+                </div>
+                
+                {przesiadka_html}
+                
+                <table class="flight-table">
+                    <tr><th>NR LOTU</th><th>DATA</th><th>TRASA</th><th>GODZINY</th></tr>
+                    {rows}
+                </table>
+                
+                {h_e}
             </div>
-            <div class="title-h1" style="margin-bottom:5px; font-size:{fs_h1_val-6}px;">{str(get_data('l_main','JAK LECIMY?')).replace(chr(10),'<br>')}</div>
-            <div class="title-sub" style="margin-bottom:15px;">{str(get_data('l_sub','')).replace(chr(10),'<br>')}</div>{h_d}
-            <div class="metric-grid">
-                <div><div class="metric-label">Trasa</div><div class="flight-val">{get_data('m_route','')}</div></div>
-                <div><div class="metric-label">Limit bagażu</div><div class="flight-val">{get_data('m_luggage','')}</div></div>
-            </div>
-            {przesiadka_html}
-            <table class="flight-table"><tr><th>NR LOTU</th><th>DATA</th><th>TRASA</th><th>GODZINY</th></tr>{rows}</table>{h_e}
-            </div></div>{fh}""", "slide-loty"))
+        </div>{fh}""", "slide-loty"))
     # --- Przerywnik sek_0 (przed hotel) ---
     _render_sek(0)  # Przerywnik przed hotelami
     # --- Hotele w kolejności hotel_order ---
