@@ -1153,7 +1153,9 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     hp.append(_shtml(f"""{lh}<div class="premium-layout"><div class="photo-col">{im1}</div><div class="info-col">
     {lcli_container}
     <div class="title-h1">{str(get_data('t_main','')).replace(chr(10),'<br>')}</div>
-    <div class="title-sub" style="color:{acc}; border-bottom:3px solid {acc}; padding-bottom:10px; margin-bottom:25px; width:100%; display:block;">{str(get_data('t_sub','')).replace(chr(10),'<br>')}</div>
+    
+    <div class="title-sub" style="color:{acc}; border-bottom: 3px solid {acc}; padding-bottom: 10px; margin-bottom: 25px; width: 100%; display: block;">{str(get_data('t_sub','')).replace(chr(10),'<br>')}</div>
+    
     <div class="metric-grid">
         <div><div class="metric-label">Klient</div><div class="metric-value">{get_data('t_klient','')}</div></div>
         <div><div class="metric-label">Kierunek</div><div class="metric-value">{get_data('t_kierunek','')}</div></div>
