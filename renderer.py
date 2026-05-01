@@ -772,6 +772,7 @@ def get_local_css(return_str=False):
         "[data-testid='stSidebar'] { display: none !important; } header { display: none !important; }"
         if get_data('client_mode') else ""
     )
+    def get_local_css(return_str=False):
     css = f"""<style>{fonts_css}@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css');{client_css}
         [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {{ font-family: 'Montserrat', sans-serif !important; font-weight: 700 !important; }}
         [data-testid="stSidebar"] label, [data-testid="stSidebar"] div.stMarkdown p, [data-testid="stSidebar"] li {{ font-family: 'Open Sans', sans-serif !important; }}
@@ -790,6 +791,10 @@ def get_local_css(return_str=False):
         [data-testid="stFileUploadDropzone"] small {{ display: none !important; }}
         [data-testid="stFileUploadDropzone"] button {{ padding: 4px 8px !important; min-height: 25px !important; margin-top: 5px !important; }}
         [data-testid="stAppViewContainer"] > .block-container {{ max-width: 100% !important; padding: 0 !important; margin: 0 !important; }}
+
+        /* 1. NAPRAWA JPG - Reset efektów */
+        img {{ mix-blend-mode: normal !important; opacity: 1 !important; visibility: visible !important; }}
+
         body {{ counter-reset: slide_counter; background-color: #f4f5f7; scroll-behavior: smooth; margin: 0; }}
         .presentation-wrapper {{ height: 100vh; overflow-y: auto; scroll-snap-type: y proximity; scroll-behavior: smooth; background-color: #f4f5f7; padding: 5vh 0 15vh 0; box-sizing: border-box; }}
         .slide-scaler {{ display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%; scroll-snap-align: center; padding: 10vh 0; }}
@@ -798,7 +803,10 @@ def get_local_css(return_str=False):
         @media screen and (max-height: 800px) {{ .slide-page {{ zoom: 0.80; }} }}
         .title-h1 {{ font-family: '{f_h1}'; font-weight: 800; font-size: {fs_h1}px; line-height: 1.1; text-transform: uppercase; color: {c_h1}; margin-bottom: 5px; }}
         .title-h2 {{ font-family: '{f_h2}'; font-weight: 800; font-size: {fs_h2}px; line-height: 1.1; text-transform: uppercase; color: {c_h2}; margin-bottom: 5px; }}
-        .title-sub {{ font-family: '{f_sub}'; font-weight: 300; font-size: {fs_sub}px; color: {c_sub}; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px; }}
+        
+        /* 2. POPRAWIONA KRESKA PODTYTUŁU - 3px */
+        .title-sub {{ font-family: '{f_sub}'; font-weight: 300; font-size: {fs_sub}px; color: {c_sub}; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 15px; border-bottom: 3px solid {acc}; padding-bottom: 10px; display: block; width: 100%; }}
+        
         .type-icon-box {{ color: transparent; -webkit-text-stroke: 1.5px {acc}; font-size: {fs_h2}px; margin-bottom: 5px; display: inline-block; }}
         .metric-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }}
         .metric-label {{ font-size: {fs_met}px; text-transform: uppercase; letter-spacing: 1px; color: {c_met}; font-family: '{f_met}'; font-weight: 600; margin-bottom: 2px; display: block; }}
@@ -818,48 +826,16 @@ def get_local_css(return_str=False):
         .gallery-thumb {{ flex: 1; aspect-ratio: 1/1; border: 1px solid #eee; border-radius: 6px; overflow: hidden; background-color: #fcfcfc; }}
         .gallery-thumb img {{ width: 100%; height: 100%; object-fit: cover; }}
         .top-right-logo-container {{ position: absolute; top: 15px; right: 25px; z-index: 100; text-align: right; }}
-        .top-right-logo-container img {{ max-height: 60px; width: auto; object-fit: contain; opacity: 0.9; }}
+        .top-right-logo-container img {{ max-height: 60px; width: auto; object-fit: contain; opacity: 0.9; mix-blend-mode: multiply !important; }}
         .day-header {{ font-family: '{f_h2}'; font-weight: 800; font-size: {max(12, fs_sub - 4)}px; border-bottom: 2px solid {acc}; color: {c_h2}; padding-bottom: 2px; }}
         .day-date {{ font-family: '{f_txt}'; font-size: {max(10, fs_sub - 12)}px; color: {acc}; font-weight: 600; margin-top: 3px; display: block; margin-bottom: 5px; text-transform: uppercase; }}
         .prog-img-container {{ width: 100%; height: 160px; margin-bottom: 8px; border-radius: 4px; overflow: hidden; border: 1px solid #eee; background-color: #fcfcfc; }}
         .prog-img-container img {{ width: 100%; height: 100%; object-fit: cover; }}
         .prog-attr {{ font-family: '{f_txt}'; font-size: {fs_t + 2}px; color: {acc}; font-weight: 700; margin: 12px 0; border-left: 3px solid {acc}; padding-left: 10px; text-transform: uppercase; line-height: 1.3; }}
-        /* TWOJA POPRAWIONA SEKCJA */
-        .app-overline-style {{ 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            width: 100%; 
-            box-sizing: border-box; 
-            margin-bottom: 10px;
-            white-space: nowrap; /* Gwarancja jednej linii */
-            
-            /* DOKŁADNIE TWOJE PARAMETRY ZOBRAZOWANE NA ZRZUCIE: */
-            font-family: '{f_met}'; 
-            font-size: {max(10, fs_met - 2)}px; 
-            font-weight: 700; 
-            letter-spacing: 4px; 
-            color: {acc}; 
-            text-transform: uppercase; 
-        }}
-        
-        .app-overline-style::before, .app-overline-style::after {{ 
-            content: ""; 
-            height: 1px; 
-            background-color: {acc}; 
-            opacity: 0.5; 
-        }}
-        
-        .app-overline-style::before {{ 
-            width: 32px; 
-            flex-shrink: 0; 
-        }}
-        
-        .app-overline-style::after {{ 
-            flex: 1; 
-            margin-right: 120px; /* Blokada przed logo - linia skończy się wcześniej */
-            min-width: 20px;     /* Gwarancja, że kreska nie zniknie całkiem przy długim tekście */
-        }}
+        .app-overline-style {{ display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; margin-bottom: 10px; white-space: nowrap; font-family: '{f_met}'; font-size: {max(10, fs_met - 2)}px; font-weight: 700; letter-spacing: 4px; color: {acc}; text-transform: uppercase; }}
+        .app-overline-style::before, .app-overline-style::after {{ content: ""; height: 1px; background-color: {acc}; opacity: 0.5; }}
+        .app-overline-style::before {{ width: 32px; flex-shrink: 0; }}
+        .app-overline-style::after {{ flex: 1; margin-right: 120px; min-width: 20px; }}
         .app-list {{ list-style: none; padding: 0; margin-top: 10px; margin-bottom: 10px; }}
         .app-list li {{ position: relative; padding-left: 18px; margin-bottom: 7px; font-family: '{f_txt}'; font-size: {max(10, fs_t-1)}px; line-height: 1.3; color: {c_t}; font-weight: 400; }}
         .app-list li::before {{ content: '■'; position: absolute; left: 0; top: 1px; color: {c_h2}; font-size: 0.7em; }}
@@ -912,8 +888,10 @@ def get_local_css(return_str=False):
             .slide-scaler {{ height: 210mm !important; width: 297mm !important; min-height: 210mm !important; margin: 0 !important; padding: 0 !important; display: block !important; page-break-after: always !important; page-break-inside: avoid !important; overflow: hidden !important; }}
             .slide-page {{ transform: none !important; box-shadow: none !important; width: 297mm !important; height: 210mm !important; max-height: 210mm !important; padding: 10mm 15mm 5mm 15mm !important; margin: 0 !important; zoom: 1 !important; border-radius: 0 !important; border: none !important; }}
             .floating-btn, .client-export-btn {{ display: none !important; }}
-        }}
-        </style>"""
+        }}</style>"""
+    if return_str:
+        return css
+    st.markdown(css, unsafe_allow_html=True)
     if return_str:
         return css
     st.markdown(css, unsafe_allow_html=True)
