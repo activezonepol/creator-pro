@@ -824,7 +824,7 @@ def get_local_css(return_str=False):
         .prog-img-container {{ width: 100%; height: 160px; margin-bottom: 8px; border-radius: 4px; overflow: hidden; border: 1px solid #eee; background-color: #fcfcfc; }}
         .prog-img-container img {{ width: 100%; height: 100%; object-fit: cover; }}
         .prog-attr {{ font-family: '{f_txt}'; font-size: {fs_t + 2}px; color: {acc}; font-weight: 700; margin: 12px 0; border-left: 3px solid {acc}; padding-left: 10px; text-transform: uppercase; line-height: 1.3; }}
-        .app-overline-style {{ display: flex; align-items: center; gap: 10px; font-family: '{f_met}'; font-size: {fs_met - 2}px; font-weight: 700; letter-spacing: 4px; color: {acc}; margin-bottom: 10px; text-transform: uppercase; width: 100%; box-sizing: border-box; padding-right: 250px; }}
+        .app-overline-style {{ display: flex; align-items: center; gap: 10px; font-family: '{f_met}'; font-size: {fs_met - 2}px; font-weight: 700; letter-spacing: 4px; color: {acc}; margin-bottom: 10px; text-transform: uppercase; width: 100%; box-sizing: border-box; padding-right: 100px; }}
         .app-overline-style::before, .app-overline-style::after {{ content: ""; height: 1px; background-color: {acc}; opacity: 0.5; flex-shrink: 0; }}
         .app-overline-style::before {{ width: 32px; }}
         .app-overline-style::after {{ flex: 1; }}
