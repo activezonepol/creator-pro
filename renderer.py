@@ -1138,14 +1138,13 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div>
         </div>{fh}""", f"slide-{sid}"))
     # --- Slajd tytułowy ---
-    # Dodajemy warunek renderowania - to on zapobiega duplikacji slajdu
     if _should_render('slide-title', current_page, export_mode):
+        # Pobieramy czyste dane base64
         i1 = get_b64('img_hero_t', (4, 5))
         
-        # Bardziej odporny sposób na wstawienie zdjęcia JPG
+        # Używamy Twojej oryginalnej metody wyświetlania (najbezpieczniejsza dla JPG)
         if i1:
-            # .strip() usuwa ewentualne białe znaki, które psują wyświetlanie JPG
-            im1 = f'<img src="data:image/jpeg;base64,{str(i1).strip()}" style="width:100%;height:100%;object-fit:cover;display:block;">'
+            im1 = f"<img src='data:image/jpeg;base64,{i1}' style='width:100%;height:100%;object-fit:cover;'>"
         else:
             im1 = _get_ph('ZDJĘCIE GŁÓWNE')
 
@@ -1161,6 +1160,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             
         lcli_container = f"<div style='margin-bottom:40px;height:60px;display:flex;align-items:center;justify-content:flex-start;'>{lcli}</div>"
         
+        # Generowanie HTML slajdu
         hp.append(_shtml(f"""{lh}<div class="premium-layout"><div class="photo-col">{im1}</div><div class="info-col">
         {lcli_container}
         <div class="title-h1">{str(get_data('t_main','')).replace(chr(10),'<br>')}</div>
