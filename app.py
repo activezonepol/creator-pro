@@ -526,29 +526,36 @@ with st.sidebar:
 
     st.markdown("---")
     
-    # 3. KROK 1: BUDOWANIE KOMPLETNEJ LISTY STRON
+    # 3. BUDOWANIE LISTY STRON (ZGODNIE ZE SPISEM TREŚCI)
     _all_pages = [
-        "Strona tytułowa", "Opis kierunku", "Mapa podróży", "Jak lecimy?",
-        "  ↳ Przerywnik program", "Program wyjazdu", "  ↳ Przerywnik atrakcje", "Opis atrakcji"
+        "Strona tytułowa", 
+        "Opis kierunku", 
+        "Mapa podróży", 
+        "Jak lecimy?",
+        "  ↳ Przerywnik program", 
+        "Program wyjazdu",
+        "  ↳ Przerywnik atrakcje", 
+        "Opis atrakcji"
     ]
+    # Atrakcje dynamiczne
+    for _ap in range(_n_attr): _all_pages.append(f"    ★ {_attr_display_name(_ap)}")
     
-    # Dynamiczne atrakcje
-    if _n_attr > 0:
-        for _ap in range(_n_attr): _all_pages.append(f"    ★ {_attr_display_name(_ap)}")
-            
-    # Zakwaterowanie
-    _all_pages.extend(["  ↳ Przerywnik hotel", "Opis hoteli"])
+    _all_pages.append("  ↳ Przerywnik hotel")
+    _all_pages.append("Opis hoteli")
+    # Hotele dynamiczne
+    for _hp in range(_n_hotels): _all_pages.append(f"    🏨 Hotel {_hp+1}")
     
-    # Dynamiczne hotele
-    _n_hotels_safe = st.session_state.get('liczba_hoteli', 0) 
-    if _n_hotels_safe > 0:
-        for _hp in range(_n_hotels_safe): _all_pages.append(f"    🏨 Hotel {_hp+1}")
-
-    # Sekcje brandingowe i techniczne
     _all_pages.extend([
-        "  ↳ Przerywnik serwisy dodatkowe", "Aplikacja (komunikacja)", "Materiały brandingowe",
-        "Pillow gifts", "Wirtualny asystent", "Kosztorys str. 1", "Kosztorys str. 2",
-        "  ↳ Przerywnik o nas", "Nasz zespół", "Referencje"
+        "  ↳ Przerywnik serwisy dodatkowe", 
+        "Aplikacja (komunikacja)", 
+        "Materiały brandingowe",
+        "Pillow gifts", 
+        "Wirtualny asystent", 
+        "Kosztorys str. 1", 
+        "Kosztorys str. 2",
+        "  ↳ Przerywnik nasza agencja", 
+        "O nas", 
+        "Referencje"
     ])
 
     # 4. GŁÓWNE MENU RADIO (Tylko jedno wystąpienie)
