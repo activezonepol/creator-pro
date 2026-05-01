@@ -1649,9 +1649,11 @@ with col_preview:
     st.markdown(f"<h3 style='color:{_acc};font-size:16px;margin-bottom:20px;'>PODGLĄD SLAJDU</h3>", unsafe_allow_html=True)
     
     @st.fragment
-        def _preview():
-            # Najpierw sprawdzamy czy jest wymuszony scroll_target, jak nie, to bierzemy stronę z menu
-            _current_p = st.session_state.get('scroll_target', st.session_state.get('last_page', "Strona tytułowa"))
-            build_presentation(_current_p)
+    def _preview():
+        # Najpierw sprawdzamy czy jest wymuszony scroll_target, jak nie, to bierzemy stronę z menu
+        _current_p = st.session_state.get('scroll_target', st.session_state.get('last_page', "Strona tytułowa"))
+        build_presentation(_current_p)
+        
+    _preview()
         
     _preview()
