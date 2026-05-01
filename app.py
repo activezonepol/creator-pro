@@ -1120,7 +1120,7 @@ with col_form:
     # -----------------------------------------------------------------------
     # 10. OPIS HOTELI (dawniej ZAKWATEROWANIE)
     # -----------------------------------------------------------------------
-    elif page == "Opis hoteli":
+    elif page == "Zakwaterowanie":
         _guard(["num_hotels", "hotel_order"])                                          
         for _hi in range(st.session_state.get("num_hotels", 1)):                      
             _guard([f"h_hide_{_hi}", f"h_overline_{_hi}", f"h_title_{_hi}",          
@@ -1422,9 +1422,9 @@ with col_form:
         if _up_s: _upload_image(_up_s.getvalue(), f"sek_2_img")
 
     # -----------------------------------------------------------------------
-    # 19. NASZ ZESPÓŁ
+    # 19. O NAS
     # -----------------------------------------------------------------------
-    elif page == "Nasz zespół":
+    elif page == "O nas":
         _guard(["about_hide", "about_overline", "about_title", "about_sub",  
                 "about_desc", "team_count"])                                 
         nas_keys = [
