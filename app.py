@@ -558,26 +558,17 @@ with st.sidebar:
         "Referencje"
     ])
 
-    # 4. GŁÓWNE MENU RADIO (Tylko jedno wystąpienie)
-    _last_page = st.session_state.get('last_page', "Strona tytułowa")
-    _current_idx = _all_pages.index(_last_page) if _last_page in _all_pages else 0
+    # 4. GŁÓWNE MENU RADIO
+    _last_p = st.session_state.get('last_page', "Strona tytułowa")
+    _idx = _all_pages.index(_last_p) if _last_p in _all_pages else 0
     
-    # Funkcja odblokowująca scroll
-    def _on_nav_change():
+    def _handle_nav():
         st.session_state['last_page'] = st.session_state['main_nav_radio']
         if 'scroll_target' in st.session_state:
             del st.session_state['scroll_target']
-            
-    page = st.radio(
-        "Nawigacja główna", 
-        _all_pages, 
-        index=_current_idx, 
-        key="main_nav_radio", 
-        label_visibility="collapsed", 
-        on_change=_on_nav_change
-    )
-    st.session_state['last_page'] = page
-    _last = page
+
+    page = st.radio("Nawigacja", _all_pages, index=_idx, key="main_nav_radio", 
+                    label_visibility="collapsed", on_change=_handle_nav)
 
     # -----------------------------------------------------------------------
     # 5. PANEL ZARZĄDZANIA ATRAKCJAMI
