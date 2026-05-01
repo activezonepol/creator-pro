@@ -891,9 +891,7 @@ def get_local_css(return_str=False):
     if return_str:
         return css
     st.markdown(css, unsafe_allow_html=True)
-    if return_str:
-        return css
-    st.markdown(css, unsafe_allow_html=True)
+    
 # ---------------------------------------------------------------------------
 # HELPERY SLAJDÓW
 # ---------------------------------------------------------------------------
