@@ -978,7 +978,8 @@ with col_form:
         _bg_default = st.session_state.get('color_h1', '#003366')
         _sub_default = st.session_state.get('color_accent', '#FF6600')
 
-        if st.button("🔄 Resetuj kolory przerywnika", use_container_width=True, key="res_sek_1"):
+        # Usunięto 'key', aby uniknąć konfliktu w session_state
+        if st.button("🔄 Resetuj kolory przerywnika", use_container_width=True):
             st.session_state["sek_1_bg"] = _bg_default
             st.session_state["sek_1_txt"] = "#ffffff"
             st.session_state["sek_1_sub_color"] = _sub_default
