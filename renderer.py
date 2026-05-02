@@ -922,11 +922,9 @@ def get_local_css(return_str=False):
 # HELPERY SLAJDÓW
 # ---------------------------------------------------------------------------
 def _lhtml():
-    val = get_logo_b64(st.session_state.get('logo_az'))
-    if not val:
+    src = get_logo_b64(st.session_state.get('logo_az'))
+    if not src:
         return ""
-    # Jeśli to URL, używamy go bezpośrednio, jeśli nie - dodajemy prefix PNG
-    src = val if str(val).startswith('http') else f'data:image/png;base64,{val}'
     return f'<div class="top-right-logo-container"><img src="{src}"></div>'
 
 def _fhtml():
@@ -966,13 +964,12 @@ def _logo_tag(b64_or_url, style='max-height:100%; max-width:150px; object-fit:co
     return f'<img src="{src}" style="{style}">'
 
 def get_logo_b64(raw):
-    """Konwertuje logo (bytes lub URL) do formatu używanego w HTML."""
     if not raw:
         return None
-    if isinstance(raw, str):
-        return raw  # URL - zwracamy bezpośrednio
+    if isinstance(raw, str) and raw.startswith('http'):
+        return raw
     try:
-        return base64.b64encode(raw).decode('utf-8')
+        return f"data:image/png;base64,{base64.b64encode(raw).decode('utf-8')}"
     except Exception:
         return None
 
