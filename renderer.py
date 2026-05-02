@@ -966,10 +966,16 @@ def _logo_tag(b64_or_url, style='max-height:100%; max-width:150px; object-fit:co
 def get_logo_b64(raw):
     if not raw:
         return None
+    # Jeśli to nowoczesny link URL (z Supabase) - zwracamy go czystego
     if isinstance(raw, str) and raw.startswith('http'):
         return raw
+    # Jeśli to surowe bajty (stary format) - DODAJEMY prefiks tutaj
     try:
-        return f"data:image/png;base64,{base64.b64encode(raw).decode('utf-8')}"
+        import base64
+        if isinstance(raw, bytes):
+            encoded = base64.b64encode(raw).decode('utf-8')
+            return f"data:image/png;base64,{encoded}"
+        return raw
     except Exception:
         return None
 
