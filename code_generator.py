@@ -120,16 +120,20 @@ def get_country_status():
         'empty'    - placeholder "-- Wybierz kraj --"
         'other'    - wybrane "Inny"
         'concrete' - konkretny kraj (Polska, Hiszpania, ...)
+    
+    Sprawdzamy GLOWNIE country_name (zaufane zrodlo z selectboxa).
     """
     country_name = str(st.session_state.get('country_name', '')).strip()
-    country_iso = str(st.session_state.get('country_code', '')).strip()
     
-    if country_name == '-- Wybierz kraj --' or not country_iso:
+    # Empty: placeholder lub pusta nazwa
+    if not country_name or country_name == '-- Wybierz kraj --':
         return 'empty'
     
-    if country_iso == 'OTH':
+    # Other: wybrane "Inny"
+    if country_name == 'Inny':
         return 'other'
     
+    # Concrete: konkretny kraj (Polska, Albania, Boliwia, ...)
     return 'concrete'
 
 
