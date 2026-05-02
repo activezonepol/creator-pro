@@ -966,18 +966,25 @@ def _logo_tag(b64_or_url, style='max-height:100%; max-width:150px; object-fit:co
 def get_logo_b64(raw):
     if not raw:
         return None
-    # Jeśli to nowoczesny link URL (z Supabase) - zwracamy go czystego
+        
+    # 1. Jeśli to nowoczesny link URL (z Supabase)
     if isinstance(raw, str) and raw.startswith('http'):
         return raw
-    # Jeśli to surowe bajty (stary format) - DODAJEMY prefiks tutaj
-    try:
-        import base64
-        if isinstance(raw, bytes):
+        
+    # 2. Jeśli to tekst (już zakodowany kod Base64 z bazy danych)
+    if isinstance(raw, str):
+        return f"data:image/png;base64,{raw}"
+        
+    # 3. Jeśli to surowe bajty (świeżo wgrany plik z pamięci)
+    if isinstance(raw, bytes):
+        try:
+            import base64
             encoded = base64.b64encode(raw).decode('utf-8')
             return f"data:image/png;base64,{encoded}"
-        return raw
-    except Exception:
-        return None
+        except Exception:
+            return None
+            
+    return None
 
 # ---------------------------------------------------------------------------
 # GŁÓWNA FUNKCJA BUDOWANIA PREZENTACJI
