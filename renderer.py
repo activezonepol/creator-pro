@@ -514,12 +514,21 @@ def get_b64(key, ratio=(4, 5)):
     val = st.session_state.get(key)
     if not val:
         return None
+    
+    # 1. Jeśli to nowoczesny link URL (z Supabase)
     if isinstance(val, str) and val.startswith('http'):
         return val
+        
+    # 2. Jeśli to tekst (już zakodowany Base64 z bazy danych)
+    if isinstance(val, str):
+        return f"data:image/jpeg;base64,{val}"
+        
+    # 3. Jeśli to surowe bajty (świeżo wgrany plik)
     if isinstance(val, bytes):
         cached = get_b64_cached(val, ratio)
         if cached:
             return f"data:image/jpeg;base64,{cached}"
+            
     return None
 # ---------------------------------------------------------------------------
 # MAPY OSM
