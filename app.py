@@ -649,10 +649,8 @@ col_save, col_add = st.columns([1, 1])
 with col_save:
     if "manual_save_btn" in st.session_state: del st.session_state["manual_save_btn"]
     if st.button("💾 ZAPISZ TERAZ", use_container_width=True, type="primary", key="manual_save_btn"):
-        with st.spinner("Zapisuję projekt..."):
-            save_to_supabase()
-            st.success("✅ Projekt zapisany ręcznie!")
-            st.rerun()
+        save_to_supabase()
+        st.rerun()
 with col_add:
     if st.button("➕ Dodaj atrakcję", key="btn_add_attraction_main", type="primary", use_container_width=True):
         _attr_add()
