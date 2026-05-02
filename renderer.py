@@ -1938,8 +1938,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     components.html(full_preview_html, height=800, scrolling=True)
     
     # ZASTĄP: Zwracamy pusty string, żeby Streamlit nie rysował drugiego okna pod spodem
-    return ""
-    
+        
     default_tid = {
         "Strona tytułowa":                  "slide-title",
         "Opis kierunku":                    "slide-kierunek",
@@ -2015,3 +2014,4 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
 </body>
 </html>"""
     components.html(full_html, height=800, scrolling=False)
+return ""
