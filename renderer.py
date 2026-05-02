@@ -520,10 +520,12 @@ def get_b64(key, ratio=(4, 5)):
     if isinstance(val, str) and val.startswith('http'):
         return val
         
-    # Jeśli to surowe dane (stary format) - przelicz do Base64
+    # Jeśli to surowe dane (stary format) - przelicz do Base64 i DODAJ PREFIKS
     if isinstance(val, bytes):
-        return get_b64_cached(val, ratio)
-        
+        cached = get_b64_cached(val, ratio)
+        if cached:
+            return f"data:image/jpeg;base64,{cached}" # <--- TUTAJ JEST KLUCZOWA ZMIANA!
+            
     return None
 # ---------------------------------------------------------------------------
 # MAPY OSM
