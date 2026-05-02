@@ -1146,7 +1146,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         lcli_val = get_logo_b64(rcli)
         
         # Logo klienta (PNG)
-        lcli = f"<img src='data:image/png;base64,{lcli_val}' style='max-height:100%;max-width:150px;object-fit:contain;'>" if lcli_val and not hide_cli else ""
+        lcli = f"<img src='{lcli_val}' style='max-height:100%;max-width:150px;object-fit:contain;'>" if lcli_val and not hide_cli else ""
         lcli_container = f"<div class='logo-container' style='margin-bottom:40px;height:60px;display:flex;align-items:center;'>{lcli}</div>"
 
         hp.append(_shtml(f"""{lh}<div class="premium-layout"><div class="photo-col">{im1}</div><div class="info-col">
