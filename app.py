@@ -712,13 +712,23 @@ with col_form:
             name = st.session_state.get('country_name', '')
             st.session_state['country_code'] = COUNTRIES_DICT.get(name, '')
         
-        st.selectbox(
+        # Wymuszamy index zamiast key zeby selectbox zachowal wartosc 
+        # po przelaczeniu strony (znany bug Streamlit)
+        _country_options = list(COUNTRIES_DICT.keys())
+        _current_country = st.session_state.get('country_name', '-- Wybierz kraj --')
+        try:
+            _current_index = _country_options.index(_current_country)
+        except ValueError:
+            _current_index = 0  # fallback - placeholder
+        
+        _selected_country = st.selectbox(
             "Kraj docelowy:", 
-            list(COUNTRIES_DICT.keys()), 
-            key="country_name",
-            on_change=_sync_country_code,
+            _country_options,
+            index=_current_index,
         )
-        # Wywolanie OD RAZU - synchronizuje przy ladowaniu z bazy/refresh
+        # Aktualizujemy session_state RECZNIE (bez key=)
+        st.session_state['country_name'] = _selected_country
+        # Aktualizujemy country_code od razu
         _sync_country_code()
         for k, l in [
             ('t_main', 'Tytuł H1'), ('t_sub', 'Podtytuł'), ('t_klient', 'Klient'),
