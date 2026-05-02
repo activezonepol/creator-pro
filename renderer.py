@@ -1962,7 +1962,6 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     if 'scroll_target' in st.session_state:
         st.session_state['scroll_target'] = ""
 
-    # Całkowicie nowy, płynny skrypt auto-scrollowania (naprawia problem z przewijaniem!)
     scroll_js = f"""
     <script>
     (function() {{
@@ -1979,19 +1978,6 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     }})();
     </script>"""
 
-    # Pobranie stylów CSS
-    try:
-        css_str = get_local_css(return_str=True)
-    except Exception:
-        css_str = ""
-
-    slides_html = "".join(hp)
-
-    # Zatrzymujemy w tym miejscu, jeśli to tylko eksport do PDF
-    if export_mode:
-        return slides_html
-
-    # Zbudowanie kompletnego kodu strony
     full_html = f"""<!DOCTYPE html>
     <html>
     <head>
@@ -2019,8 +2005,6 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     </html>"""
 
     # WYŚWIETL: Rysujemy podgląd w jednym, jedynym oknie
-    import streamlit.components.v1 as components
     components.html(full_html, height=800, scrolling=False)
     
-    # Eleganckie, ułożone zamknięcie funkcji
     return ""
