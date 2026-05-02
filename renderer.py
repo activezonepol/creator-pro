@@ -1902,33 +1902,17 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     # --- Zwróć lub wyświetl ---
     import streamlit.components.v1 as components
     
-    # 1. Pobieramy style (muszą być wewnątrz, żeby układ się nie rozsypał)
     try:
-        # Próbujemy pobrać style jako tekst; jeśli Twoja funkcja nie obsługuje return_str, 
-        # pobierze je z globalnej zmiennej lub wygeneruje błąd (wtedy używamy pustego stringa)
-        current_styles = get_local_css(return_str=True)
-    except:
-        current_styles = ""
+        css_str = get_local_css(return_str=True)
+    except Exception:
+        css_str = ""
 
-    # 2. Łączymy style ze slajdami w jeden dokument dla podglądu
-    # To naprawia "logo na całą stronę" - style będą działać wewnątrz okna
-    full_preview_html = f"""
-    <html>
-    <head>
-        <meta charset="utf-8">
-        {current_styles}
-    </head>
-    <body style="margin:0; padding:0;">
-        { "".join(hp) }
-    </body>
-    </html>
-    """
-    
+    slides_html = "".join(hp)
+
     if export_mode:
-        return "".join(hp)
+        return slides_html
         
     # TWOJA LOGIKA IDENTYFIKATORÓW (zostawiamy nienaruszoną)
-    # Ustalanie aktywnego ID slajdu dla JavaScript
     first_visible_place = next((i for i in range(get_data('num_places', 0)) if not get_data(f'phide_{i}')), None)
     pid = f"place_{first_visible_place}" if first_visible_place is not None else "place_preview"
     first_visible_attr = next((i for i in range(get_data('num_attr', 0)) if not get_data(f'ahide_{i}')), None)
