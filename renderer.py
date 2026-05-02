@@ -156,7 +156,7 @@ EXCLUDE_EXPORT_KEYS = {
     '_ls_loaded', '_session_id', '_ls_restore', '_attr_focused',
 }
 defaults = {
-    'country_name': 'Czarnogóra', 'country_code': 'MNE',
+    'country_name': '-- Wybierz kraj --', 'country_code': '',
     'font_h1': 'Montserrat', 'font_h2': 'Montserrat', 'font_sub': 'Montserrat',
     'font_text': 'Open Sans', 'font_metric': 'Montserrat',
     'color_h1': '#003366', 'color_h2': '#003366', 'color_sub': '#FF6600',
