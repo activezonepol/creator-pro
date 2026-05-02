@@ -1,10 +1,14 @@
 """
 db_utils.py
 ===========
-Funkcje do komunikacji z Supabase:
-- save_to_supabase: bezpieczny zapis projektu z walidacją kraju
+Funkcje do komunikacji z Supabase.
+
+GŁÓWNE FUNKCJE:
+- save_to_supabase: bezpieczny zapis projektu z walidacją kraju (Model C)
 - fetch_all_offers: pobieranie listy ofert (Model C)
+- fetch_offer_by_id: pobieranie konkretnej oferty
 - delete_offer: usuwanie oferty
+- clone_offer: klonowanie oferty
 """
 import streamlit as st
 from supabase import Client
@@ -26,18 +30,19 @@ def save_to_supabase():
     """Systemowy zapis projektu z walidacją kraju.
     
     PROCES:
-    1. Sprawdza czy kraj jest wybrany (KRYTYCZNE)
+    1. Sprawdza czy kraj jest wybrany (KRYTYCZNE - Model C)
     2. Generuje kod oferty (np. 26-04-POL-KLIENT-NAZWA)
     3. Buduje słownik projektu (lekkie dane, bez bytes)
     4. Upsert do bazy (insert lub update istniejącego)
     5. Aktualizuje status w session_state
     
-    Bez kraju: NIE ZAPISUJE, ustawia komunikat ostrzegawczy.
+    BEZ KRAJU: NIE ZAPISUJE, ustawia komunikat ostrzegawczy.
     """
     supabase_client = st.session_state.get('supabase')
     if not supabase_client:
         st.session_state['last_save_status'] = "❌ Brak klienta bazy"
-        return False
+        print("Błąd: Brak klienta supabase w st.session_state!")
+        return
     
     # ============================================================
     # KROK 1: WALIDACJA KRAJU (NOWE - Model C)
@@ -46,17 +51,16 @@ def save_to_supabase():
         st.session_state['last_save_status'] = "⚠️ Wybierz kraj (nie zapisano)"
         st.session_state['last_save_count'] = 0
         st.session_state['last_supabase_save'] = time.time()
-        return False
+        return
     
     # ============================================================
     # KROK 2: GENEROWANIE KODU OFERTY
     # ============================================================
     code_data = generate_project_code()
     if not code_data:
-        # To nie powinno się zdarzyć (is_country_selected sprawdza to samo),
-        # ale defensywnie zabezpieczamy
+        # Defensywne zabezpieczenie (is_country_selected już to sprawdziło)
         st.session_state['last_save_status'] = "❌ Nie udało się wygenerować kodu"
-        return False
+        return
     
     project_code = code_data['code']
     country_iso = code_data['country_iso']
@@ -72,22 +76,22 @@ def save_to_supabase():
         project_data = _build_proj_dict()
         project_name = st.session_state.get('t_main', 'Nowy projekt')
         
-        # Storage folder = project_code (raz ustalony, nie zmieniany)
-        # Pobieramy z bazy, jeśli już istnieje (zachowujemy stary folder)
+        # Storage folder = project_code (raz ustalony, nie zmieniany przy update)
         storage_folder = st.session_state.get('storage_folder', project_code)
         
         # ============================================================
         # KROK 4: UPSERT DO BAZY
         # ============================================================
+        # Szukamy istniejącego projektu (z storage_folder żeby zachować przy update)
         existing = supabase_client.table('projects').select('id, storage_folder').eq(
             'user_email', 'default_user'
         ).order('updated_at', desc=True).limit(1).execute()
         
         if existing.data:
-            # UPDATE istniejący
+            # UPDATE istniejący projekt
             project_id = existing.data[0]['id']
             
-            # Zachowujemy oryginalny storage_folder z bazy
+            # Zachowujemy oryginalny storage_folder z bazy (raz ustalony)
             existing_folder = existing.data[0].get('storage_folder')
             if existing_folder:
                 storage_folder = existing_folder
@@ -103,7 +107,7 @@ def save_to_supabase():
                 'client_short': client_short,
                 'storage_folder': storage_folder,
                 'data': project_data,
-                'updated_at': datetime.utcnow().isoformat(),
+                'updated_at': datetime.utcnow().isoformat()
             }
             
             supabase_client.table('projects').update(update_data).eq('id', project_id).execute()
@@ -120,7 +124,7 @@ def save_to_supabase():
                 'client_short': client_short,
                 'storage_folder': storage_folder,
                 'data': project_data,
-                'updated_at': datetime.utcnow().isoformat(),
+                'updated_at': datetime.utcnow().isoformat()
             }
             
             supabase_client.table('projects').insert(insert_data).execute()
@@ -129,7 +133,7 @@ def save_to_supabase():
         # ============================================================
         # KROK 5: AKTUALIZACJA STATUSU
         # ============================================================
-        # Korekta czasu: UTC → polski (UTC+2)
+        # KOREKTA CZASU: UTC → polski (UTC+2)
         now_pl = datetime.utcnow() + timedelta(hours=2)
         save_time = now_pl.strftime('%H:%M:%S')
         
@@ -138,24 +142,24 @@ def save_to_supabase():
         st.session_state['last_supabase_save'] = time.time()
         st.session_state['current_project_code'] = project_code
         
-        return True
-        
     except Exception as e:
         st.session_state['last_save_status'] = f"❌ Błąd: {str(e)[:50]}"
         print(f"Błąd Supabase: {e}")
-        return False
 
 
 # ---------------------------------------------------------------------------
 # 2. FUNKCJE DLA TABELI OFERT (Model C - lista ofert)
 # ---------------------------------------------------------------------------
-def fetch_all_offers(supabase_client: Client, user_email: str = 'default_user') -> list:
-    """Pobiera wszystkie oferty użytkownika, posortowane po kraju i roku.
+# UWAGA: Wszystkie funkcje używają tabeli 'projects' (nie 'offers')
+def fetch_all_offers(supabase_client: Client, user_email: str = 'default_user'):
+    """Pobiera wszystkie oferty użytkownika z tabeli 'projects'.
+    
+    Sortowanie: kraj A-Z, potem rok malejąco, potem miesiąc malejąco.
     
     Returns:
         list of dict - każdy słownik to jedna oferta z polami:
             id, project_name, project_code, country, country_name,
-            year, month, client_short, updated_at
+            year, month, client_short, storage_folder, updated_at
     """
     try:
         response = supabase_client.table('projects').select(
@@ -171,7 +175,7 @@ def fetch_all_offers(supabase_client: Client, user_email: str = 'default_user') 
         return []
 
 
-def fetch_offer_by_id(supabase_client: Client, offer_id: str) -> dict | None:
+def fetch_offer_by_id(supabase_client: Client, offer_id):
     """Pobiera pełne dane konkretnej oferty po ID."""
     try:
         response = supabase_client.table('projects').select('*').eq(
@@ -183,8 +187,8 @@ def fetch_offer_by_id(supabase_client: Client, offer_id: str) -> dict | None:
         return None
 
 
-def delete_offer(supabase_client: Client, offer_id: str) -> bool:
-    """Usuwa ofertę po ID."""
+def delete_offer(supabase_client: Client, offer_id):
+    """Usuwa ofertę po ID z tabeli 'projects'."""
     try:
         supabase_client.table('projects').delete().eq("id", offer_id).execute()
         return True
@@ -193,7 +197,7 @@ def delete_offer(supabase_client: Client, offer_id: str) -> bool:
         return False
 
 
-def clone_offer(supabase_client: Client, source_offer_id: str, user_email: str = 'default_user') -> str | None:
+def clone_offer(supabase_client: Client, source_offer_id, user_email: str = 'default_user'):
     """Klonuje istniejącą ofertę (tworzy kopię z nowym ID).
     
     Returns:
@@ -215,7 +219,7 @@ def clone_offer(supabase_client: Client, source_offer_id: str, user_email: str =
             'year': source.get('year'),
             'month': source.get('month'),
             'client_short': source.get('client_short'),
-            'storage_folder': source.get('storage_folder'),  # Ten sam folder Storage (zdjęcia współdzielone)
+            'storage_folder': source.get('storage_folder'),
             'data': source.get('data', {}),
             'updated_at': datetime.utcnow().isoformat(),
         }
