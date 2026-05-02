@@ -2021,4 +2021,4 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
 {scroll_js}
 </body>
 </html>"""
-    components.html(full_html, height=900, scrolling=False)
+    components.html(full_html, height=800, scrolling=False)
