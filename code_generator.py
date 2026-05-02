@@ -1,37 +1,25 @@
 """
 code_generator.py
 =================
-Generator kodów ofert i modułów wg formatu:
-- Oferty: RR-MM-KK-KLIENT-NAZWA (np. 26-04-POL-AGENCJA1-NEXA)
-- Moduły: RR-MM-KK-TYP-NAZWA (np. 26-04-POL-HOT-IBEROSTAR)
+Generator kodów ofert i modulow.
 
-KK = ISO 3166-1 alfa-3 kod kraju (POL, MNE, ESP, ...)
-TYP = HOT (hotel), ATR (atrakcja), KIE (kierunek), TYT (tytułowa)
-
-LOGIKA OFERT BEZ KRAJU:
-- Pusty kraj ("-- Wybierz kraj --") → kod oferty z OTH (zapisuje, kraj do uzupełnienia)
-- "Inny" → kod oferty z OTH (zapisuje, świadomy wybór)
-- Konkretny kraj (Polska, ...) → kod oferty z konkretnym ISO (POL, ...)
+Format: RR-MM-KK-KLIENT-NAZWA
+Dla pustego/Inny: KK = OTH
 """
 import re
 import unicodedata
-from datetime import datetime, date
+from datetime import datetime
 import streamlit as st
 
 
 # ---------------------------------------------------------------------------
-# TRANSLITERACJA POLSKICH ZNAKÓW
+# TRANSLITERACJA POLSKICH ZNAKOW
 # ---------------------------------------------------------------------------
-def transliterate_pl(text: str) -> str:
-    """Zamienia polskie znaki diakrytyczne na łacińskie odpowiedniki.
-    
-    Przykład:
-        'Łukasz Żółty' → 'LUKASZ ZOLTY'
-    """
+def transliterate_pl(text):
+    """Zamienia polskie znaki na lacinskie."""
     if not text:
         return ""
     
-    # Mapa specjalna dla polskich znaków
     pl_map = {
         'ą': 'a', 'Ą': 'A',
         'ć': 'c', 'Ć': 'C',
@@ -43,30 +31,19 @@ def transliterate_pl(text: str) -> str:
         'ź': 'z', 'Ź': 'Z',
         'ż': 'z', 'Ż': 'Z',
     }
-    result = text
+    result = str(text)
     for pl_char, lat_char in pl_map.items():
         result = result.replace(pl_char, lat_char)
     
-    # Dodatkowo unicodedata dla innych znaków diakrytycznych
     result = unicodedata.normalize('NFKD', result).encode('ascii', 'ignore').decode('utf-8')
-    
     return result
 
 
 # ---------------------------------------------------------------------------
-# CZYSZCZENIE STRINGÓW DO FORMATU NAZWY PLIKU
+# CZYSZCZENIE STRINGOW
 # ---------------------------------------------------------------------------
-def clean_for_code(text: str, max_len: int = 8) -> str:
-    """Przygotowuje string do użycia w kodzie oferty/modułu.
-    
-    - Transliteracja polskich znaków
-    - Wielkie litery
-    - Tylko alphanumeric (litery i cyfry)
-    - Maksymalna długość
-    
-    Przykład:
-        'Łukasz Żółty Sp. z o.o.' → 'LUKASZZO' (max 8 znaków)
-    """
+def clean_for_code(text, max_len=8):
+    """Czysci string do uzycia w kodzie oferty."""
     if not text:
         return ""
     
@@ -79,41 +56,29 @@ def clean_for_code(text: str, max_len: int = 8) -> str:
 
 
 # ---------------------------------------------------------------------------
-# PARSOWANIE DATY DO RR-MM
+# PARSOWANIE DATY
 # ---------------------------------------------------------------------------
-def parse_date_to_rrmm(date_str: str) -> tuple:
-    """Wyciąga rok i miesiąc z pola 'Termin' aplikacji.
-    
-    Obsługiwane formaty:
-        '1-4.10.2026'        → ('26-10', 2026, 10)
-        '01-04.10.2026'      → ('26-10', 2026, 10)
-        '15.06.2026'         → ('26-06', 2026, 6)
-        '28.12-03.01.2027'   → ('26-12', 2026, 12)  ← bierze pierwszą datę
-    
-    Returns:
-        tuple: (rrmm_str, year_full, month) - np. ('26-04', 2026, 4)
-        
-    Jeśli nie można sparsować → fallback do daty dzisiejszej.
-    """
-    if not date_str or not date_str.strip():
+def parse_date_to_rrmm(date_str):
+    """Wyciaga rok i miesiac z pola Termin."""
+    if not date_str or not str(date_str).strip():
         now = datetime.now()
-        rrmm = f"{now.year % 100:02d}-{now.month:02d}"
+        rrmm = "{:02d}-{:02d}".format(now.year % 100, now.month)
         return rrmm, now.year, now.month
     
-    d_str = date_str.strip()
+    d_str = str(date_str).strip()
     
-    # Format 1: 1-4.10.2026 lub 01-04.10.2026
+    # Format: 1-4.10.2026 lub 01-04.10.2026
     m1 = re.search(r'(\d{1,2})\s*-\s*(\d{1,2})\.(\d{1,2})\.(\d{4})', d_str)
     if m1:
         try:
             year = int(m1.group(4))
             month = int(m1.group(3))
-            rrmm = f"{year % 100:02d}-{month:02d}"
+            rrmm = "{:02d}-{:02d}".format(year % 100, month)
             return rrmm, year, month
         except (ValueError, IndexError):
             pass
     
-    # Format 2: 28.12-03.01.2027 (przełom roku)
+    # Format: 28.12-03.01.2027 (przelom roku)
     m2 = re.search(r'(\d{1,2})\.(\d{1,2})\s*-\s*(\d{1,2})\.(\d{1,2})\.(\d{4})', d_str)
     if m2:
         try:
@@ -123,133 +88,106 @@ def parse_date_to_rrmm(date_str: str) -> tuple:
             month_end = int(m2.group(4))
             year_start = year_end - 1 if month_start > month_end else year_end
             
-            rrmm = f"{year_start % 100:02d}-{month_start:02d}"
+            rrmm = "{:02d}-{:02d}".format(year_start % 100, month_start)
             return rrmm, year_start, month_start
         except (ValueError, IndexError):
             pass
     
-    # Format 3: 15.06.2026 (jednodniowa)
+    # Format: 15.06.2026
     m3 = re.search(r'(\d{1,2})\.(\d{1,2})\.(\d{4})', d_str)
     if m3:
         try:
             year = int(m3.group(3))
             month = int(m3.group(2))
-            rrmm = f"{year % 100:02d}-{month:02d}"
+            rrmm = "{:02d}-{:02d}".format(year % 100, month)
             return rrmm, year, month
         except (ValueError, IndexError):
             pass
     
-    # Fallback: dziś
+    # Fallback: dzis
     now = datetime.now()
-    rrmm = f"{now.year % 100:02d}-{now.month:02d}"
+    rrmm = "{:02d}-{:02d}".format(now.year % 100, now.month)
     return rrmm, now.year, now.month
 
 
 # ---------------------------------------------------------------------------
-# STAN KRAJU - 3 MOŻLIWE STANY
+# STAN KRAJU - 3 MOZLIWE STANY
 # ---------------------------------------------------------------------------
-def get_country_status() -> str:
-    """Zwraca aktualny stan kraju w aplikacji.
+def get_country_status():
+    """Zwraca aktualny stan kraju.
     
     Returns:
-        'empty'    - placeholder "-- Wybierz kraj --" (kraj nieustalony)
-        'other'    - wybrane "Inny" (świadomy wybór, nietypowy kraj)
-        'concrete' - konkretny kraj (Polska, Hiszpania, itp.)
+        'empty'    - placeholder "-- Wybierz kraj --"
+        'other'    - wybrane "Inny"
+        'concrete' - konkretny kraj (Polska, Hiszpania, ...)
     """
-    country_name = st.session_state.get('country_name', '').strip()
-    country_iso = st.session_state.get('country_code', '').strip()
+    country_name = str(st.session_state.get('country_name', '')).strip()
+    country_iso = str(st.session_state.get('country_code', '')).strip()
     
-    # Empty: pusty kod (po wybraniu placeholder'a)
     if country_name == '-- Wybierz kraj --' or not country_iso:
         return 'empty'
     
-    # Other: wybrane "Inny"
     if country_iso == 'OTH':
         return 'other'
     
-    # Concrete: konkretny kraj
     return 'concrete'
 
 
-def is_country_selected() -> bool:
-    """[DEPRECATED] Stary kod używał tej funkcji do walidacji.
+def is_country_selected():
+    """[DEPRECATED] Zachowane dla kompatybilnosci.
     
-    Po Commit 2 NIE BLOKUJEMY zapisu - zachowujemy dla kompatybilności,
-    ale `save_to_supabase` jej nie używa.
+    Po Commit 2 NIE BLOKUJEMY zapisu.
     """
     return get_country_status() == 'concrete'
 
 
-def get_country_warning_message() -> str:
-    """Zwraca komunikat informacyjny zależny od stanu kraju.
-    
-    Używane w sidebarze do pokazania użytkownikowi co się dzieje.
-    """
+def get_country_warning_message():
+    """Zwraca komunikat informacyjny zalezny od stanu kraju."""
     status = get_country_status()
     
     if status == 'empty':
-        return "Kraj do uzupełnienia"
+        return "Kraj do uzupelnienia"
     elif status == 'other':
         return "Kraj: Inny (kod OTH)"
     else:
-        return ""  # Konkretny kraj - bez komunikatu
+        return ""
 
 
 # ---------------------------------------------------------------------------
-# GŁÓWNA FUNKCJA: GENEROWANIE KODU OFERTY
+# GLOWNA FUNKCJA: GENEROWANIE KODU OFERTY
 # ---------------------------------------------------------------------------
-def generate_project_code() -> dict:
-    """Generuje kod oferty na podstawie danych z session_state.
+def generate_project_code():
+    """Generuje kod oferty.
     
     Format: RR-MM-KK-KLIENT-NAZWA
-    Przykład: 26-04-POL-AGENCJA1-NEXA
-    
-    UWAGA: Funkcja ZAWSZE zwraca kod (nie zwraca None).
-    Dla pustego kraju lub "Inny" → kod używa OTH.
-    
-    Returns:
-        dict z polami:
-            'code': str - pełny kod oferty
-            'country_iso': str - kod kraju (POL / OTH)
-            'country_name': str - nazwa kraju (Polska / Inny / -- Wybierz kraj --)
-            'year': int - rok (2026)
-            'month': int - miesiąc (4)
-            'client_short': str - skrót klienta (AGENCJA1)
-            'project_name': str - skrócona nazwa (NEXA)
-            'status': str - 'empty' / 'other' / 'concrete'
+    Dla pustego/Inny: KK = OTH (zawsze zwraca kod, nigdy None).
     """
-    # 1. STAN KRAJU
     status = get_country_status()
-    country_iso = st.session_state.get('country_code', '').strip()
-    country_name = st.session_state.get('country_name', '').strip()
+    country_iso = str(st.session_state.get('country_code', '')).strip()
+    country_name = str(st.session_state.get('country_name', '')).strip()
     
-    # 2. Dla pustego/Inny → używamy OTH w kodzie
     if status in ('empty', 'other'):
         country_iso_for_code = 'OTH'
     else:
         country_iso_for_code = country_iso
     
-    # 3. DATA → RR-MM
     date_str = st.session_state.get('t_date', '')
     rrmm, year, month = parse_date_to_rrmm(date_str)
     
-    # 4. SKRÓT KLIENTA (z fallbackiem)
-    client_raw = st.session_state.get('client_short', '').strip()
+    client_raw = str(st.session_state.get('client_short', '')).strip()
     if not client_raw:
-        client_raw = st.session_state.get('t_klient', '').strip()
+        client_raw = str(st.session_state.get('t_klient', '')).strip()
     
     client_short = clean_for_code(client_raw, max_len=8)
     if not client_short:
         client_short = 'KLIENT'
     
-    # 5. NAZWA OFERTY (z fallbackiem)
-    name_raw = st.session_state.get('t_main', '').strip()
+    name_raw = str(st.session_state.get('t_main', '')).strip()
     project_name = clean_for_code(name_raw, max_len=20)
     if not project_name:
         project_name = 'NAZWA'
     
-    # 6. SKŁADAMY KOD
-    code = f"{rrmm}-{country_iso_for_code}-{client_short}-{project_name}"
+    code = "{}-{}-{}-{}".format(rrmm, country_iso_for_code, client_short, project_name)
     
     return {
         'code': code,
@@ -264,17 +202,14 @@ def generate_project_code() -> dict:
 
 
 # ---------------------------------------------------------------------------
-# GENEROWANIE KODU MODUŁU
+# KOD MODULU
 # ---------------------------------------------------------------------------
-def generate_module_code(module_type: str, module_name: str) -> str:
-    """Generuje kod modułu (slajdu).
+def generate_module_code(module_type, module_name):
+    """Generuje kod modulu (slajdu).
     
     Format: RR-MM-KK-TYP-NAZWA
-    Przykład: 26-04-POL-HOT-IBEROSTAR
-    
-    Dla pustego kraju używamy OTH.
     """
-    country_iso = st.session_state.get('country_code', '').strip()
+    country_iso = str(st.session_state.get('country_code', '')).strip()
     if not country_iso:
         country_iso = 'OTH'
     
@@ -289,4 +224,4 @@ def generate_module_code(module_type: str, module_name: str) -> str:
     if not name_clean:
         name_clean = 'NAZWA'
     
-    return f"{rrmm}-{country_iso}-{module_type}-{name_clean}"
+    return "{}-{}-{}-{}".format(rrmm, country_iso, module_type, name_clean)
