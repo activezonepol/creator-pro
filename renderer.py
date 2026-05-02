@@ -1897,9 +1897,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             
             # --- POPRAWIONE WCIĘCIA TUTAJ ---
             if it:
-                # Sprawdzamy czy to URL, czy base64
-                src = it if str(it).startswith('http') else f'data:image/png;base64,{it}'
-                itg = f"<img src='{src}' style='width:100%;height:100%;object-fit:contain;'>"
+                itg = f"<img src='{it}' style='width:100%;height:100%;object-fit:contain;'>"
             else:
                 itg = _get_ph('LOGO')
             # -------------------------------
