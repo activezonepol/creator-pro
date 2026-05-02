@@ -707,8 +707,19 @@ with col_form:
         ]
         section_template_manager(tit_keys, "TYT", "strona-tytulowa", "tit")
         safe_text_input("Termin:", key="t_date", on_change=lambda: (parse_date_and_days(), save_to_supabase()))
-        st.selectbox("Kraj docelowy:", list(COUNTRIES_DICT.keys()), key="country_name")
-        st.session_state['country_code'] = COUNTRIES_DICT[st.session_state['country_name']]
+        # Callback do synchronizacji country_code z country_name
+        def _sync_country_code():
+            name = st.session_state.get('country_name', '')
+            st.session_state['country_code'] = COUNTRIES_DICT.get(name, '')
+        
+        st.selectbox(
+            "Kraj docelowy:", 
+            list(COUNTRIES_DICT.keys()), 
+            key="country_name",
+            on_change=_sync_country_code,
+        )
+        # Wywolanie OD RAZU - synchronizuje przy ladowaniu z bazy/refresh
+        _sync_country_code()
         for k, l in [
             ('t_main', 'Tytuł H1'), ('t_sub', 'Podtytuł'), ('t_klient', 'Klient'),
             ('t_kierunek', 'Kierunek'), ('t_pax', 'Liczba osób'),
