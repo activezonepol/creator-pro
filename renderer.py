@@ -1928,17 +1928,13 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         return "".join(hp)
         
     # TWOJA LOGIKA IDENTYFIKATORÓW (zostawiamy nienaruszoną)
+    # Ustalanie aktywnego ID slajdu dla JavaScript
     first_visible_place = next((i for i in range(get_data('num_places', 0)) if not get_data(f'phide_{i}')), None)
     pid = f"place_{first_visible_place}" if first_visible_place is not None else "place_preview"
     first_visible_attr = next((i for i in range(get_data('num_attr', 0)) if not get_data(f'ahide_{i}')), None)
     fid = f"attr_{first_visible_attr}" if first_visible_attr is not None else "slide-title"
     hid = f"slide-hotel-0" if get_data('num_hotels', 1) > 0 and not get_data('h_hide_0') else "slide-title"
 
-    # WYŚWIETL: Renderujemy podgląd w izolowanym oknie z jego własnymi stylami
-    components.html(full_preview_html, height=800, scrolling=True)
-    
-    # ZASTĄP: Zwracamy pusty string, żeby Streamlit nie rysował drugiego okna pod spodem
-        
     default_tid = {
         "Strona tytułowa":                  "slide-title",
         "Opis kierunku":                    "slide-kierunek",
@@ -1961,57 +1957,70 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         "O nas":                            "slide-about",
         "Referencje":                       "slide-testimonials"
     }.get(current_page, "")
+    
     tid = get_data('scroll_target') or default_tid
     if 'scroll_target' in st.session_state:
         st.session_state['scroll_target'] = ""
-    css_str = get_local_css(return_str=True)
-    slides_html = "".join(hp)
+
+    # Całkowicie nowy, płynny skrypt auto-scrollowania (naprawia problem z przewijaniem!)
     scroll_js = f"""
     <script>
     (function() {{
         document.body.style.transition = 'opacity 0.15s ease';
         document.body.style.opacity = '1';
         var targetId = "{tid if tid else ''}";
-        var wrapper = document.getElementById('main-wrapper');
-        if (!wrapper || !targetId) return;
-        function getOffset(id) {{
-            var el = document.getElementById(id);
-            if (!el) return null;
-            return Math.max(0, el.offsetTop - (wrapper.clientHeight / 2) + (el.offsetHeight / 2));
+        if (!targetId) return;
+        var el = document.getElementById(targetId);
+        if (el) {{
+            setTimeout(function() {{
+                el.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+            }}, 50);
         }}
-        var targetOffset = getOffset(targetId);
-        if (targetOffset === null) return;
-        var slideH = wrapper.clientHeight;
-        wrapper.scrollTo({{ top: Math.max(0, targetOffset - slideH), behavior: 'instant' }});
-        setTimeout(function() {{
-            wrapper.scrollTo({{ top: targetOffset, behavior: 'smooth' }});
-        }}, 50);
     }})();
     </script>"""
+
+    # Pobranie stylów CSS
+    try:
+        css_str = get_local_css(return_str=True)
+    except Exception:
+        css_str = ""
+
+    slides_html = "".join(hp)
+
+    # Zatrzymujemy w tym miejscu, jeśli to tylko eksport do PDF
+    if export_mode:
+        return slides_html
+
+    # Zbudowanie kompletnego kodu strony
     full_html = f"""<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-{css_str}
-<style>
-  body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; }}
-  .presentation-wrapper {{
-      height: 100vh;
-      overflow-y: auto;
-      scroll-snap-type: y proximity;
-      scroll-behavior: smooth;
-      background-color: #f4f5f7;
-      padding: 5vh 0 15vh 0;
-      box-sizing: border-box;
-  }}
-</style>
-</head>
-<body>
-<div class="presentation-wrapper" id="main-wrapper">
-{slides_html}
-</div>
-{scroll_js}
-</body>
-</html>"""
+    <html>
+    <head>
+    <meta charset="UTF-8">
+    {css_str}
+    <style>
+      body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; }}
+      .presentation-wrapper {{
+          height: 100vh;
+          overflow-y: auto;
+          scroll-snap-type: y proximity;
+          scroll-behavior: smooth;
+          background-color: #f4f5f7;
+          padding: 5vh 0 15vh 0;
+          box-sizing: border-box;
+      }}
+    </style>
+    </head>
+    <body>
+    <div class="presentation-wrapper" id="main-wrapper">
+    {slides_html}
+    </div>
+    {scroll_js}
+    </body>
+    </html>"""
+
+    # WYŚWIETL: Rysujemy podgląd w jednym, jedynym oknie
+    import streamlit.components.v1 as components
     components.html(full_html, height=800, scrolling=False)
-return ""
+    
+    # Eleganckie, ułożone zamknięcie funkcji
+    return ""
