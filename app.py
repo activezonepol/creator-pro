@@ -1711,5 +1711,4 @@ with col_preview:
         build_presentation(_current_p)
         
     _preview()
-        
-    _preview()
+    
