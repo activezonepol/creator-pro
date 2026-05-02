@@ -510,12 +510,44 @@ with st.sidebar:
     # 1. STATUS AUTO-SAVE
     save_status = st.session_state.get('last_save_status', '⏳ Czekam na zmiany...')
     save_count = st.session_state.get('last_save_count', 0)
+    # Kolorowe pola statusu - 3 stany
+    save_status_type = st.session_state.get('last_save_status_type', 'success')
+    save_extra = st.session_state.get('last_save_extra', '')
+    
+    if save_status_type == 'warning':
+        # Pomaranczowe pole - kraj do uzupelnienia
+        bg_color = '#fff7ed'
+        border_color = '#f97316'
+        text_color = '#9a3412'
+        secondary_color = '#c2410c'
+    elif save_status_type == 'info':
+        # Niebieskie pole - kraj Inny
+        bg_color = '#eff6ff'
+        border_color = '#3b82f6'
+        text_color = '#1e40af'
+        secondary_color = '#2563eb'
+    elif save_status_type == 'error':
+        # Czerwone pole - blad
+        bg_color = '#fef2f2'
+        border_color = '#ef4444'
+        text_color = '#991b1b'
+        secondary_color = '#b91c1c'
+    else:
+        # Zielone pole - sukces (default)
+        bg_color = '#ecfdf5'
+        border_color = '#10b981'
+        text_color = '#065f46'
+        secondary_color = '#047857'
+    
+    extra_html = f"<div style='font-size:10px;color:{secondary_color};margin-top:2px;'>{save_extra}</div>" if save_extra else ""
+    
     st.markdown(
-        f"<div style='background:#f0f9ff;border-left:3px solid #0ea5e9;padding:8px 12px;margin-bottom:15px;border-radius:4px;'>"
-        f"<div style='font-size:11px;font-weight:600;color:#0369a1;margin-bottom:4px;'>AUTO-ZAPIS BANAN</div>"
-        f"<div style='font-size:10px;color:#64748b;'>{save_status}</div>"
-        f"<div style='font-size:9px;color:#94a3b8;margin-top:2px;'>{save_count} pól w bazie</div>"
-        f"</div>", unsafe_allow_html=True
+        f"<div style='background:{bg_color};border-left:4px solid {border_color};padding:8px 12px;margin-bottom:15px;border-radius:4px;'>"
+        f"<div style='font-size:13px;font-weight:600;color:{text_color};margin-bottom:4px;'>{save_status}</div>"
+        f"<div style='font-size:10px;color:{secondary_color};'>{save_count} pól w bazie</div>"
+        f"{extra_html}"
+        f"</div>",
+        unsafe_allow_html=True
     )
     
     # 2. MIGRACJA ZDJĘĆ
