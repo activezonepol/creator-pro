@@ -504,9 +504,10 @@ with st.sidebar:
     # 1. STATUS AUTO-SAVE
     save_status = st.session_state.get('last_save_status', '⏳ Czekam na zmiany...')
     save_count = st.session_state.get('last_save_count', 0)
-    # Kolorowe pola statusu - 3 stany
+    # Kolorowe pola statusu - 3 stany (success/warning/info)
     save_status_type = st.session_state.get('last_save_status_type', 'success')
     save_extra = st.session_state.get('last_save_extra', '')
+    project_name = st.session_state.get('last_save_project_name', '')
     
     if save_status_type == 'warning':
         # Pomaranczowe pole - kraj do uzupelnienia
@@ -533,12 +534,20 @@ with st.sidebar:
         text_color = '#065f46'
         secondary_color = '#047857'
     
-    extra_html = f"<div style='font-size:10px;color:{secondary_color};margin-top:2px;'>{save_extra}</div>" if save_extra else ""
+    # Linia 2: Tytul projektu (jesli jest)
+    project_html = f"<div style='font-size:11px;color:{secondary_color};margin-top:2px;'>Projekt: \"{project_name}\"</div>" if project_name else ""
+    
+    # Linia 3: Liczba pol w bazie
+    count_html = f"<div style='font-size:10px;color:{secondary_color};margin-top:2px;'>{save_count} pól w bazie</div>"
+    
+    # Linia 4 (warunkowa): Komunikat o kraju (tylko dla warning/info)
+    extra_html = f"<div style='font-size:10px;color:{secondary_color};margin-top:2px;font-weight:600;'>{save_extra}</div>" if save_extra else ""
     
     st.markdown(
         f"<div style='background:{bg_color};border-left:4px solid {border_color};padding:8px 12px;margin-bottom:15px;border-radius:4px;'>"
         f"<div style='font-size:13px;font-weight:600;color:{text_color};margin-bottom:4px;'>{save_status}</div>"
-        f"<div style='font-size:10px;color:{secondary_color};'>{save_count} pól w bazie</div>"
+        f"{project_html}"
+        f"{count_html}"
         f"{extra_html}"
         f"</div>",
         unsafe_allow_html=True
