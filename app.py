@@ -314,20 +314,14 @@ if '_loaded_from_supabase' not in st.session_state:
             for key in keys_to_remove:
                 project_data.pop(key, None)
             
-            # DEBUG: pokaż ile kluczy wczytano
-            text_keys = [k for k, v in project_data.items() if isinstance(v, str) and k.startswith('t_')]
             load_project_data(project_data)
-            # DEBUG: sprawdź czy t_main został wczytany
-            loaded_t_main = st.session_state.get('t_main', '???')
-            st.session_state['_debug_loaded'] = f"📥 Wczytano {len(project_data)} kluczy (usunięto {len(keys_to_remove)} widgetów), w tym {len(text_keys)} tekstów t_* | t_main='{loaded_t_main}'"
             st.session_state['_loaded_from_supabase'] = True
         else:
             # Brak zapisanego projektu — załaduj defaults
-            st.session_state['_debug_loaded'] = "📥 Brak danych w bazie - użyto defaults"
             st.session_state['_loaded_from_supabase'] = True
     except Exception as e:
         # Błąd połączenia — kontynuuj z defaults
-        st.session_state['_debug_loaded'] = f"❌ Błąd load: {str(e)[:50]}"
+        print(f"Błąd ładowania projektu z Supabase: {e}")
         st.session_state['_loaded_from_supabase'] = True
 # Ładuj defaults dla kluczy których nie ma w bazie
 for k, v in defaults.items():
