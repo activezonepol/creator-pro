@@ -29,7 +29,7 @@ def safe_text_input(label, key, **kwargs):
     # Przechwytujemy on_change
     user_on_change = kwargs.pop("on_change", None)
     
-    def _handle_change():
+    def _handle_change(*args, **kwargs):
         # Aktualizujemy stan glowny z bufora
         st.session_state[key] = st.session_state[buffer_key]
         # Odpalamy akcje uzytkownika (jesli sa)
@@ -45,7 +45,6 @@ def safe_text_input(label, key, **kwargs):
         on_change=_handle_change,
         **kwargs
     )
-
 
 def safe_text_area(label, key, **kwargs):
     """
@@ -64,7 +63,7 @@ def safe_text_area(label, key, **kwargs):
     
     user_on_change = kwargs.pop("on_change", None)
     
-    def _handle_change():
+    def _handle_change(*args, **kwargs):
         st.session_state[key] = st.session_state[buffer_key]
         if user_on_change:
             user_on_change()
