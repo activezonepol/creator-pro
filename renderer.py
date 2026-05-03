@@ -1117,10 +1117,14 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     fh = _fhtml()
     # --- Przerywniki sekcji (nowy styl: pełnoekranowy overlay z gradientem) ---
     def _render_sek(target_i):
+        def _render_sek(target_i):
         """Renderuje slajd przerywnikowy sek_i jeśli nie ukryty."""
         i = target_i
         sid = f"sek_{i}"
         if get_data(f'sek_hide_{i}', False):
+            return
+        # NAPRAWA: Renderuj przerywnik tylko gdy aktywna strona to wymaga
+        if not _should_render(f"slide-sek_{i}", current_page, export_mode):
             return
         _title_defs = {0: 'ZAKWATEROWANIE', 1: 'ATRAKCJE', 2: 'NASZA AGENCJA', 3: 'PROGRAM', 4: 'SERWISY DODATKOWE'}
         _sub_defs   = {0: 'NASZE HOTELE', 1: 'PROGRAM WYJAZDU', 2: 'O NAS', 3: 'NASZ PLAN WYJAZDU', 4: 'USŁUGI DODATKOWE'}
