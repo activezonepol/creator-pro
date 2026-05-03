@@ -120,7 +120,7 @@ def save_to_supabase():
             st.session_state['last_save_extra'] = ''
         elif country_status == 'other':
             st.session_state['last_save_status_type'] = 'info'  # niebieskie
-            st.session_state['last_save_extra'] = 'Kraj: Inny (kod OTH)'
+            st.session_state['last_save_extra'] = 'Wybrano "Inny kraj"'
         else:  # empty
             st.session_state['last_save_status_type'] = 'warning'  # pomaranczowe
             st.session_state['last_save_extra'] = 'Kraj do uzupelnienia'
@@ -129,6 +129,7 @@ def save_to_supabase():
         st.session_state['last_save_count'] = len(project_data)
         st.session_state['last_supabase_save'] = time.time()
         st.session_state['current_project_code'] = project_code
+        st.session_state['last_save_project_name'] = project_name
         
     except Exception as e:
         st.session_state['last_save_status'] = "Blad: " + str(e)[:50]
