@@ -487,7 +487,7 @@ if not st.session_state.get('client_mode', False):
     if 'last_supabase_save' not in st.session_state:
         st.session_state['last_supabase_save'] = 0
     current_time = time.time()
-    if current_time - st.session_state['last_supabase_save'] > 30:
+    if current_time - st.session_state['last_supabase_save'] > 20:
         save_to_supabase()
 
 # --- DEFINICJA ZMIENNYCH GLOBALNYCH (Bez spacji na początku!) ---
