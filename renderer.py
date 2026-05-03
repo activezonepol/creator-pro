@@ -1117,7 +1117,6 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     fh = _fhtml()
     # --- Przerywniki sekcji (nowy styl: pełnoekranowy overlay z gradientem) ---
     def _render_sek(target_i):
-        def _render_sek(target_i):
         """Renderuje slajd przerywnikowy sek_i jeśli nie ukryty."""
         i = target_i
         sid = f"sek_{i}"
