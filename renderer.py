@@ -1967,7 +1967,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     
     tid = get_data('scroll_target') or default_tid
     if 'scroll_target' in st.session_state:
-        st.session_state['scroll_target'] = ""
+        del st.session_state['scroll_target']
 
     scroll_js = f"""
     <script>
