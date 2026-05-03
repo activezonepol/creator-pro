@@ -1711,6 +1711,7 @@ with col_preview:
     def _preview():
         # Najpierw sprawdzamy czy jest wymuszony scroll_target, jak nie, to bierzemy stronę z menu
         _current_p = st.session_state.get('scroll_target', st.session_state.get('last_page', "Strona tytułowa"))
+        st.warning(f"🔍 DEBUG: _current_p = '{_current_p}'")
         build_presentation(_current_p)
         
     _preview()
