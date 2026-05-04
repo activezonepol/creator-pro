@@ -1781,6 +1781,9 @@ with col_preview:
         # current_page (logika filtrowania) ZAWSZE z last_page (nazwa strony z menu)
         # scroll_target (przewijanie do slajdu) jest osobnym mechanizmem
         _current_p = st.session_state.get('last_page', "Strona tytułowa")
+        # === DEBUG TEMP ===
+        st.warning(f"🔍 last_page='{_current_p}' | main_nav_radio='{st.session_state.get('main_nav_radio', 'BRAK')}' | scroll_target='{st.session_state.get('scroll_target', 'BRAK')}'")
+        # === END DEBUG ===
         build_presentation(_current_p)
         
     _preview()
