@@ -299,10 +299,17 @@ if '_loaded_from_supabase' not in st.session_state:
             # (kolizja z Streamlit widget management)
             widget_keys = [
                 'attr_add_btn', 'attr_select', 'nav_top_radio', 'nav_bot_radio',
-                '_supabase_data', 'last_supabase_save', 'last_save_status'
+                '_supabase_data', 'last_supabase_save', 'last_save_status',
+                'btn_add_hotel_main', 'main_nav_radio', 'manual_save_btn'
             ]
-            # Usuń też prefiksy widgetów (attrnav_0, attrup_1, etc)
-            widget_prefixes = ['attrnav_', 'attrup_', 'attrdn_', 'attrdel_']
+            # Usuń też prefiksy widgetów (przyciskami i innymi widgetami Streamlita)
+            widget_prefixes = [
+                'attrnav_', 'attrup_', 'attrdn_', 'attrdel_',
+                'hotel_up_', 'hotel_dn_', 'hotel_del_',
+                'btn_', 'ho_up_', 'ho_dn_', 'ho_del_',
+                'res_sek_', 'btn_sek_', 'btn_show_hot_', 'btn_apply_',
+                'dl_', 'up_'
+            ]
             
             keys_to_remove = []
             for key in project_data.keys():
