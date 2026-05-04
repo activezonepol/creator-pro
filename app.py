@@ -402,13 +402,13 @@ def _hotel_count():
     return st.session_state.get('num_hotels', 0)
 
 def _hotel_add():
-    """Dodaje nowy hotel i ustawia go jako aktywny."""
+    """Dodaje nowy hotel. Zostajemy na 'Opis hoteli' (synchronizacja z radio)."""
     n = st.session_state.get('num_hotels', 0)
     st.session_state['num_hotels'] = n + 1
     # _get_hotel_order() automatycznie doda nowy indeks (bo num_hotels wzrosło)
     _get_hotel_order()
-    # Ustawiamy stronę na nową: f"    ❯ Hotel {n+1}"
-    st.session_state['last_page'] = f"    ❯ Hotel {n+1}"
+    # Zostajemy na 'Opis hoteli' aby uniknąć konfliktu z main_nav_radio
+    st.session_state['last_page'] = "Opis hoteli"
 
 def _hotel_delete(pos):
     """Usuwa hotel i wraca na stronę 'Opis hoteli'."""
