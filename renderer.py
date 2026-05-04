@@ -150,8 +150,11 @@ for _i in range(50):
 EXCLUDE_EXPORT_KEYS = {
     'client_mode', 'scroll_target', 'last_page',
     'show_link_info', 'ready_export_html', 'auto_map_points',
-    # Klucze przycisków i uploaderów które nigdy nie trafiają do JSON
+    # Klucze przycisków i widgetów Streamlit które nigdy nie trafiają do JSON
     'pa_add_place_btn', 'pa_add_attr_btn',
+    'main_nav_radio', 'btn_add_hotel_main', 'manual_save_btn',
+    'btn_add_attraction_main', 'attr_add_btn', 'attr_select',
+    'nav_top_radio', 'nav_bot_radio',
     # Klucze wewnętrzne sesji — nie zapisujemy do localStorage
     '_ls_loaded', '_session_id', '_ls_restore', '_attr_focused',
 }
