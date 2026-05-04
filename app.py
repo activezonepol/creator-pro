@@ -1772,8 +1772,10 @@ with col_preview:
     @st.fragment
     def _preview():
         # Najpierw sprawdzamy czy jest wymuszony scroll_target, jak nie, to bierzemy stronę z menu
-        _current_p = st.session_state.get('scroll_target') or st.session_state.get('last_page', "Strona tytułowa")
-        build_presentation(_current_p)
+        # current_page (logika filtrowania) ZAWSZE z last_page (nazwa strony z menu)
+    # scroll_target (przewijanie do slajdu) jest osobnym mechanizmem
+    _current_p = st.session_state.get('last_page', "Strona tytułowa")
+    build_presentation(_current_p)
         
     _preview()
     
