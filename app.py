@@ -521,7 +521,7 @@ if not st.session_state.get('client_mode', False):
 
 # --- DEFINICJA ZMIENNYCH GLOBALNYCH (Bez spacji na początku!) ---
 _n_attr = st.session_state.get('num_attr', 0)
-_n_hotels = st.session_state.get('liczba_hoteli', 0)
+_n_hotels = st.session_state.get('num_hotels', 0)
 
 # ---------------------------------------------------------------------------
 # SIDEBAR — NAWIGACJA (WERSJA CZYSTA I KOMPLETNA)
