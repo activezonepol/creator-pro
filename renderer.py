@@ -518,19 +518,18 @@ def get_b64(key, ratio=(4, 5)):
     if not val:
         return None
     
-    # 1. Jeśli to nowoczesny link URL (z Supabase)
+    # URL Supabase — zwracamy bezpośrednio
     if isinstance(val, str) and val.startswith('http'):
         return val
         
-    # 2. Jeśli to tekst (już zakodowany Base64 z bazy danych)
+    # Base64 string z bazy — wracamy bez prefiksu (już jest base64)
     if isinstance(val, str):
         return f"data:image/jpeg;base64,{val}"
         
-    # 3. Jeśli to surowe bajty (świeżo wgrany plik)
+    # Bajty — konwersja przez cache
     if isinstance(val, bytes):
         cached = get_b64_cached(val, ratio)
-        if cached:
-            return f"data:image/jpeg;base64,{cached}"
+        return f"data:image/jpeg;base64,{cached}" if cached else None
             
     return None
 # ---------------------------------------------------------------------------
