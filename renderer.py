@@ -513,7 +513,9 @@ def get_b64_cached(raw_bytes, ratio):
             return base64.b64encode(buf.getvalue()).decode()
     except Exception:
         return None
-def get_b64(key, ratio=(4, 5)):
+
+def get_b64(key: str, ratio: tuple = (4, 5)) -> str | None:
+    """Zwraca gotowy src dla <img>: URL Supabase lub data URI z base64."""
     val = st.session_state.get(key)
     if not val:
         return None
