@@ -398,9 +398,8 @@ def _hotel_add():
     """Dodaje nowy hotel i ustawia go jako aktywny."""
     n = st.session_state.get('num_hotels', 0)
     st.session_state['num_hotels'] = n + 1
-    order = _get_hotel_order()
-    order.append(n)
-    st.session_state['hotel_order'] = order
+    # _get_hotel_order() automatycznie doda nowy indeks (bo num_hotels wzrosło)
+    _get_hotel_order()
     # Ustawiamy stronę na nową: f"    ❯ Hotel {n+1}"
     st.session_state['last_page'] = f"    ❯ Hotel {n+1}"
 
