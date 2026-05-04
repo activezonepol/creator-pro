@@ -958,16 +958,7 @@ def _img_tag(b64_or_url, placeholder_text='ZDJĘCIE', style='width:100%;height:1
         return _get_ph(placeholder_text)
     src = b64_or_url if str(b64_or_url).startswith(('http', 'data:image')) else f'data:image/png;base64,{b64_or_url}'
     return f'<img src="{src}" style="{style}">'
-    
-    # Jeśli to URL ze Storage
-    if str(b64_or_url).startswith('http'):
-        src = b64_or_url
-    # Jeśli to dane Base64
-    else:
-        src = f'data:image/jpeg;base64,{b64_or_url}'
-        
-    return f'<img src="{src}" style="{style}">'
-    
+           
 def _logo_tag(b64_or_url, style='max-height:100%; max-width:150px; object-fit:contain;'):
     """Helper: generuje tag img dla logotypów (PNG)."""
     if not b64_or_url:
