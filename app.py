@@ -38,7 +38,7 @@ from storage_utils import (
 )
 # --- BEZPIECZNE ZMIENNE GLOBALNE ---
 if 'num_attr' not in st.session_state: st.session_state['num_attr'] = 0
-if 'liczba_hoteli' not in st.session_state: st.session_state['liczba_hoteli'] = 0
+if 'num_hotels' not in st.session_state: st.session_state['num_hotels'] = 0
 if 'last_page' not in st.session_state: st.session_state['last_page'] = "Strona tytułowa"
 
 # --- INICJALIZACJA UI ---
