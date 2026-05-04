@@ -389,6 +389,29 @@ def _move_hotel(idx, direction):
     if 0 <= new_idx < len(order):
         order[idx], order[new_idx] = order[new_idx], order[idx]
         st.session_state['hotel_order'] = order
+
+def _hotel_count():
+    """Liczba hoteli."""
+    return st.session_state.get('num_hotels', 0)
+
+def _hotel_add():
+    """Dodaje nowy hotel i ustawia go jako aktywny."""
+    n = st.session_state.get('num_hotels', 0)
+    st.session_state['num_hotels'] = n + 1
+    order = _get_hotel_order()
+    order.append(n)
+    st.session_state['hotel_order'] = order
+    # Ustawiamy stronę na nową: f"    ❯ Hotel {n+1}"
+    st.session_state['last_page'] = f"    ❯ Hotel {n+1}"
+
+def _hotel_delete(pos):
+    """Usuwa hotel i wraca na stronę 'Opis hoteli'."""
+    order = _get_hotel_order()
+    if pos < len(order):
+        order.pop(pos)
+        st.session_state['num_hotels'] = max(0, st.session_state.get('num_hotels', 1) - 1)
+        st.session_state['hotel_order'] = order
+        st.session_state['last_page'] = "Opis hoteli"
 # -----------------------------------------------------------------------
 # PROSTY SYSTEM ATRAKCJI — jedna lista attr_order = [0, 1, 2, ...]
 # -----------------------------------------------------------------------
