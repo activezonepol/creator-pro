@@ -1205,23 +1205,33 @@ with col_form:
             _upload_image(_up_s.getvalue(), f"sek_0_img")
             
     # -----------------------------------------------------------------------
-    # 10. OPIS HOTELI (dawniej ZAKWATEROWANIE)
+    # 10. OPIS HOTELI (kontener — przycisk dodawania + lista hoteli + edycja)
     # -----------------------------------------------------------------------
-    elif page == "Zakwaterowanie":
-        _guard(["num_hotels", "hotel_order"])                                          
-        for _hi in range(st.session_state.get("num_hotels", 1)):                      
-            _guard([f"h_hide_{_hi}", f"h_overline_{_hi}", f"h_title_{_hi}",          
-                    f"h_subtitle_{_hi}", f"h_url_{_hi}", f"h_booking_{_hi}",         
-                    f"h_amenities_{_hi}", f"h_text_{_hi}", f"h_advantages_{_hi}"])   
-        st.number_input("Liczba hoteli:", 1, 3, step=1, key="num_hotels")
-        _rebuild_slide_order()
-        hotel_order = _get_hotel_order()
+    elif page == "Opis hoteli":
+        _guard(["num_hotels", "hotel_order"])
+        for _hi in range(st.session_state.get("num_hotels", 0)):
+            _guard([f"h_hide_{_hi}", f"h_overline_{_hi}", f"h_title_{_hi}",
+                    f"h_subtitle_{_hi}", f"h_url_{_hi}", f"h_booking_{_hi}",
+                    f"h_amenities_{_hi}", f"h_text_{_hi}", f"h_advantages_{_hi}"])
         
-        if len(hotel_order) > 1:
-            _section_header("KOLEJNOŚĆ HOTELI W PREZENTACJI")
-            for pos, hi in enumerate(hotel_order):
+        # PRZYCISK DODAWANIA HOTELU
+        if st.button("➕ DODAJ HOTEL", key="btn_add_hotel_main", type="primary", use_container_width=True):
+            _hotel_add()
+            st.rerun()
+        
+        st.markdown("---")
+        
+        # LISTA HOTELI (z przyciskami zarządzania ▲▼✕)
+        _hotel_order_list = _get_hotel_order()
+        _n_hotels_curr = _hotel_count()
+        
+        if _n_hotels_curr == 0:
+            st.info("Nie dodano jeszcze żadnego hotelu. Kliknij '➕ DODAJ HOTEL' powyżej.")
+        else:
+            _section_header(f"LISTA HOTELI ({_n_hotels_curr})")
+            for pos, hi in enumerate(_hotel_order_list):
                 name = str(st.session_state.get(f'h_title_{hi}', f'Hotel {hi+1}')).split('\n')[0][:35] or f'Hotel {hi+1}'
-                col_lbl, col_up, col_dn = st.columns([8, 1, 1])
+                col_lbl, col_up, col_dn, col_del = st.columns([6, 1, 1, 1])
                 col_lbl.markdown(
                     f"<div style='padding:6px 10px; background:#f1f5f9; border-radius:4px; "
                     f"border-left:3px solid #003366; font-size:12px; color:#1e293b;'>"
@@ -1230,11 +1240,22 @@ with col_form:
                     unsafe_allow_html=True,
                 )
                 if pos > 0:
-                    col_up.button("▲", key=f"ho_up_{pos}", on_click=_move_hotel, args=(pos, -1), use_container_width=True)
-                if pos < len(hotel_order) - 1:
-                    col_dn.button("▼", key=f"ho_dn_{pos}", on_click=_move_hotel, args=(pos, 1), use_container_width=True)
-        st.divider()
-        for i in range(st.session_state['num_hotels']):
+                    if col_up.button("▲", key=f"ho_up_{pos}", use_container_width=True):
+                        _move_hotel(pos, -1)
+                        st.rerun()
+                if pos < len(_hotel_order_list) - 1:
+                    if col_dn.button("▼", key=f"ho_dn_{pos}", use_container_width=True):
+                        _move_hotel(pos, 1)
+                        st.rerun()
+                if col_del.button("✕", key=f"ho_del_{pos}", use_container_width=True):
+                    _hotel_delete(pos)
+                    st.rerun()
+            
+            st.markdown("---")
+            st.caption("💡 Kliknij '❯ Hotel N' w menu nawigacji aby edytować szczegóły konkretnego hotelu.")
+        
+        # EDYCJA SZCZEGÓŁÓW HOTELI (rozwijane sekcje per hotel)
+        for i in range(st.session_state.get('num_hotels', 0)):
             with st.expander(f"Hotel {i+1}" + (f" — {str(st.session_state.get(f'h_title_{i}','')).split(chr(10))[0][:30]}" if st.session_state.get(f'h_title_{i}') else "")):
                 st.button("POKAŻ PODGLĄD", key=f"btn_show_hot_{i}", on_click=set_focus, args=(f"slide-hotel-{i}",), use_container_width=True)
                 for dk, dv in [
