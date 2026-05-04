@@ -1213,7 +1213,22 @@ with col_form:
             _guard([f"h_hide_{_hi}", f"h_overline_{_hi}", f"h_title_{_hi}",
                     f"h_subtitle_{_hi}", f"h_url_{_hi}", f"h_booking_{_hi}",
                     f"h_amenities_{_hi}", f"h_text_{_hi}", f"h_advantages_{_hi}"])
+        # TYMCZASOWY PRZYCISK RESET (do diagnozy)
+        if st.button("🔄 RESET WSZYSTKICH HOTELI (DIAGNOZA)", use_container_width=True):
+            # Usuń wszystkie klucze związane z hotelami
+            keys_to_remove = []
+            for k in list(st.session_state.keys()):
+                if k.startswith('h_') or k == 'num_hotels' or k == 'hotel_order' or k.startswith('hotel_') or k.startswith('img_hotel_') or k.startswith('up_uh') or k.startswith('btn_show_hot_') or k.startswith('ho_'):
+                    keys_to_remove.append(k)
+            for k in keys_to_remove:
+                del st.session_state[k]
+            st.session_state['num_hotels'] = 0
+            st.session_state['hotel_order'] = []
+            save_to_supabase()
+            st.success(f"Wyczyszczono {len(keys_to_remove)} kluczy. Ładowanie...")
+            st.rerun()
         
+        st.markdown("---")
         # PRZYCISK DODAWANIA HOTELU
         if st.button("➕ DODAJ HOTEL", key="btn_add_hotel_main", type="primary", use_container_width=True):
             _hotel_add()
