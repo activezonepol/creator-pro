@@ -1274,12 +1274,24 @@ with col_form:
             
             st.markdown("---")
             st.caption("💡 Kliknij '❯ Hotel N' w menu nawigacji aby edytować szczegóły konkretnego hotelu.")
-        
-        # EDYCJA SZCZEGÓŁÓW HOTELI (rozwijane sekcje per hotel)
-        for i in range(st.session_state.get('num_hotels', 0)):
-            with st.expander(f"Hotel {i+1}" + (f" — {str(st.session_state.get(f'h_title_{i}','')).split(chr(10))[0][:30]}" if st.session_state.get(f'h_title_{i}') else "")):
-                st.button("POKAŻ PODGLĄD", key=f"btn_show_hot_{i}", on_click=set_focus, args=(f"slide-hotel-{i}",), use_container_width=True)
-                for dk, dv in [
+
+    # -----------------------------------------------------------------------
+    # 10b. EDYCJA KONKRETNEGO HOTELU (po kliknięciu "❯ Hotel N" w menu)
+    # -----------------------------------------------------------------------
+    elif "❯" in page:
+        # Wyciągnij numer hotelu z nazwy strony "    ❯ Hotel N"
+        _hm = re.search(r'Hotel\s+(\d+)', page)
+        if not _hm:
+            st.warning("Nie udało się rozpoznać numeru hotelu z nazwy strony.")
+        else:
+            i = int(_hm.group(1)) - 1  # 1-based -> 0-based
+            
+            # Sprawdź czy hotel istnieje
+            if i >= st.session_state.get('num_hotels', 0):
+                st.warning(f"Hotel {i+1} nie istnieje. Wróć na 'Opis hoteli' aby dodać hotele.")
+            else:
+                # Inicjalizuj klucze (z ochroną przed None)
+                _h_defaults = [
                     (f'h_hide_{i}', False), (f'h_overline_{i}', 'ZAKWATEROWANIE'),
                     (f'h_title_{i}', f'NAZWA HOTELU {i+1} 5*'),
                     (f'h_subtitle_{i}', 'Komfort i elegancja na najwyższym poziomie'),
@@ -1287,13 +1299,15 @@ with col_form:
                     (f'h_amenities_{i}', ["Basen", "SPA", "Wi-Fi", "Restauracja", "Plaża"]),
                     (f'h_text_{i}', 'Zapewniamy zakwaterowanie w starannie wyselekcjonowanym hotelu.'),
                     (f'h_advantages_{i}', 'Położenie tuż przy prywatnej plaży'),
-                ]:
-                    # Inicjalizuj domyślną wartość jeśli klucza brak LUB ma wartość None
+                ]
+                for dk, dv in _h_defaults:
                     if dk not in st.session_state or st.session_state.get(dk) is None:
                         st.session_state[dk] = dv
-                # Wymuszamy poprawny typ bool dla h_hide (chroni przed TypeError z bazy)
+                # Wymuszamy poprawny typ bool dla h_hide
                 if not isinstance(st.session_state.get(f'h_hide_{i}'), bool):
                     st.session_state[f'h_hide_{i}'] = False
+                
+                # Template manager (zapisz/wczytaj szablon)
                 h_keys = [
                     f'h_hide_{i}', f'h_overline_{i}', f'h_title_{i}', f'h_subtitle_{i}',
                     f'h_url_{i}', f'h_booking_{i}', f'h_amenities_{i}', f'h_text_{i}',
@@ -1301,27 +1315,34 @@ with col_form:
                     f'img_hotel_2_{i}', f'img_hotel_3_{i}',
                 ]
                 section_template_manager(h_keys, "HOT", st.session_state.get(f'h_title_{i}', f'hotel-{i+1}'), f"hot_{i}", index=i)
-                st.checkbox("Ukryj ten slajd w PDF", key=f"h_hide_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                safe_text_input("Mały nadtytuł:", key=f"h_overline_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                safe_text_area("Nazwa hotelu (H1):", key=f"h_title_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                safe_text_input("Podtytuł:", key=f"h_subtitle_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+                
+                # EDYCJA POL
+                st.checkbox("Ukryj ten slajd w PDF", key=f"h_hide_{i}")
+                safe_text_input("Mały nadtytuł:", key=f"h_overline_{i}")
+                safe_text_area("Nazwa hotelu (H1):", key=f"h_title_{i}")
+                safe_text_input("Podtytuł:", key=f"h_subtitle_{i}")
+                
                 c1, c2 = st.columns(2)
-                c1.text_input("Strona www:", key=f"h_url_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                c2.text_input("Ocena Booking.com:", key=f"h_booking_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                st.multiselect("Udogodnienia (ikonki):", list(hotel_icons.keys()), key=f"h_amenities_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                safe_text_area("Opis hotelu:", height=200, key=f"h_text_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
-                safe_text_area("Atuty hotelu:", height=100, key=f"h_advantages_{i}", on_change=set_focus, args=(f"slide-hotel-{i}",))
+                c1.text_input("Strona www:", key=f"h_url_{i}")
+                c2.text_input("Ocena Booking.com:", key=f"h_booking_{i}")
+                
+                st.multiselect("Udogodnienia (ikonki):", list(hotel_icons.keys()), key=f"h_amenities_{i}")
+                safe_text_area("Opis hotelu:", height=200, key=f"h_text_{i}")
+                safe_text_area("Atuty hotelu:", height=100, key=f"h_advantages_{i}")
+                
+                # ZDJĘCIA
                 cl1, cl2 = st.columns(2)
                 u_h1 = cl1.file_uploader("Zdj. Lewe Górne", key=f"up_uh1_{i}")
                 if u_h1: _upload_image(u_h1.getvalue(), f'img_hotel_1_{i}')
                 u_h1b = cl2.file_uploader("Zdj. Lewe Dolne", key=f"up_uh1b_{i}")
                 if u_h1b: _upload_image(u_h1b.getvalue(), f'img_hotel_1b_{i}')
+                
                 c3, c4 = st.columns(2)
                 u_h2 = c3.file_uploader("Zdj. Dolne 1", key=f"up_uh2_{i}")
                 if u_h2: _upload_image(u_h2.getvalue(), f'img_hotel_2_{i}')
                 u_h3 = c4.file_uploader("Zdj. Dolne 2", key=f"up_uh3_{i}")
                 if u_h3: _upload_image(u_h3.getvalue(), f'img_hotel_3_{i}')
-
+    
     # -----------------------------------------------------------------------
     # 11. PRZERYWNIK SERWISY DODATKOWE
     # -----------------------------------------------------------------------
