@@ -1240,14 +1240,14 @@ with col_form:
                     unsafe_allow_html=True,
                 )
                 if pos > 0:
-                    if col_up.button("▲", key=f"ho_up_{pos}", use_container_width=True):
+                    if col_up.button("▲", key=f"hotel_up_{pos}", use_container_width=True):
                         _move_hotel(pos, -1)
                         st.rerun()
                 if pos < len(_hotel_order_list) - 1:
-                    if col_dn.button("▼", key=f"ho_dn_{pos}", use_container_width=True):
+                    if col_dn.button("▼", key=f"hotel_dn_{pos}", use_container_width=True):
                         _move_hotel(pos, 1)
                         st.rerun()
-                if col_del.button("✕", key=f"ho_del_{pos}", use_container_width=True):
+                if col_del.button("✕", key=f"hotel_del_{pos}", use_container_width=True):
                     _hotel_delete(pos)
                     st.rerun()
             
