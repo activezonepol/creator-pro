@@ -1267,8 +1267,12 @@ with col_form:
                     (f'h_text_{i}', 'Zapewniamy zakwaterowanie w starannie wyselekcjonowanym hotelu.'),
                     (f'h_advantages_{i}', 'Położenie tuż przy prywatnej plaży'),
                 ]:
-                    if dk not in st.session_state:
+                    # Inicjalizuj domyślną wartość jeśli klucza brak LUB ma wartość None
+                    if dk not in st.session_state or st.session_state.get(dk) is None:
                         st.session_state[dk] = dv
+                # Wymuszamy poprawny typ bool dla h_hide (chroni przed TypeError z bazy)
+                if not isinstance(st.session_state.get(f'h_hide_{i}'), bool):
+                    st.session_state[f'h_hide_{i}'] = False
                 h_keys = [
                     f'h_hide_{i}', f'h_overline_{i}', f'h_title_{i}', f'h_subtitle_{i}',
                     f'h_url_{i}', f'h_booking_{i}', f'h_amenities_{i}', f'h_text_{i}',
