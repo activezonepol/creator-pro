@@ -1002,54 +1002,58 @@ def get_logo_b64(raw):
 def _should_render(slide_id, current_page, export_mode):
     """
     Centralna logika decydująca czy renderować slajd.
+    
+    Zasada: w trybie edycji renderujemy TYLKO aktywny slajd.
+    - Konkretny slajd (Strona tytułowa, Mapa, etc.) -> tylko ten slajd
+    - Konkretna atrakcja (★ Nazwa) -> tylko ten attr_X
+    - Konkretny hotel (❯ Hotel N) -> tylko ten slide-hotel-X
+    - Przerywnik (↳ Przerywnik X) -> tylko ten przerywnik
+    - "Opis atrakcji" -> wszystkie atrakcje (lista)
+    - "Opis hoteli" / "Zakwaterowanie" -> wszystkie hotele (lista)
     """
     # Słownik: slide_id -> klucz "hide" w session_state
     _HIDE_KEYS = {
         "slide-kierunek":           "k_hide",
         "slide-mapa":               "map_hide",
         "slide-loty":               "l_hide",
-        "slide-program":            "prg_hide",     # DODANE: Brakowało głównego programu!
+        "slide-program":            "prg_hide",
         "slide-app":                "app_hide",
         "slide-branding":           "brand_hide",
         "slide-virtual-assistant":  "va_hide",
         "slide-pillow-gifts":       "pg_hide",
         "slide-kosztorys-1":        "koszt_hide_1",
-        "slide-kosztorys-2":        "koszt_hide_2", 
+        "slide-kosztorys-2":        "koszt_hide_2",
         "slide-testimonials":       "testim_hide",
         "slide-about":              "about_hide",
     }
 
-    # Słownik: nazwa strony -> prefix ID slajdu
+    # Słownik: nazwa strony -> dokładny ID slajdu (statyczne strony)
     _PAGE_TO_SLIDE = {
         "Strona tytułowa":          "slide-title",
         "Opis kierunku":            "slide-kierunek",
         "Mapa podróży":             "slide-mapa",
         "Jak lecimy?":              "slide-loty",
-        "Zakwaterowanie":           "slide-hotel",
-        "Opis hoteli":              "slide-hotel", # DODANE: Nowa nazwa dla hoteli
         "Program wyjazdu":          "slide-program",
         "Aplikacja (komunikacja)":  "slide-app",
         "Materiały brandingowe":    "slide-branding",
         "Pillow gifts":             "slide-pillow-gifts",
         "Wirtualny asystent":       "slide-virtual-assistant",
-        "Kosztorys str. 1":         "slide-kosztorys-1", # DODANE
-        "Kosztorys str. 2":         "slide-kosztorys-2", # DODANE
-        "Kosztorys":                "slide-kosztorys",
-        "O nas":                    "slide-about",       # DODANE
-        "O Nas (Zespół)":           "slide-about",
-        "Referencje":               "slide-testimonials", # DODANE
-        "Co o nas mówią":           "slide-testimonials",
+        "Kosztorys str. 1":         "slide-kosztorys-1",
+        "Kosztorys str. 2":         "slide-kosztorys-2",
+        "O nas":                    "slide-about",
+        "Referencje":               "slide-testimonials",
     }
 
-    # Przerywniki: nazwa strony -> fragment ID slajdu
+    # Przerywniki: nazwa strony -> dokładny ID slajdu przerywnika
     _PRZERYWNIK_MAP = {
-        "  ↳ Przerywnik hotel":             "sek_0",
-        "  ↳ Przerywnik program":           "sek_3",
-        "  ↳ Przerywnik atrakcje":          "sek_1",
-        "  ↳ Przerywnik nasza agencja":     "sek_2", 
-        "  ↳ Przerywnik serwisy dodatkowe": "sek_4", 
+        "  ↳ Przerywnik hotel":             "slide-sek_0",
+        "  ↳ Przerywnik atrakcje":          "slide-sek_1",
+        "  ↳ Przerywnik nasza agencja":     "slide-sek_2",
+        "  ↳ Przerywnik program":           "slide-sek_3",
+        "  ↳ Przerywnik serwisy dodatkowe": "slide-sek_4",
     }
-    # 1. Sprawdź czy slajd nie jest ukryty (dotyczy eksportu i edycji)
+
+    # 1. Sprawdź czy slajd jest ukryty (dotyczy edycji i eksportu)
     hide_key = _HIDE_KEYS.get(slide_id)
     if hide_key and get_data(hide_key, False):
         return False
@@ -1058,30 +1062,49 @@ def _should_render(slide_id, current_page, export_mode):
     if export_mode:
         return True
 
-    # 3. Tryb edycji: renderuj tylko aktywny slajd
+    # 3. Tryb edycji: renderuj TYLKO aktywny slajd
 
-    # Przerywniki (dynamiczne ID: sek_0, sek_1...)
+    # 3a. Przerywnik -> tylko ten przerywnik (slide-sek_X)
     if current_page in _PRZERYWNIK_MAP:
-        return _PRZERYWNIK_MAP[current_page] in slide_id
+        return slide_id == _PRZERYWNIK_MAP[current_page]
 
-    # Atrakcje (dynamiczne ID: attr_0, attr_1...)
-    if "★" in current_page or current_page.startswith("ATTR:"):
-        # Jeśli jesteśmy na stronie konkretnej atrakcji, pozwalamy rendererowi 
-        # rysować slajdy atrakcji (JS i tak przewinie do tej właściwej)
-        return "attr_" in slide_id or "slide-sek_1" in slide_id
-        
-    # Hotele (dynamiczne ID: slide-hotel-0, slide-hotel-1...)
-    if "Hotel " in current_page or current_page == "Zakwaterowanie" or current_page == "Opis hoteli":
-        return slide_id.startswith("slide-hotel") or "slide-sek_0" in slide_id
-            
-    # Standardowe strony (statyczne ID)
+    # 3b. Konkretna atrakcja (★ NazwaAtrakcji) -> tylko ten attr_X
+    if "★" in current_page:
+        # Wyciągnij nazwe atrakcji i znajdz jej indeks
+        attr_name = current_page.replace("★", "").strip()
+        attr_order = get_data('attr_order', [])
+        if not attr_order:
+            attr_order = list(range(get_data('num_attr', 0)))
+        for pos, idx in enumerate(attr_order):
+            display_name = str(get_data(f'amain_{idx}', '')).split('\n')[0][:25].strip() or f"Atrakcja {pos + 1}"
+            if display_name == attr_name:
+                return slide_id == f"attr_{idx}"
+        return False  # nie znaleziono -> nic nie renderuj
+
+    # 3c. Konkretny hotel (❯ Hotel N) -> tylko ten slide-hotel-X
+    if "❯" in current_page:
+        # "    ❯ Hotel 1" -> wyciagnij numer
+        m = re.search(r'Hotel\s+(\d+)', current_page)
+        if m:
+            hotel_pos = int(m.group(1)) - 1  # 1-based -> 0-based
+            return slide_id == f"slide-hotel-{hotel_pos}"
+        return False
+
+    # 3d. "Opis atrakcji" -> wszystkie atrakcje (lista)
+    if current_page == "Opis atrakcji":
+        return slide_id.startswith("attr_")
+
+    # 3e. "Opis hoteli" / "Zakwaterowanie" -> wszystkie hotele (lista)
+    if current_page in ("Opis hoteli", "Zakwaterowanie"):
+        return slide_id.startswith("slide-hotel-")
+
+    # 3f. Standardowe strony -> tylko jej slajd (dokladne dopasowanie)
     expected = _PAGE_TO_SLIDE.get(current_page, "")
-    if not expected:
-        # Jeśli strona nie jest na liście, renderujemy wszystko (bezpiecznik)
-        # ale wykluczamy slajdy, które mają swoje dedykowane sekcje
-        return not any(x in slide_id for x in ["hotel", "attr", "place"])
-        
-    return slide_id.startswith(expected)
+    if expected:
+        return slide_id == expected
+
+    # 3g. Nieznana strona -> nic nie renderuj
+    return False
 
 def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     """
