@@ -1783,9 +1783,9 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         va1 = get_b64('img_va_1', (16, 9))
         va2 = get_b64('img_va_2', (1, 1))
         va3 = get_b64('img_va_3', (1, 1))
-        v1h = (f'<img src="data:image/jpeg;base64,{va1}" style="width:100%;height:100%;object-fit:cover;">' if va1 else _get_ph('ZDJ 1'))
-        v2h = (f'<img src="data:image/jpeg;base64,{va2}" style="width:100%;height:100%;object-fit:cover;">' if va2 else _get_ph('ZDJ 2'))
-        v3h = (f'<img src="data:image/jpeg;base64,{va3}" style="width:100%;height:100%;object-fit:cover;">' if va3 else _get_ph('ZDJ 3'))
+        v1h = _img_tag(va1, 'ZDJ 1')
+        v2h = _img_tag(va2, 'ZDJ 2')
+        v3h = _img_tag(va3, 'ZDJ 3')
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
             <div style="flex: 45; position: relative; height: 100%;"><div class="va-collage">
                 <div class="va-img-1-wrap va-img-common">{v1h}</div>
