@@ -1906,8 +1906,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     # --- 20. Rekomendacje ---
     if _should_render('slide-testimonials', current_page, export_mode):
         t_main_img = get_b64('img_testim_main', (4, 5))
-        t_main_img_html = (f'<img src="data:image/jpeg;base64,{t_main_img}" style="width:100%;height:100%;object-fit:cover;">'
-                           if t_main_img else _get_ph('ZDJĘCIE GŁÓWNE'))
+        t_main_img_html = _img_tag(t_main_img, 'ZDJĘCIE GŁÓWNE')
         t_h = ""
         for i in range(get_data('testim_count', 3)):
             it = get_b64(f'testim_img_{i}', (1, 1))
