@@ -1659,8 +1659,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     {h_am_html}
                     <div style="flex-grow:1;">{adv_html}</div>
                     <div class="gallery-row" style="padding-top:0; padding-bottom:5px; gap:15px;">
-                        <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{f'<img src="data:image/jpeg;base64,{h2}" style="width:100%;height:100%;object-fit:cover;">' if h2 else _get_ph('FOT DÓŁ 1')}</div>
-                        <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{f'<img src="data:image/jpeg;base64,{h3}" style="width:100%;height:100%;object-fit:cover;">' if h3 else _get_ph('FOT DÓŁ 2')}</div>
+                        <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{_img_tag(h2, 'FOT DÓŁ 1')}</div>
+                        <div class="gallery-thumb" style="aspect-ratio: unset; height:140px;">{_img_tag(h3, 'FOT DÓŁ 2')}</div>
                     </div>
                 </div></div>{fh}""", f"slide-hotel-{i}"))
 
