@@ -1719,16 +1719,16 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             if md_a:
                 bb_a = f"<a href='#program_day_{int(md_a.group(1)) - 1}' class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
             hp.append(_shtml(f"""{lh}<div class="premium-layout" id="attr_{i}">
-                <div class="photo-col">{f'<img src="data:image/jpeg;base64,{iah}" style="width:100%;height:100%;object-fit:cover;">' if iah else _get_ph('FOTO GŁÓWNE')}{bb_a}</div>
+                <div class="photo-col">{_img_tag(iah, 'FOTO GŁÓWNE')}{bb_a}</div>
                 <div class="info-col">
                     {f'<div class="type-icon-box">{icon_map.get(get_data(f"atype_{i}",""),"")}</div>' if get_data(f"atype_{i}") and get_data(f"atype_{i}") != "Brak" else ''}
                     <div class="title-h2">{str(get_data(f'amain_{i}','')).replace(chr(10),'<br>')}</div>
                     <div class="title-sub">{str(get_data(f'asub_{i}','')).replace(chr(10),'<br>')}</div>
                     <div style="flex-grow:1;"><p>{str(get_data(f'aopis_{i}') or '').replace(chr(10),'<br>')}</p></div>
                     <div class="gallery-row">
-                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a1}" style="width:100%;height:100%;object-fit:cover;">' if a1 else _get_ph('FOT 1')}</div>
-                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a2}" style="width:100%;height:100%;object-fit:cover;">' if a2 else _get_ph('FOT 2')}</div>
-                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{a3}" style="width:100%;height:100%;object-fit:cover;">' if a3 else _get_ph('FOT 3')}</div>
+                        <div class="gallery-thumb">{_img_tag(a1, 'FOT 1')}</div>
+                        <div class="gallery-thumb">{_img_tag(a2, 'FOT 2')}</div>
+                        <div class="gallery-thumb">{_img_tag(a3, 'FOT 3')}</div>
                     </div></div></div>{fh}""", f"attr_{i}"))
                     
     # --- Serwisy dodatkowe (nowy przerywnik) ---
