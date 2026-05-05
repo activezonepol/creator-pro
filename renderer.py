@@ -1694,9 +1694,9 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     <div class="title-sub" style="margin-bottom:15px;">{p_sub}</div>
                     <div style="flex-grow:1;"><p style="font-size:{fs_t}px; line-height:1.6; color:{c_t};">{p_opis}</p></div>
                     <div class="gallery-row" style="padding-top:0; padding-bottom:5px;">
-                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{tk1_p}" style="width:100%;height:100%;object-fit:cover;">' if tk1_p else _get_ph('FOT 1')}</div>
-                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{tk2_p}" style="width:100%;height:100%;object-fit:cover;">' if tk2_p else _get_ph('FOT 2')}</div>
-                        <div class="gallery-thumb">{f'<img src="data:image/jpeg;base64,{tk3_p}" style="width:100%;height:100%;object-fit:cover;">' if tk3_p else _get_ph('FOT 3')}</div>
+                        <div class="gallery-thumb">{_img_tag(tk1_p, 'FOT 1')}</div>
+                        <div class="gallery-thumb">{_img_tag(tk2_p, 'FOT 2')}</div>
+                        <div class="gallery-thumb">{_img_tag(tk3_p, 'FOT 3')}</div>
                     </div>
                 </div>
             </div>{fh}""", f"place_{i}"))
