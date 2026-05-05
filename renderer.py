@@ -1151,8 +1151,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         box_txt = str(get_data(f'{sid}_txt') or '#ffffff')
         bg_img  = get_b64(f'{sid}_img', (16, 9))
         bg_html = (
-            f'<img src="data:image/jpeg;base64,{bg_img}" style="width:100%;height:100%;object-fit:cover;">' 
-            if bg_img else
+            _img_tag(bg_img) if bg_img else
             f'<div style="width:100%;height:100%;background:{box_bg};"></div>'
         )
         hp.append(_shtml(f"""{lh}
