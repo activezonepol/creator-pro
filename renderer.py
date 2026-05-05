@@ -1846,8 +1846,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     # --- Kosztorys (slajd 2) ---
     if _should_render('slide-kosztorys-2', current_page, export_mode):
         k2 = get_b64('img_koszt_2', (4, 5))
-        imk2 = (f"<img src='data:image/jpeg;base64,{k2}' style='width:100%;height:100%;object-fit:cover;'>"
-                if k2 else _get_ph('ZDJĘCIE KOSZTORYSU 2'))
+        imk2 = _img_tag(k2, 'ZDJĘCIE KOSZTORYSU 2')
         zaw2_list = []
         for x in get_data('koszt_zawiera_2', '').split('\n'):
             if not x.strip(): continue
