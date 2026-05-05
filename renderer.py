@@ -1678,8 +1678,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 continue
 
             ik_p = get_b64(f'pimg1_{i}', (4, 5))
-            imk_p = (f"<img src='data:image/jpeg;base64,{ik_p}' style='width:100%;height:100%;object-fit:cover;'>"
-                     if ik_p else _get_ph('FOTO MIEJSCA'))
+            imk_p = _img_tag(ik_p, 'FOTO MIEJSCA')
             tk1_p = get_b64(f'pimg2_{i}', (1, 1))
             tk2_p = get_b64(f'pimg3_{i}', (1, 1))
             tk3_p = get_b64(f'pimg4_{i}', (1, 1))
