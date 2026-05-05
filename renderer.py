@@ -1891,8 +1891,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 <div style='font-size:{max(10,fs_t-2)}px;line-height:1.4;color:{c_t};'>{str(get_data(f't_desc_{i}') or '').replace(chr(10),'<br>')}</div>
             </div>"""
         c_img = get_b64('img_about_clients', (4, 5))
-        c_img_html = (f'<img src="data:image/jpeg;base64,{c_img}" style="width:100%;height:100%;object-fit:cover;">'
-                       if c_img else _get_ph('ZDJĘCIE / LOGA KLIENTÓW'))
+        c_img_html = _img_tag(c_img, 'ZDJĘCIE / LOGA KLIENTÓW')
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
             <div class="info-col" style="flex: 60; padding-right: 40px; padding-top: 15px; justify-content: flex-start; display: flex; flex-direction: column;">
                 <div class="app-overline-style"><span>{str(get_data('about_overline','NASZ ZESPÓŁ'))}</span></div>
