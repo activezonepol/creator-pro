@@ -1800,9 +1800,9 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         pg1 = get_b64('img_pg_1', (1, 1))
         pg2 = get_b64('img_pg_2', (1, 2.1))
         pg3 = get_b64('img_pg_3', (1, 1))
-        h1_pg = (f'<img src="data:image/jpeg;base64,{pg1}" style="width:100%;height:100%;object-fit:cover;">' if pg1 else _get_ph('ZDJ 1'))
-        h2_pg = (f'<img src="data:image/jpeg;base64,{pg2}" style="width:100%;height:100%;object-fit:cover;">' if pg2 else _get_ph('ZDJ 2 PION'))
-        h3_pg = (f'<img src="data:image/jpeg;base64,{pg3}" style="width:100%;height:100%;object-fit:cover;">' if pg3 else _get_ph('ZDJ 3'))
+        h1_pg = _img_tag(pg1, 'ZDJ 1')
+        h2_pg = _img_tag(pg2, 'ZDJ 2 PION')
+        h3_pg = _img_tag(pg3, 'ZDJ 3')
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
             <div style="flex:50;position:relative;height:100%;"><div class="pg-collage">
                 <div class="pg-img-1-wrap pg-img-common">{h1_pg}</div>
