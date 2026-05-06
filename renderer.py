@@ -1761,9 +1761,9 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         b1 = get_b64('img_brand_1', (1, 1))
         b2 = get_b64('img_brand_2', (1, 1))
         b3 = get_b64('img_brand_3', (16, 9))
-        b1h = (f'<img src="data:image/jpeg;base64,{b1}" style="width:100%;height:100%;object-fit:cover;">' if b1 else _get_ph('ZDJ 1'))
-        b2h = (f'<img src="data:image/jpeg;base64,{b2}" style="width:100%;height:100%;object-fit:cover;">' if b2 else _get_ph('ZDJ 2'))
-        b3h = (f'<img src="data:image/jpeg;base64,{b3}" style="width:100%;height:100%;object-fit:cover;"><div class="brand-gap"></div>' if b3 else _get_ph('ZDJ 3'))
+        b1h = _img_tag(b1, 'ZDJ 1')
+        b2h = _img_tag(b2, 'ZDJ 2')
+        b3h = (_img_tag(b3, 'ZDJ 3') + '<div class="brand-gap"></div>') if b3 else _get_ph('ZDJ 3')
         bfh = "".join([f"<li>{f.strip()}</li>" for f in get_data('brand_features', '').split('\n') if f.strip()])
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
             <div class="info-col" style="flex: 55; padding-right: 30px; padding-top: 24px; justify-content: flex-start;">
