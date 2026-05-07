@@ -83,8 +83,10 @@ def _upload_image(file_bytes, session_key, is_logo=False):
             # ZAPISUJEMY CZYSTY URL (bez base64)
             st.session_state[session_key] = url
             st.session_state["_last_upload_ok"] = True
+            # Inkrementujemy licznik wymuszający przebudowę iframe (components.html)
+            st.session_state['_upload_counter'] = st.session_state.get('_upload_counter', 0) + 1
             # Wymuszamy odświeżenie, żeby podgląd od razu widział nowe logo
-            st.rerun() 
+            st.rerun()
         else:
             st.error("Nie udało się uzyskać adresu URL po uploadzie.")
     except Exception as e:
