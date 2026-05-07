@@ -2021,6 +2021,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     </html>"""
 
     # WYŚWIETL: Rysujemy podgląd w jednym, jedynym oknie
-    components.html(full_html, height=800, scrolling=False)
+    # Dynamiczny key wymusza pełne przebudowanie iframe po uploadzie
+    _preview_key = f"preview_{st.session_state.get('_upload_counter', 0)}"
+    components.html(full_html, height=800, scrolling=False, key=_preview_key)
     
     return ""
