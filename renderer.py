@@ -2021,8 +2021,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     </html>"""
 
     # WYŚWIETL: Rysujemy podgląd w jednym, jedynym oknie
-    # Dynamiczny key wymusza pełne przebudowanie iframe po uploadzie
-    _preview_key = f"preview_{st.session_state.get('_upload_counter', 0)}"
-    components.html(full_html, height=800, scrolling=False, key=_preview_key)
+    # Marker HTML z licznikiem wymusza zmianę hash → Streamlit przebudowuje iframe
+    _marker = f"<!-- u{st.session_state.get('_upload_counter', 0)} -->"
+    components.html(_marker + full_html, height=800, scrolling=False)
     
     return ""
