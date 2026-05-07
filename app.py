@@ -48,6 +48,27 @@ if "preview_container" not in st.session_state:
 # ---------------------------------------------------------------------------
 # HELPERY INPUTÓW I UPLOADU
 # ---------------------------------------------------------------------------
+def _make_upload_callback(session_key, is_logo=False):
+    """Tworzy callback dla file_uploadera, wywoływany on_change.
+    
+    Callback wykonuje się PRZED renderingiem skryptu — dzięki temu
+    URL nowego zdjęcia trafia do session_state na czas, a renderer
+    od razu wyświetla nowy obraz (bez konieczności przeładowania).
+    
+    Args:
+        session_key: docelowy klucz w session_state (np. 'img_hero_t')
+        is_logo: True jeśli logo (zapisywane jako PNG)
+    
+    Returns:
+        Funkcja callback do przekazania jako on_change w file_uploader.
+        Klucz file_uploadera musi być f"up_{session_key}".
+    """
+    upload_widget_key = f"up_{session_key}"
+    def _callback():
+        f = st.session_state.get(upload_widget_key)
+        if f:
+            _upload_image(f.getvalue(), session_key, is_logo=is_logo)
+    return _callback
 def _upload_image(file_bytes, session_key, is_logo=False):
     """Przesyła obraz do Supabase i zapisuje URL w sesji."""
     if not file_bytes:
