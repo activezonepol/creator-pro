@@ -47,7 +47,11 @@ def upload_image(supabase_client, key: str, raw_bytes: bytes, max_dim: int = 100
         supabase_client.storage.from_(STORAGE_BUCKET).upload(
             storage_path, optimized_bytes, file_options={"content-type": content_type}
         )
-        return supabase_client.storage.from_(STORAGE_BUCKET).get_public_url(storage_path)
+        # ?v=timestamp wymusza pobranie nowej wersji pliku
+        # (URL jest stały, ale plik w Storage zmienił się — bez ?v= browser cache'uje)
+        public_url = supabase_client.storage.from_(STORAGE_BUCKET).get_public_url(storage_path)
+        import time
+        return f"{public_url}?v={int(time.time())}"
     except Exception as e:
         print(f"Błąd uploadu: {e}") 
         return None
