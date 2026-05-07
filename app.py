@@ -789,9 +789,11 @@ with col_form:
             ('t_hotel', 'Hotel'), ('t_trans', 'Dojazd'),
         ]:
             safe_text_input(l, key=k)
-        u1 = st.file_uploader("Zdjęcie główne (4:5)", key="up_tyt_hero")
-        if u1:
-            _upload_image(u1.getvalue(), 'img_hero_t')
+        st.file_uploader(
+            "Zdjęcie główne (4:5)",
+            key="up_img_hero_t",
+            on_change=_make_upload_callback('img_hero_t')
+        )
         
         c1, c2 = st.columns(2)
         u2 = c1.file_uploader("Logo Firmy", key="up_tyt_logo_az")
