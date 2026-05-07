@@ -517,6 +517,10 @@ def get_b64_cached(raw_bytes, ratio):
 def get_b64(key: str, ratio: tuple = (4, 5)) -> str | None:
     """Zwraca gotowy src dla <img>: URL Supabase lub data URI z base64."""
     val = st.session_state.get(key)
+    # === DEBUG TYMCZASOWE ===
+    if key == 'img_hero_t':
+        st.warning(f"DEBUG get_b64('img_hero_t'): val type = {type(val).__name__}, val = {repr(val)[:200] if val else 'None'}")
+    # === END DEBUG ===
     if not val:
         return None
     
