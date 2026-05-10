@@ -1165,7 +1165,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             </div>
             <div style="position:absolute; top:50%; left:8%; transform:translateY(-50%); z-index:3; max-width:58%;">
                 <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px;">
-                    <div style="width:32px; height:1px; background:{acc}; opacity:0.7; flex-shrink:0;"></div>
+                    <div style="width:32px; height:3px; background:{acc}; opacity:0.7; flex-shrink:0;"></div>
                     <span style="font-family:'{f_met}'; font-weight:700; font-size:{max(10,fs_met-1)}px;
                                  letter-spacing:4px; color:{acc}; text-transform:uppercase;">
                         {sub}
