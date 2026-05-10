@@ -1134,11 +1134,51 @@ with col_form:
         )
             
     # -----------------------------------------------------------------------
-    # 8. OGÓLNY OPIS ATRAKCJI 
+    # 8. OPIS ATRAKCJI (kontener — przycisk dodawania + lista atrakcji)
     # -----------------------------------------------------------------------
     elif page == "Opis atrakcji":
-        st.info("Tutaj wklej kod do edycji ogólnego opisu atrakcji (jeśli taki masz przewidziany w aplikacji).")
-
+        _guard(["num_attr", "attr_order"])
+        
+        # PRZYCISK DODAWANIA ATRAKCJI
+        if st.button("➕ DODAJ ATRAKCJĘ", key="btn_add_attr_main", type="primary", use_container_width=True):
+            _attr_add()
+            st.rerun()
+        
+        st.markdown("---")
+        
+        # LISTA ATRAKCJI (z przyciskami zarządzania ▲▼✕)
+        _attr_order_list = _attr_order()
+        _n_attr_curr = _attr_count()
+        
+        if _n_attr_curr == 0:
+            st.info("Nie dodano jeszcze żadnej atrakcji. Kliknij '➕ DODAJ ATRAKCJĘ' powyżej.")
+        else:
+            _section_header(f"LISTA ATRAKCJI ({_n_attr_curr})")
+            _acc_color = st.session_state.get('color_accent', '#FF6600')
+            for pos, ai in enumerate(_attr_order_list):
+                name = str(st.session_state.get(f'amain_{ai}', '')).split('\n')[0][:35] or f'Atrakcja {ai+1}'
+                col_lbl, col_up, col_dn, col_del = st.columns([6, 1, 1, 1])
+                col_lbl.markdown(
+                    f"<div style='padding:6px 10px; background:#fef3ec; border-radius:4px; "
+                    f"border-left:3px solid {_acc_color}; font-size:12px; color:#1e293b;'>"
+                    f"<strong style='color:{_acc_color}; font-size:10px; text-transform:uppercase; "
+                    f"letter-spacing:1px;'>★ Atrakcja {pos+1}</strong><br>{name}</div>",
+                    unsafe_allow_html=True,
+                )
+                if pos > 0:
+                    if col_up.button("▲", key=f"attr_up_{pos}", use_container_width=True):
+                        _attr_move(pos, -1)
+                        st.rerun()
+                if pos < len(_attr_order_list) - 1:
+                    if col_dn.button("▼", key=f"attr_dn_{pos}", use_container_width=True):
+                        _attr_move(pos, 1)
+                        st.rerun()
+                if col_del.button("✕", key=f"attr_del_{pos}", use_container_width=True):
+                    _attr_delete(pos)
+                    st.rerun()
+            
+            st.markdown("---")
+            st.caption("💡 Kliknij '★ Nazwa atrakcji' w menu nawigacji aby edytować szczegóły konkretnej atrakcji.")
     # -----------------------------------------------------------------------
     # DYNAMICZNE OPISY MIEJSC-ATRAKCJI (Poprawiona logika)
     # -----------------------------------------------------------------------
