@@ -662,19 +662,13 @@ with st.sidebar:
                     label_visibility="collapsed", on_change=_handle_nav)
 
 # ---------------------------------------------------------------------------
-# PRZYCISKI: ZAPISZ TERAZ + DODAJ ATRAKCJĘ
+# PRZYCISKI: ZAPISZ TERAZ 
 # (Tutaj kończy się sidebar, więc wcięcie wraca do lewej krawędzi - 0 spacji)
 # ---------------------------------------------------------------------------
-col_save, col_add = st.columns([1, 1])
-with col_save:
-    if "manual_save_btn" in st.session_state: del st.session_state["manual_save_btn"]
-    if st.button("💾 ZAPISZ TERAZ", use_container_width=True, type="primary", key="manual_save_btn"):
-        save_to_supabase()
-        st.rerun()
-with col_add:
-    if st.button("➕ Dodaj atrakcję", key="btn_add_attraction_main", type="primary", use_container_width=True):
-        _attr_add()
-        st.rerun()
+if "manual_save_btn" in st.session_state: del st.session_state["manual_save_btn"]
+if st.button("💾 ZAPISZ TERAZ", use_container_width=True, type="primary", key="manual_save_btn"):
+    save_to_supabase()
+    st.rerun()
 
 st.markdown("""<style>button[data-testid="baseButton-primary"] { color: white !important; }</style>""", unsafe_allow_html=True)
 
