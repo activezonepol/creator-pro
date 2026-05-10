@@ -1514,14 +1514,21 @@ with col_form:
         safe_text_area("Punktory (każda linia = jeden punkt):", height=150, key="pg_features",
                      help="Każda linia to jeden punkt z kwadratowym punktorkiem ■")
         c1, c2, c3 = st.columns(3)
-        u1 = c1.file_uploader("Zdjęcie 1", key="up_pg_img_1")
-        if u1: _upload_image(u1.getvalue(), 'img_pg_1')
-            
-        u2 = c2.file_uploader("Zdjęcie 2 (Pionowe)", key="up_pg_img_2")
-        if u2: _upload_image(u2.getvalue(), 'img_pg_2')
-            
-        u3 = c3.file_uploader("Zdjęcie 3", key="up_pg_img_3")
-        if u3: _upload_image(u3.getvalue(), 'img_pg_3')
+        c1.file_uploader(
+            "Zdjęcie 1",
+            key="up_img_pg_1",
+            on_change=_make_upload_callback('img_pg_1')
+        )
+        c2.file_uploader(
+            "Zdjęcie 2 (Pionowe)",
+            key="up_img_pg_2",
+            on_change=_make_upload_callback('img_pg_2')
+        )
+        c3.file_uploader(
+            "Zdjęcie 3",
+            key="up_img_pg_3",
+            on_change=_make_upload_callback('img_pg_3')
+        )
 
     # -----------------------------------------------------------------------
     # 15. WIRTUALNY ASYSTENT
