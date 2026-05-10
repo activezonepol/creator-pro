@@ -917,9 +917,8 @@ def get_local_css(return_str=False):
         .page-footer {{ width: 100%; border-top: 1px solid {acc}; padding-top: 8px; margin-top: auto; display: flex; justify-content: space-between; font-size: 9px; text-transform: uppercase; font-weight: 600; color: {c_met}; font-family: '{f_met}'; position: relative; z-index: 10; }}
         .page-counter::after {{ counter-increment: slide_counter; content: counter(slide_counter); font-family: '{f_met}'; color: {c_met}; }}
         /* Globalna reguła - zapobieganie bękartom (pojedynczym słowom na końcu wersa) */
-        /* Działa w treści/opisach, NIE dotyczy tytułów (h1, h2) */
-        .info-col p, .info-col div:not(.title-h1):not(.title-h2):not(.title-sub):not(.app-overline-style),
-        .app-list li, .testim-quote, .testim-author,
+        .info-col p, .info-col div:not(.title-h1):not(.title-h2):not(.app-overline-style),
+        .title-sub, .app-list li, .testim-quote, .testim-author,
         .premium-layout p, .premium-layout div[style*="font-family"] {{
             text-wrap: pretty;
         }}
