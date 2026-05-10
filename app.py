@@ -1649,9 +1649,11 @@ with col_form:
         _ic2.color_picker("Kolor tytułu:", key="sek_2_txt", value=st.session_state.get("sek_2_txt", "#ffffff"))
         _ic3.color_picker("Kolor nadtytułu:", key="sek_2_sub_color", value=st.session_state.get("sek_2_sub_color", _sub_default))
 
-        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key="up_sek_img_up_2")
-        if _up_s:
-            _upload_image(_up_s.getvalue(), "sek_2_img")
+        st.file_uploader(
+            "Zdjęcie tła (16:9):",
+            key="up_sek_2_img",
+            on_change=_make_upload_callback('sek_2_img')
+        )
 
     # -----------------------------------------------------------------------
     # 19. O NAS
