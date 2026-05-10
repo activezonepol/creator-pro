@@ -1020,9 +1020,11 @@ with col_form:
                 safe_text_input(l, key=k)
         for k, l in [('l_desc', 'Opis'), ('l_extra', 'Dodatkowe info')]:
             safe_text_area(l, key=k)
-        u5 = st.file_uploader("Foto Samolotu", key="up_lot_hero")
-        if u5:
-            _upload_image(u5.getvalue(), 'img_hero_l')
+        st.file_uploader(
+            "Foto Samolotu",
+            key="up_img_hero_l",
+            on_change=_make_upload_callback('img_hero_l')
+        )
 
     # -----------------------------------------------------------------------
     # 5. PRZERYWNIK PROGRAMU (Wstawiony z Twojego kodu)
