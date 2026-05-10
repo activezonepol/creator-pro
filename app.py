@@ -844,9 +844,11 @@ with col_form:
             help="Każda linia = jeden wpis. 'Etykieta: Wartość' pogrubia etykietę.",
         )
         _section_header("ZDJĘCIE (jedno zdjęcie w dwóch ramkach)")
-        u4 = st.file_uploader("Zdjęcie kierunku:", key="up_kie_hero")
-        if u4:
-            _upload_image(u4.getvalue(), 'img_hero_k')
+        st.file_uploader(
+            "Zdjęcie kierunku:",
+            key="up_img_hero_k",
+            on_change=_make_upload_callback('img_hero_k')
+        )
     
     # -----------------------------------------------------------------------
     # 3. MAPA PODRÓŻY (Całość)
