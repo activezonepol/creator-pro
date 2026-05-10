@@ -891,7 +891,7 @@ def get_local_css(return_str=False):
         .brand-img-2 img {{ width: 100%; height: 100%; object-fit: cover; }}
         .brand-img-3 {{ grid-column: 1 / span 2; grid-row: 2; border-radius: 8px 8px 50px 50px; overflow: hidden; background-color: #fcfcfc; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; position: relative; }}
         .brand-img-3 img {{ width: 100%; height: 100%; object-fit: cover; }}
-        .brand-gap {{ position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 15px; height: calc(100% + 20px); background-color: #fff; z-index: 5; }}
+        .brand-gap {{ position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 15px; height: 100%; background-color: #fff; z-index: 5; }}
         .va-collage {{ display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: 1.2fr 1fr; gap: 12px; height: 100%; width: 100%; }}
         .va-img-common {{ width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #fcfcfc; border: 1px solid #eee; }}
         .va-img-common img {{ width: 100%; height: 100%; object-fit: cover; }}
