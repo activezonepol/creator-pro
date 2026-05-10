@@ -1452,13 +1452,16 @@ with col_form:
         safe_text_area("Punkty na liście (Enter = nowy punkt):", height=200, key="app_features")
         
         c1, c2 = st.columns(2)
-        u_bg = c1.file_uploader("Zdj. tła (Prawa str.)", key="up_app_bg")
-        if u_bg:
-            _upload_image(u_bg.getvalue(), 'img_app_bg')
-            
-        u_sc = c2.file_uploader("Ekran Aplikacji", key="up_app_sc")
-        if u_sc:
-            _upload_image(u_sc.getvalue(), 'img_app_screen')
+        c1.file_uploader(
+            "Zdj. tła (Prawa str.)",
+            key="up_img_app_bg",
+            on_change=_make_upload_callback('img_app_bg')
+        )
+        c2.file_uploader(
+            "Ekran Aplikacji",
+            key="up_img_app_screen",
+            on_change=_make_upload_callback('img_app_screen')
+        )
     # -----------------------------------------------------------------------
     # 13. MATERIAŁY BRANDINGOWE
     # -----------------------------------------------------------------------
