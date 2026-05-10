@@ -1059,9 +1059,9 @@ with col_form:
         safe_text_input("Nadtytuł (overline, kolor akcentu):", key=f"sek_3_sub")
         
         _ic1, _ic2, _ic3 = st.columns(3)
-        _ic1.color_picker("Kolor tła:", key=f"sek_3_bg")
-        _ic2.color_picker("Kolor tytułu:", key=f"sek_3_txt")
-        _ic3.color_picker("Kolor nadtytułu:", key=f"sek_3_sub_color")
+        _ic1.color_picker("Kolor tła:", key="sek_3_bg", value=st.session_state.get("sek_3_bg", _bg_default))
+        _ic2.color_picker("Kolor tytułu:", key="sek_3_txt", value=st.session_state.get("sek_3_txt", "#ffffff"))
+        _ic3.color_picker("Kolor nadtytułu:", key="sek_3_sub_color", value=st.session_state.get("sek_3_sub_color", _sub_default))
         
         st.file_uploader(
             "Zdjęcie tła (16:9):",
