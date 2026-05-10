@@ -1046,6 +1046,7 @@ with col_form:
         # Ujednolicony wzorzec walidacji kolorów (jak w innych przerywnikach)
         for _ck, _cv in [("sek_3_bg", _bg_default), ("sek_3_txt", '#ffffff'), ("sek_3_sub_color", _sub_default)]:
             _v = st.session_state.get(_ck)
+            st.warning(f"DEBUG: {_ck} = {repr(_v)} (default={_cv})")
             # Reset jeśli brak, czarny (#000000) lub niepoprawny format
             if not _v or _v == '#000000' or not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
                 st.session_state[_ck] = _cv
