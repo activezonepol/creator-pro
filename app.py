@@ -1084,9 +1084,11 @@ with col_form:
                 d_keys = [f'img_d_{d}', f'attr_{d}', f'desc_{d}']
                 section_template_manager(d_keys, "PRG", f"Dzien_{d+1}", f"prg_{d}", index=d)
                 
-                ud = st.file_uploader(f"Foto D{d+1} (16:9)", key=f"up_prg_img_{d}")
-                if ud:
-                    _upload_image(ud.getvalue(), f'img_d_{d}')
+                st.file_uploader(
+                    f"Foto D{d+1} (16:9)",
+                    key=f"up_img_d_{d}",
+                    on_change=_make_upload_callback(f'img_d_{d}')
+                )
 
     # -----------------------------------------------------------------------
     # 7. PRZERYWNIK ATRAKCJE
