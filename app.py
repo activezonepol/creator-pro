@@ -1429,8 +1429,11 @@ with col_form:
         _ic2.color_picker("Kolor tytułu:", key="sek_4_txt")
         _ic3.color_picker("Kolor nadtytułu:", key="sek_4_sub_color")
 
-        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key="up_sek_img_up_4")
-        if _up_s: _upload_image(_up_s.getvalue(), "sek_4_img")
+        st.file_uploader(
+            "Zdjęcie tła (16:9):",
+            key="up_sek_4_img",
+            on_change=_make_upload_callback('sek_4_img')
+        )
     # -----------------------------------------------------------------------
     # 12. APLIKACJA (KOMUNIKACJA)
     # -----------------------------------------------------------------------
