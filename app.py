@@ -1043,9 +1043,11 @@ with col_form:
             st.session_state["sek_3_sub_color"] = _sub_default
             st.rerun()
 
-        for _ck, _cv in [(f"sek_3_bg", _bg_default), (f"sek_3_txt", '#ffffff'), (f"sek_3_sub_color", _sub_default)]:
-            _v = st.session_state.get(_ck, _cv)
-            if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
+        # Ujednolicony wzorzec walidacji kolorów (jak w innych przerywnikach)
+        for _ck, _cv in [("sek_3_bg", _bg_default), ("sek_3_txt", '#ffffff'), ("sek_3_sub_color", _sub_default)]:
+            _v = st.session_state.get(_ck)
+            # Reset jeśli brak, czarny (#000000) lub niepoprawny format
+            if not _v or _v == '#000000' or not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
                 st.session_state[_ck] = _cv
                 
         st.button("POKAŻ PODGLĄD", key=f"btn_sek_3", on_click=set_focus, args=("slide-sek_3",), use_container_width=True)
