@@ -1127,8 +1127,8 @@ with col_form:
 
         st.file_uploader(
             "Zdjęcie tła (16:9):",
-            key="up_sek_1_img",
-            on_change=_make_upload_callback('sek_1_img')
+            key="up_sek_0_img",
+            on_change=_make_upload_callback('sek_0_img')
         )
             
     # -----------------------------------------------------------------------
