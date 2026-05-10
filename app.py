@@ -1060,9 +1060,11 @@ with col_form:
         _ic2.color_picker("Kolor tytułu:", key=f"sek_3_txt")
         _ic3.color_picker("Kolor nadtytułu:", key=f"sek_3_sub_color")
         
-        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"up_sek_img_up_3")
-        if _up_s:
-            _upload_image(_up_s.getvalue(), f"sek_3_img")
+        st.file_uploader(
+            "Zdjęcie tła (16:9):",
+            key="up_sek_3_img",
+            on_change=_make_upload_callback('sek_3_img')
+        )
 
     # -----------------------------------------------------------------------
     # 6. PROGRAM WYJAZDU
