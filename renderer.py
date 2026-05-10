@@ -255,7 +255,7 @@ defaults = {
                 'zapakowanie walizki do autokaru. Wirtualny asystent umożliwia także łatwy kontakt '
                 'z uczestnikami: wysyłkę SMS-ów, ankiety, formularze, czat, konkursy w aplikacji.'),
     'pg_hide': False, 'pg_overline': 'PILLOW GIFTS',
-    'pg_title': 'PILLOW\nGIFTS',
+    'pg_title': 'PILLOW GIFTS',
     'pg_subtitle': 'Aby wspólne chwile zatrzymać na dłużej',
     'pg_text': ('Upominki pełnią ważną rolę w budowaniu relacji biznesowych. '
                 'Wręczanie podarunków jest podziękowaniem za współpracę, ale także ułatwia '
