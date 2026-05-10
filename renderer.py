@@ -1170,6 +1170,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                                  letter-spacing:4px; color:{acc}; text-transform:uppercase;">
                         {sub}
                     </span>
+                    <div style="width:32px; height:1px; background:{acc}; opacity:0.7; flex-shrink:0;"></div>
                 </div>
                 <div style="font-family:'{f_h1}'; font-weight:800; font-size:{min(fs_h1_val+32, 96)}px;
                             color:{box_txt}; line-height:1.0; text-transform:uppercase;
