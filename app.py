@@ -1674,8 +1674,11 @@ with col_form:
         safe_text_area("Główny tytuł H1:", key="about_title")
         safe_text_input("Podtytuł:", key="about_sub")
         safe_text_area("Opis główny:", height=150, key="about_desc")
-        u_clients = st.file_uploader("Zdjęcie prawe (Klienci / Logotypy)", key="up_nas_clients")
-        if u_clients: _upload_image(u_clients.getvalue(), 'img_about_clients')
+        st.file_uploader(
+            "Zdjęcie prawe (Klienci / Logotypy)",
+            key="up_img_about_clients",
+            on_change=_make_upload_callback('img_about_clients')
+        )
         st.number_input("Liczba osób w zespole:", 1, 4, step=1, key="team_count")
         for i in range(st.session_state['team_count']):
             for dk in [f"t_name_{i}", f"t_role_{i}", f"t_desc_{i}"]:
@@ -1685,8 +1688,11 @@ with col_form:
                 safe_text_input("Imię i nazwisko", key=f"t_name_{i}")
                 safe_text_input("Stanowisko", key=f"t_role_{i}")
                 safe_text_area("Krótki opis", key=f"t_desc_{i}")
-                u_team = st.file_uploader("Zdjęcie (okrągłe)", key=f"up_nas_img_{i}")
-                if u_team: _upload_image(u_team.getvalue(), f"t_img_{i}")
+                st.file_uploader(
+                    "Zdjęcie (okrągłe)",
+                    key=f"up_t_img_{i}",
+                    on_change=_make_upload_callback(f"t_img_{i}")
+                )
 
     # -----------------------------------------------------------------------
     # 20. REFERENCJE (Co o nas mówią)
