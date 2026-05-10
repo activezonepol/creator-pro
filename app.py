@@ -1192,23 +1192,29 @@ with col_form:
 
             st.selectbox("Ikona:", ["Brak"] + list(icon_map.keys()), key=f"atype_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
             safe_text_area("Opis:", key=f"aopis_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            _upa = st.file_uploader("Foto Główne", key=f"up_atr_hero_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            if _upa:
-                _upload_image(_upa.getvalue(), f"ah_{_i}")
+            st.file_uploader(
+                "Foto Główne",
+                key=f"up_ah_{_i}",
+                on_change=_make_upload_callback(f"ah_{_i}")
+            )
 
             _ac1, _ac2, _ac3 = st.columns(3)
             
-            _uat1 = _ac1.file_uploader("Fot. 1", key=f"up_atr_th1_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            if _uat1:
-                _upload_image(_uat1.getvalue(), f"at1_{_i}")
-
-            _uat2 = _ac2.file_uploader("Fot. 2", key=f"up_atr_th2_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            if _uat2:
-                _upload_image(_uat2.getvalue(), f"at2_{_i}")
-
-            _uat3 = _ac3.file_uploader("Fot. 3", key=f"up_atr_th3_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            if _uat3:
-                _upload_image(_uat3.getvalue(), f"at3_{_i}")
+            _ac1.file_uploader(
+                "Fot. 1",
+                key=f"up_at1_{_i}",
+                on_change=_make_upload_callback(f"at1_{_i}")
+            )
+            _ac2.file_uploader(
+                "Fot. 2",
+                key=f"up_at2_{_i}",
+                on_change=_make_upload_callback(f"at2_{_i}")
+            )
+            _ac3.file_uploader(
+                "Fot. 3",
+                key=f"up_at3_{_i}",
+                on_change=_make_upload_callback(f"at3_{_i}")
+            )
 
     # -----------------------------------------------------------------------
     # 9. PRZERYWNIK HOTEL
