@@ -662,11 +662,23 @@ with st.sidebar:
                     label_visibility="collapsed", on_change=_handle_nav)
 
 # ---------------------------------------------------------------------------
-# PRZYCIS: ZAPISZ TERAZ (wąski)
+# PRZYCISK: ZAPISZ TERAZ (wąski)
 # ---------------------------------------------------------------------------
+# Przycisk "Zapisz w bazie" - wąski, w sidebarze
 if "manual_save_btn" in st.session_state: del st.session_state["manual_save_btn"]
 with st.sidebar:
-    if st.button("💾 Zapisz w bazie", use_container_width=True, type="primary", key="manual_save_btn"):
+    _acc_save = st.session_state.get('color_accent', '#FF6600')
+    st.markdown(
+        f"<style>"
+        f"[data-testid='stSidebar'] button[kind='primary'][data-testid='stBaseButton-primary'] {{"
+        f"background-color: {_acc_save} !important;"
+        f"border-color: {_acc_save} !important;"
+        f"color: white !important;"
+        f"}}"
+        f"</style>",
+        unsafe_allow_html=True
+    )
+    if st.button("ZAPISZ W BAZIE", use_container_width=True, type="primary", key="manual_save_btn"):
         save_to_supabase()
         st.rerun()
 
