@@ -662,12 +662,11 @@ with st.sidebar:
                     label_visibility="collapsed", on_change=_handle_nav)
 
 # ---------------------------------------------------------------------------
-# PRZYCISKI: ZAPISZ TERAZ 
-# (wąski)
+# PRZYCIS: ZAPISZ TERAZ (wąski)
 # ---------------------------------------------------------------------------
 if "manual_save_btn" in st.session_state: del st.session_state["manual_save_btn"]
 with st.sidebar:
-    if st.button("💾 ZAPISZ W BAZIE", use_container_width=True, type="primary", key="manual_save_btn"):
+    if st.button("💾 Zapisz w bazie", use_container_width=True, type="primary", key="manual_save_btn"):
         save_to_supabase()
         st.rerun()
 
