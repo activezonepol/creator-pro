@@ -1479,14 +1479,21 @@ with col_form:
         safe_text_input("Podtytuł:", key="brand_subtitle")
         safe_text_area("Punkty na liście (Enter = nowy punkt):", height=300, key="brand_features")
         c1, c2, c3 = st.columns(3)
-        u1 = c1.file_uploader("Zdj 1 (Lewa góra)", key="up_bra_img_1")
-        if u1: _upload_image(u1.getvalue(), 'img_brand_1')
-            
-        u2 = c2.file_uploader("Zdj 2 (Prawa góra)", key="up_bra_img_2")
-        if u2: _upload_image(u2.getvalue(), 'img_brand_2')
-            
-        u3 = c3.file_uploader("Zdj 3 (Dół)", key="up_bra_img_3")
-        if u3: _upload_image(u3.getvalue(), 'img_brand_3')
+        c1.file_uploader(
+            "Zdj 1 (Lewa góra)",
+            key="up_img_brand_1",
+            on_change=_make_upload_callback('img_brand_1')
+        )
+        c2.file_uploader(
+            "Zdj 2 (Prawa góra)",
+            key="up_img_brand_2",
+            on_change=_make_upload_callback('img_brand_2')
+        )
+        c3.file_uploader(
+            "Zdj 3 (Dół)",
+            key="up_img_brand_3",
+            on_change=_make_upload_callback('img_brand_3')
+        )
 
     # -----------------------------------------------------------------------
     # 14. PILLOW GIFTS
