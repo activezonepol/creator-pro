@@ -1597,11 +1597,16 @@ with col_form:
         safe_text_area("Koszty opcjonalne:", height=100, key="koszt_opcje")
         _section_header("ZDJĘCIA")
         c1, c2 = st.columns(2)
-        u1 = c1.file_uploader("Zdjęcie (Slajd 1)", key="up_koszt_img_1")
-        if u1: _upload_image(u1.getvalue(), 'img_koszt_1')
-            
-        u2 = c2.file_uploader("Zdjęcie (Slajd 2)", key="up_koszt_img_2")
-        if u2: _upload_image(u2.getvalue(), 'img_koszt_2')
+        c1.file_uploader(
+            "Zdjęcie (Slajd 1)",
+            key="up_img_koszt_1",
+            on_change=_make_upload_callback('img_koszt_1')
+        )
+        c2.file_uploader(
+            "Zdjęcie (Slajd 2)",
+            key="up_img_koszt_2",
+            on_change=_make_upload_callback('img_koszt_2')
+        )
 
     # -----------------------------------------------------------------------
     # 18. PRZERYWNIK NASZA AGENCJA
