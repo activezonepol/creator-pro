@@ -901,9 +901,9 @@ def get_local_css(return_str=False):
         .pg-collage {{ display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); gap: 15px; height: 100%; width: 100%; }}
         .pg-img-common {{ width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #fcfcfc; border: 1px solid #eee; }}
         .pg-img-common img {{ width: 100%; height: 100%; object-fit: cover; }}
-        .pg-img-1-wrap {{ grid-column: 1; grid-row: 1; border-radius: 8px 8px 50px 8px; overflow: hidden; }}
-        .pg-img-2-wrap {{ grid-column: 2; grid-row: 1 / span 2; border-radius: 8px 8px 8px 50px; overflow: hidden; }}
-        .pg-img-3-wrap {{ grid-column: 1; grid-row: 2; border-radius: 50px 8px 8px 8px; overflow: hidden; }}
+        .pg-img-1-wrap {{ grid-column: 2; grid-row: 1; border-radius: 8px 8px 50px 8px; overflow: hidden; }}
+        .pg-img-2-wrap {{ grid-column: 1; grid-row: 1 / span 2; border-radius: 8px 8px 8px 50px; overflow: hidden; }}
+        .pg-img-3-wrap {{ grid-column: 2; grid-row: 2; border-radius: 50px 8px 8px 8px; overflow: hidden; }}
         .testim-item {{ display: flex; gap: 15px; padding: 12px 0; border-top: 1px solid #eaeaea; align-items: center; }}
         .testim-item:first-of-type {{ border-top: 2px solid #eee; }}
         .testim-item:last-of-type {{ border-bottom: 2px solid #eee; }}
