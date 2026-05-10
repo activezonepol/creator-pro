@@ -1250,9 +1250,11 @@ with col_form:
         _ic2.color_picker("Kolor tytułu:", key="sek_0_txt", value=st.session_state.get("sek_0_txt", "#ffffff"))
         _ic3.color_picker("Kolor nadtytułu:", key="sek_0_sub_color", value=st.session_state.get("sek_0_sub_color", _sub_default))
 
-        _up_s = st.file_uploader("Zdjęcie tła (16:9):", key=f"up_sek_img_up_0")
-        if _up_s:
-            _upload_image(_up_s.getvalue(), f"sek_0_img")
+        st.file_uploader(
+            "Zdjęcie tła (16:9):",
+            key="up_sek_0_img",
+            on_change=_make_upload_callback('sek_0_img')
+        )
             
     # -----------------------------------------------------------------------
     # 10. OPIS HOTELI (kontener — przycisk dodawania + lista hoteli + edycja)
