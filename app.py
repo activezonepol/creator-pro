@@ -1547,14 +1547,21 @@ with col_form:
         safe_text_input("Podtytuł:", key="va_subtitle")
         safe_text_area("Treść oferty:", height=300, key="va_text")
         c1, c2, c3 = st.columns(3)
-        u1 = c1.file_uploader("Zdj 1 (Szerokie)", key="up_va_img_1")
-        if u1: _upload_image(u1.getvalue(), 'img_va_1')
-            
-        u2 = c2.file_uploader("Zdj 2 (Lewy dół)", key="up_va_img_2")
-        if u2: _upload_image(u2.getvalue(), 'img_va_2')
-            
-        u3 = c3.file_uploader("Zdj 3 (Prawy dół)", key="up_va_img_3")
-        if u3: _upload_image(u3.getvalue(), 'img_va_3')
+        c1.file_uploader(
+            "Zdj 1 (Szerokie)",
+            key="up_img_va_1",
+            on_change=_make_upload_callback('img_va_1')
+        )
+        c2.file_uploader(
+            "Zdj 2 (Lewy dół)",
+            key="up_img_va_2",
+            on_change=_make_upload_callback('img_va_2')
+        )
+        c3.file_uploader(
+            "Zdj 3 (Prawy dół)",
+            key="up_img_va_3",
+            on_change=_make_upload_callback('img_va_3')
+        )
 
     # -----------------------------------------------------------------------
     # 16-17. KOSZTORYS
