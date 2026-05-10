@@ -663,12 +663,13 @@ with st.sidebar:
 
 # ---------------------------------------------------------------------------
 # PRZYCISKI: ZAPISZ TERAZ 
-# (Tutaj kończy się sidebar, więc wcięcie wraca do lewej krawędzi - 0 spacji)
+# (wąski)
 # ---------------------------------------------------------------------------
 if "manual_save_btn" in st.session_state: del st.session_state["manual_save_btn"]
-if st.button("💾 ZAPISZ TERAZ", use_container_width=True, type="primary", key="manual_save_btn"):
-    save_to_supabase()
-    st.rerun()
+with st.sidebar:
+    if st.button("💾 ZAPISZ W BAZIE", use_container_width=True, type="primary", key="manual_save_btn"):
+        save_to_supabase()
+        st.rerun()
 
 st.markdown("""<style>button[data-testid="baseButton-primary"] { color: white !important; }</style>""", unsafe_allow_html=True)
 
