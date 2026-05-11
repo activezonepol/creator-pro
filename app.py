@@ -358,7 +358,7 @@ if '_loaded_from_supabase' not in st.session_state:
                 'hotel_up_', 'hotel_dn_', 'hotel_del_',
                 'btn_', 'ho_up_', 'ho_dn_', 'ho_del_',
                 'res_sek_', 'btn_sek_', 'btn_show_hot_', 'btn_apply_',
-                'dl_', 'up_'
+                'dl_', 'up_', 'del_', 'attr_up_', 'attr_dn_', 'attr_del_'
             ]
             
             keys_to_remove = []
