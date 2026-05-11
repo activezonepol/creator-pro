@@ -79,11 +79,11 @@ def _delete_image(session_key):
     st.rerun()
 
 def _render_uploader_with_delete(container, label, session_key, is_logo=False):
-    """Renderuje file_uploader + przycisk 'Usuń' (jeśli zdjęcie istnieje).
+    """Renderuje file_uploader + przycisk 'Usuń <label>' (jeśli zdjęcie istnieje).
     
     Args:
         container: Streamlit container (np. st, c1, c2)
-        label: Etykieta uploadera
+        label: Etykieta uploadera (używana też w przycisku Usuń)
         session_key: Klucz w session_state (np. 'logo_az')
         is_logo: True jeśli logo
     """
@@ -94,7 +94,7 @@ def _render_uploader_with_delete(container, label, session_key, is_logo=False):
     )
     # Pokazujemy przycisk Usuń tylko jeśli zdjęcie istnieje w session_state
     if st.session_state.get(session_key):
-        if container.button("✕ Usuń", key=f"del_{session_key}", use_container_width=True):
+        if container.button(f"✕ Usuń {label}", key=f"del_{session_key}", use_container_width=True):
             _delete_image(session_key)
 def _upload_image(file_bytes, session_key, is_logo=False):
     """Przesyła obraz do Supabase i zapisuje URL w sesji."""
