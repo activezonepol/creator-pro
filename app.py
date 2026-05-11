@@ -773,6 +773,7 @@ with st.sidebar:
         "Opis kierunku", 
         "Mapa podróży", 
         "Jak lecimy?",
+        "Jak jedziemy?",
         "  ↳ Przerywnik program", 
         "Program wyjazdu",
         "  ↳ Przerywnik atrakcje", 
