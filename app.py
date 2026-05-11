@@ -418,13 +418,20 @@ if 'client_mode' not in st.session_state:
 # ---------------------------------------------------------------------------
 if '_loaded_from_supabase' not in st.session_state:
     try:
-        # Pobierz najnowszy projekt
-        result = supabase.table('projects').select('data').eq(
-            'user_email', 'default_user'
-        ).order('updated_at', desc=True).limit(1).execute()
+        # Pobierz aktywny projekt (z session_state) lub najnowszy
+        _active_id = st.session_state.get('active_project_id')
+        if _active_id:
+            result = supabase.table('projects').select('data, id').eq(
+                'id', _active_id
+            ).execute()
+        else:
+            result = supabase.table('projects').select('data, id').eq(
+                'user_email', 'default_user'
+            ).order('updated_at', desc=True).limit(1).execute()
         
         if result.data and result.data[0].get('data'):
             project_data = result.data[0]['data']
+            st.session_state['active_project_id'] = result.data[0].get('id')
             
             # KLUCZOWE: Usuń klucze widgetów zanim wczytasz do session_state
             # (kolizja z Streamlit widget management)
