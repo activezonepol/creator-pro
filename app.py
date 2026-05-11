@@ -1310,6 +1310,98 @@ with col_form:
         )
 
     # -----------------------------------------------------------------------
+    # 4b. JAK JEDZIEMY? (alternatywny slajd transportowy)
+    # -----------------------------------------------------------------------
+    elif page == "Jak jedziemy?":
+        _guard(["jaj_hide", "jaj_overline", "jaj_main", "jaj_sub",
+                "jaj_route", "jaj_desc", "jaj_extra",
+                "jaj_dist_title", "num_jaj_dist_pairs", "ors_api_key"])
+        jaj_keys = [
+            'jaj_hide', 'jaj_overline', 'jaj_main', 'jaj_sub',
+            'jaj_route', 'jaj_desc', 'jaj_extra', 'img_hero_j',
+            'jaj_dist_title', 'num_jaj_dist_pairs',
+        ]
+        for i in range(st.session_state.get('num_jaj_dist_pairs', 2)):
+            jaj_keys.extend([f'jaj_dist_a_{i}', f'jaj_dist_b_{i}',
+                            f'jaj_dist_km_{i}', f'jaj_dist_time_{i}'])
+        section_template_manager(jaj_keys, "JAJ", "jak-jedziemy", "jaj")
+        st.checkbox("Ukryj ten slajd w PDF", key="jaj_hide")
+        safe_text_input("Mały nadtytuł:", key="jaj_overline")
+        safe_text_input("Tytuł (H1):", key="jaj_main")
+        safe_text_input("Podtytuł:", key="jaj_sub")
+        safe_text_input("Trasa:", key="jaj_route")
+        safe_text_area("Opis:", key="jaj_desc")
+        safe_text_area("Dodatkowe info:", key="jaj_extra")
+        st.file_uploader(
+            "Zdjęcie (np. autokar):",
+            key="up_img_hero_j",
+            on_change=_make_upload_callback('img_hero_j')
+        )
+        
+        # === SEKCJA ODLEGŁOŚCI (analogicznie do mapy) ===
+        _section_header("ODLEGŁOŚCI I CZAS DOJAZDU")
+        safe_text_input("Tytuł sekcji na slajdzie:", key="jaj_dist_title")
+        _ors_from_secrets = st.secrets.get("ORS_API_KEY", "") if hasattr(st, 'secrets') else ""
+        if _ors_from_secrets and not st.session_state.get('ors_api_key'):
+            st.session_state['ors_api_key'] = _ors_from_secrets
+        if _ors_from_secrets:
+            st.markdown(
+                "<div style='font-size:11px; color:#16a34a; margin-bottom:8px; "
+                "padding:6px 10px; background:#f0fdf4; border-radius:4px; "
+                "border-left:3px solid #16a34a;'>"
+                "✓ Klucz API wczytany z konfiguracji aplikacji.</div>",
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                "<div style='font-size:11px; color:#64748b; margin-bottom:8px;'>"
+                "Klucz API OpenRouteService (wspólny z 'Mapą podróży').</div>",
+                unsafe_allow_html=True,
+            )
+            safe_text_input("Klucz ORS API:", key="ors_api_key", type="password")
+        
+        st.number_input("Liczba par miejscowości:", 0, 10, step=1, key="num_jaj_dist_pairs")
+        for di in range(st.session_state.get('num_jaj_dist_pairs', 0)):
+            for dk, dv in [
+                (f'jaj_dist_a_{di}', ''), (f'jaj_dist_b_{di}', ''),
+                (f'jaj_dist_km_{di}', '—'), (f'jaj_dist_time_{di}', '—'),
+            ]:
+                if dk not in st.session_state:
+                    st.session_state[dk] = dv
+            with st.expander(f"Para {di+1}: {st.session_state.get(f'jaj_dist_a_{di}','')} → {st.session_state.get(f'jaj_dist_b_{di}','')}",
+                             expanded=True):
+                ca, cb = st.columns(2)
+                ca.text_input("Miejsce A:", key=f"jaj_dist_a_{di}")
+                cb.text_input("Miejsce B:", key=f"jaj_dist_b_{di}")
+                if st.button("POBIERZ ODLEGŁOŚĆ", key=f"btn_jaj_dist_{di}",
+                             use_container_width=True):
+                    ors_key = (st.secrets.get("ORS_API_KEY", "") if hasattr(st, 'secrets') else "") \
+                              or st.session_state.get('ors_api_key', '').strip()
+                    a = st.session_state.get(f'jaj_dist_a_{di}', '').strip()
+                    b = st.session_state.get(f'jaj_dist_b_{di}', '').strip()
+                    if not a or not b:
+                        st.warning("Wpisz obie nazwy miejscowości.")
+                    else:
+                        with st.spinner(f"Szukam trasy {a} → {b}..."):
+                            km, mins, err = get_road_distance(
+                                a, b, ors_key,
+                                st.session_state.get('country_name', ''),
+                            )
+                        if km is not None:
+                            st.session_state[f'jaj_dist_km_{di}'] = f'{km}'
+                            st.session_state[f'jaj_dist_time_{di}'] = format_duration(mins)
+                            if err:
+                                st.warning(f"✓ Zapisano: {km} km, {format_duration(mins)}\n\n⚠️ {err}")
+                            else:
+                                st.success(f"✓ Trasa drogowa: {km} km, {format_duration(mins)}")
+                            st.rerun()
+                        else:
+                            st.error(f"Nie udało się pobrać trasy.\n\n{err}")
+                cd1, cd2 = st.columns(2)
+                cd1.text_input("Odległość (km) — edytowalna:", key=f"jaj_dist_km_{di}")
+                cd2.text_input("Czas dojazdu — edytowalny:", key=f"jaj_dist_time_{di}")
+
+    # -----------------------------------------------------------------------
     # 5. PRZERYWNIK PROGRAMU (Wstawiony z Twojego kodu)
     # -----------------------------------------------------------------------
     elif page == "  ↳ Przerywnik program":
