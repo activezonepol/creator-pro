@@ -285,6 +285,16 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
         f"[data-testid='stExpander'] summary p {{"
         f"color: white !important;"
         f"}}"
+        f"[data-testid='stDownloadButton'] button {{"
+        f"background-color: {_acc} !important;"
+        f"border-color: {_acc} !important;"
+        f"color: white !important;"
+        f"min-height: 48px !important;"
+        f"}}"
+        f"[data-testid='stDownloadButton'] button:hover {{"
+        f"background-color: {_acc} !important;"
+        f"opacity: 0.9 !important;"
+        f"}}"
         f"</style>",
         unsafe_allow_html=True
     )
