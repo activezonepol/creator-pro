@@ -973,7 +973,16 @@ with st.sidebar:
             except Exception as e:
                 st.error(f"❌ Błąd: {str(e)[:100]}")
 
-st.markdown("""<style>button[data-testid="baseButton-primary"] { color: white !important; }</style>""", unsafe_allow_html=True)
+st.markdown("""<style>
+button[data-testid="baseButton-primary"] { color: white !important; }
+/* Ukryj ikonkę kopiowania pojawiającą się przy najechaniu na st.markdown */
+[data-testid="stMarkdown"] button[title="Copy to clipboard"],
+[data-testid="stMarkdown"] [aria-label="Copy"],
+[data-testid="stMarkdown"] [data-testid="stCodeCopyButton"],
+[data-testid="stMarkdown"] svg[fill="currentColor"][viewBox="0 0 24 24"] { 
+    display: none !important; 
+}
+</style>""", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
 # NAGŁÓWKI STRON (POPRAWIONA LOGIKA Z FONT AWESOME)
