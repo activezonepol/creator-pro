@@ -817,7 +817,7 @@ with st.sidebar:
     
     # === SEKCJA ZARZĄDZANIE PROJEKTAMI ===
     st.markdown(
-        f"<h3 style='color:{_acc_save};font-size:16px;margin-bottom:15px;font-family:Montserrat,sans-serif;font-weight:700;'>ZARZĄDZANIE PROJEKTAMI</h3>",
+        f"<h3 style='color:{_acc_save};font-size:16px;margin-bottom:15px;font-weight:400 !important;letter-spacing:normal !important;'>ZARZĄDZANIE PROJEKTAMI</h3>",
         unsafe_allow_html=True,
     )
     
