@@ -46,6 +46,87 @@ if "preview_container" not in st.session_state:
     st.session_state.preview_container = st.empty()
 
 # ---------------------------------------------------------------------------
+# HELPERY ZARZĄDZANIA PROJEKTAMI
+# ---------------------------------------------------------------------------
+def _switch_project(project_id):
+    """Wczytuje projekt o danym ID z bazy i ustawia jako aktywny."""
+    from db_utils import fetch_offer_by_id
+    sb = st.session_state.get('supabase')
+    if not sb:
+        st.error("Brak połączenia z bazą")
+        return
+    offer = fetch_offer_by_id(sb, project_id)
+    if not offer:
+        st.error("Nie znaleziono projektu")
+        return
+    
+    # Wyczyść aktualne dane (zachowując kluczowe ustawienia widgetów)
+    keys_to_remove = []
+    for k in list(st.session_state.keys()):
+        # Zachowaj klucze techniczne i widgety, usuń dane projektu
+        if k in ('supabase', 'preview_container', 'client_mode', '_loaded_from_supabase',
+                 'active_project_id', 'last_supabase_save', 'last_save_status',
+                 'last_save_status_type', 'last_save_extra', 'last_save_count',
+                 'last_save_project_name', '_upload_counter'):
+            continue
+        if k.startswith(('up_', 'btn_', 'dl_', 'main_nav_', 'manual_', 'res_', 'attr_up_',
+                         'attr_dn_', 'attr_del_', 'hotel_up_', 'hotel_dn_', 'hotel_del_',
+                         'ho_', 'del_', 'btn_sek_', 'btn_show_', 'btn_apply_')):
+            continue
+        keys_to_remove.append(k)
+    for k in keys_to_remove:
+        del st.session_state[k]
+    
+    # Wczytaj dane projektu
+    project_data = offer.get('data', {})
+    if project_data:
+        load_project_data(project_data)
+    
+    # Ustaw aktywny projekt
+    st.session_state['active_project_id'] = project_id
+    st.session_state['last_supabase_save'] = time.time()  # opóźnij auto-save
+    st.rerun()
+
+def _new_project(copy_from_id=None):
+    """Tworzy nowy projekt - pusty lub jako kopia istniejącego."""
+    from db_utils import fetch_offer_by_id, clone_offer
+    sb = st.session_state.get('supabase')
+    if not sb:
+        st.error("Brak połączenia z bazą")
+        return
+    
+    if copy_from_id:
+        # Skopiuj istniejący projekt
+        new_id = clone_offer(sb, copy_from_id)
+        if new_id:
+            _switch_project(new_id)
+    else:
+        # Wyczyść session_state i utwórz nowy pusty projekt
+        keys_to_remove = []
+        for k in list(st.session_state.keys()):
+            if k in ('supabase', 'preview_container', 'client_mode', '_loaded_from_supabase',
+                     'last_supabase_save', '_upload_counter'):
+                continue
+            if k.startswith(('up_', 'btn_', 'dl_', 'main_nav_', 'manual_', 'res_', 'attr_up_',
+                             'attr_dn_', 'attr_del_', 'hotel_up_', 'hotel_dn_', 'hotel_del_',
+                             'ho_', 'del_', 'btn_sek_', 'btn_show_', 'btn_apply_')):
+                continue
+            keys_to_remove.append(k)
+        for k in keys_to_remove:
+            del st.session_state[k]
+        
+        # Ustaw defaults
+        for k, v in defaults.items():
+            st.session_state[k] = v
+        
+        # Wyczyść active_project_id - auto-save utworzy nowy rekord
+        st.session_state['active_project_id'] = None
+        st.session_state['last_supabase_save'] = 0  # wymuś natychmiastowy zapis
+        save_to_supabase()  # utwórz nowy rekord od razu
+        st.rerun()
+
+
+# ---------------------------------------------------------------------------
 # HELPERY INPUTÓW I UPLOADU
 # ---------------------------------------------------------------------------
 def _make_upload_callback(session_key, is_logo=False):
