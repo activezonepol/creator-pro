@@ -1496,6 +1496,60 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 {h_e}
             </div>
         </div>{fh}""", "slide-loty"))
+
+    # --- Jak jedziemy ---
+    if _should_render('slide-jak-jedziemy', current_page, export_mode):
+        ij = get_b64('img_hero_j', (4, 5))
+        imj = _img_tag(ij, 'FOTO TRANSPORTU')
+        
+        # Tabela odległości (osobne pola jaj_dist_*)
+        jaj_dist_rows = ""
+        for di in range(int(get_data('num_jaj_dist_pairs', 0) or 0)):
+            _a = str(get_data(f'jaj_dist_a_{di}', '') or '').strip()
+            _b = str(get_data(f'jaj_dist_b_{di}', '') or '').strip()
+            _km = str(get_data(f'jaj_dist_km_{di}', '—') or '—')
+            _time = str(get_data(f'jaj_dist_time_{di}', '—') or '—')
+            if not _a or not _b:
+                continue
+            jaj_dist_rows += f"<tr><td>{_a} → {_b}</td><td style='text-align:right;'>{_km} km</td><td style='text-align:right;'>{_time}</td></tr>"
+        
+        jaj_dist_title = str(get_data('jaj_dist_title', 'ODLEGŁOŚCI I CZAS DOJAZDU') or '')
+        jaj_table_html = ''
+        if jaj_dist_rows:
+            jaj_table_html = f"""
+                <div style="margin-top:15px;">
+                    <div style="font-family:'{f_h2}'; font-weight:800; font-size:{fs_t+2}px; color:{c_h2}; margin-bottom:8px; text-transform:uppercase;">{jaj_dist_title}</div>
+                    <table class="flight-table">
+                        <tr><th>TRASA</th><th style='text-align:right;'>ODLEGŁOŚĆ</th><th style='text-align:right;'>CZAS</th></tr>
+                        {jaj_dist_rows}
+                    </table>
+                </div>
+            """
+        
+        h_d_j = f"<p>{str(get_data('jaj_desc') or '').replace(chr(10),'<br>')}</p>" if str(get_data('jaj_desc','')).strip() else ""
+        h_e_j = f"<p style='font-size:10px;margin-top:15px;'>{str(get_data('jaj_extra') or '').replace(chr(10),'<br>')}</p>" if str(get_data('jaj_extra','')).strip() else ""
+        
+        hp.append(_shtml(f"""{lh}
+        <div class="premium-layout">
+            <div class="photo-col">{imj}</div>
+            <div class="info-col" style="padding-top:30px; justify-content:flex-start;">
+                
+                <div class="app-overline-style">
+                    {str(get_data('jaj_overline','DOJAZD'))}
+                </div>
+                <div class="title-h1" style="margin-bottom:5px; font-size:{fs_h1_val-6}px;">{str(get_data('jaj_main','JAK JEDZIEMY?')).replace(chr(10),'<br>')}</div>
+                <div class="title-sub" style="margin-bottom:15px;">{str(get_data('jaj_sub','')).replace(chr(10),'<br>')}</div>
+                {h_d_j}
+                
+                <div class="metric-grid">
+                    <div><div class="metric-label">Trasa</div><div class="flight-val">{get_data('jaj_route','')}</div></div>
+                </div>
+                
+                {jaj_table_html}
+                
+                {h_e_j}
+            </div>
+        </div>{fh}""", "slide-jak-jedziemy"))
     # --- Przerywnik sek_0 (przed hotel) ---
     _render_sek(0)  # Przerywnik przed hotelami
     # --- Hotele w kolejności hotel_order ---
