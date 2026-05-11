@@ -975,11 +975,19 @@ with st.sidebar:
 
 st.markdown("""<style>
 button[data-testid="baseButton-primary"] { color: white !important; }
-/* Ukryj ikonkę kopiowania pojawiającą się przy najechaniu na st.markdown */
+/* Ukryj ikonkę kopiowania pojawiającą się przy najechaniu na radio/markdown */
 [data-testid="stMarkdown"] button[title="Copy to clipboard"],
 [data-testid="stMarkdown"] [aria-label="Copy"],
 [data-testid="stMarkdown"] [data-testid="stCodeCopyButton"],
-[data-testid="stMarkdown"] svg[fill="currentColor"][viewBox="0 0 24 24"] { 
+[data-baseweb="radio"] button[title="Copy to clipboard"],
+[data-baseweb="radio"] [aria-label="Copy"],
+[data-testid="stSidebar"] button[title="Copy to clipboard"],
+[data-testid="stSidebar"] [aria-label="Copy"],
+[data-testid="stSidebar"] [data-testid="stCodeCopyButton"],
+button[kind="copyButton"],
+[data-testid="copy-button"],
+.stMarkdown button:has(svg[viewBox="0 0 24 24"]),
+[data-testid="stCode"] button { 
     display: none !important; 
 }
 </style>""", unsafe_allow_html=True)
