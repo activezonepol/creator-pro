@@ -587,10 +587,19 @@ def get_road_distance(place_a: str, place_b: str, ors_api_key: str = '', country
     """
     if not place_a.strip() or not place_b.strip():
         return None, None, "Podaj obie nazwy miejscowości."
+    # Próba z krajem (jeśli podany)
     lat_a, lon_a = geocode_place(place_a.strip(), country)
     lat_b, lon_b = geocode_place(place_b.strip(), country)
+    # Fallback: bez kraju (gdy nie znaleziono z krajem lub kraj to placeholder)
+    if lat_a is None:
+        lat_a, lon_a = geocode_place(place_a.strip())
+    if lat_b is None:
+        lat_b, lon_b = geocode_place(place_b.strip())
     if None in (lat_a, lon_a, lat_b, lon_b):
-        return None, None, f"Nie znaleziono lokalizacji: {'A' if lat_a is None else 'B'}. Sprawdź pisownię."
+        missing = []
+        if lat_a is None: missing.append(place_a)
+        if lat_b is None: missing.append(place_b)
+        return None, None, f"Nie znaleziono lokalizacji: {', '.join(missing)}. Sprawdź pisownię."
     # 1. Próba Google Maps Distance Matrix (obsługuje cały świat)
     google_key = st.secrets.get('google', {}).get('maps_api_key') if hasattr(st, 'secrets') else None
     if google_key:
