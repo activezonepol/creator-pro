@@ -264,14 +264,36 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
     ATR_KEY_MAP = {"atype": "type", "amain": "main", "asub": "sub", "aopis": "opis"}
     _acc = st.session_state.get('color_accent', '#FF6600')
     
-    # 1. ZMIANA: Przypisujemy panel (expander) do zmiennej "exp"
-    exp = st.expander("⚙️ Zarządzanie szablonem sekcji", expanded=False)
+    # CSS dla expandera szablonu: kolor akcentu + wysokość 48px + uppercase
+    st.markdown(
+        f"<style>"
+        f"[data-testid='stExpander'] summary {{"
+        f"min-height: 48px !important;"
+        f"background-color: {_acc} !important;"
+        f"color: white !important;"
+        f"border-radius: 4px !important;"
+        f"font-family: 'Montserrat', sans-serif !important;"
+        f"text-transform: uppercase !important;"
+        f"font-size: 12px !important;"
+        f"letter-spacing: 1px !important;"
+        f"font-weight: 600 !important;"
+        f"padding: 0 16px !important;"
+        f"}}"
+        f"[data-testid='stExpander'] summary svg {{"
+        f"fill: white !important;"
+        f"}}"
+        f"[data-testid='stExpander'] summary p {{"
+        f"color: white !important;"
+        f"}}"
+        f"</style>",
+        unsafe_allow_html=True
+    )
     
-    # 2. ZMIANA: Jeśli panel jest ZAMKNIĘTY, funkcja się zatrzymuje (oszczędzamy czas!)
+    exp = st.expander("ZARZĄDZANIE SZABLONEM SLAJDU", expanded=False)
+    
     if not exp.expanded:
         return
 
-    # 3. ZMIANA: Jeśli panel jest otwarty, robimy obliczenia
     with exp:
         export_data = {}
         for k in section_keys:
@@ -296,15 +318,17 @@ def section_template_manager(section_keys, file_prefix, default_filename, upload
         
         with col1:
             st.markdown(
-                f"<div style='font-size:11px;font-weight:600;color:#334155;padding:8px 0;'>"
-                f"<span style='color:{_acc};'>★</span> {_display}</div>",
+                f"<div style='font-size:10px;font-weight:700;color:{_acc};"
+                f"text-transform:uppercase;letter-spacing:1px;font-family:Montserrat,sans-serif;"
+                f"padding:4px 0 2px 0;'>NAZWA SLAJDU:</div>"
+                f"<div style='font-size:13px;font-weight:600;color:#334155;'>{_display}</div>",
                 unsafe_allow_html=True,
             )
         
         with col2:
             st.download_button(
                 "↓ ZAPISZ", json_str, full_filename,
-                key=f"dl_{uploader_key}", use_container_width=True,
+                key=f"dl_{uploader_key}", use_container_width=True, type="primary",
             )
         
         with col3:
