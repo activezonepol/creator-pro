@@ -1866,7 +1866,6 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                       if opcje else '')
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
             <div class="info-col" style="padding-top:30px; justify-content:flex-start; padding-right:30px;">
-                <i class="fa-solid fa-file-invoice" style="color:{acc}; font-size:36px; margin-bottom:15px; display:block;"></i>
                 <div class="app-overline-style" style="margin-bottom:15px;"><span>KOSZTORYS - CIĄG DALSZY</span></div>
                 {zaw2_html}
                 <div style="font-family:'{f_h2}'; font-weight:800; font-size:{fs_t+2}px; color:{c_h2}; margin-top:15px; margin-bottom:5px; text-transform:uppercase;">NIE POLICZONE W CENIE:</div>
