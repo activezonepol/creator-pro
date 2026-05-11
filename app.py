@@ -796,16 +796,8 @@ with col_form:
         )
         
         c1, c2 = st.columns(2)
-        c1.file_uploader(
-            "Logo Firmy",
-            key="up_logo_az",
-            on_change=_make_upload_callback('logo_az', is_logo=True)
-        )
-        c2.file_uploader(
-            "Logo Klienta",
-            key="up_logo_cli",
-            on_change=_make_upload_callback('logo_cli', is_logo=True)
-        )
+        _render_uploader_with_delete(c1, "Logo Firmy", "logo_az", is_logo=True)
+        _render_uploader_with_delete(c2, "Logo Klienta", "logo_cli", is_logo=True)
             
         c2.checkbox("Ukryj logo klienta na stronie tytułowej", key="hide_logo_cli")
 
