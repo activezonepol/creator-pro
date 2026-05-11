@@ -1372,8 +1372,8 @@ with col_form:
             with st.expander(f"Para {di+1}: {st.session_state.get(f'jaj_dist_a_{di}','')} → {st.session_state.get(f'jaj_dist_b_{di}','')}",
                              expanded=True):
                 ca, cb = st.columns(2)
-                ca.text_input("Miejsce A:", key=f"jaj_dist_a_{di}")
-                cb.text_input("Miejsce B:", key=f"jaj_dist_b_{di}")
+                ca.text_input("Miejsce A:", key=f"jaj_dist_a_{di}", value=st.session_state.get(f"jaj_dist_a_{di}", ""))
+                cb.text_input("Miejsce B:", key=f"jaj_dist_b_{di}", value=st.session_state.get(f"jaj_dist_b_{di}", ""))
                 if st.button("POBIERZ ODLEGŁOŚĆ", key=f"btn_jaj_dist_{di}",
                              use_container_width=True):
                     ors_key = (st.secrets.get("ORS_API_KEY", "") if hasattr(st, 'secrets') else "") \
