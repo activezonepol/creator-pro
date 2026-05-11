@@ -973,8 +973,17 @@ with st.sidebar:
             except Exception as e:
                 st.error(f"❌ Błąd: {str(e)[:100]}")
 
-st.markdown("""<style>
-button[data-testid="baseButton-primary"] { color: white !important; }
+_acc_global = st.session_state.get('color_accent', '#FF6600')
+st.markdown(f"""<style>
+button[data-testid="baseButton-primary"] {{ color: white !important; }}
+/* Wszystkie primary buttony w kolorze akcentu */
+button[kind="primary"],
+button[data-testid="baseButton-primary"],
+.stButton button[kind="primary"] {{
+    background-color: {_acc_global} !important;
+    border-color: {_acc_global} !important;
+    color: white !important;
+}}
 /* Ukryj ikonkę kopiowania pojawiającą się przy najechaniu na radio/markdown */
 [data-testid="stMarkdown"] button[title="Copy to clipboard"],
 [data-testid="stMarkdown"] [aria-label="Copy"],
