@@ -708,6 +708,42 @@ with st.sidebar:
     if st.button("ZAPISZ W BAZIE", use_container_width=True, type="primary", key="manual_save_btn"):
         save_to_supabase()
         st.rerun()
+    
+    st.markdown("---")
+    
+    # Pobierz prezentację na dysk
+    if st.button("POBIERZ PREZENTACJĘ NA DYSK", use_container_width=True, key="prep_download_btn"):
+        with st.spinner("Przygotowywanie pliku..."):
+            proj = _build_proj_dict()
+            st.session_state['temp_proj_json'] = json.dumps(proj, ensure_ascii=False)
+    
+    if 'temp_proj_json' in st.session_state:
+        st.download_button(
+            "📥 POBIERZ PLIK",
+            st.session_state['temp_proj_json'],
+            get_project_filename(),
+            use_container_width=True,
+            key="dl_proj_sidebar",
+            help="Zapisz prezentację jako plik na swój komputer",
+        )
+    
+    # Wczytaj prezentację z dysku
+    upf_sidebar = st.file_uploader(
+        "WCZYTAJ PREZENTACJĘ Z DYSKU",
+        type=['json'],
+        key="up_proj_sidebar",
+    )
+    if upf_sidebar and st.button("📤 WCZYTAJ", use_container_width=True, key="btn_load_sidebar"):
+        data, error = _validate_and_load_json(upf_sidebar)
+        if error:
+            st.error(f"❌ {error}")
+        else:
+            try:
+                load_project_data(data)
+                st.success(f"✅ Wczytano prezentację ({len(data)} pól)")
+                st.rerun()
+            except Exception as e:
+                st.error(f"❌ Błąd: {str(e)[:100]}")
 
 st.markdown("""<style>button[data-testid="baseButton-primary"] { color: white !important; }</style>""", unsafe_allow_html=True)
 
