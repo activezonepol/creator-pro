@@ -1412,7 +1412,7 @@ with col_form:
         _guard(["num_attr", "attr_order"])
         
         # PRZYCISK DODAWANIA ATRAKCJI
-        if st.button("➕ DODAJ ATRAKCJĘ", key="btn_add_attr_main", type="primary", use_container_width=True):
+        if st.button("✚ DODAJ ATRAKCJĘ", key="btn_add_attr_main", type="primary", use_container_width=True):
             _attr_add()
             st.rerun()
         
@@ -1596,7 +1596,7 @@ with col_form:
         
         st.markdown("---")
         # PRZYCISK DODAWANIA HOTELU
-        if st.button("➕ DODAJ HOTEL", key="btn_add_hotel_main", type="primary", use_container_width=True):
+        if st.button("✚ DODAJ HOTEL", key="btn_add_hotel_main", type="primary", use_container_width=True):
             _hotel_add()
             st.rerun()
         
