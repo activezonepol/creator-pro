@@ -69,6 +69,33 @@ def _make_upload_callback(session_key, is_logo=False):
         if f:
             _upload_image(f.getvalue(), session_key, is_logo=is_logo)
     return _callback
+
+def _delete_image(session_key):
+    """Usuwa zdjęcie z session_state i wymusza odświeżenie podglądu."""
+    if session_key in st.session_state:
+        del st.session_state[session_key]
+    # Inkrementujemy licznik wymuszający przebudowę iframe
+    st.session_state['_upload_counter'] = st.session_state.get('_upload_counter', 0) + 1
+    st.rerun()
+
+def _render_uploader_with_delete(container, label, session_key, is_logo=False):
+    """Renderuje file_uploader + przycisk 'Usuń' (jeśli zdjęcie istnieje).
+    
+    Args:
+        container: Streamlit container (np. st, c1, c2)
+        label: Etykieta uploadera
+        session_key: Klucz w session_state (np. 'logo_az')
+        is_logo: True jeśli logo
+    """
+    container.file_uploader(
+        label,
+        key=f"up_{session_key}",
+        on_change=_make_upload_callback(session_key, is_logo=is_logo)
+    )
+    # Pokazujemy przycisk Usuń tylko jeśli zdjęcie istnieje w session_state
+    if st.session_state.get(session_key):
+        if container.button("✕ Usuń", key=f"del_{session_key}", use_container_width=True):
+            _delete_image(session_key)
 def _upload_image(file_bytes, session_key, is_logo=False):
     """Przesyła obraz do Supabase i zapisuje URL w sesji."""
     if not file_bytes:
