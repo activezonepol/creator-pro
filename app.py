@@ -800,6 +800,82 @@ with st.sidebar:
     
     st.markdown("---")
     
+    # === SEKCJA PROJEKTY ===
+    st.markdown(
+        "<div style='font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; "
+        "margin-bottom: 8px; letter-spacing: 1px;'>📁 PROJEKTY</div>",
+        unsafe_allow_html=True,
+    )
+    
+    # Pobierz listę projektów
+    _all_offers = fetch_all_offers(supabase)
+    _current_proj_id = st.session_state.get('active_project_id')
+    
+    # Przycisk: OSTATNI PROJEKT (szybki dostęp)
+    if _all_offers and st.button("⏰ OSTATNI PROJEKT", use_container_width=True, key="btn_last_proj"):
+        _sorted = sorted(_all_offers, key=lambda x: x.get('updated_at', ''), reverse=True)
+        if _sorted:
+            _switch_project(_sorted[0]['id'])
+    
+    # WYBIERZ PROJEKT - selectbox + przycisk
+    if _all_offers:
+        _proj_options = ["-- Wybierz --"] + [
+            f"{o.get('project_code', '???')} | {o.get('project_name', 'bez nazwy')[:30]}"
+            for o in _all_offers
+        ]
+        _proj_ids = [None] + [o['id'] for o in _all_offers]
+        
+        _curr_idx = 0
+        if _current_proj_id and _current_proj_id in _proj_ids:
+            _curr_idx = _proj_ids.index(_current_proj_id)
+        
+        _selected_proj = st.selectbox(
+            "Wybierz projekt:",
+            _proj_options,
+            index=_curr_idx,
+            key="proj_select",
+            label_visibility="collapsed",
+        )
+        _sel_idx = _proj_options.index(_selected_proj)
+        if _sel_idx > 0 and _proj_ids[_sel_idx] != _current_proj_id:
+            if st.button("📂 WCZYTAJ WYBRANY", use_container_width=True, key="btn_load_proj"):
+                _switch_project(_proj_ids[_sel_idx])
+    else:
+        st.caption("Brak projektów w bazie.")
+    
+    # NOWY PROJEKT - rozwijane menu
+    with st.expander("➕ NOWY PROJEKT", expanded=False):
+        _new_type = st.radio(
+            "Typ nowego projektu:",
+            ["Pusty (z szablonu)", "Duplikuj istniejący"],
+            key="new_proj_type",
+            label_visibility="collapsed",
+        )
+        
+        if _new_type == "Pusty (z szablonu)":
+            if st.button("✨ UTWÓRZ PUSTY", use_container_width=True, key="btn_new_empty", type="primary"):
+                _new_project()
+        else:
+            if _all_offers:
+                _dup_options = [
+                    f"{o.get('project_code', '???')} | {o.get('project_name', 'bez nazwy')[:30]}"
+                    for o in _all_offers
+                ]
+                _dup_ids = [o['id'] for o in _all_offers]
+                _dup_selected = st.selectbox(
+                    "Wybierz źródło:",
+                    _dup_options,
+                    key="dup_select",
+                    label_visibility="collapsed",
+                )
+                _dup_idx = _dup_options.index(_dup_selected)
+                if st.button("📋 DUPLIKUJ", use_container_width=True, key="btn_duplicate", type="primary"):
+                    _new_project(copy_from_id=_dup_ids[_dup_idx])
+            else:
+                st.caption("Brak projektów do duplikowania.")
+    
+    st.markdown("---")
+    
     # Pobierz prezentację na dysk
     if st.button("POBIERZ PREZENTACJĘ NA DYSK", use_container_width=True, key="prep_download_btn"):
         with st.spinner("Przygotowywanie pliku..."):
