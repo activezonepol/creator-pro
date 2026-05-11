@@ -899,9 +899,14 @@ with st.sidebar:
     
     st.markdown("---")
     
-        
+    # === SEKCJA ZARZĄDZANIE DYSK LOKALNY ===
+    st.markdown(
+        f"<h3 style='color:{_acc_save};font-size:16px;margin-bottom:15px;font-weight:400 !important;letter-spacing:normal !important;'>ZARZĄDZANIE DYSK LOKALNY</h3>",
+        unsafe_allow_html=True,
+    )
+    
     # Pobierz prezentację na dysk
-    if st.button("POBIERZ PREZENTACJĘ NA DYSK", use_container_width=True, key="prep_download_btn"):
+    if st.button("POBIERZ PREZENTACJĘ NA DYSK", use_container_width=True, key="prep_download_btn", type="primary"):
         with st.spinner("Przygotowywanie pliku..."):
             proj = _build_proj_dict()
             st.session_state['temp_proj_json'] = json.dumps(proj, ensure_ascii=False)
