@@ -934,6 +934,8 @@ def get_local_css(return_str=False):
         .testim-author {{ font-family: '{f_txt}'; font-size: {max(10, fs_t - 2)}px; color: {c_t}; margin-top: 2px; }}
         .testim-author strong {{ font-weight: 700; color: {c_h2}; }}
         .page-footer {{ width: 100%; border-top: 1px solid {acc}; padding-top: 8px; margin-top: auto; display: flex; justify-content: space-between; font-size: 9px; text-transform: uppercase; font-weight: 600; color: {c_met}; font-family: '{f_met}'; position: relative; z-index: 10; }}
+        .hide-footer .page-footer {{ display: none !important; }}
+        .hide-footer .page-counter::after {{ counter-increment: slide_counter; }}
         .page-counter::after {{ counter-increment: slide_counter; content: counter(slide_counter); font-family: '{f_met}'; color: {c_met}; }}
         /* Globalna reguła - zapobieganie bękartom (pojedynczym słowom na końcu wersa) */
         .info-col p, .info-col div:not(.title-h1):not(.title-h2):not(.app-overline-style),
