@@ -977,6 +977,14 @@ with st.sidebar:
         type=['json'],
         key="up_proj_sidebar",
     )
+    st.markdown(
+        "<div style='font-size:10px;color:#64748b;font-style:italic;"
+        "margin:5px 0 10px 0;padding:6px 10px;background:#f1f5f9;border-radius:4px;"
+        "border-left:3px solid #94a3b8;'>"
+        "💡 Zarządzanie pojedynczymi slajdami znajduje się na panelu slajdów."
+        "</div>",
+        unsafe_allow_html=True
+    )
     if upf_sidebar and st.button("📤 WCZYTAJ", use_container_width=True, key="btn_load_sidebar"):
         data, error = _validate_and_load_json(upf_sidebar)
         if error:
