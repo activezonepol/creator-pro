@@ -972,8 +972,9 @@ def _fhtml():
         f'<span class="page-counter"></span></div>'
     )
 
-def _shtml(c, sid=""):
-    return f'<div class="slide-scaler" id="{sid}"><div class="slide-page">{c}</div></div>'
+def _shtml(c, sid="", hide_footer=False):
+    extra_class = " hide-footer" if hide_footer else ""
+    return f'<div class="slide-scaler{extra_class}" id="{sid}"><div class="slide-page">{c}</div></div>'
 
 def _get_ph(t):
     return f'<div class="photo-placeholder">{t}</div>'
