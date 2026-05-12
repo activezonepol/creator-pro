@@ -746,11 +746,26 @@ with st.sidebar:
     extra_html = f"<div style='font-size:10px;color:{secondary_color};margin-top:2px;font-weight:600;'>{save_extra}</div>" if save_extra else ""
     
     st.markdown(
-        f"<div style='background:{bg_color};border-left:4px solid {border_color};padding:8px 12px;margin-bottom:15px;border-radius:4px;'>"
+        f"<div style='background:{bg_color};border-left:4px solid {border_color};padding:8px 12px;margin-bottom:10px;border-radius:4px;'>"
         f"<div style='font-size:13px;font-weight:600;color:{text_color};margin-bottom:4px;'>{save_status}</div>"
         f"{project_html}"
         f"{count_html}"
         f"{extra_html}"
+        f"</div>",
+        unsafe_allow_html=True
+    )
+    
+    # AKTUALNIE EDYTUJESZ
+    _acc_top = st.session_state.get('color_accent', '#FF6600')
+    _editing_name = st.session_state.get('t_main', '').strip() or '(bez nazwy)'
+    if _editing_name == 'NAZWA PROJEKTU':
+        _editing_name = '(bez nazwy)'
+    st.markdown(
+        f"<div style='background:#fff7ed;border-left:3px solid {_acc_top};padding:8px 12px;"
+        f"margin-bottom:15px;border-radius:4px;'>"
+        f"<div style='font-size:9px;font-weight:700;color:#9a3412;text-transform:uppercase;"
+        f"letter-spacing:1px;margin-bottom:2px;'>Aktualnie edytujesz:</div>"
+        f"<div style='font-size:12px;font-weight:600;color:#1e293b;line-height:1.3;'>{_editing_name}</div>"
         f"</div>",
         unsafe_allow_html=True
     )
