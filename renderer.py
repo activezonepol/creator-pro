@@ -1243,32 +1243,32 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             <div>
                 <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
                             color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">KLIENT</div>
-                <div style="font-family:'{f_txt}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_klient','')}</div>
+                <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_klient','')}</div>
             </div>
             <div>
                 <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
                             color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">KIERUNEK</div>
-                <div style="font-family:'{f_txt}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_kierunek','')}</div>
+                <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_kierunek','')}</div>
             </div>
             <div>
                 <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
                             color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">TERMIN</div>
-                <div style="font-family:'{f_txt}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_date','')}</div>
+                <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_date','')}</div>
             </div>
             <div>
                 <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
                             color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">LICZBA OSÓB</div>
-                <div style="font-family:'{f_txt}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_pax','')}</div>
+                <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_pax','')}</div>
             </div>
             <div>
                 <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
                             color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">HOTEL</div>
-                <div style="font-family:'{f_txt}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_hotel','')}</div>
+                <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_hotel','')}</div>
             </div>
             <div>
                 <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
                             color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">DOJAZD</div>
-                <div style="font-family:'{f_txt}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_trans','')}</div>
+                <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_trans','')}</div>
             </div>
         </div>
         """
