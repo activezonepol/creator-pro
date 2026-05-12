@@ -1206,7 +1206,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 </div>
             </div>
         </div>{fh}""", f"slide-{sid}"))
-    # --- Slajd tytułowy ---
+    # --- Slajd tytułowy (elegancki, luksusowy układ - Playfair Display) ---
     if _should_render('slide-title', current_page, export_mode):
         i1 = get_b64('img_hero_t', (4, 5))
         im1 = _img_tag(i1, 'ZDJĘCIE GŁÓWNE')
@@ -1218,23 +1218,72 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         # Logo klienta (PNG)
         lcli = f"<img src='{lcli_val}' style='max-height:100%;max-width:150px;object-fit:contain;'>" if lcli_val and not hide_cli else ""
         lcli_container = f"<div class='logo-container' style='margin-bottom:40px;height:60px;display:flex;align-items:center;'>{lcli}</div>"
-
-        hp.append(_shtml(f"""{lh}<div class="premium-layout"><div class="photo-col">{im1}</div><div class="info-col">
-        {lcli_container}
-        <div class="title-h1">{str(get_data('t_main','')).replace(chr(10),'<br>')}</div>
         
-        <div class="title-sub" style="color:{acc}; border-bottom:3px solid {acc}; padding-bottom:15px; margin-bottom:25px; width:100%; display:block;">
+        # Import Playfair Display
+        playfair_import = "<style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap');</style>"
+        
+        # Tytuł i podtytuł - elegancka typografia
+        title_html = f"""
+        <div style="font-family:'Playfair Display', serif; font-weight:900; font-size:{fs_h1_val+12}px;
+                    line-height:1.0; color:{c_h1}; text-transform:uppercase; letter-spacing:-1px;
+                    margin-bottom:18px;">
+            {str(get_data('t_main','')).replace(chr(10),'<br>')}
+        </div>
+        <div style="font-family:'{f_sub}'; font-weight:300; font-size:{max(11, fs_sub_val-12)}px;
+                    color:{acc}; letter-spacing:6px; text-transform:uppercase;
+                    margin-bottom:40px;">
             {str(get_data('t_sub','')).replace(chr(10),'<br>')}
         </div>
+        """
         
-        <div class="metric-grid">
-            <div><div class="metric-label">Klient</div><div class="metric-value">{get_data('t_klient','')}</div></div>
-            <div><div class="metric-label">Kierunek</div><div class="metric-value">{get_data('t_kierunek','')}</div></div>
-            <div><div class="metric-label">Termin</div><div class="metric-value">{get_data('t_date','')}</div></div>
-            <div><div class="metric-label">Liczba osób</div><div class="metric-value">{get_data('t_pax','')}</div></div>
-            <div><div class="metric-label">Hotel</div><div class="metric-value">{get_data('t_hotel','')}</div></div>
-            <div><div class="metric-label">Dojazd</div><div class="metric-value">{get_data('t_trans','')}</div></div>
-        </div></div></div>{fh}""", "slide-title"))
+        # Subtelne metryczki - etykiety w kolorze akcentu, wartości regular weight
+        metrics_html = f"""
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px 30px; margin-top:10px;">
+            <div>
+                <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
+                            color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">KLIENT</div>
+                <div style="font-family:'{f_txt}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_klient','')}</div>
+            </div>
+            <div>
+                <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
+                            color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">KIERUNEK</div>
+                <div style="font-family:'{f_txt}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_kierunek','')}</div>
+            </div>
+            <div>
+                <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
+                            color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">TERMIN</div>
+                <div style="font-family:'{f_txt}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_date','')}</div>
+            </div>
+            <div>
+                <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
+                            color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">LICZBA OSÓB</div>
+                <div style="font-family:'{f_txt}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_pax','')}</div>
+            </div>
+            <div>
+                <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
+                            color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">HOTEL</div>
+                <div style="font-family:'{f_txt}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_hotel','')}</div>
+            </div>
+            <div>
+                <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
+                            color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">DOJAZD</div>
+                <div style="font-family:'{f_txt}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_trans','')}</div>
+            </div>
+        </div>
+        """
+        
+        # Layout: zdjęcie szersze (65% lewa kolumna), info 35% prawa
+        hp.append(_shtml(f"""{playfair_import}{lh}
+        <div style="display:flex; gap:50px; flex-grow:1; min-height:0; width:100%; overflow:hidden;">
+            <div style="flex:65; position:relative; height:100%; border-radius:8px; overflow:hidden; border:1px solid #eee; background:#fcfcfc; display:flex; align-items:center; justify-content:center;">
+                {im1}
+            </div>
+            <div style="flex:35; display:flex; flex-direction:column; height:100%; justify-content:center;">
+                {lcli_container}
+                {title_html}
+                {metrics_html}
+            </div>
+        </div>{fh}""", "slide-title", hide_footer=True))
     
     # --- Opis kierunku (Pojedynczy Slajd Premium) ---
     if _should_render('slide-kierunek', current_page, export_mode):
