@@ -193,6 +193,8 @@ def _upload_image(file_bytes, session_key, is_logo=False):
             st.session_state["_last_upload_ok"] = True
             # Inkrementujemy licznik wymuszający przebudowę iframe (components.html)
             st.session_state['_upload_counter'] = st.session_state.get('_upload_counter', 0) + 1
+            # WAŻNE: wymuszamy natychmiastowy zapis do Supabase (bez czekania na auto-save)
+            save_to_supabase()
             # Wymuszamy odświeżenie, żeby podgląd od razu widział nowe logo
             st.rerun()
         else:
