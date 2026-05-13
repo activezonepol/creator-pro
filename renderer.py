@@ -1321,8 +1321,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         facts_title_html = (
             f"<div style='font-family:\"{f_met}\"; font-weight:700; font-size:{max(10, fs_met-2)}px; "
             f"color:{kbox_txt}; text-transform:uppercase; letter-spacing:3px; "
-            f"margin-bottom:12px; padding-bottom:10px; "
-            f"border-bottom:1px solid rgba(255,255,255,0.3);'>{kfacts_title}</div>"
+            f"margin-bottom:12px;'>{kfacts_title}</div>"
             if kfacts_title else ''
         )
         
@@ -1353,7 +1352,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     {box_html}
                     
                     <div style="flex-grow:1; border-top-left-radius:40px; border-bottom-left-radius:8px; border-bottom-right-radius:8px; overflow:hidden; position:relative; background:#fcfcfc; border:1px solid #eee;">
-                        {_img_tag(kimg, 'ZDJĘCIE', style='position:absolute; bottom:0; right:0; width:220%; height:140%; object-fit:cover; object-position:right bottom;')}
+                        {_img_tag(kimg, 'ZDJĘCIE', style='position:absolute; top:0; right:0; width:200%; height:100%; object-fit:cover; object-position:right center;')}
                     </div>
                 </div>
             </div>
