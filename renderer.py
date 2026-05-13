@@ -1278,10 +1278,12 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         # Layout: zdjęcie szersze (65% lewa kolumna), info 35% prawa
         hp.append(_shtml(f"""{playfair_import}{lh}
         <div style="display:flex; gap:50px; flex-grow:1; min-height:0; width:100%; overflow:hidden; margin:-30px -45px -15px -45px; padding:0;">
-            <div style="flex:68; position:relative; height:100%; overflow:hidden; background:#fcfcfc; display:flex; align-items:center; justify-content:center;">
-                {im1}
+            <div style="flex:62; position:relative; height:100%; overflow:hidden; background:#fcfcfc;">
+                <div style="position:absolute; top:0; left:0; width:100%; height:100%;">
+                    {im1}
+                </div>
             </div>
-            <div style="flex:32; display:flex; flex-direction:column; height:100%; justify-content:center; padding:30px 45px 15px 0;">
+            <div style="flex:38; display:flex; flex-direction:column; height:100%; justify-content:center; padding:30px 45px 15px 0;">
                 {lcli_container}
                 {title_html}
                 {metrics_html}
