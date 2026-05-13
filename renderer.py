@@ -1283,7 +1283,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     {im1}
                 </div>
             </div>
-            <div style="flex:38; display:flex; flex-direction:column; height:100%; justify-content:center; padding:30px 45px 15px 0;">
+            <div style="flex:38; display:flex; flex-direction:column; height:100%; justify-content:center; padding:30px 45px 15px 50px;">
                 {lcli_container}
                 {title_html}
                 {metrics_html}
