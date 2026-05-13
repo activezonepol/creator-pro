@@ -1232,7 +1232,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     margin-bottom:18px;">
             {str(get_data('t_main','')).replace(chr(10),'<br>')}
         </div>
-        <div style="font-family:'{f_sub}'; font-weight:300; font-size:{max(11, fs_sub_val-6)}px;
+        <div style="font-family:'{f_sub}'; font-weight:300; font-size:{max(13, fs_sub_val-2)}px;
                     color:{acc}; letter-spacing:6px; text-transform:uppercase;
                     margin-bottom:40px;">
             {str(get_data('t_sub','')).replace(chr(10),'<br>')}
