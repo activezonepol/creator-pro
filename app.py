@@ -36,9 +36,10 @@ from storage_utils import (
     cleanup_session_bytes_to_storage,
     run_migration_flow,
 )
-# DEBUG: tracking session_state changes
-import streamlit as st
-_DEBUG_TRACK_KEY = 'h_amenities_0'
+for _dbg_key in ['h_amenities_0', 'h_amenities_1', 'h_booking_0', 'h_booking_1']:
+    _val = st.session_state.get(_dbg_key, "(brak)")
+    _type = type(_val).__name__
+    st.sidebar.warning(f"DEBUG: {_dbg_key} = {_val!r} ({_type})")
 if _DEBUG_TRACK_KEY in st.session_state:
     st.sidebar.warning(f"DEBUG: {_DEBUG_TRACK_KEY} = {st.session_state[_DEBUG_TRACK_KEY]}")
 # --- BEZPIECZNE ZMIENNE GLOBALNE ---
