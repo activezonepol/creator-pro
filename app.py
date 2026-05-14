@@ -540,10 +540,11 @@ for _k, _v in _SIZE_DEFS.items():
 # OCHRONA DANYCH PRZY ZMIANIE STRONY
 # ---------------------------------------------------------------------------
 def _guard(keys):
-    """Przywraca klucze do session_state jeśli Streamlit je usunął."""
+    """Przywraca klucze do session_state jeśli Streamlit je usunął.
+    Nie ustawia '' dla nieznanych kluczy - mogą być różnych typów (list, dict, bool itp.)."""
     for _k in keys:
-        if _k not in st.session_state:
-            st.session_state[_k] = defaults.get(_k, "")
+        if _k not in st.session_state and _k in defaults:
+            st.session_state[_k] = defaults[_k]
             
 # ---------------------------------------------------------------------------
 # HELPERY UI
