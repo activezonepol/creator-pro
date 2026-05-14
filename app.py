@@ -36,6 +36,11 @@ from storage_utils import (
     cleanup_session_bytes_to_storage,
     run_migration_flow,
 )
+# DEBUG: tracking session_state changes
+import streamlit as st
+_DEBUG_TRACK_KEY = 'h_amenities_0'
+if _DEBUG_TRACK_KEY in st.session_state:
+    st.sidebar.warning(f"DEBUG: {_DEBUG_TRACK_KEY} = {st.session_state[_DEBUG_TRACK_KEY]}")
 # --- BEZPIECZNE ZMIENNE GLOBALNE ---
 if 'num_attr' not in st.session_state: st.session_state['num_attr'] = 0
 if 'num_hotels' not in st.session_state: st.session_state['num_hotels'] = 0
