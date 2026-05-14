@@ -1781,7 +1781,9 @@ with col_form:
             if i >= st.session_state.get('num_hotels', 0):
                 st.warning(f"Hotel {i+1} nie istnieje. Wróć na 'Opis hoteli' aby dodać hotele.")
             else:
-                # Inicjalizuj klucze (z ochroną przed None)
+                # Inicjalizuj klucze tylko jeśli BRAK ich w session_state.
+                # WAŻNE: 'st.session_state.get(dk) is None' usunięte — bo np. multiselect
+                # po przełączeniu strony może zwracać None, ale dane są zachowane w buforze.
                 _h_defaults = [
                     (f'h_hide_{i}', False), (f'h_overline_{i}', 'ZAKWATEROWANIE'),
                     (f'h_title_{i}', f'NAZWA HOTELU {i+1} 5*'),
@@ -1792,8 +1794,17 @@ with col_form:
                     (f'h_advantages_{i}', 'Położenie tuż przy prywatnej plaży'),
                 ]
                 for dk, dv in _h_defaults:
-                    if dk not in st.session_state or st.session_state.get(dk) is None:
+                    # Buforujemy do _buffer_KEY przed pierwszym widgetem żeby Streamlit nie wyrzucił
+                    buf_key = f"_buffer_{dk}"
+                    # Jeśli widget zniknął (None), ale w buforze jest wartość — przywróć
+                    if st.session_state.get(dk) is None and buf_key in st.session_state:
+                        st.session_state[dk] = st.session_state[buf_key]
+                    # Jeśli klucza w ogóle nie ma — ustaw default
+                    elif dk not in st.session_state:
                         st.session_state[dk] = dv
+                    # Po inicjalizacji — zapisz do bufora (do następnego rerun)
+                    if dk in st.session_state and st.session_state[dk] is not None:
+                        st.session_state[buf_key] = st.session_state[dk]
                 # Wymuszamy poprawny typ bool dla h_hide
                 if not isinstance(st.session_state.get(f'h_hide_{i}'), bool):
                     st.session_state[f'h_hide_{i}'] = False
