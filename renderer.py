@@ -375,10 +375,15 @@ def load_project_data(project_data: dict):
             continue
         # 4. Specjalistyczne typy
         if k in IMAGE_KEYS and isinstance(v, str):
-            try:
-                st.session_state[k] = base64.b64decode(v)
-            except Exception:
+            # Jeśli to URL (Supabase Storage) - zapisujemy jako string
+            if v.startswith('http://') or v.startswith('https://') or v.startswith('data:'):
                 st.session_state[k] = v
+            else:
+                # Stara wersja: base64-encoded bytes
+                try:
+                    st.session_state[k] = base64.b64decode(v)
+                except Exception:
+                    st.session_state[k] = v
         elif k == 'p_start_dt' and isinstance(v, str):
             try:
                 st.session_state[k] = date.fromisoformat(v)
