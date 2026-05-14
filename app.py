@@ -1823,16 +1823,28 @@ with col_form:
                 
                 # ZDJĘCIA
                 cl1, cl2 = st.columns(2)
-                u_h1 = cl1.file_uploader("Zdj. Lewe Górne", key=f"up_uh1_{i}")
-                if u_h1: _upload_image(u_h1.getvalue(), f'img_hotel_1_{i}')
-                u_h1b = cl2.file_uploader("Zdj. Lewe Dolne", key=f"up_uh1b_{i}")
-                if u_h1b: _upload_image(u_h1b.getvalue(), f'img_hotel_1b_{i}')
+                cl1.file_uploader(
+                    "Zdj. Lewe Górne",
+                    key=f"up_img_hotel_1_{i}",
+                    on_change=_make_upload_callback(f'img_hotel_1_{i}')
+                )
+                cl2.file_uploader(
+                    "Zdj. Lewe Dolne",
+                    key=f"up_img_hotel_1b_{i}",
+                    on_change=_make_upload_callback(f'img_hotel_1b_{i}')
+                )
                 
                 c3, c4 = st.columns(2)
-                u_h2 = c3.file_uploader("Zdj. Dolne 1", key=f"up_uh2_{i}")
-                if u_h2: _upload_image(u_h2.getvalue(), f'img_hotel_2_{i}')
-                u_h3 = c4.file_uploader("Zdj. Dolne 2", key=f"up_uh3_{i}")
-                if u_h3: _upload_image(u_h3.getvalue(), f'img_hotel_3_{i}')
+                c3.file_uploader(
+                    "Zdj. Dolne 1",
+                    key=f"up_img_hotel_2_{i}",
+                    on_change=_make_upload_callback(f'img_hotel_2_{i}')
+                )
+                c4.file_uploader(
+                    "Zdj. Dolne 2",
+                    key=f"up_img_hotel_3_{i}",
+                    on_change=_make_upload_callback(f'img_hotel_3_{i}')
+                )
     
     # -----------------------------------------------------------------------
     # 11. PRZERYWNIK SERWISY DODATKOWE
