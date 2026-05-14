@@ -36,11 +36,6 @@ from storage_utils import (
     cleanup_session_bytes_to_storage,
     run_migration_flow,
 )
-for _dbg_key in ['h_amenities_0', 'h_amenities_1', 'h_booking_0', 'h_booking_1']:
-    _val = st.session_state.get(_dbg_key, "(brak)")
-    _type = type(_val).__name__
-    st.sidebar.warning(f"DEBUG: {_dbg_key} = {_val!r} ({_type})")
-    st.sidebar.warning(f"DEBUG: {_DEBUG_TRACK_KEY} = {st.session_state[_DEBUG_TRACK_KEY]}")
 # --- BEZPIECZNE ZMIENNE GLOBALNE ---
 if 'num_attr' not in st.session_state: st.session_state['num_attr'] = 0
 if 'num_hotels' not in st.session_state: st.session_state['num_hotels'] = 0
