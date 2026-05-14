@@ -1829,19 +1829,19 @@ with col_form:
                     on_change=_make_upload_callback(f'img_hotel_1_{i}')
                 )
                 cl2.file_uploader(
-                    "Zdj. Lewe Dolne",
+                    "Zdj. Dolne 1",
                     key=f"up_img_hotel_1b_{i}",
                     on_change=_make_upload_callback(f'img_hotel_1b_{i}')
                 )
                 
                 c3, c4 = st.columns(2)
                 c3.file_uploader(
-                    "Zdj. Dolne 1",
+                    "Zdj. Dolne 2",
                     key=f"up_img_hotel_2_{i}",
                     on_change=_make_upload_callback(f'img_hotel_2_{i}')
                 )
                 c4.file_uploader(
-                    "Zdj. Dolne 2",
+                    "Zdj. Dolne 3",
                     key=f"up_img_hotel_3_{i}",
                     on_change=_make_upload_callback(f'img_hotel_3_{i}')
                 )
