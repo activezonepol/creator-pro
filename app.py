@@ -1825,10 +1825,36 @@ with col_form:
                 safe_text_input("Podtytuł:", key=f"h_subtitle_{i}")
                 
                 c1, c2 = st.columns(2)
-                c1.text_input("Strona www:", key=f"h_url_{i}")
-                c2.text_input("Ocena Booking.com:", key=f"h_booking_{i}")
+                # safe wrapper dla text_input i multiselect - chroni przed kasowaniem stanu
+                # przez Streamlit przy rerunie (analogicznie do safe_text_input w my_components.py)
                 
-                st.multiselect("Udogodnienia (ikonki):", list(hotel_icons.keys()), key=f"h_amenities_{i}")
+                # h_url_{i}
+                _hurl_buffer = f"buffer_h_url_{i}"
+                _hurl_main = st.session_state.get(f"h_url_{i}", "")
+                if _hurl_buffer not in st.session_state:
+                    st.session_state[_hurl_buffer] = _hurl_main
+                def _sync_hurl():
+                    st.session_state[f"h_url_{i}"] = st.session_state[_hurl_buffer]
+                c1.text_input("Strona www:", value=_hurl_main, key=_hurl_buffer, on_change=_sync_hurl)
+                
+                # h_booking_{i}
+                _hb_buffer = f"buffer_h_booking_{i}"
+                _hb_main = st.session_state.get(f"h_booking_{i}", "")
+                if _hb_buffer not in st.session_state:
+                    st.session_state[_hb_buffer] = _hb_main
+                def _sync_hb():
+                    st.session_state[f"h_booking_{i}"] = st.session_state[_hb_buffer]
+                c2.text_input("Ocena Booking.com:", value=_hb_main, key=_hb_buffer, on_change=_sync_hb)
+                
+                # h_amenities_{i} - multiselect
+                _ham_buffer = f"buffer_h_amenities_{i}"
+                _ham_main = st.session_state.get(f"h_amenities_{i}", [])
+                if _ham_buffer not in st.session_state:
+                    st.session_state[_ham_buffer] = _ham_main
+                def _sync_ham():
+                    st.session_state[f"h_amenities_{i}"] = st.session_state[_ham_buffer]
+                st.multiselect("Udogodnienia (ikonki):", list(hotel_icons.keys()),
+                               default=_ham_main, key=_ham_buffer, on_change=_sync_ham)
                 safe_text_area("Opis hotelu:", height=200, key=f"h_text_{i}")
                 safe_text_area("Atuty hotelu:", height=100, key=f"h_advantages_{i}")
                 
