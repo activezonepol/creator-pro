@@ -1593,7 +1593,6 @@ with col_form:
             _pos = _page_idx - _opis_idx - 1
         except ValueError:
             _pos = -1 
-                break
         
         if _pos >= 0 and _pos < _n_attr:
             # Pobierz rzeczywisty indeks z naszej listy kolejności
