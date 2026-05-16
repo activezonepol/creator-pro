@@ -1584,11 +1584,15 @@ with col_form:
     # -----------------------------------------------------------------------
     elif "★" in page:
         # Znajdź pozycję atrakcji w naszej liście menu
+        # Stałe strony przed pierwszą atrakcją kończą się na "Opis atrakcji"
+        # Pozycja atrakcji = (jej indeks w _all_pages) - (indeks "Opis atrakcji" + 1)
         _pos = -1
-        for i, p in enumerate(_all_pages):
-            if p == page:
-                # Odejmij liczbę elementów stałych przed atrakcjami (mamy 8 stałych stron przed ★)
-                _pos = i - 8 
+        try:
+            _opis_idx = _all_pages.index("Opis atrakcji")
+            _page_idx = _all_pages.index(page)
+            _pos = _page_idx - _opis_idx - 1
+        except ValueError:
+            _pos = -1 
                 break
         
         if _pos >= 0 and _pos < _n_attr:
