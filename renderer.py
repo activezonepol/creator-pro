@@ -1857,7 +1857,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             a3 = get_b64(f'at3_{i}', (1, 1))
             bb_a = ""
             md_a = re.search(r'Dzień (\d+)', str(get_data(f"aday_{i}") or ""))
-            if md_a:
+            if md_a and export_mode:
                 bb_a = f"<a href='#program_day_{int(md_a.group(1)) - 1}' class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
             hp.append(_shtml(f"""{lh}<div class="premium-layout" id="attr_{i}">
                 <div class="photo-col">{_img_tag(iah, 'FOTO GŁÓWNE')}{bb_a}</div>
