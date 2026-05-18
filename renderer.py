@@ -1349,16 +1349,13 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
 
         hp.append(_shtml(f"""{lh}
         <div class="premium-layout" id="slide-kierunek" style="gap:40px; align-items:stretch;">
-            <div style="flex:55; display:flex; gap:15px; height:100%;">
-                <div style="flex:1.2; height:100%; border-radius:8px; overflow:hidden; position:relative; background:#fcfcfc; border:1px solid #eee;">
-                    {_img_tag(kimg, 'ZDJĘCIE', style='position:absolute; top:0; left:0; width:200%; height:100%; object-fit:cover; object-position:left center;')}
-                </div>
-                <div style="flex:1; display:flex; flex-direction:column; gap:15px; height:100%;">
+            <div style="flex:55; position:relative; height:100%; border-radius:8px; overflow:hidden; background:#fcfcfc; border:1px solid #eee;">
+                {_img_tag(kimg, 'ZDJĘCIE', style='width:100%; height:100%; object-fit:cover; object-position:center;')}
+                
+                <div style="position:absolute; top:0; left:50%; transform:translateX(-50%); width:15px; height:100%; background-color:#fff; z-index:5;"></div>
+                
+                <div style="position:absolute; top:0; right:0; width:50%; padding:15px; z-index:6; box-sizing:border-box;">
                     {box_html}
-                    
-                    <div style="flex-grow:1; border-top-left-radius:40px; border-bottom-left-radius:8px; border-bottom-right-radius:8px; overflow:hidden; position:relative; background:#fcfcfc; border:1px solid #eee;">
-                        {_img_tag(kimg, 'ZDJĘCIE', style='position:absolute; top:0; right:0; width:200%; height:100%; object-fit:cover; object-position:right center;')}
-                    </div>
                 </div>
             </div>
             
