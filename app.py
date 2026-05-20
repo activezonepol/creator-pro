@@ -1906,11 +1906,11 @@ with col_form:
             st.session_state["sek_4_sub_color"] = _sub_default
             st.rerun()
 
-        for _ck, _cv in [(f"sek_4_bg", _bg_default), (f"sek_4_txt", '#ffffff'), (f"sek_4_sub_color", _sub_default)]:
-            _v = st.session_state.get(_ck, _cv)
-            if not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
+        for _ck, _cv in [("sek_4_bg", _bg_default), ("sek_4_txt", '#ffffff'), ("sek_4_sub_color", _sub_default)]:
+            _v = st.session_state.get(_ck)
+            if not _v or _v == '#000000' or not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
                 st.session_state[_ck] = _cv
-
+                
         st.button("POKAŻ PODGLĄD", key="btn_sek_4", on_click=set_focus, args=("slide-sek_4",), use_container_width=True)
         st.checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_4")
         st.markdown("---") 
