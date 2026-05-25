@@ -242,18 +242,17 @@ defaults = {
     'brand_groups_font': 'Inter',
     'brand_g1_title': 'PRESTIŻOWY START',
     'brand_g1_items': (
-        'Atrakcyjne zaproszenie elektroniczne\n'
-        'Newsletter dla uczestników\n'
-        'Dedykowana aplikacja telefoniczna\n'
+        'Zaproszenie elektroniczne\n'
+        'Przedwyjazdowe "tisery" dla uczestników\n'
+        'Dedykowana aplikacja telefoniczna wraz z formularzem zbierającym dane\n'
         'Strona www wyjazdu\n'
-        'Aplikacja zgłoszeniowa uczestnika online\n'
-        'Program i materiały o wyjeździe'
     ),
     'brand_g2_title': 'LOGISTYKA & KOMUNIKACJA',
     'brand_g2_items': (
         'Komunikacja SMS, e-mail, push w aplikacji przed i w trakcie wyjazdu\n'
         'Stanowisko na lotnisku z logo\n'
-        'Zawieszka imienna z logo na bagaż'
+        'Zawieszka imienna z logo na bagaż\n'
+        'Koperta na materiały'
     ),
     'brand_g3_title': 'STANDARD VIP & PERSONALIZACJA',
     'brand_g3_items': (
