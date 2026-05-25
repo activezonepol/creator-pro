@@ -1928,7 +1928,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             _title_html = (
                 f"<div style='font-family:\"{_bg_font}\"; font-weight:400; font-size:{max(11, fs_t)}px; "
                 f"color:#333333; text-transform:uppercase; letter-spacing:1.5px; "
-                f"margin-bottom:7px;'>{_title}</div>"
+                f"margin-bottom:14px;'>{_title}</div>"
                 if _title else ''
             )
             _items_html = (
@@ -1936,7 +1936,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 + "".join([f"<li>{x}</li>" for x in _items]) + "</ul>"
                 if _items else ''
             )
-            return f"<div style='margin-bottom:18px;'>{_title_html}{_items_html}</div>"
+            return f"<div style='margin-bottom:32px;'>{_title_html}{_items_html}</div>"
 
         groups_html = (
             _brand_group('brand_g1_title', 'brand_g1_items')
