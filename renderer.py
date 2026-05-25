@@ -900,7 +900,7 @@ def get_local_css(return_str=False):
         .app-overline-style::after {{ flex: 1; margin-right: 120px; min-width: 20px; }}
         .app-list {{ list-style: none; padding: 0; margin-top: 10px; margin-bottom: 10px; }}
         .app-list li {{ position: relative; padding-left: 18px; margin-bottom: 7px; font-family: '{f_txt}'; font-size: {max(10, fs_t-1)}px; line-height: 1.3; color: {c_t}; font-weight: 400; }}
-        .app-list li::before {{ content: '■'; position: absolute; left: 0; top: 1px; color: {c_h2}; font-size: 0.7em; }}
+        .app-list li::before {{ content: '\\203A'; position: absolute; left: 0; top: 0px; color: {acc}; font-weight: 700; font-size: 1.1em; line-height: 1; }}
         .app-list li.sub-item {{ padding-left: 35px; margin-bottom: 6px; font-size: 0.95em; color: {c_t}; font-weight: 300; }}
         .app-list li.sub-item::before {{ content: '○'; left: 18px; top: 3px; font-size: 0.6em; color: {c_h2}; }}
         .app-image-col {{ position: absolute; top: -30px; right: -45px; bottom: -15px; width: 62%; clip-path: polygon(20% 0, 100% 0, 100% 100%, 0 100%); z-index: 1; background-color: #eff4f8; display: flex; align-items: center; justify-content: center; }}
