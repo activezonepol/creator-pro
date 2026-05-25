@@ -1925,8 +1925,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             if not _title and not _items:
                 return ''
             _title_html = (
-                f"<div style='font-family:\"{_bg_font}\"; font-weight:400; font-size:{max(11, fs_t)}px; "
-                f"color:#333333; text-transform:uppercase; letter-spacing:1.5px; "
+                f"<div style='font-family:\"{_bg_font}\"; font-weight:600; font-size:{max(11, fs_t)}px; "
+                f"color:#333333; text-transform:uppercase; letter-spacing:2px; "
                 f"margin-bottom:14px;'>{_title}</div>"
                 if _title else ''
             )
