@@ -1949,7 +1949,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 <div class="app-overline-style"><span>{str(get_data('brand_overline',''))}</span></div>
                 <div class="title-h1" style="margin-bottom: 10px; font-size:{fs_h1_val-8}px;">{str(get_data('brand_title','')).replace(chr(10),'<br>')}</div>
                 <div class="title-sub" style="margin-bottom:14px; font-size:{max(10,fs_sub_val-6)}px;">{str(get_data('brand_subtitle','')).replace(chr(10),'<br>')}</div>
-                <div style="margin-top:40px;">{groups_html}</div>
+                <div style="margin-top:30px;">{groups_html}</div>
             </div>
             <div style="flex: 50; position: relative; height: 100%;"><div class="brand-collage">
                 <div class="brand-img-1">{b1h}</div><div class="brand-img-2">{b2h}</div><div class="brand-img-3">{b3h}</div>
