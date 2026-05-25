@@ -235,23 +235,47 @@ defaults = {
                      'Komunikacja SMS\n'
                      'Komunikacja "push" w aplikacji\n'
                      'Czat w aplikacji dla uczestników'),
-    'brand_hide': False, 'brand_overline': 'IDENTYFIKACJA',
-    'brand_title': 'MATERIAŁY\nBRANDINGOWE',
-    'brand_subtitle': 'Komunikacja przed, w trakcie i po wyjeździe',
-    'brand_features': (
-        'Komunikacja SMS, e-mail, push w aplikacji przed i w trakcie wyjazdu\n'
-        'Atrakcyjne zaproszenie elektroniczne\n'
-        'Newsletter dla uczestników, program i materiały oraz koperty z logo na bilety i dokumenty\n'
-        'Strona www i aplikacja mobilna z formularzem uczestnika\n'
-        'Stanowisko na lotnisku z logo\n'
-        'Zawieszka imienna z logo na bagaż\n'
-        'Menu na posiłki z logo\n'
-        'Zróżnicowanie posiłków do preferencji\n'
-        'List powitalny w hotelu\n'
-        'Oprawa marketingowa wyjazdu\n'
-        'Cztery pillow gifty z opisem i logo (w tym strój)\n'
-        'Taśma zabezpieczająca na walizkę z logo (opcja)'
-    ),
+    elif page == "Materiały brandingowe":
+        _guard(["brand_hide", "brand_overline", "brand_title",  
+                "brand_subtitle", "brand_features", "brand_groups_font",
+                "brand_g1_title", "brand_g1_items", "brand_g2_title", "brand_g2_items",
+                "brand_g3_title", "brand_g3_items"])             
+        bra_keys = [
+            'brand_hide', 'brand_overline', 'brand_title', 'brand_subtitle',
+            'brand_groups_font',
+            'brand_g1_title', 'brand_g1_items', 'brand_g2_title', 'brand_g2_items',
+            'brand_g3_title', 'brand_g3_items',
+            'img_brand_1', 'img_brand_2', 'img_brand_3',
+        ]
+        section_template_manager(bra_keys, "BRA", "Branding", "bra")
+        st.checkbox("Ukryj slajd", key="brand_hide")
+        safe_text_input("Mały nadtytuł:", key="brand_overline")
+        safe_text_area("Główny tytuł H1:", key="brand_title")
+        safe_text_input("Podtytuł:", key="brand_subtitle")
+
+        _section_header("PODTYTUŁY GRUP")
+        _bgf_opts = FONTS_LIST
+        _bgf_cur = st.session_state.get('brand_groups_font', 'Inter')
+        try:
+            _bgf_idx = _bgf_opts.index(_bgf_cur)
+        except ValueError:
+            _bgf_idx = _bgf_opts.index('Inter') if 'Inter' in _bgf_opts else 0
+        st.selectbox("Font podtytułów grup:", _bgf_opts, index=_bgf_idx, key="brand_groups_font")
+
+        _section_header("GRUPA 1")
+        safe_text_input("Podtytuł grupy 1:", key="brand_g1_title")
+        safe_text_area("Punkty grupy 1 (Enter = nowy punkt):", height=180, key="brand_g1_items")
+
+        _section_header("GRUPA 2")
+        safe_text_input("Podtytuł grupy 2:", key="brand_g2_title")
+        safe_text_area("Punkty grupy 2 (Enter = nowy punkt):", height=180, key="brand_g2_items")
+
+        _section_header("GRUPA 3")
+        safe_text_input("Podtytuł grupy 3:", key="brand_g3_title")
+        safe_text_area("Punkty grupy 3 (Enter = nowy punkt):", height=180, key="brand_g3_items")
+
+        _section_header("ZDJĘCIA")
+        c1, c2, c3 = st.columns(3)
     'va_hide': False, 'va_overline': 'SPRAWNA ORGANIZACJA',
     'va_title': 'WIRTUALNY\nASYSTENT',
     'va_subtitle': 'Sprawna organizacja i wygoda',
