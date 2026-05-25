@@ -235,9 +235,36 @@ defaults = {
                      'Komunikacja SMS\n'
                      'Komunikacja "push" w aplikacji\n'
                      'Czat w aplikacji dla uczestników'),
-    
+    'brand_hide': False, 'brand_overline': 'IDENTYFIKACJA',
+    'brand_title': 'MATERIAŁY\nBRANDINGOWE',
+    'brand_subtitle': 'Komunikacja przed, w trakcie i po wyjeździe',
+    'brand_features': '',
+    'brand_groups_font': 'Inter',
+    'brand_g1_title': 'PRESTIŻOWY START',
+    'brand_g1_items': (
+        'Atrakcyjne zaproszenie elektroniczne\n'
+        'Newsletter dla uczestników\n'
+        'Dedykowana aplikacja telefoniczna\n'
+        'Strona www wyjazdu\n'
+        'Aplikacja zgłoszeniowa uczestnika online\n'
+        'Program i materiały o wyjeździe'
+    ),
+    'brand_g2_title': 'LOGISTYKA & KOMUNIKACJA',
+    'brand_g2_items': (
+        'Komunikacja SMS, e-mail, push w aplikacji przed i w trakcie wyjazdu\n'
+        'Stanowisko na lotnisku z logo\n'
+        'Zawieszka imienna z logo na bagaż'
+    ),
+    'brand_g3_title': 'STANDARD VIP & PERSONALIZACJA',
+    'brand_g3_items': (
+        'Dedykowane menu z brandingiem – spersonalizowane karty dań z logo Państwa firmy, z pełnym tłumaczeniem na język polski\n'
+        'Zróżnicowanie posiłków do preferencji\n'
+        'List powitalny w hotelu\n'
+        'Pełna oprawa marketingowa wyjazdu\n'
+        'Pillow gifty z opisem i logo\n'
+        'Dedykowane gadżety podróżnicze z brandingiem'
+    ),
     'va_hide': False, 'va_overline': 'SPRAWNA ORGANIZACJA',
-    'va_title': 'WIRTUALNY\nASYSTENT',
     'va_subtitle': 'Sprawna organizacja i wygoda',
     'va_text': ('Nowatorski system do zarządzania grupami. Składa się z aplikacji, identyfikatorów '
                 'z chipem, naklejek z chipem lub kodem z danymi uczestników (np. do naklejenia na walizkę). '
