@@ -836,7 +836,7 @@ def get_local_css(return_str=False):
     except Exception: fs_t = 14
     try: fs_met = int(float(get_data('font_size_metric', 16)))
     except Exception: fs_met = 16
-    ufonts = {f_h1, f_h2, f_sub, f_txt, f_met, 'Montserrat', 'Open Sans'}
+    ufonts = {f_h1, f_h2, f_sub, f_txt, f_met, 'Montserrat', 'Open Sans', get_data('brand_groups_font', 'Inter')}
     font_imports = [
         f"@import url('https://fonts.googleapis.com/css?family={f.replace(' ', '+')}:{FONT_WEIGHTS.get(f, '400,700')}&display=swap');"
         for f in ufonts
