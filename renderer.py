@@ -1930,13 +1930,39 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         b1h = _img_tag(b1, 'ZDJ 1')
         b2h = _img_tag(b2, 'ZDJ 2')
         b3h = (_img_tag(b3, 'ZDJ 3') + '<div class="brand-gap"></div>') if b3 else _get_ph('ZDJ 3')
-        bfh = "".join([f"<li>{f.strip()}</li>" for f in get_data('brand_features', '').split('\n') if f.strip()])
+
+        _bg_font = str(get_data('brand_groups_font', 'Inter'))
+
+        def _brand_group(title_key, items_key):
+            _title = str(get_data(title_key, '') or '').strip()
+            _items = [x.strip() for x in str(get_data(items_key, '') or '').split('\n') if x.strip()]
+            if not _title and not _items:
+                return ''
+            _title_html = (
+                f"<div style='font-family:\"{_bg_font}\"; font-weight:400; font-size:{max(11, fs_t)}px; "
+                f"color:#333333; text-transform:uppercase; letter-spacing:1.5px; "
+                f"margin-bottom:7px;'>{_title}</div>"
+                if _title else ''
+            )
+            _items_html = (
+                f"<ul class='app-list' style='margin-top:0; margin-bottom:0;'>"
+                + "".join([f"<li>{x}</li>" for x in _items]) + "</ul>"
+                if _items else ''
+            )
+            return f"<div style='margin-bottom:18px;'>{_title_html}{_items_html}</div>"
+
+        groups_html = (
+            _brand_group('brand_g1_title', 'brand_g1_items')
+            + _brand_group('brand_g2_title', 'brand_g2_items')
+            + _brand_group('brand_g3_title', 'brand_g3_items')
+        )
+
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
             <div class="info-col" style="flex: 55; padding-right: 30px; padding-top: 24px; justify-content: flex-start;">
                 <div class="app-overline-style"><span>{str(get_data('brand_overline',''))}</span></div>
                 <div class="title-h1" style="margin-bottom: 10px; font-size:{fs_h1_val-8}px;">{str(get_data('brand_title','')).replace(chr(10),'<br>')}</div>
                 <div class="title-sub" style="margin-bottom:14px; font-size:{max(10,fs_sub_val-6)}px;">{str(get_data('brand_subtitle','')).replace(chr(10),'<br>')}</div>
-                <ul class="app-list" style="margin-top:0;">{bfh}</ul>
+                {groups_html}
             </div>
             <div style="flex: 50; position: relative; height: 100%;"><div class="brand-collage">
                 <div class="brand-img-1">{b1h}</div><div class="brand-img-2">{b2h}</div><div class="brand-img-3">{b3h}</div>
