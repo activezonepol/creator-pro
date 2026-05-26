@@ -1674,7 +1674,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     <div style="flex:3; border-radius:8px; overflow:hidden; border:1px solid #eee; background-color:#fcfcfc;">{h1_html}</div>
                     <div style="flex:2; border-radius:8px; overflow:hidden; border:1px solid #eee; background-color:#fcfcfc;">{h1b_html}</div>
                 </div>
-                <div style="flex:60; padding-left:15px; padding-top:20px; display:flex; flex-direction:column; min-height:0;">
+                <div style="flex:60; padding-left:15px; padding-top:15px; display:flex; flex-direction:column; min-height:0;">
                     <div class="app-overline-style" style="margin-bottom:4px; flex-shrink:0;"><span>{str(get_data(f'h_overline_{i}','ZAKWATEROWANIE'))}</span></div>
                     <div class="title-h1" style="margin-bottom:3px; font-size:{max(20,fs_h1_val-6)}px; flex-shrink:0;">{str(get_data(f'h_title_{i}','')).replace(chr(10),'<br>')}</div>
                     <div style="display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:8px; flex-shrink:0;">
