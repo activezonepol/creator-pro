@@ -2034,7 +2034,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         opcje_html = (f"""<div style="margin-top:20px;"><div style="font-family:'{f_h2}'; font-weight:800; font-size:{fs_t+2}px; color:{c_h2}; margin-bottom:5px; text-transform:uppercase;">KOSZTY OPCJONALNE:</div><div style="font-family:'{f_t}'; font-size:{fs_t}px; color:{c_t}; white-space:pre-line; line-height:1.5;">{opcje}</div></div>"""
                       if opcje else '')
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
-            <div class="info-col" style="padding-top:30px; justify-content:flex-start; padding-right:30px;">
+            <div class="info-col" style="padding-top:15px; justify-content:flex-start; padding-right:30px;">
                 <div class="app-overline-style" style="margin-bottom:15px;"><span>KOSZTORYS - CIĄG DALSZY</span></div>
                 {zaw2_html}
                 <div style="font-family:'{f_h2}'; font-weight:800; font-size:{fs_t+2}px; color:{c_h2}; margin-top:15px; margin-bottom:5px; text-transform:uppercase;">NIE POLICZONE W CENIE:</div>
