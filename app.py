@@ -1963,12 +1963,12 @@ with col_form:
         _guard(["brand_hide", "brand_overline", "brand_title",  
                 "brand_subtitle", "brand_features", "brand_groups_font",
                 "brand_g1_title", "brand_g1_items", "brand_g2_title", "brand_g2_items",
-                "brand_g3_title", "brand_g3_items"])             
+                "brand_g3_title", "brand_g3_items", "brand_footer"])             
         bra_keys = [
             'brand_hide', 'brand_overline', 'brand_title', 'brand_subtitle',
             'brand_groups_font',
             'brand_g1_title', 'brand_g1_items', 'brand_g2_title', 'brand_g2_items',
-            'brand_g3_title', 'brand_g3_items',
+            'brand_g3_title', 'brand_g3_items', 'brand_footer',
             'img_brand_1', 'img_brand_2', 'img_brand_3',
         ]
         section_template_manager(bra_keys, "BRA", "Branding", "bra")
@@ -1997,7 +1997,8 @@ with col_form:
         _section_header("GRUPA 3")
         safe_text_input("Podtytuł grupy 3:", key="brand_g3_title")
         safe_text_area("Punkty grupy 3 (Enter = nowy punkt):", height=180, key="brand_g3_items")
-
+        _section_header("TEKST KOŃCOWY")
+        safe_text_area("Tekst na dole slajdu:", height=100, key="brand_footer")
         _section_header("ZDJĘCIA")
         c1, c2, c3 = st.columns(3)
         c1.file_uploader(
