@@ -1950,7 +1950,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 <div class="title-h1" style="margin-bottom: 10px; font-size:{fs_h1_val-8}px;">{str(get_data('brand_title','')).replace(chr(10),'<br>')}</div>
                 <div class="title-sub" style="margin-bottom:14px; font-size:{max(10,fs_sub_val-6)}px;">{str(get_data('brand_subtitle','')).replace(chr(10),'<br>')}</div>
                 <div style="margin-top:22px;">{groups_html}</div>
-                {f'<div style="margin-top:auto; padding-top:14px; font-family:\'{f_t}\'; font-size:{max(10, fs_t-1)}px; font-style:italic; color:{c_t}; line-height:1.5;">{str(get_data("brand_footer","")).replace(chr(10),"<br>")}</div>' if str(get_data("brand_footer","")).strip() else ''}
+                {f'<div style="margin-top:20px; font-family:\'{f_t}\'; font-size:{max(12, fs_t)}px; font-style:italic; color:{c_t}; line-height:1.5;">{str(get_data("brand_footer","")).replace(chr(10),"<br>")}</div>' if str(get_data("brand_footer","")).strip() else ''}
             </div>
             <div style="flex: 50; position: relative; height: 100%;"><div class="brand-collage">
                 <div class="brand-img-1">{b1h}</div><div class="brand-img-2">{b2h}</div><div class="brand-img-3">{b3h}</div>
