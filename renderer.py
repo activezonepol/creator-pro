@@ -249,17 +249,16 @@ defaults = {
     'brand_g2_title': 'LOGISTYKA & KOMUNIKACJA',
     'brand_g2_items': (
         'Komunikacja: SMS, e-mail, push w aplikacji przed i w trakcie wyjazdu\n'
-        'Stanowisko na lotnisku z logo\n'
-        'Zawieszka imienna na bagaż\n'
-        'Koperta na materiały'
+        'Dedykowane stanowisko na lotnisku z logo\n'
+        'Pakiet powitalny: zawieszka imienna na bagaż, etui z biletam i materiałami
     ),
     'brand_g3_title': 'STANDARD VIP & PERSONALIZACJA',
     'brand_g3_items': (
         'Dedykowane menu – karty dań z tłumaczeniem na język polski\n'
-        'Dopasowanie posiłków do preferencji i diety uczestników\n'
+        'Zarządzanie preferencjami dietetycznymi: uwzględnienie diet i alergii uczestników\n'
         'Personalizowany list powitalny w hotelu\n'
         'Lokalne upomninki (pillow gifts) z opisem\n'
-        'Dedykowane gadżety podróżnicze'
+       
     ),
     'brand_footer': 'Wszystkie materiały logistyczne i upominki zostaną opatrzone Państwa logotypem w standardzie spójnym z identyfikacją wizualną wyjazdu.',
     'va_hide': False, 'va_overline': 'SPRAWNA ORGANIZACJA',
