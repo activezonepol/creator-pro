@@ -242,26 +242,24 @@ defaults = {
     'brand_groups_font': 'Inter',
     'brand_g1_title': 'PRESTIŻOWY START',
     'brand_g1_items': (
-        'Zaproszenie elektroniczne\n'
-        'Przedwyjazdowe "tisery" dla uczestników\n'
+        'Budowanie zaangażowania: proces komunikacji przedwyjazdowej poprzez cykl dedykowanych wiadomości i konkursów tematycznych.\n'
         'Dedykowana aplikacja telefoniczna wraz z formularzem zbierającym dane\n'
         'Strona www wyjazdu\n'
     ),
     'brand_g2_title': 'LOGISTYKA & KOMUNIKACJA',
     'brand_g2_items': (
-        'Komunikacja SMS, e-mail, push w aplikacji przed i w trakcie wyjazdu\n'
+        'Komunikacja: SMS, e-mail, push w aplikacji przed i w trakcie wyjazdu\n'
         'Stanowisko na lotnisku z logo\n'
         'Zawieszka imienna na bagaż\n'
         'Koperta na materiały'
     ),
     'brand_g3_title': 'STANDARD VIP & PERSONALIZACJA',
     'brand_g3_items': (
-        'Dedykowane menu z brandingiem – spersonalizowane karty dań z logo Państwa firmy, z pełnym tłumaczeniem na język polski\n'
-        'Zróżnicowanie posiłków do preferencji\n'
-        'List powitalny w hotelu\n'
-        'Pełna oprawa marketingowa wyjazdu\n'
-        'Pillow gifty z opisem i logo\n'
-        'Dedykowane gadżety podróżnicze z brandingiem'
+        'Dedykowane menu – karty dań z tłumaczeniem na język polski\n'
+        'Dopasowanie posiłków do preferencji i diety uczestników\n'
+        'Personalizowany list powitalny w hotelu\n'
+        'Lokalne upomninki (pillow gifts) z opisem\n'
+        'Dedykowane gadżety podróżnicze'
     ),
     'brand_footer': 'Wszystkie materiały logistyczne i upominki zostaną opatrzone Państwa logotypem w standardzie spójnym z identyfikacją wizualną wyjazdu.',
     'va_hide': False, 'va_overline': 'SPRAWNA ORGANIZACJA',
