@@ -1936,7 +1936,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 + "".join([f"<li>{x}</li>" for x in _items]) + "</ul>"
                 if _items else ''
             )
-            return f"<div style='margin-bottom:32px;'>{_title_html}{_items_html}</div>"
+            return f"<div style='margin-bottom:24px;'>{_title_html}{_items_html}</div>"
 
         groups_html = (
             _brand_group('brand_g1_title', 'brand_g1_items')
@@ -1948,8 +1948,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             <div class="info-col" style="flex: 55; padding-right: 30px; padding-top: 24px; justify-content: flex-start;">
                 <div class="app-overline-style"><span>{str(get_data('brand_overline',''))}</span></div>
                 <div class="title-h1" style="margin-bottom: 10px; font-size:{fs_h1_val-8}px;">{str(get_data('brand_title','')).replace(chr(10),'<br>')}</div>
-                <div class="title-sub" style="margin-bottom:14px; font-size:{max(10,fs_sub_val-6)}px;">{str(get_data('brand_subtitle','')).replace(chr(10),'<br>')}</div>
-                <div style="margin-top:22px;">{groups_html}</div>
+                <div class="title-sub" style="margin-bottom:12px; font-size:{max(10,fs_sub_val-6)}px;">{str(get_data('brand_subtitle','')).replace(chr(10),'<br>')}</div>
+                <div style="margin-top:20px;">{groups_html}</div>
                 {f'<div style="margin-top:20px; font-family:\'{f_t}\'; font-size:{max(12, fs_t)}px; font-style:italic; color:{c_t}; line-height:1.5;">{str(get_data("brand_footer","")).replace(chr(10),"<br>")}</div>' if str(get_data("brand_footer","")).strip() else ''}
             </div>
             <div style="flex: 50; position: relative; height: 100%;"><div class="brand-collage">
