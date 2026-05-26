@@ -1541,7 +1541,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         hp.append(_shtml(f"""{lh}
         <div class="premium-layout">
             <div class="photo-col">{iml}</div>
-            <div class="info-col" style="padding-top:30px; justify-content:flex-start;">
+            <div class="info-col" style="padding-top:15px; justify-content:flex-start;">
                 
                 <div class="app-overline-style">
                     {str(get_data('l_overline','PRZELOT'))}
