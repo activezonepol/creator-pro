@@ -244,20 +244,20 @@ defaults = {
     'brand_g1_items': (
         'Budowanie zaangażowania: proces komunikacji przedwyjazdowej poprzez cykl dedykowanych wiadomości i konkursów tematycznych\n'
         'Dedykowana aplikacja telefoniczna wraz z formularzem zbierającym dane\n'
-        'Strona www wyjazdu
+        'Strona www wyjazdu z informacjami o programie i atrakcjach'
     ),
     'brand_g2_title': 'LOGISTYKA & KOMUNIKACJA',
     'brand_g2_items': (
         'Komunikacja: SMS, e-mail, push w aplikacji przed i w trakcie wyjazdu\n'
         'Dedykowane stanowisko na lotnisku z logo\n'
-        'Pakiet powitalny: zawieszka imienna na bagaż, etui z biletam i materiałami
+        'Pakiet powitalny: zawieszka imienna na bagaż, etui z biletam i materiałami'
     ),
     'brand_g3_title': 'STANDARD VIP & PERSONALIZACJA',
     'brand_g3_items': (
         'Dedykowane menu – karty dań z tłumaczeniem na język polski\n'
         'Zarządzanie preferencjami dietetycznymi: uwzględnienie diet i alergii uczestników\n'
         'Personalizowany list powitalny w hotelu\n'
-        'Lokalne upomninki (pillow gifts) z opisem
+        'Lokalne upomninki (pillow gifts) z opisem'
        
     ),
     'brand_footer': 'Wszystkie materiały logistyczne i upominki zostaną opatrzone Państwa logotypem w standardzie spójnym z identyfikacją wizualną wyjazdu.',
