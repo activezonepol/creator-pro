@@ -1942,7 +1942,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         )
 
         hp.append(_shtml(f"""{lh}<div class="premium-layout">
-            <div class="info-col" style="flex: 55; padding-right: 30px; padding-top: 24px; justify-content: flex-start;">
+            <div class="info-col" style="flex: 55; padding-right: 30px; padding-top: 15px; justify-content: flex-start;">
                 <div class="app-overline-style"><span>{str(get_data('brand_overline',''))}</span></div>
                 <div class="title-h1" style="margin-bottom: 10px; font-size:{fs_h1_val-8}px;">{str(get_data('brand_title','')).replace(chr(10),'<br>')}</div>
                 <div class="title-sub" style="margin-bottom:12px; font-size:{max(10,fs_sub_val-6)}px;">{str(get_data('brand_subtitle','')).replace(chr(10),'<br>')}</div>
