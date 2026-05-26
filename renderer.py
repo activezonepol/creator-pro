@@ -258,11 +258,12 @@ defaults = {
     'brand_g3_items': (
         'Dedykowane menu z brandingiem – spersonalizowane karty dań z logo Państwa firmy, z pełnym tłumaczeniem na język polski\n'
         'Zróżnicowanie posiłków do preferencji\n'
-        'Spersonalizowany list powitalny w hotelu\n'
+        'List powitalny w hotelu\n'
         'Pełna oprawa marketingowa wyjazdu\n'
-        'Dedykowane upominki (pillow gifts) z opisem i logo'
-       
+        'Pillow gifty z opisem i logo\n'
+        'Dedykowane gadżety podróżnicze z brandingiem'
     ),
+    'brand_footer': 'Wszystkie materiały logistyczne i upominki zostaną opatrzone Państwa logotypem w standardzie spójnym z identyfikacją wizualną wyjazdu.',
     'va_hide': False, 'va_overline': 'SPRAWNA ORGANIZACJA',
     'va_subtitle': 'Sprawna organizacja i wygoda',
     'va_text': ('Nowatorski system do zarządzania grupami. Składa się z aplikacji, identyfikatorów '
