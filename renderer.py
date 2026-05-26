@@ -1602,7 +1602,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         hp.append(_shtml(f"""{lh}
         <div class="premium-layout">
             <div class="photo-col">{imj}</div>
-            <div class="info-col" style="padding-top:30px; justify-content:flex-start;">
+            <div class="info-col" style="padding-top:15px; justify-content:flex-start;">
                 
                 <div class="app-overline-style">
                     {str(get_data('jaj_overline','DOJAZD'))}
@@ -2006,7 +2006,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 zaw1_list.append(f"<li>{x.strip()}</li>")
         zaw1_html = f'<ul class="app-list">{"".join(zaw1_list)}</ul>' if zaw1_list else ''
         hp.append(_shtml(f"""{lh}<div class="premium-layout"><div class="photo-col">{imk1}</div>
-            <div class="info-col" style="padding-top:30px; justify-content:flex-start;">
+            <div class="info-col" style="padding-top:15px; justify-content:flex-start;">
             <div class="app-overline-style" style="margin-bottom:5px;"><span>{str(get_data('koszt_title','KOSZTORYS'))}</span></div>
             <div class="title-h1" style="margin-bottom:15px; font-size:{fs_h1_val}px;">{str(get_data('koszt_h1_title','KOSZTORYS'))}</div>
             <div style="background:{acc}; color:white; padding: 25px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
