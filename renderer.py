@@ -242,9 +242,9 @@ defaults = {
     'brand_groups_font': 'Inter',
     'brand_g1_title': 'PRESTIŻOWY START',
     'brand_g1_items': (
-        'Budowanie zaangażowania: proces komunikacji przedwyjazdowej poprzez cykl dedykowanych wiadomości i konkursów tematycznych.\n'
+        'Budowanie zaangażowania: proces komunikacji przedwyjazdowej poprzez cykl dedykowanych wiadomości i konkursów tematycznych\n'
         'Dedykowana aplikacja telefoniczna wraz z formularzem zbierającym dane\n'
-        'Strona www wyjazdu\n'
+        'Strona www wyjazdu
     ),
     'brand_g2_title': 'LOGISTYKA & KOMUNIKACJA',
     'brand_g2_items': (
@@ -257,7 +257,7 @@ defaults = {
         'Dedykowane menu – karty dań z tłumaczeniem na język polski\n'
         'Zarządzanie preferencjami dietetycznymi: uwzględnienie diet i alergii uczestników\n'
         'Personalizowany list powitalny w hotelu\n'
-        'Lokalne upomninki (pillow gifts) z opisem\n'
+        'Lokalne upomninki (pillow gifts) z opisem
        
     ),
     'brand_footer': 'Wszystkie materiały logistyczne i upominki zostaną opatrzone Państwa logotypem w standardzie spójnym z identyfikacją wizualną wyjazdu.',
