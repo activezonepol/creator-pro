@@ -768,7 +768,12 @@ with st.sidebar:
         f"</div>",
         unsafe_allow_html=True
     )
-    
+
+    # Przycisk "Wygląd i Kolory" - globalne ustawienia stylu prezentacji
+    if st.button("⚙  WYGLĄD I KOLORY", key="btn_global_styles", type="primary", use_container_width=True):
+        st.session_state['last_page'] = "Wygląd i Kolory"
+        st.rerun()
+        
     # 2. MIGRACJA ZDJĘĆ
     if any(isinstance(st.session_state.get(k), bytes) for k in IMAGE_KEYS):
         st.warning("⚠️ Wykryto zdjęcia w pamięci.")
