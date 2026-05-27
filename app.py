@@ -1052,7 +1052,8 @@ with st.container():
     
     # 3. Standardowe strony
     else:
-        st.markdown(f"<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;text-transform:uppercase;'>{_p}</h2>", unsafe_allow_html=True)
+        _display_p = _p.replace("⚙ ", "").strip() if _p.startswith("⚙") else _p
+        st.markdown(f"<h2 style='color:#003366;margin-bottom:0;font-size:22px;font-weight:700;font-family:Montserrat,sans-serif;text-transform:uppercase;'>{_display_p}</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Wprowadź dane dla tej sekcji poniżej:</div>", unsafe_allow_html=True)
         
 # ---------------------------------------------------------------------------
