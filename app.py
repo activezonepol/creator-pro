@@ -788,6 +788,7 @@ with st.sidebar:
     
     # 3. BUDOWANIE LISTY STRON (ZGODNIE ZE SPISEM TREŚCI)
     _all_pages = [
+        "Wygląd i Kolory",
         "Strona tytułowa", 
         "Opis kierunku", 
         "Mapa podróży", 
