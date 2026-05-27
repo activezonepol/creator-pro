@@ -2260,7 +2260,7 @@ with col_form:
     # -----------------------------------------------------------------------
     # WYGLĄD I KOLORY
     # -----------------------------------------------------------------------
-    elif page == "Wygląd i Kolory":
+    elif page == "⚙ WYGLĄD I KOLORY":
         # 1. Dokładnie Twoje kolory z kodu
         color_defaults = {
             'color_h1': '#003366', 'color_h2': '#003366', 'color_sub': '#FF6600',
