@@ -2304,12 +2304,15 @@ with col_form:
             ('font_metric', 'color_metric', 'font_size_metric', 'Wyr.'),
         ]:
             c1, c2, c3 = st.columns([2, 1, 1])
-            c1.selectbox(f"Czcionka {label}", FONTS_LIST, key=f_key)
-            c2.color_picker(f"Kolor {label}", key=c_key)
+            _f_cur = st.session_state.get(f_key, color_defaults.get(f_key, 'Montserrat'))
+            _f_idx = FONTS_LIST.index(_f_cur) if _f_cur in FONTS_LIST else 0
+            c1.selectbox(f"Czcionka {label}", FONTS_LIST, index=_f_idx, key=f_key)
+            c2.color_picker(f"Kolor {label}", value=st.session_state.get(c_key, color_defaults[c_key]), key=c_key)
             c3.number_input("Rozmiar (px)", min_value=8, max_value=120,
+                            value=int(st.session_state.get(s_key, size_defaults[s_key])),
                             step=1, format="%d", key=s_key)
                             
-        st.color_picker("Akcent", key="color_accent")
+        st.color_picker("Akcent", value=st.session_state.get('color_accent', '#FF6600'), key="color_accent")
     # -----------------------------------------------------------------------
     # ZAPISZ / WCZYTAJ PROJEKT
     # -----------------------------------------------------------------------
