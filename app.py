@@ -2295,7 +2295,18 @@ with col_form:
             except Exception:
                 st.session_state[k] = v
 
-        # Dokładnie Twój oryginalny układ rysowania (bez bloków "with")
+        # Defaults dla fontów (musi być przed renderem widgetów)
+        _font_defaults = {
+            'font_h1': 'Montserrat', 'font_h2': 'Montserrat', 'font_sub': 'Montserrat',
+            'font_text': 'Open Sans', 'font_metric': 'Montserrat',
+        }
+        # Upewnij się że session_state ma poprawne wartości dla wszystkich kluczy
+        # PRZED renderem widgetów (inaczej widget startuje od domyślnej wartości typu)
+        for f_key, f_def in _font_defaults.items():
+            cur = st.session_state.get(f_key)
+            if not cur or cur not in FONTS_LIST:
+                st.session_state[f_key] = f_def
+        
         for (f_key, c_key, s_key, label) in [
             ('font_h1', 'color_h1', 'font_size_h1', 'H1'),
             ('font_h2', 'color_h2', 'font_size_h2', 'H2'),
@@ -2304,15 +2315,12 @@ with col_form:
             ('font_metric', 'color_metric', 'font_size_metric', 'Wyr.'),
         ]:
             c1, c2, c3 = st.columns([2, 1, 1])
-            _f_cur = st.session_state.get(f_key, color_defaults.get(f_key, 'Montserrat'))
-            _f_idx = FONTS_LIST.index(_f_cur) if _f_cur in FONTS_LIST else 0
-            c1.selectbox(f"Czcionka {label}", FONTS_LIST, index=_f_idx, key=f_key)
-            c2.color_picker(f"Kolor {label}", value=st.session_state.get(c_key, color_defaults[c_key]), key=c_key)
+            c1.selectbox(f"Czcionka {label}", FONTS_LIST, key=f_key)
+            c2.color_picker(f"Kolor {label}", key=c_key)
             c3.number_input("Rozmiar (px)", min_value=8, max_value=120,
-                            value=int(st.session_state.get(s_key, size_defaults[s_key])),
                             step=1, format="%d", key=s_key)
                             
-        st.color_picker("Akcent", value=st.session_state.get('color_accent', '#FF6600'), key="color_accent")
+        st.color_picker("Akcent", key="color_accent")
     # -----------------------------------------------------------------------
     # ZAPISZ / WCZYTAJ PROJEKT
     # -----------------------------------------------------------------------
