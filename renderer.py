@@ -1930,6 +1930,34 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     bb_a = f"<a href='#program_day_{int(md_a.group(1)) - 1}' class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
                 else:
                     bb_a = f"<span class='floating-btn' style='cursor:default;'>WRÓĆ DO PROGRAMU</span>"
+            # Pas ikon opisu atrakcji (Model 2)
+            _attr_icons = get_data(f'aicons_{i}', []) or []
+            _attr_icons_items = []
+            for _entry in _attr_icons:
+                if not isinstance(_entry, dict):
+                    continue
+                _ic_id = _entry.get('icon_id', '')
+                _ic_val = str(_entry.get('value', '') or '').strip()
+                _ic_data = ATTR_ICONS_AVAILABLE.get(_ic_id)
+                if not _ic_data:
+                    continue
+                _ic_fa = _ic_data['icon']
+                _attr_icons_items.append(
+                    f'<div style="display:flex; align-items:center; gap:8px; '
+                    f'font-size:{max(10,fs_t-1)}px; font-weight:600; color:{c_t}; '
+                    f'min-width:0;">'
+                    f'<i class="fa-solid {_ic_fa}" style="color:{acc}; font-size:{fs_t+4}px; flex-shrink:0;"></i>'
+                    f'<span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{_ic_val if _ic_val else _ic_data["label"]}</span>'
+                    f'</div>'
+                )
+            _attr_icons_html = (
+                f'<div style="display:grid; grid-template-columns:repeat(3, 1fr); '
+                f'gap:10px 14px; margin-top:14px; padding:12px 0; '
+                f'border-top:1px solid {acc};">'
+                f'{"".join(_attr_icons_items)}</div>'
+                if _attr_icons_items else ''
+            )
+            
             hp.append(_shtml(f"""{lh}<div class="premium-layout" id="attr_{i}">
                 <div class="photo-col">{_img_tag(iah, 'FOTO GŁÓWNE')}{bb_a}</div>
                 <div class="info-col">
@@ -1937,6 +1965,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                     <div class="title-h2">{str(get_data(f'amain_{i}','')).replace(chr(10),'<br>')}</div>
                     <div class="title-sub">{str(get_data(f'asub_{i}','')).replace(chr(10),'<br>')}</div>
                     <div style="flex-grow:1;"><p>{str(get_data(f'aopis_{i}') or '').replace(chr(10),'<br>')}</p></div>
+                    {_attr_icons_html}
                     <div class="gallery-row">
                         <div class="gallery-thumb">{_img_tag(a1, 'FOT 1')}</div>
                         <div class="gallery-thumb">{_img_tag(a2, 'FOT 2')}</div>
