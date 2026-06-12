@@ -1677,7 +1677,7 @@ with col_form:
             )    
             for _dk, _dv in [
                 (f"amain_{_i}", ""), (f"asub_{_i}", ""),
-                (f"aday_{_i}", "Brak przypisania"), (f"atype_{_i}", "Atrakcja"),
+                (f"aday_{_i}", "Brak przypisania"), (f"atype_{_i}", "Wybierz ikonę"),
                 (f"aopis_{_i}", ""), (f"ahide_{_i}", False),
             ]:
                 if _dk not in st.session_state:
