@@ -2301,8 +2301,6 @@ with col_form:
             'font_h1': 'Montserrat', 'font_h2': 'Montserrat', 'font_sub': 'Montserrat',
             'font_text': 'Open Sans', 'font_metric': 'Montserrat',
         }
-        # Upewnij się że session_state ma poprawne wartości dla wszystkich kluczy
-        # PRZED renderem widgetów (inaczej widget startuje od domyślnej wartości typu)
         for f_key, f_def in _font_defaults.items():
             cur = st.session_state.get(f_key)
             if not cur or cur not in FONTS_LIST:
@@ -2317,11 +2315,21 @@ with col_form:
         ]:
             c1, c2, c3 = st.columns([2, 1, 1])
             c1.selectbox(f"Czcionka {label}", FONTS_LIST, key=f_key)
-            c2.color_picker(f"Kolor {label}", key=c_key)
+            # color_picker nie czyta session_state przy pierwszym renderze (bug Streamlit)
+            # więc używamy value= bez key= i przypisujemy wynik ręcznie
+            _new_color = c2.color_picker(
+                f"Kolor {label}",
+                value=st.session_state.get(c_key, color_defaults[c_key]),
+            )
+            st.session_state[c_key] = _new_color
             c3.number_input("Rozmiar (px)", min_value=8, max_value=120,
                             step=1, format="%d", key=s_key)
-                            
-        st.color_picker("Akcent", key="color_accent")
+        
+        _new_acc = st.color_picker(
+            "Akcent",
+            value=st.session_state.get('color_accent', '#FF6600'),
+        )
+        st.session_state['color_accent'] = _new_acc
     # -----------------------------------------------------------------------
     # ZAPISZ / WCZYTAJ PROJEKT
     # -----------------------------------------------------------------------
