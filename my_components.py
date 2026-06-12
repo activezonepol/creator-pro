@@ -171,3 +171,72 @@ def safe_selectbox(label, options, key, default_index=0, **kwargs):
         on_change=_handle_change,
         **kwargs,
     )
+def safe_number_input(label, key, default=0, min_value=None, max_value=None, step=1, **kwargs):
+    """
+    Number input z buforem - prawidlowo czyta session_state przy kazdym renderze.
+    ROZWIAZANIE BUGa: Streamlit number_input z `key=` przy pierwszym renderze
+    po zniszczeniu widgetu (np. po st.rerun() w callbacku) nie respektuje
+    session_state - wraca do min_value lub default.
+    Mechanizm identyczny jak w safe_checkbox/safe_selectbox: bufor + on_change.
+    
+    Args:
+        label: Etykieta number_inputa
+        key: Klucz w session_state
+        default: Wartosc domyslna jesli klucza nie ma
+        min_value: Minimum (przekazywane do st.number_input)
+        max_value: Maximum (przekazywane do st.number_input)
+        step: Krok (default 1)
+        **kwargs: Pozostale argumenty
+    """
+    buffer_key = f"buffer_{key}"
+    
+    # Inicjalizacja glownego klucza jesli nie istnieje
+    if key not in st.session_state:
+        st.session_state[key] = default
+    
+    main_value = st.session_state.get(key, default)
+    
+    # Walidacja typu (int / float)
+    try:
+        if isinstance(step, int):
+            main_value = int(main_value)
+        else:
+            main_value = float(main_value)
+    except (ValueError, TypeError):
+        main_value = default
+    
+    # Walidacja zakresu
+    if min_value is not None and main_value < min_value:
+        main_value = min_value
+    if max_value is not None and main_value > max_value:
+        main_value = max_value
+    
+    # Synchronizuj buffer z glownym kluczem
+    if buffer_key not in st.session_state:
+        st.session_state[buffer_key] = main_value
+    elif st.session_state.get(buffer_key) != main_value:
+        st.session_state[buffer_key] = main_value
+    
+    user_on_change = kwargs.pop("on_change", None)
+    user_args = kwargs.pop("args", ())
+    user_kwargs = kwargs.pop("kwargs", {})
+    
+    def _handle_change(*_args, **_kwargs):
+        st.session_state[key] = st.session_state[buffer_key]
+        if user_on_change:
+            user_on_change(*user_args, **user_kwargs)
+    
+    # Buduj argumenty dla st.number_input
+    _params = {
+        'value': main_value,
+        'key': buffer_key,
+        'step': step,
+        'on_change': _handle_change,
+    }
+    if min_value is not None:
+        _params['min_value'] = min_value
+    if max_value is not None:
+        _params['max_value'] = max_value
+    _params.update(kwargs)
+    
+    return st.number_input(label, **_params)
