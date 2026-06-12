@@ -1431,7 +1431,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 </div>
             </div>
             
-            <div class="info-col" style="flex:62; padding-left:10px; padding-top:15px; justify-content:flex-start;">
+            <div class="info-col" style="flex:58; padding-left:10px; padding-top:15px; justify-content:flex-start;">
                 
                 <div class="app-overline-style">
                     {k_over}
