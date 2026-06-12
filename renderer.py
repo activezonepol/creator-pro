@@ -1397,7 +1397,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         # === Chipy z atutami kierunku ===
         _k_highlights = [x.strip() for x in str(get_data('k_highlights', '') or '').split('\n') if x.strip()]
         _k_chips_html = (
-            f'<div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:auto; padding-top:14px;">'
+            f'<div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">'
             + ''.join([
                 f'<span style="background:{acc}; color:#fff; padding:6px 14px; '
                 f'border-radius:4px; font-family:\'{f_met}\'; font-size:{max(9,fs_met-3)}px; '
