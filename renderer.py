@@ -1411,12 +1411,6 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         <div class="premium-layout" id="slide-kierunek" style="gap:40px; align-items:stretch;">
             <div style="flex:55; position:relative; height:100%; border-radius:8px; overflow:hidden; background:#fcfcfc; border:1px solid #eee;">
                 {_img_tag(kimg, 'ZDJĘCIE', style='width:100%; height:100%; object-fit:cover; object-position:center;')}
-                
-                <div style="position:absolute; top:0; left:50%; transform:translateX(-50%); width:15px; height:100%; background-color:#fff; z-index:5;"></div>
-                
-                <div style="position:absolute; top:0; right:0; width:50%; padding:15px; z-index:6; box-sizing:border-box;">
-                    {box_html}
-                </div>
             </div>
             
             <div class="info-col" style="flex:45; padding-left:10px; padding-top:15px; justify-content:flex-start;">
