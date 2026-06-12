@@ -1149,11 +1149,26 @@ with col_form:
     # 2. OPIS KIERUNKU
     # -----------------------------------------------------------------------
     elif page == "Opis kierunku":
-        _guard(["k_hide", "k_overline", "k_main", "k_sub", "k_opis",  
-                "k_facts", "k_facts_title", "k_box_bg", "k_box_txt"]) 
+        _guard(["k_hide", "k_overline", "k_main", "k_sub", "k_opis",
+                "k_highlights",
+                "k_icon_stolica_show", "k_icon_stolica_val",
+                "k_icon_waluta_show", "k_icon_waluta_val",
+                "k_icon_strefa_show", "k_icon_strefa_val",
+                "k_icon_klimat_show", "k_icon_klimat_val",
+                "k_icon_temp_show", "k_icon_temp_val",
+                "k_icon_szczepienia_show", "k_icon_szczepienia_val",
+                "k_icon_mieszkancy_show", "k_icon_mieszkancy_val"])
         k_keys = [
             'k_hide', 'k_overline', 'k_main', 'k_sub', 'k_opis',
-            'k_facts', 'k_facts_title', 'k_box_bg', 'k_box_txt', 'img_hero_k',
+            'k_highlights',
+            'k_icon_stolica_show', 'k_icon_stolica_val',
+            'k_icon_waluta_show', 'k_icon_waluta_val',
+            'k_icon_strefa_show', 'k_icon_strefa_val',
+            'k_icon_klimat_show', 'k_icon_klimat_val',
+            'k_icon_temp_show', 'k_icon_temp_val',
+            'k_icon_szczepienia_show', 'k_icon_szczepienia_val',
+            'k_icon_mieszkancy_show', 'k_icon_mieszkancy_val',
+            'img_hero_k', 'img_k_th1', 'img_k_th2',
         ]
         section_template_manager(k_keys, "KIE", st.session_state.get('k_main', 'czarnogora'), "kie")
         safe_checkbox("Ukryj ten slajd w PDF", key="k_hide")
