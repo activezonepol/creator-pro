@@ -182,6 +182,7 @@ defaults = {
     'k_icon_klimat_show': True, 'k_icon_klimat_val': 'śródziemnomorski',
     'k_icon_temp_show': True, 'k_icon_temp_val': '20-25°C',
     'k_icon_szczepienia_show': False, 'k_icon_szczepienia_val': 'nie wymagane',
+    'k_icon_mieszkancy_show': False, 'k_icon_mieszkancy_val': '2,8 mln',
     'k_highlights': 'Riwiera Albańska\nZabytki UNESCO\nAutentyczna kuchnia',
     'l_hide': False, 'l_przesiadka': False, 'l_port': 'Monachium (MUC)',
     'l_czas': '3h 20 min', 'l_overline': 'PRZELOT', 'l_main': 'JAK LECIMY?',
