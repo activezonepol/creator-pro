@@ -1131,7 +1131,7 @@ with col_form:
             'k_facts', 'k_facts_title', 'k_box_bg', 'k_box_txt', 'img_hero_k',
         ]
         section_template_manager(k_keys, "KIE", st.session_state.get('k_main', 'czarnogora'), "kie")
-        st.checkbox("Ukryj ten slajd w PDF", key="k_hide")
+        safe_checkbox("Ukryj ten slajd w PDF", key="k_hide")
         safe_text_input("Mały nadtytuł (overline):", key="k_overline")
         safe_text_input("Nazwa kierunku (duży tytuł H1):", key="k_main")
         safe_text_input("Podtytuł:", key="k_sub")
@@ -1175,7 +1175,7 @@ with col_form:
             map_keys.extend([f'map_pt_name_{i}', f'map_conn_{i}', f'map_pt_sym_{i}',
                               f'map_pt_x_{i}', f'map_pt_y_{i}'])
         section_template_manager(map_keys, "MAP", "mapa-podrozy", "map")
-        st.checkbox("Ukryj slajd", key="map_hide")
+        safe_checkbox("Ukryj slajd", key="map_hide")
         safe_text_input("Mały nadtytuł:", key="map_overline")
         safe_text_area("Główny tytuł H1:", key="map_title")
         safe_text_input("Podtytuł:", key="map_subtitle")
@@ -1193,7 +1193,7 @@ with col_form:
             with st.expander(f"Punkt {i+1}", expanded=True):
                 safe_text_input("Nazwa (np. Rzym, Hiszpania):", key=f"map_pt_name_{i}")
                 conn_opts = ["Brak", "Przejazd (Linia ciągła)", "Przelot (Linia przerywana + Samolot)"]
-                st.selectbox("Połączenie z NASTĘPNYM punktem:", conn_opts, key=f"map_conn_{i}")
+                safe_checkbox("Połączenie z NASTĘPNYM punktem:", conn_opts, key=f"map_conn_{i}")
                 pt_sym = st.checkbox("Punkt oddalony (symboliczny)", key=f"map_pt_sym_{i}")
                 if pt_sym:
                     c1, c2 = st.columns(2)
@@ -1315,13 +1315,13 @@ with col_form:
             'l_desc', 'l_extra', 'img_hero_l',
         ]
         section_template_manager(l_keys, "LOT", "jak-lecimy", "lot")
-        st.checkbox("Ukryj ten slajd w PDF", key="l_hide")
+        safe_checkbox("Ukryj ten slajd w PDF", key="l_hide")
         safe_text_input("Mały nadtytuł:", key="l_overline")
         safe_text_input("Tytuł (H1):", key="l_main")
         for k, l in [('l_sub', 'Podtytuł'), ('m_route', 'Trasa'), ('m_luggage', 'Bagaż'),
                      ('f1', 'Lot 1'), ('f2', 'Lot 2')]:
             safe_text_input(l, key=k)
-        if st.checkbox("Lot z przesiadką", key="l_przesiadka"):
+        if safe_checkbox("Lot z przesiadką", key="l_przesiadka"):
             _section_header("DANE PRZESIADKI I KOLEJNE ODCINKI LOTU")
             c1, c2 = st.columns(2)
             c1.text_input("Port przesiadkowy:", key="l_port")
@@ -1352,7 +1352,7 @@ with col_form:
             jaj_keys.extend([f'jaj_dist_a_{i}', f'jaj_dist_b_{i}',
                             f'jaj_dist_km_{i}', f'jaj_dist_time_{i}'])
         section_template_manager(jaj_keys, "JAJ", "jak-jedziemy", "jaj")
-        st.checkbox("Ukryj ten slajd w PDF", key="jaj_hide")
+        safe_checkbox("Ukryj ten slajd w PDF", key="jaj_hide")
         safe_text_input("Mały nadtytuł:", key="jaj_overline")
         safe_text_input("Tytuł (H1):", key="jaj_main")
         safe_text_input("Podtytuł:", key="jaj_sub")
@@ -1453,7 +1453,7 @@ with col_form:
                 st.session_state[_ck] = _cv
                 
         st.button("POKAŻ PODGLĄD", key=f"btn_sek_3", on_click=set_focus, args=("slide-sek_3",), use_container_width=True)
-        st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_3")
+        safe_checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_3")
         st.markdown("---") 
         
         safe_text_input("Duży tytuł (uppercase):", key=f"sek_3_title")
@@ -1477,7 +1477,7 @@ with col_form:
         _guard(["prg_hide", "num_days", "p_start_dt"])                               
         for _d in range(st.session_state.get("num_days", 4)):                        
             _guard([f"attr_{_d}", f"desc_{_d}"])                                     
-        st.checkbox("Ukryj CAŁĄ sekcję Programu w PDF", key="prg_hide")
+        safe_checkbox("Ukryj CAŁĄ sekcję Programu w PDF", key="prg_hide")
         st.number_input("Ilość dni:", 1, 15, step=1, key="num_days")
         st.date_input("Data startu:", key="p_start_dt")
         for d in range(st.session_state.get("num_days", 4)):
@@ -1518,7 +1518,7 @@ with col_form:
                 st.session_state[_ck] = _cv
 
         st.button("POKAŻ PODGLĄD", key="btn_sek_1", on_click=set_focus, args=("slide-sek_1",), use_container_width=True)
-        st.checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_1")
+        safe_checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_1")
         st.markdown("---")
 
         safe_text_input("Duży tytuł (uppercase):", key="sek_1_title")
@@ -1622,7 +1622,7 @@ with col_form:
             section_template_manager(a_keys, "ATR",
                 st.session_state.get(f"amain_{_i}") or f"Atrakcja_{_pos+1}",
                 f"atr_{_i}", index=_i)
-            st.checkbox("Ukryj ten slajd w PDF", key=f"ahide_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
+            safe_checkbox("Ukryj ten slajd w PDF", key=f"ahide_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
             safe_text_input("Nazwa:", key=f"amain_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
             safe_text_input("Podtytuł:", key=f"asub_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
             
@@ -1686,7 +1686,7 @@ with col_form:
                 st.session_state[_ck] = _cv
 
         st.button("POKAŻ PODGLĄD", key="btn_sek_0", on_click=set_focus, args=("slide-sek_0",), use_container_width=True)
-        st.checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_0")
+        safe_checkbox("Ukryj ten slajd w prezentacji", key=f"sek_hide_0")
         st.markdown("---") 
 
         safe_text_input("Duży tytuł (uppercase):", key=f"sek_0_title")
@@ -1821,7 +1821,7 @@ with col_form:
                 section_template_manager(h_keys, "HOT", st.session_state.get(f'h_title_{i}', f'hotel-{i+1}'), f"hot_{i}", index=i)
                 
                 # EDYCJA POL
-                st.checkbox("Ukryj ten slajd w PDF", key=f"h_hide_{i}")
+                safe_checkbox("Ukryj ten slajd w PDF", key=f"h_hide_{i}")
                 safe_text_input("Mały nadtytuł:", key=f"h_overline_{i}")
                 safe_text_area("Nazwa hotelu (H1):", key=f"h_title_{i}")
                 safe_text_input("Podtytuł:", key=f"h_subtitle_{i}")
@@ -1914,7 +1914,7 @@ with col_form:
                 st.session_state[_ck] = _cv
                 
         st.button("POKAŻ PODGLĄD", key="btn_sek_4", on_click=set_focus, args=("slide-sek_4",), use_container_width=True)
-        st.checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_4")
+        safe_checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_4")
         st.markdown("---") 
 
         safe_text_input("Duży tytuł (uppercase):", key="sek_4_title")
@@ -1941,7 +1941,7 @@ with col_form:
             'app_features', 'img_app_bg', 'img_app_screen',
         ]
         section_template_manager(app_keys, "APP", "Aplikacja", "app")
-        st.checkbox("Ukryj slajd w PDF", key="app_hide")
+        safe_checkbox("Ukryj slajd w PDF", key="app_hide")
         safe_text_input("Mały nadtytuł:", key="app_overline")
         safe_text_area("Główny tytuł H1:", key="app_title")
         safe_text_input("Podtytuł:", key="app_subtitle")
@@ -1974,7 +1974,7 @@ with col_form:
             'img_brand_1', 'img_brand_2', 'img_brand_3',
         ]
         section_template_manager(bra_keys, "BRA", "Branding", "bra")
-        st.checkbox("Ukryj slajd", key="brand_hide")
+        safe_checkbox("Ukryj slajd", key="brand_hide")
         safe_text_input("Mały nadtytuł:", key="brand_overline")
         safe_text_area("Główny tytuł H1:", key="brand_title")
         safe_text_input("Podtytuł:", key="brand_subtitle")
@@ -2030,7 +2030,7 @@ with col_form:
             'pg_text', 'pg_features', 'img_pg_1', 'img_pg_2', 'img_pg_3',
         ]
         section_template_manager(gif_keys, "GIF", "Gifts", "gif")
-        st.checkbox("Ukryj slajd", key="pg_hide")
+        safe_checkbox("Ukryj slajd", key="pg_hide")
         safe_text_input("Mały nadtytuł:", key="pg_overline")
         safe_text_area("Główny tytuł H1:", key="pg_title")
         safe_text_input("Podtytuł:", key="pg_subtitle")
@@ -2065,7 +2065,7 @@ with col_form:
             'va_text', 'img_va_1', 'img_va_2', 'img_va_3',
         ]
         section_template_manager(va_keys, "VA", "Asystent", "va")
-        st.checkbox("Ukryj slajd", key="va_hide")
+        safe_checkbox("Ukryj slajd", key="va_hide")
         safe_text_input("Mały nadtytuł:", key="va_overline")
         safe_text_area("Główny tytuł H1:", key="va_title")
         safe_text_input("Podtytuł:", key="va_subtitle")
@@ -2162,7 +2162,7 @@ with col_form:
                 st.session_state[_ck] = _cv
 
         st.button("POKAŻ PODGLĄD", key="btn_sek_2", on_click=set_focus, args=("slide-sek_2",), use_container_width=True)
-        st.checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_2")
+        safe_checkbox("Ukryj ten slajd w prezentacji", key="sek_hide_2")
         st.markdown("---") 
 
         safe_text_input("Duży tytuł (uppercase):", key="sek_2_title")
@@ -2193,7 +2193,7 @@ with col_form:
         for i in range(st.session_state.get('team_count', 2)):
             nas_keys.extend([f't_name_{i}', f't_role_{i}', f't_desc_{i}', f't_img_{i}'])
         section_template_manager(nas_keys, "NAS", "Zespol", "nas")
-        st.checkbox("Ukryj ten slajd w PDF", key="about_hide")
+        safe_checkbox("Ukryj ten slajd w PDF", key="about_hide")
         safe_text_input("Mały nadtytuł:", key="about_overline")
         safe_text_area("Główny tytuł H1:", key="about_title")
         safe_text_input("Podtytuł:", key="about_sub")
@@ -2232,7 +2232,7 @@ with col_form:
             opi_keys.extend([f'testim_img_{i}', f'testim_head_{i}',
                              f'testim_quote_{i}', f'testim_author_{i}', f'testim_role_{i}'])
         section_template_manager(opi_keys, "OPI", "Opinie", "opi")
-        st.checkbox("Ukryj ten slajd w PDF", key="testim_hide")
+        safe_checkbox("Ukryj ten slajd w PDF", key="testim_hide")
         safe_text_input("Mały nadtytuł:", key="testim_overline")
         safe_text_area("Główny tytuł H1:", key="testim_title")
         safe_text_area("Podtytuł:", key="testim_subtitle")
