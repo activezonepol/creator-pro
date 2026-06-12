@@ -1548,7 +1548,7 @@ with col_form:
         for _d in range(st.session_state.get("num_days", 4)):                        
             _guard([f"attr_{_d}", f"desc_{_d}"])                                     
         safe_checkbox("Ukryj CAŁĄ sekcję Programu w PDF", key="prg_hide")
-        st.number_input("Ilość dni:", 1, 15, step=1, key="num_days")
+        safe_number_input("Ilość dni:", key="num_days", default=4, min_value=1, max_value=15, step=1)
         st.date_input("Data startu:", key="p_start_dt")
         for d in range(st.session_state.get("num_days", 4)):
             with st.expander(f"Dzień {d+1}"):
