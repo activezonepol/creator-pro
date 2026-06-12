@@ -18,7 +18,7 @@ import streamlit as st
 from db_utils import save_to_supabase, fetch_all_offers
 from supabase import create_client, Client
 from data_utils import _build_proj_dict
-from my_components import safe_text_input, safe_text_area, safe_checkbox
+from my_components import safe_text_input, safe_text_area, safe_checkbox, safe_selectbox
 from renderer import (
     COUNTRIES_DICT, FONTS_LIST, hotel_icons, icon_map, defaults, IMAGE_KEYS,
     EXCLUDE_EXPORT_KEYS, pl_days_map,
