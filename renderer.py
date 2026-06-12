@@ -1953,20 +1953,20 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             _attr_icons_html = (
                 f'<div style="display:grid; grid-template-columns:repeat(3, 1fr); '
                 f'gap:10px 14px; margin-top:14px; padding:12px 0; '
-                f'border-top:1px solid {acc};">'
+                f'border-top:1px solid {acc}; flex-shrink:0;">'
                 f'{"".join(_attr_icons_items)}</div>'
                 if _attr_icons_items else ''
             )
             
             hp.append(_shtml(f"""{lh}<div class="premium-layout" id="attr_{i}">
                 <div class="photo-col">{_img_tag(iah, 'FOTO GŁÓWNE')}{bb_a}</div>
-                <div class="info-col">
-                    {f'<div class="type-icon-box">{icon_map.get(get_data(f"atype_{i}",""),"")}</div>' if get_data(f"atype_{i}") and get_data(f"atype_{i}") not in ("Brak", "Wybierz ikonę") else ''}
-                    <div class="title-h2">{str(get_data(f'amain_{i}','')).replace(chr(10),'<br>')}</div>
-                    <div class="title-sub">{str(get_data(f'asub_{i}','')).replace(chr(10),'<br>')}</div>
-                    <div style="flex-grow:1;"><p>{str(get_data(f'aopis_{i}') or '').replace(chr(10),'<br>')}</p></div>
+                <div class="info-col" style="display:flex; flex-direction:column; height:100%; min-height:0;">
+                    {f'<div class="type-icon-box" style="flex-shrink:0;">{icon_map.get(get_data(f"atype_{i}",""),"")}</div>' if get_data(f"atype_{i}") and get_data(f"atype_{i}") not in ("Brak", "Wybierz ikonę") else ''}
+                    <div class="title-h2" style="flex-shrink:0;">{str(get_data(f'amain_{i}','')).replace(chr(10),'<br>')}</div>
+                    <div class="title-sub" style="flex-shrink:0;">{str(get_data(f'asub_{i}','')).replace(chr(10),'<br>')}</div>
+                    <div style="flex:1 1 0; min-height:0; overflow:hidden;"><p style="margin:0;">{str(get_data(f'aopis_{i}') or '').replace(chr(10),'<br>')}</p></div>
                     {_attr_icons_html}
-                    <div class="gallery-row">
+                    <div class="gallery-row" style="flex-shrink:0; min-height:110px; margin-top:14px;">
                         <div class="gallery-thumb">{_img_tag(a1, 'FOT 1')}</div>
                         <div class="gallery-thumb">{_img_tag(a2, 'FOT 2')}</div>
                         <div class="gallery-thumb">{_img_tag(a3, 'FOT 3')}</div>
