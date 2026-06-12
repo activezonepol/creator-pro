@@ -1707,13 +1707,20 @@ with col_form:
                     st.session_state['last_page'] = "Program wyjazdu"
                     st.rerun()
 
-            safe_selectbox("Ikona:", ["Wybierz ikonę"] + list(icon_map.keys()), key=f"atype_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
+            safe_selectbox("Ikona wiodąca (wyświetla się w programie):", ["Wybierz ikonę"] + list(icon_map.keys()), key=f"atype_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
             safe_text_area("Opis:", key=f"aopis_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            st.file_uploader(
-                "Foto Główne",
-                key=f"up_ah_{_i}",
-                on_change=_make_upload_callback(f"ah_{_i}")
-            )
+            
+            # === IKONY OPISU ATRAKCJI (Model 2 - dynamiczne dodawanie) ===
+            _section_header("IKONY OPISU ATRAKCJI")
+            st.caption("Dodaj 2-5 ikon opisujących atrakcję (czas trwania, cena, typ, dodatkowe cechy). Max 22 znaki opisu.")
+            
+            _aicons_key = f"aicons_{_i}"
+            # Inicjalizuj pustą listę jeśli nie istnieje
+            if _aicons_key not in st.session_state or not isinstance(st.session_state.get(_aicons_key), list):
+                st.session_state[_aicons_key] = []
+            
+            # UI dodawania nowej ikony
+            _icon_options = list(ATTR_ICONS_AVAILABLE.keys())
 
             _ac1, _ac2, _ac3 = st.columns(3)
             
