@@ -1696,10 +1696,7 @@ with col_form:
             safe_text_input("Nazwa:", key=f"amain_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
             safe_text_input("Podtytuł:", key=f"asub_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
             
-            _curr = st.session_state.get(f"aday_{_i}", day_options_global[0])
-            if _curr not in day_options_global:
-                st.session_state[f"aday_{_i}"] = day_options_global[0]
-            st.selectbox("Przypisz do dnia:", day_options_global, key=f"aday_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
+            safe_selectbox("Przypisz do dnia:", day_options_global, key=f"aday_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
 
             assigned_day = st.session_state.get(f"aday_{_i}", "Brak przypisania")
             if assigned_day != "Brak przypisania":
