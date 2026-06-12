@@ -125,6 +125,48 @@ icon_map = {
     "Przelot samolotem": '<i class="fa-solid fa-plane"></i>',
     "Zabawa": '<i class="fa-solid fa-champagne-glasses"></i>',
 }
+# ===========================================================================
+# IKONY OPISU ATRAKCJI (pas ikon na dole slajdu atrakcji - Model 2)
+# Operator dynamicznie dodaje ikony do atrakcji z opisem (max 22 znaki).
+# 
+# Aby DODAĆ nową ikonę:
+#   1. Wybierz Font Awesome (free) na https://fontawesome.com/icons
+#   2. Dopisz wpis poniżej: 'id': {'label': 'Nazwa PL', 'icon': 'fa-nazwa'}
+#   3. 'id' = unikalny klucz (bez polskich znaków, łączniki dozwolone)
+#
+# UWAGA: NIE usuwaj istniejących wpisów - złamiesz dane atrakcji zapisanych
+# w bazie (atrakcja straci tę ikonę przy renderowaniu).
+# Aby "ukryć" ikonę z listy wyboru ale zachować w renderingu - przenieś
+# wpis do końca słownika i dopisz komentarz '# nieużywana'.
+# ===========================================================================
+ATTR_ICONS_AVAILABLE = {
+    'clock':              {'label': 'Czas trwania',     'icon': 'fa-clock'},
+    'piggy-bank':         {'label': 'Cena (PLN)',       'icon': 'fa-piggy-bank'},
+    'euro-sign':          {'label': 'Cena (EUR)',       'icon': 'fa-euro-sign'},
+    'dollar-sign':        {'label': 'Cena (USD)',       'icon': 'fa-dollar-sign'},
+    'utensils':           {'label': 'Posiłek',          'icon': 'fa-utensils'},
+    'truck-pickup':       {'label': 'Pickup 4x4',       'icon': 'fa-truck-pickup'},
+    'bus':                {'label': 'Wycieczka',        'icon': 'fa-bus'},
+    'ship':               {'label': 'Rejs motorowy',    'icon': 'fa-ship'},
+    'sailboat':           {'label': 'Rejs żaglowy',     'icon': 'fa-sailboat'},
+    'water':              {'label': 'Aktywności wodne', 'icon': 'fa-water'},
+    'person-paddling':    {'label': 'Kajak',            'icon': 'fa-person-paddling'},
+    'compass':            {'label': 'Adventure',        'icon': 'fa-compass'},
+    'person-biking':      {'label': 'Rower',            'icon': 'fa-person-biking'},
+    'person-walking':     {'label': 'Spacer',           'icon': 'fa-person-walking'},
+    'map-location-dot':   {'label': 'Zwiedzanie z mapą','icon': 'fa-map-location-dot'},
+    'person-hiking':      {'label': 'Trekking',         'icon': 'fa-person-hiking'},
+    'mountain':           {'label': 'Góry',             'icon': 'fa-mountain'},
+    'person-skiing':      {'label': 'Narty',            'icon': 'fa-person-skiing'},
+    'umbrella-beach':     {'label': 'Plaża',            'icon': 'fa-umbrella-beach'},
+    'champagne-glasses':  {'label': 'Degustacja',       'icon': 'fa-champagne-glasses'},
+    'spa':                {'label': 'SPA / Relaks',     'icon': 'fa-spa'},
+    'camera':             {'label': 'Punkt widokowy',   'icon': 'fa-camera'},
+    'landmark-dome':      {'label': 'Zabytek / muzeum', 'icon': 'fa-landmark-dome'},
+    'tree':               {'label': 'Natura / park',    'icon': 'fa-tree'},
+    'fire':               {'label': 'Ognisko / grill',  'icon': 'fa-fire'},
+    'music':              {'label': 'Koncert',          'icon': 'fa-music'},
+}
 pl_days_map = ["Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota", "Niedziela"]
 # Klucze obrazów — używane przy zapisie/wczytaniu projektu JSON
 IMAGE_KEYS = {
