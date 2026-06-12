@@ -1162,22 +1162,6 @@ with col_form:
         safe_text_input("Podtytuł:", key="k_sub")
         safe_text_area("Opis (prawa kolumna):", height=160, key="k_opis",
                      help="Główny opis kierunku po prawej stronie slajdu.")
-        _section_header("BOX Z FAKTAMI (lewa kolumna)")
-        
-        # Walidacja kolorów (reset jeśli czarny lub niepoprawny)
-        _h1_color = st.session_state.get('color_h1', '#003366')
-        for _ck, _cv in [('k_box_bg', _h1_color), ('k_box_txt', '#ffffff')]:
-            _v = st.session_state.get(_ck)
-            if not _v or _v == '#000000' or not (isinstance(_v, str) and _v.startswith('#') and len(_v) == 7):
-                st.session_state[_ck] = _cv
-        cb1, cb2 = st.columns(2)
-        cb1.color_picker("Kolor tła boksu", key="k_box_bg", value=st.session_state.get("k_box_bg", _h1_color))
-        cb2.color_picker("Kolor tekstu w boksie", key="k_box_txt", value=st.session_state.get("k_box_txt", "#ffffff"))
-        safe_text_input("Tytuł boksu (np. FAKTY):", key="k_facts_title")
-        safe_text_area(
-            "Fakty (Format: 'Etykieta: Wartość'):", height=160, key="k_facts",
-            help="Każda linia = jeden wpis. 'Etykieta: Wartość' pogrubia etykietę.",
-        )
         
         _section_header("FAKTY KIERUNKU (ikony pod tekstem)")
         st.caption("Zaznacz ikony do pokazania. Limit wartości: 21 znaków. Układ: rząd po 3 ikony.")
