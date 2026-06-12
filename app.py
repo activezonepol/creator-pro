@@ -799,34 +799,37 @@ with st.sidebar:
     _all_pages = [
         "⚙ WYGLĄD I KOLORY",
         "Strona tytułowa", 
-        "Opis kierunku", 
-        "Mapa podróży", 
-        "Jak lecimy?",
+        _label_with_hide("Opis kierunku", "k_hide"), 
+        _label_with_hide("Mapa podróży", "map_hide"), 
+        _label_with_hide("Jak lecimy?", "l_hide"),
         _label_with_hide("Jak jedziemy?", "jaj_hide"),
-        "  ↳ Przerywnik program", 
-        "Program wyjazdu",
-        "  ↳ Przerywnik atrakcje", 
+        _label_with_hide("  ↳ Przerywnik program", "sek_hide_3"), 
+        _label_with_hide("Program wyjazdu", "prg_hide"),
+        _label_with_hide("  ↳ Przerywnik atrakcje", "sek_hide_1"), 
         "Opis atrakcji"
     ]
     # Atrakcje dynamiczne
-    for _ap in range(_n_attr): _all_pages.append(f"    ★ {_attr_display_name(_ap)}")
+    for _ap in range(_n_attr):
+        _ai = _attr_order()[_ap]
+        _all_pages.append(_label_with_hide(f"    ★ {_attr_display_name(_ap)}", f"ahide_{_ai}"))
     
-    _all_pages.append("  ↳ Przerywnik hotel")
+    _all_pages.append(_label_with_hide("  ↳ Przerywnik hotel", "sek_hide_0"))
     _all_pages.append("Opis hoteli")
     # Hotele dynamiczne
-    for _hp in range(_n_hotels): _all_pages.append(f"    ❯ Hotel {_hp+1}")
+    for _hp in range(_n_hotels):
+        _all_pages.append(_label_with_hide(f"    ❯ Hotel {_hp+1}", f"h_hide_{_hp}"))
     
     _all_pages.extend([
-        "  ↳ Przerywnik serwisy dodatkowe", 
-        "Aplikacja (komunikacja)", 
-        "Materiały brandingowe",
-        "Pillow gifts", 
-        "Wirtualny asystent", 
-        "Kosztorys str. 1", 
-        "Kosztorys str. 2",
-        "  ↳ Przerywnik nasza agencja", 
-        "O nas", 
-        "Referencje"
+        _label_with_hide("  ↳ Przerywnik serwisy dodatkowe", "sek_hide_4"), 
+        _label_with_hide("Aplikacja (komunikacja)", "app_hide"), 
+        _label_with_hide("Materiały brandingowe", "brand_hide"),
+        _label_with_hide("Pillow gifts", "pg_hide"), 
+        _label_with_hide("Wirtualny asystent", "va_hide"), 
+        _label_with_hide("Kosztorys str. 1", "koszt_hide_1"), 
+        _label_with_hide("Kosztorys str. 2", "koszt_hide_2"),
+        _label_with_hide("  ↳ Przerywnik nasza agencja", "sek_hide_2"), 
+        _label_with_hide("O nas", "about_hide"), 
+        _label_with_hide("Referencje", "testim_hide")
     ])
 
     # 4. GŁÓWNE MENU RADIO
