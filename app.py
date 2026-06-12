@@ -846,6 +846,8 @@ with st.sidebar:
             del st.session_state['scroll_target']
     page = st.radio("Nawigacja", _all_pages, index=_idx, key="main_nav_radio", 
                     label_visibility="collapsed", on_change=_handle_nav)
+    # Normalizujemy page - usuwamy suffix ukrytego slajdu, żeby elif page == "..." działało
+    page = _strip_hide_suffix(page)
 
 # ---------------------------------------------------------------------------
 # PRZYCISK: ZAPISZ TERAZ (wąski)
