@@ -1362,6 +1362,51 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         k_sub  = str(get_data('k_sub')  or '').replace(chr(10), '<br>')
         k_opis = str(get_data('k_opis') or '').replace(chr(10), '<br>')
 
+        # === Pas ikon faktów kierunku ===
+        _k_icons_config = [
+            ('stolica', 'landmark'),
+            ('waluta', 'coins'),
+            ('strefa', 'clock'),
+            ('klimat', 'sun'),
+            ('temp', 'temperature-half'),
+            ('szczepienia', 'syringe'),
+        ]
+        _k_icon_items = []
+        for _slug, _icon in _k_icons_config:
+            if get_data(f'k_icon_{_slug}_show', False):
+                _val = str(get_data(f'k_icon_{_slug}_val', '') or '').strip()
+                if _val:
+                    _k_icon_items.append(
+                        f'<div style="display:flex; align-items:center; gap:8px; '
+                        f'font-size:{max(10,fs_t-1)}px; font-weight:600; color:{c_t}; '
+                        f'min-width:0;">'
+                        f'<i class="fa-solid fa-{_icon}" style="color:{acc}; font-size:{fs_t+4}px; flex-shrink:0;"></i>'
+                        f'<span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{_val}</span>'
+                        f'</div>'
+                    )
+        _k_icons_html = (
+            f'<div style="display:grid; grid-template-columns:repeat(3, 1fr); '
+            f'gap:12px 16px; margin-top:20px; padding:14px 0; '
+            f'border-top:1px solid #eee; border-bottom:1px solid #eee;">'
+            f'{"".join(_k_icon_items)}</div>'
+            if _k_icon_items else ''
+        )
+        
+        # === Chipy z atutami kierunku ===
+        _k_highlights = [x.strip() for x in str(get_data('k_highlights', '') or '').split('\n') if x.strip()]
+        _k_chips_html = (
+            f'<div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:auto; padding-top:14px;">'
+            + ''.join([
+                f'<span style="background:{acc}; color:#fff; padding:6px 14px; '
+                f'border-radius:4px; font-family:\'{f_met}\'; font-size:{max(9,fs_met-3)}px; '
+                f'font-weight:700; letter-spacing:1.5px; text-transform:uppercase; '
+                f'white-space:nowrap;">{_chip}</span>'
+                for _chip in _k_highlights
+            ])
+            + '</div>'
+            if _k_highlights else ''
+        )
+        
         hp.append(_shtml(f"""{lh}
         <div class="premium-layout" id="slide-kierunek" style="gap:40px; align-items:stretch;">
             <div style="flex:55; position:relative; height:100%; border-radius:8px; overflow:hidden; background:#fcfcfc; border:1px solid #eee;">
@@ -1389,6 +1434,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 <div style="font-family:'{f_t}'; font-size:{fs_t}px; line-height:1.7; color:{c_t}; text-align:justify;">
                     {k_opis}
                 </div>
+                {_k_icons_html}
+                {_k_chips_html}
             </div>
         </div>{fh}""", "slide-kierunek"))
     # --- Mapa ---
