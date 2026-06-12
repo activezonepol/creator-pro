@@ -1416,8 +1416,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         _kth2_html = _img_tag(_kth2, 'ZDJĘCIE 3', style='width:100%; height:100%; object-fit:cover;')
         
         hp.append(_shtml(f"""{lh}
-        <div class="premium-layout" id="slide-kierunek" style="gap:40px; align-items:stretch;">
-            <div style="flex:38; display:flex; flex-direction:column; gap:12px; height:100%;">
+        <div class="premium-layout" id="slide-kierunek" style="gap:30px; align-items:stretch;">
+            <div style="flex:42; display:flex; flex-direction:column; gap:12px; height:100%;">
                 <div style="flex:3; border-radius:8px; overflow:hidden; background:#fcfcfc; border:1px solid #eee;">
                     {_img_tag(kimg, 'ZDJĘCIE GŁÓWNE', style='width:100%; height:100%; object-fit:cover; object-position:center;')}
                 </div>
