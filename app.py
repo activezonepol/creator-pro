@@ -1178,6 +1178,40 @@ with col_form:
             "Fakty (Format: 'Etykieta: Wartość'):", height=160, key="k_facts",
             help="Każda linia = jeden wpis. 'Etykieta: Wartość' pogrubia etykietę.",
         )
+        
+        _section_header("FAKTY KIERUNKU (ikony pod tekstem)")
+        st.caption("Zaznacz ikony do pokazania. Limit wartości: 21 znaków. Układ: rząd po 3 ikony.")
+        
+        _icons_config = [
+            ('stolica', 'Stolica', 'landmark'),
+            ('waluta', 'Waluta', 'coins'),
+            ('strefa', 'Różnica czasu', 'clock'),
+            ('klimat', 'Klimat', 'sun'),
+            ('temp', 'Temperatury', 'temperature-half'),
+            ('szczepienia', 'Szczepienia', 'syringe'),
+        ]
+        for _slug, _label, _icon in _icons_config:
+            _ck = f'k_icon_{_slug}_show'
+            _vk = f'k_icon_{_slug}_val'
+            _c1, _c2 = st.columns([1, 3])
+            with _c1:
+                safe_checkbox(_label, key=_ck)
+            with _c2:
+                safe_text_input(
+                    f"Wartość ({_label.lower()}):",
+                    key=_vk,
+                    max_chars=21,
+                    label_visibility="collapsed",
+                )
+        
+        _section_header("ATUTY KIERUNKU (pomarańczowe chipy na dole slajdu)")
+        safe_text_area(
+            "Atuty (każda linia = jeden chip):",
+            height=100,
+            key="k_highlights",
+            help="Każda linia tekstu zostanie wyświetlona jako osobny pomarańczowy chip. Zalecane krótkie hasła.",
+        )
+        
         _section_header("ZDJĘCIE (jedno zdjęcie w dwóch ramkach)")
         st.file_uploader(
             "Zdjęcie kierunku:",
