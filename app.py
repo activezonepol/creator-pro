@@ -1184,11 +1184,12 @@ with col_form:
         
         _icons_config = [
             ('stolica', 'Stolica', 'landmark'),
-            ('waluta', 'Waluta', 'coins'),
+            ('waluta', 'Waluta', 'wallet'),
             ('strefa', 'Różnica czasu', 'clock'),
             ('klimat', 'Klimat', 'sun'),
             ('temp', 'Temperatury', 'temperature-half'),
             ('szczepienia', 'Szczepienia', 'syringe'),
+            ('mieszkancy', 'Mieszkańców', 'users'),
         ]
         for _slug, _label, _icon in _icons_config:
             _ck = f'k_icon_{_slug}_show'
