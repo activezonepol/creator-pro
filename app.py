@@ -1212,7 +1212,7 @@ with col_form:
             help="Każda linia tekstu zostanie wyświetlona jako osobny pomarańczowy chip. Zalecane krótkie hasła.",
         )
         
-       _section_header("ZDJĘCIA KIERUNKU (jedno duże u góry + dwa mniejsze pod spodem)")
+        _section_header("ZDJĘCIA KIERUNKU (jedno duże u góry + dwa mniejsze pod spodem)")
         st.file_uploader(
             "Zdjęcie główne (duże, góra):",
             key="up_img_hero_k",
