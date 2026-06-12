@@ -782,13 +782,27 @@ with st.sidebar:
     st.markdown("---")
     
     # 3. BUDOWANIE LISTY STRON (ZGODNIE ZE SPISEM TREŚCI)
+    _HIDE_SUFFIX = "  :red[✕]"
+    
+    def _strip_hide_suffix(name):
+        """Usuwa suffix oznaczający ukryty slajd."""
+        if name and name.endswith(_HIDE_SUFFIX):
+            return name[:-len(_HIDE_SUFFIX)]
+        return name
+    
+    def _label_with_hide(name, hide_key):
+        """Dodaje suffix do nazwy jeśli slajd jest ukryty."""
+        if st.session_state.get(hide_key, False):
+            return f"{name}{_HIDE_SUFFIX}"
+        return name
+    
     _all_pages = [
         "⚙ WYGLĄD I KOLORY",
         "Strona tytułowa", 
         "Opis kierunku", 
         "Mapa podróży", 
         "Jak lecimy?",
-        "Jak jedziemy?",
+        _label_with_hide("Jak jedziemy?", "jaj_hide"),
         "  ↳ Przerywnik program", 
         "Program wyjazdu",
         "  ↳ Przerywnik atrakcje", 
