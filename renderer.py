@@ -1387,7 +1387,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         _k_icons_html = (
             f'<div style="display:grid; grid-template-columns:repeat(3, 1fr); '
             f'gap:12px 16px; margin-top:20px; padding:14px 0; '
-            f'border-top:1px solid #eee; border-bottom:1px solid #eee;">'
+            f'border-top:1px solid {acc};">'
             f'{"".join(_k_icon_items)}</div>'
             if _k_icon_items else ''
         )
