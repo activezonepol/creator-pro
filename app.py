@@ -20,7 +20,7 @@ from supabase import create_client, Client
 from data_utils import _build_proj_dict
 from my_components import safe_text_input, safe_text_area, safe_checkbox, safe_selectbox
 from renderer import (
-    COUNTRIES_DICT, FONTS_LIST, hotel_icons, icon_map, defaults, IMAGE_KEYS,
+    COUNTRIES_DICT, FONTS_LIST, hotel_icons, icon_map, ATTR_ICONS_AVAILABLE, defaults, IMAGE_KEYS,
     EXCLUDE_EXPORT_KEYS, pl_days_map,
     clean_str, create_slug, parse_date_and_days, load_project_data,
     get_project_filename, auto_generate_kosztorys, build_day_options,
