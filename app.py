@@ -1746,8 +1746,6 @@ with col_form:
                         "icon_id": _selected_icon_id,
                         "value": _new_icon_value.strip(),
                     })
-                    # Wyczyść pole opisu po dodaniu
-                    st.session_state[f"aicon_value_input_{_i}"] = ""
                     st.rerun()
             
             # Podgląd wybranej ikony pod selectboxem
