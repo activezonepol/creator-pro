@@ -1312,49 +1312,6 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     if _should_render('slide-kierunek', current_page, export_mode):
         kimg = get_b64('img_hero_k', (1, 1))
         
-        # --- 1. DEFINICJA BOKSU (unikalna dla slajdu) ---
-        kfacts = str(get_data('k_facts', 'Stolica: \nWaluta: \nRóżnica czasu: \nTemperatury: ') or '')
-        kfacts_title = str(get_data('k_facts_title', 'FAKTY') or '')
-        facts_lines = []
-        for line in kfacts.split('\n'):
-            line = line.strip()
-            if not line: continue
-            _ktxt = str(get_data('k_box_txt') or '#ffffff')
-            if ':' in line:
-                lbl, val = line.split(':', 1)
-                facts_lines.append(
-                    f"<div style='margin-bottom:8px; line-height:1.4; font-size:{max(11, fs_t-1)}px;'>"
-                    f"<strong style='font-family:\"{f_t}\"; font-weight:700; color:{_ktxt};'>{lbl.strip()}:</strong> "
-                    f"<span style='font-family:\"{f_t}\"; font-weight:400; color:{_ktxt};'>{val.strip()}</span></div>"
-                )
-            else:
-                facts_lines.append(
-                    f"<div style='margin-bottom:8px; line-height:1.4; font-size:{max(11, fs_t-1)}px; "
-                    f"font-family:\"{f_t}\"; color:{_ktxt};'>{line}</div>"
-                )
-        facts_html_k = ''.join(facts_lines)
-        kbox_bg  = str(get_data('k_box_bg')  or c_h1)
-        kbox_txt = str(get_data('k_box_txt') or '#ffffff')
-
-        facts_title_html = (
-            f"<div style='font-family:\"{f_met}\"; font-weight:700; font-size:{max(10, fs_met-2)}px; "
-            f"color:{kbox_txt}; text-transform:uppercase; letter-spacing:3px; "
-            f"margin-bottom:12px;'>{kfacts_title}</div>"
-            if kfacts_title else ''
-        )
-        
-        box_html = (
-            f"<div style='background-color:{kbox_bg}; color:{kbox_txt}; padding:25px 20px; "
-            f"border-bottom-left-radius:40px; border-top-right-radius:8px; "
-            f"border-top-left-radius:8px; box-shadow:0 10px 20px rgba(0,0,0,0.05);'>"
-            f"{facts_title_html}{facts_html_k}</div>"
-            if (facts_html_k or facts_title_html) else
-            f"<div style='background-color:{kbox_bg}; height:100px; "
-            f"border-bottom-left-radius:40px; border-top-right-radius:8px; "
-            f"border-top-left-radius:8px; box-shadow:0 10px 20px rgba(0,0,0,0.05);'></div>"
-        )
-        # --- KONIEC DEFINICJI BOKSU ---
-
         k_over = str(get_data('k_overline') or 'NASZ KIERUNEK')
         k_main = str(get_data('k_main') or '').replace(chr(10), '<br>')
         k_sub  = str(get_data('k_sub')  or '').replace(chr(10), '<br>')
