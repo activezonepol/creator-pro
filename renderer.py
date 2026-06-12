@@ -1366,11 +1366,12 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         # === Pas ikon faktów kierunku ===
         _k_icons_config = [
             ('stolica', 'landmark'),
-            ('waluta', 'coins'),
+            ('waluta', 'wallet'),
             ('strefa', 'clock'),
             ('klimat', 'sun'),
             ('temp', 'temperature-half'),
             ('szczepienia', 'syringe'),
+            ('mieszkancy', 'users'),
         ]
         _k_icon_items = []
         for _slug, _icon in _k_icons_config:
