@@ -1563,6 +1563,8 @@ with col_form:
                     key=f"up_img_d_{d}",
                     on_change=_make_upload_callback(f'img_d_{d}')
                 )
+                safe_text_input("Wyróżnienie dnia (nagłówek):", key=f"attr_{d}")
+                safe_text_area("Opis dnia:", height=100, key=f"desc_{d}")
 
     # -----------------------------------------------------------------------
     # 7. PRZERYWNIK ATRAKCJE
