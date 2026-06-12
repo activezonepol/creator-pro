@@ -1544,13 +1544,7 @@ with col_form:
     # 6. PROGRAM WYJAZDU
     # -----------------------------------------------------------------------
     elif page == "Program wyjazdu":
-        _guard(["prg_hide", "num_days", "p_start_dt"])
-        # TYMCZASOWY DEBUG - sprawdz co jest w session_state dla pól dni
-        _debug_data = {}
-        for _d in range(st.session_state.get("num_days", 4)):
-            _debug_data[f"attr_{_d}"] = st.session_state.get(f"attr_{_d}", "BRAK")
-            _debug_data[f"desc_{_d}"] = (st.session_state.get(f"desc_{_d}", "BRAK") or "")[:50]
-        st.write("DEBUG:", _debug_data)                               
+        _guard(["prg_hide", "num_days", "p_start_dt"])                               
         for _d in range(st.session_state.get("num_days", 4)):                        
             _guard([f"attr_{_d}", f"desc_{_d}"])                                     
         safe_checkbox("Ukryj CAŁĄ sekcję Programu w PDF", key="prg_hide")
