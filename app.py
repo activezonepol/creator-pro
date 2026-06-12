@@ -831,13 +831,19 @@ with st.sidebar:
 
     # 4. GŁÓWNE MENU RADIO
     _last_p = st.session_state.get('last_page', "Strona tytułowa")
-    _idx = _all_pages.index(_last_p) if _last_p in _all_pages else 0
+    # Jeśli last_page to "Jak jedziemy?" a w _all_pages jest "Jak jedziemy?  :red[✕]" (ukryty),
+    # znajdz pasujący element po stripowaniu suffixu
+    _idx = 0
+    for _ii, _ll in enumerate(_all_pages):
+        if _strip_hide_suffix(_ll) == _strip_hide_suffix(_last_p):
+            _idx = _ii
+            break
     
     def _handle_nav():
-        st.session_state['last_page'] = st.session_state['main_nav_radio']
+        # Zapisujemy do last_page wartość BEZ suffixu - dzięki temu elif page == "..." działa
+        st.session_state['last_page'] = _strip_hide_suffix(st.session_state['main_nav_radio'])
         if 'scroll_target' in st.session_state:
             del st.session_state['scroll_target']
-
     page = st.radio("Nawigacja", _all_pages, index=_idx, key="main_nav_radio", 
                     label_visibility="collapsed", on_change=_handle_nav)
 
