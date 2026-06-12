@@ -70,7 +70,7 @@ def safe_text_area(label, key, **kwargs):
         if user_on_change:
             user_on_change(*user_args, **user_kwargs)
     
-    return st.text_area(
+    return st.checkbox(
         label,
         value=main_value,
         key=buffer_key,
