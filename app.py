@@ -782,7 +782,7 @@ with st.sidebar:
     st.markdown("---")
     
     # 3. BUDOWANIE LISTY STRON (ZGODNIE ZE SPISEM TREŚCI)
-    _HIDE_SUFFIX = "  :red[✕]"
+    _HIDE_SUFFIX = "  :red[✖]"
     
     def _strip_hide_suffix(name):
         """Usuwa suffix oznaczający ukryty slajd."""
