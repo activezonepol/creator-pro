@@ -1707,7 +1707,7 @@ with col_form:
                     st.session_state['last_page'] = "Program wyjazdu"
                     st.rerun()
 
-            st.selectbox("Ikona:", ["Brak"] + list(icon_map.keys()), key=f"atype_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
+            safe_selectbox("Ikona:", ["Wybierz ikonę"] + list(icon_map.keys()), key=f"atype_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
             safe_text_area("Opis:", key=f"aopis_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
             st.file_uploader(
                 "Foto Główne",
