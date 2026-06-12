@@ -1721,6 +1721,94 @@ with col_form:
             
             # UI dodawania nowej ikony
             _icon_options = list(ATTR_ICONS_AVAILABLE.keys())
+            _icon_labels = [ATTR_ICONS_AVAILABLE[k]['label'] for k in _icon_options]
+            
+            _add_col1, _add_col2, _add_col3 = st.columns([2, 3, 1])
+            with _add_col1:
+                _selected_icon_label = st.selectbox(
+                    "Wybierz ikonę:",
+                    _icon_labels,
+                    key=f"aicon_select_{_i}",
+                    label_visibility="collapsed",
+                )
+                _selected_icon_id = _icon_options[_icon_labels.index(_selected_icon_label)]
+            with _add_col2:
+                _new_icon_value = st.text_input(
+                    "Opis ikony:",
+                    key=f"aicon_value_input_{_i}",
+                    max_chars=22,
+                    placeholder="np. 3 godziny, lunch w cenie",
+                    label_visibility="collapsed",
+                )
+            with _add_col3:
+                if st.button("✚ DODAJ", key=f"aicon_add_btn_{_i}", use_container_width=True, type="primary"):
+                    st.session_state[_aicons_key].append({
+                        "icon_id": _selected_icon_id,
+                        "value": _new_icon_value.strip(),
+                    })
+                    # Wyczyść pole opisu po dodaniu
+                    st.session_state[f"aicon_value_input_{_i}"] = ""
+                    st.rerun()
+            
+            # Podgląd wybranej ikony pod selectboxem
+            _preview_fa = ATTR_ICONS_AVAILABLE[_selected_icon_id]['icon']
+            _acc_color = st.session_state.get('color_accent', '#FF6600')
+            st.markdown(
+                f'<div style="margin-top:-8px; margin-bottom:8px; padding:8px 12px; '
+                f'background:#f8fafc; border-radius:4px; border-left:3px solid {_acc_color}; '
+                f'font-size:12px; color:#64748b;">'
+                f'Podgląd: <i class="fa-solid {_preview_fa}" style="color:{_acc_color}; font-size:16px; margin:0 6px;"></i> '
+                f'<strong style="color:#1e293b;">{ATTR_ICONS_AVAILABLE[_selected_icon_id]["label"]}</strong>'
+                f'</div>'
+                f'<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">',
+                unsafe_allow_html=True,
+            )
+            
+            # Lista dodanych ikon (z edycją opisu i usuwaniem)
+            _added = st.session_state.get(_aicons_key, [])
+            if _added:
+                st.markdown(
+                    f'<div style="font-size:10px; font-weight:700; color:#94a3b8; '
+                    f'text-transform:uppercase; letter-spacing:1px; margin-top:12px; margin-bottom:6px;">'
+                    f'DODANE IKONY ({len(_added)})</div>',
+                    unsafe_allow_html=True,
+                )
+                for _pos, _entry in enumerate(_added):
+                    _ic_id = _entry.get("icon_id", "")
+                    _ic_data = ATTR_ICONS_AVAILABLE.get(_ic_id)
+                    if not _ic_data:
+                        _ic_data = {'label': f'(brak: {_ic_id})', 'icon': 'fa-circle-exclamation'}
+                    _row_col1, _row_col2, _row_col3 = st.columns([2, 3, 1])
+                    with _row_col1:
+                        st.markdown(
+                            f'<div style="padding:6px 10px; background:#fff7ed; border-radius:4px; '
+                            f'border-left:3px solid {_acc_color}; font-size:12px; line-height:1.4;">'
+                            f'<i class="fa-solid {_ic_data["icon"]}" style="color:{_acc_color}; '
+                            f'font-size:14px; margin-right:6px;"></i>'
+                            f'<strong>{_ic_data["label"]}</strong>'
+                            f'</div>',
+                            unsafe_allow_html=True,
+                        )
+                    with _row_col2:
+                        _new_val = st.text_input(
+                            f"Opis #{_pos}",
+                            value=_entry.get("value", ""),
+                            key=f"aicon_edit_{_i}_{_pos}",
+                            max_chars=22,
+                            label_visibility="collapsed",
+                        )
+                        if _new_val != _entry.get("value", ""):
+                            st.session_state[_aicons_key][_pos]["value"] = _new_val
+                    with _row_col3:
+                        if st.button("✕", key=f"aicon_del_{_i}_{_pos}", use_container_width=True):
+                            st.session_state[_aicons_key].pop(_pos)
+                            st.rerun()
+            
+            st.file_uploader(
+                "Foto Główne",
+                key=f"up_ah_{_i}",
+                on_change=_make_upload_callback(f"ah_{_i}")
+            )
 
             _ac1, _ac2, _ac3 = st.columns(3)
             
