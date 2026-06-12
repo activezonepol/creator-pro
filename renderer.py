@@ -1891,7 +1891,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             hp.append(_shtml(f"""{lh}<div class="premium-layout" id="attr_{i}">
                 <div class="photo-col">{_img_tag(iah, 'FOTO GŁÓWNE')}{bb_a}</div>
                 <div class="info-col">
-                    {f'<div class="type-icon-box">{icon_map.get(get_data(f"atype_{i}",""),"")}</div>' if get_data(f"atype_{i}") and get_data(f"atype_{i}") != "Brak" else ''}
+                    {f'<div class="type-icon-box">{icon_map.get(get_data(f"atype_{i}",""),"")}</div>' if get_data(f"atype_{i}") and get_data(f"atype_{i}") not in ("Brak", "Wybierz ikonę") else ''}
                     <div class="title-h2">{str(get_data(f'amain_{i}','')).replace(chr(10),'<br>')}</div>
                     <div class="title-sub">{str(get_data(f'asub_{i}','')).replace(chr(10),'<br>')}</div>
                     <div style="flex-grow:1;"><p>{str(get_data(f'aopis_{i}') or '').replace(chr(10),'<br>')}</p></div>
