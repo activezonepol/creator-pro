@@ -2262,7 +2262,6 @@ with col_form:
     # WYGLĄD I KOLORY
     # -----------------------------------------------------------------------
     elif page == "⚙ WYGLĄD I KOLORY":
-        st.write("DEBUG:", st.session_state.get('color_h1', 'BRAK KLUCZA'))
         # 1. Dokładnie Twoje kolory z kodu
         color_defaults = {
             'color_h1': '#003366', 'color_h2': '#003366', 'color_sub': '#FF6600',
