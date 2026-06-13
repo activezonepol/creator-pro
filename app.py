@@ -782,20 +782,24 @@ with st.sidebar:
     st.markdown("---")
     
     # 3. BUDOWANIE LISTY STRON (ZGODNIE ZE SPISEM TREŚCI)
+    # Sufiksy menu: ikony po nazwie, kolorowane przez Streamlit markdown.
+    # Aby dodać nowy sufiks: zdefiniuj stałą i dopisz do _MENU_SUFFIXES.
     _HIDE_SUFFIX = "  :red[✖]"
+    _OPT_SUFFIX  = "  :blue[◆]"
+    _MENU_SUFFIXES = (_HIDE_SUFFIX, _OPT_SUFFIX)
     
     def _strip_hide_suffix(name):
-        """Usuwa sufiksy menu: _HIDE_SUFFIX i etykietę opcjonalności [TEKST]."""
+        """Usuwa wszystkie sufiksy menu (kolejność dowolna, ilość dowolna)."""
         if not name:
             return name
-        # Usuń sufiks ukrytego slajdu
-        if name.endswith(_HIDE_SUFFIX):
-            name = name[:-len(_HIDE_SUFFIX)]
-        # Usuń sufiks etykiety opcjonalności typu "  [ALTERNATYWNA]"
-        name = re.sub(r'\s+\[[^\]]+\]$', '', name)
-        # Ponownie sprawdz HIDE_SUFFIX (gdyby był ZARÓWNO opt label JAK I hide)
-        if name.endswith(_HIDE_SUFFIX):
-            name = name[:-len(_HIDE_SUFFIX)]
+        for _ in range(5):
+            changed = False
+            for _sfx in _MENU_SUFFIXES:
+                if name.endswith(_sfx):
+                    name = name[:-len(_sfx)]
+                    changed = True
+            if not changed:
+                break
         return name
     
     def _label_with_hide(name, hide_key):
