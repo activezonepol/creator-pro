@@ -796,6 +796,16 @@ with st.sidebar:
             return f"{name}{_HIDE_SUFFIX}"
         return name
     
+    def _label_attr(name, hide_key, opt_label_key):
+        """Dodaje suffix dla atrakcji: ukryta + ewentualna etykieta opcjonalności."""
+        suffix = ""
+        if st.session_state.get(hide_key, False):
+            suffix += _HIDE_SUFFIX
+        opt_text = str(st.session_state.get(opt_label_key, "") or "").strip()
+        if opt_text:
+            suffix += f"  :red[({opt_text})]"
+        return f"{name}{suffix}"
+    
     _all_pages = [
         "⚙ WYGLĄD I KOLORY",
         "Strona tytułowa", 
