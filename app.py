@@ -1698,6 +1698,10 @@ with col_form:
             safe_checkbox("Ukryj ten slajd w PDF", key=f"ahide_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
             safe_text_input("Nazwa:", key=f"amain_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
             safe_text_input("Podtytuł:", key=f"asub_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
+            safe_text_input("Wpisz gdy atrakcja opcjonalna lub alternatywna:", 
+                          key=f"aopt_label_{_i}", max_chars=25,
+                          help="Np. opcjonalna, alternatywa, dodatkowa opłata. Puste = brak oznaczenia.",
+                          on_change=set_focus, args=(f"attr_{_i}",))
             
             safe_selectbox("Przypisz do dnia:", day_options_global, key=f"aday_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
 
