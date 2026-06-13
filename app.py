@@ -1681,6 +1681,7 @@ with col_form:
                 (f"amain_{_i}", ""), (f"asub_{_i}", ""),
                 (f"aday_{_i}", "Brak przypisania"), (f"atype_{_i}", "Wybierz ikonę"),
                 (f"aopis_{_i}", ""), (f"ahide_{_i}", False),
+                (f"aopt_label_{_i}", ""),
             ]:
                 if _dk not in st.session_state:
                     st.session_state[_dk] = _dv
