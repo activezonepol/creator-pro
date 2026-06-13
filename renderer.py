@@ -460,39 +460,49 @@ def get_project_filename():
     return f"{yy}-{mm}-{cc}-{cli}-{tit}.json"
 def auto_generate_kosztorys():
     s = st.session_state
+    
+    # === CZĘŚĆ 1 (slajd 1) ===
     part1 = []
     route = get_data('m_route', '')
     luggage = get_data('m_luggage', '')
     if route:
-        part1.append(f"Przelot samolotem na trasie {route}, bagaż {luggage}")
-    dbl = get_data('koszt_dbl', '')
-    sgl = get_data('koszt_sgl', '')
-    part1.append(f"Zakwaterowanie w pokojach dwuosobowych ({dbl}) i jednoosobowych ({sgl})")
+        if luggage:
+            part1.append(f"Przelot samolotem na trasie {route}, bagaż {luggage}")
+        else:
+            part1.append(f"Przelot samolotem na trasie {route}")
     part1 += [
-        "Wyżywienie wg programu", "Napoje wg programu",
-        "Ubezpieczenie wersja MAX", "Transfery",
-        "Woda podczas wycieczek i transferów",
+        "Zakwaterowanie",
+        "Wyżywienie wg programu",
+        "Ubezpieczenie",
+        "Transfery z/na lotniska",
+        "Transfery na miejscu",
+        "Woda podczas wycieczek i transferów (1 but./os.)",
         "Opieka profesjonalnego tour leadera Activezone",
     ]
+    # Atrakcje niezhide'owane
     for i in range(get_data('num_attr', 0)):
         if not get_data(f'ahide_{i}', False):
             name = str(get_data(f'amain_{i}', '')).strip()
             if name:
                 part1.append(name)
-    part2 = []
-    if _should_render('slide-branding', current_page, export_mode):
-        part2.append("Materiały brandingowe:")
-        for bf in str(get_data('brand_features', '')).split('\n'):
-            if bf.strip():
-                part2.append(f"-- {bf.strip()}")
-    if _should_render('slide-app', current_page, export_mode):
-        part2 += ["Aplikacja na wyjazd", "Strona www z formularzem uczestnika"]
-    if _should_render('slide-pillow-gifts', current_page, export_mode):
-        part2.append("Pillow gift dla każdego uczestnika na przywitanie")
-    part2 += ["Obowiązkowa opłata TFG i TFP", "VAT marża"]
     
-    # Zapisz do session_state (tu potrzebujemy s)
-    s = st.session_state
+    # === CZĘŚĆ 2 (slajd 2) ===
+    part2 = []
+    # Wszystkie punkty z grup brandingu (bez tytułów grup)
+    for _items_key in ('brand_g1_items', 'brand_g2_items', 'brand_g3_items'):
+        for _line in str(get_data(_items_key, '') or '').split('\n'):
+            _line = _line.strip()
+            if _line:
+                part2.append(_line)
+    # Pillow gifts (zawsze)
+    part2.append("Pillow gift dla każdego uczestnika na przywitanie")
+    # Opłaty i VAT
+    part2 += [
+        "Obowiązkowa opłata na fundusze TFP i TFG",
+        "VAT",
+    ]
+    
+    # Zapisz do session_state
     s['koszt_zawiera_1'] = "\n".join(part1)
     s['koszt_zawiera_2'] = "\n".join(part2)
     s['koszt_nie_zawiera'] = "Napiwki\nWydatki osobiste\nAtrakcje wymienione jako opcje"
