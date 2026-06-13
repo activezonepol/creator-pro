@@ -812,7 +812,7 @@ with st.sidebar:
             suffix += _HIDE_SUFFIX
         opt_text = str(st.session_state.get(opt_label_key, "") or "").strip()
         if opt_text:
-            suffix += f"  :red[({opt_text})]"
+            suffix += f"  [{opt_text.upper()}]"
         return f"{name}{suffix}"
     
     _all_pages = [
