@@ -785,15 +785,14 @@ with st.sidebar:
     _HIDE_SUFFIX = "  :red[✖]"
     
     def _strip_hide_suffix(name):
-        """Usuwa sufiksy menu: _HIDE_SUFFIX (:red[✖]) i etykietę opcjonalności :red[(...)]."""
+        """Usuwa sufiksy menu: _HIDE_SUFFIX i etykietę opcjonalności [TEKST]."""
         if not name:
             return name
         # Usuń sufiks ukrytego slajdu
         if name.endswith(_HIDE_SUFFIX):
             name = name[:-len(_HIDE_SUFFIX)]
-        # Usuń sufiks etykiety opcjonalności typu "  :red[(opcjonalna)]"
-        import re as _re
-        name = _re.sub(r'\s+:red\[\(.+?\)\]$', '', name)
+        # Usuń sufiks etykiety opcjonalności typu "  [ALTERNATYWNA]"
+        name = re.sub(r'\s+\[[^\]]+\]$', '', name)
         # Ponownie sprawdz HIDE_SUFFIX (gdyby był ZARÓWNO opt label JAK I hide)
         if name.endswith(_HIDE_SUFFIX):
             name = name[:-len(_HIDE_SUFFIX)]
