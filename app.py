@@ -1679,16 +1679,20 @@ with col_form:
     # DYNAMICZNE OPISY MIEJSC-ATRAKCJI (Poprawiona logika)
     # -----------------------------------------------------------------------
     elif "★" in page:
-        # Znajdź pozycję atrakcji w naszej liście menu
-        # Stałe strony przed pierwszą atrakcją kończą się na "Opis atrakcji"
-        # Pozycja atrakcji = (jej indeks w _all_pages) - (indeks "Opis atrakcji" + 1)
+        # Znajdź pozycję atrakcji w _all_pages.
+        # page jest stripowane (bez sufiksów), _all_pages zawiera labele Z sufiksami.
+        # Porównanie po stripowaniu — spójne z zasadą "label = wyświetlanie, stripped = identyfikator".
         _pos = -1
-        try:
-            _opis_idx = _all_pages.index("Opis atrakcji")
-            _page_idx = _all_pages.index(page)
-            _pos = _page_idx - _opis_idx - 1
-        except ValueError:
-            _pos = -1 
+        _opis_idx = -1
+        _page_idx = -1
+        for _ii, _ll in enumerate(_all_pages):
+            _ll_stripped = _strip_hide_suffix(_ll)
+            if _ll_stripped == "Opis atrakcji":
+                _opis_idx = _ii
+            if _ll_stripped == page:
+                _page_idx = _ii
+        if _opis_idx >= 0 and _page_idx >= 0:
+            _pos = _page_idx - _opis_idx - 1 
         
         if _pos >= 0 and _pos < _n_attr:
             # Pobierz rzeczywisty indeks z naszej listy kolejności
