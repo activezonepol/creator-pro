@@ -479,12 +479,12 @@ def auto_generate_kosztorys():
         "Woda podczas wycieczek i transferów (1 but./os.)",
         "Opieka profesjonalnego tour leadera Activezone",
     ]
-    # Atrakcje niezhide'owane
+    # Atrakcje niezhide'owane (z prefiksem "Atrakcja: ")
     for i in range(get_data('num_attr', 0)):
         if not get_data(f'ahide_{i}', False):
             name = str(get_data(f'amain_{i}', '')).strip()
             if name:
-                part1.append(name)
+                part1.append(f"Atrakcja: {name}")
     
     # === CZĘŚĆ 2 (slajd 2) ===
     part2 = []
