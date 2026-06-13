@@ -483,8 +483,12 @@ def auto_generate_kosztorys():
     for i in range(get_data('num_attr', 0)):
         if not get_data(f'ahide_{i}', False):
             name = str(get_data(f'amain_{i}', '')).strip()
+            opt_label = str(get_data(f'aopt_label_{i}', '') or '').strip()
             if name:
-                part1.append(f"Atrakcja: {name}")
+                if opt_label:
+                    part1.append(f"Atrakcja: {name} ({opt_label})")
+                else:
+                    part1.append(f"Atrakcja: {name}")
     
     # === CZĘŚĆ 2 (slajd 2) ===
     part2 = []
