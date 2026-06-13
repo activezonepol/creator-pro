@@ -809,13 +809,13 @@ with st.sidebar:
         return name
     
     def _label_attr(name, hide_key, opt_label_key):
-        """Dodaje suffix dla atrakcji: ukryta + ewentualna etykieta opcjonalności."""
+        """Dodaje sufiksy menu dla atrakcji: ukryta (✖) + opcjonalna (◆)."""
         suffix = ""
         if st.session_state.get(hide_key, False):
             suffix += _HIDE_SUFFIX
         opt_text = str(st.session_state.get(opt_label_key, "") or "").strip()
         if opt_text:
-            suffix += f"  [{opt_text.upper()}]"
+            suffix += _OPT_SUFFIX
         return f"{name}{suffix}"
     
     _all_pages = [
