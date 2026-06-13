@@ -1796,12 +1796,14 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                             ic = icon_map.get(get_data(f"atype_{ai}", "Atrakcja"), "")
                             nm = get_data(f"amain_{ai}", "")
                             sub = str(get_data(f"asub_{ai}", "")).strip()
+                            opt_label_p = str(get_data(f"aopt_label_{ai}", "") or "").strip()
+                            opt_suffix = f" <span style='color:{acc}; font-weight:600;'>({opt_label_p})</span>" if opt_label_p else ""
                             sub_html = (f"<div style='font-size:12px; font-weight:400; color:{c_t}; opacity:0.8; margin-top:-2px; margin-left:26px; line-height:1.2; margin-bottom:8px;'>{sub}</div>"
                                         if sub else "<div style='margin-bottom:8px;'></div>")
                             if get_data(f"ahide_{ai}"):
-                                mh += f"<div><div style='display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600; color:{c_t};'><span style='font-size:18px; color:{acc};'>{ic}</span> <span>{nm}</span></div>{sub_html}</div>"
+                                mh += f"<div><div style='display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600; color:{c_t};'><span style='font-size:18px; color:{acc};'>{ic}</span> <span>{nm}{opt_suffix}</span></div>{sub_html}</div>"
                             else:
-                                mh += f"<div><a href='#attr_{ai}' style='text-decoration:none; color:{acc}; display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600;'><span style='font-size:18px;'>{ic}</span> <span>{nm} <span style='font-size:12px; font-weight:400; opacity:0.8;'>(zobacz)</span></span></a>{sub_html}</div>"
+                                mh += f"<div><a href='#attr_{ai}' style='text-decoration:none; color:{acc}; display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600;'><span style='font-size:18px;'>{ic}</span> <span>{nm}{opt_suffix} <span style='font-size:12px; font-weight:400; opacity:0.8;'>(zobacz)</span></span></a>{sub_html}</div>"
                     ch += f"""<div style="flex:1;display:flex;flex-direction:column;" id="program_day_{di}">
                         <div class="day-header">DZIEŃ {di+1}</div>
                         <div class="day-date">{cdt.strftime('%d.%m.%Y')} - {pl_days_map[cdt.weekday()]}</div>
