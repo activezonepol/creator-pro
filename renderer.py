@@ -1012,7 +1012,7 @@ def get_local_css(return_str=False):
             .presentation-wrapper {{ height: auto !important; overflow: visible !important; scroll-snap-type: none !important; background: white !important; padding: 0 !important; margin: 0 !important; }}
             .slide-scaler {{ height: 210mm !important; width: 297mm !important; min-height: 210mm !important; margin: 0 !important; padding: 0 !important; display: block !important; page-break-after: always !important; page-break-inside: avoid !important; overflow: hidden !important; }}
             .slide-page {{ transform: none !important; box-shadow: none !important; width: 297mm !important; height: 210mm !important; max-height: 210mm !important; padding: 10mm 15mm 5mm 15mm !important; margin: 0 !important; zoom: 1 !important; border-radius: 0 !important; border: none !important; }}
-            .floating-btn, .client-export-btn {{ display: none !important; }}
+            .client-export-btn {{ display: none !important; }}
         }}</style>"""
     if return_str:
         return css
