@@ -1285,7 +1285,7 @@ with col_form:
             with st.expander(f"Punkt {i+1}", expanded=True):
                 safe_text_input("Nazwa (np. Rzym, Hiszpania):", key=f"map_pt_name_{i}")
                 conn_opts = ["Brak", "Przejazd (Linia ciągła)", "Przelot (Linia przerywana + Samolot)"]
-                safe_checkbox("Połączenie z NASTĘPNYM punktem:", conn_opts, key=f"map_conn_{i}")
+                safe_selectbox("Połączenie z NASTĘPNYM punktem:", conn_opts, key=f"map_conn_{i}")
                 pt_sym = st.checkbox("Punkt oddalony (symboliczny)", key=f"map_pt_sym_{i}")
                 if pt_sym:
                     c1, c2 = st.columns(2)
