@@ -1968,8 +1968,21 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 if _attr_icons_items else ''
             )
             
+            # Chip "OPCJA" (lub inna etykieta) - prawy górny róg zdjęcia
+            _aopt_text = str(get_data(f'aopt_label_{i}', '') or '').strip()
+            _aopt_chip = (
+                f'<div style="position:absolute; top:14px; right:14px; '
+                f'background:{acc}; color:#fff; padding:6px 14px; '
+                f'border-radius:4px; font-family:\'{f_met}\'; '
+                f'font-size:11px; font-weight:700; letter-spacing:1.5px; '
+                f'text-transform:uppercase; white-space:nowrap; '
+                f'box-shadow:0 2px 8px rgba(0,0,0,0.15); z-index:5;">'
+                f'{_aopt_text}</div>'
+                if _aopt_text else ''
+            )
+            
             hp.append(_shtml(f"""{lh}<div class="premium-layout" id="attr_{i}">
-                <div class="photo-col">{_img_tag(iah, 'FOTO GŁÓWNE')}{bb_a}</div>
+                <div class="photo-col" style="position:relative;">{_img_tag(iah, 'FOTO GŁÓWNE')}{bb_a}{_aopt_chip}</div>
                 <div class="info-col" style="display:flex; flex-direction:column; height:100%; min-height:0;">
                     {f'<div class="type-icon-box" style="flex-shrink:0;">{icon_map.get(get_data(f"atype_{i}",""),"")}</div>' if get_data(f"atype_{i}") and get_data(f"atype_{i}") not in ("Brak", "Wybierz ikonę") else ''}
                     <div class="title-h2" style="flex-shrink:0;">{str(get_data(f'amain_{i}','')).replace(chr(10),'<br>')}</div>
