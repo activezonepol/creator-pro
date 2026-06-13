@@ -1691,6 +1691,7 @@ with col_form:
                 set_focus(f"attr_{_i}")
             a_keys = [f'ahide_{_i}', f'amain_{_i}', f'asub_{_i}',
                       f'aday_{_i}', f'atype_{_i}', f'aopis_{_i}',
+                      f'aopt_label_{_i}',
                       f'ah_{_i}', f'at1_{_i}', f'at2_{_i}', f'at3_{_i}']
             section_template_manager(a_keys, "ATR",
                 st.session_state.get(f"amain_{_i}") or f"Atrakcja_{_pos+1}",
