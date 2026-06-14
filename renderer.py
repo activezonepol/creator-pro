@@ -359,7 +359,7 @@ defaults = {
     'map_hide': False, 'map_overline': 'TRASA WYJAZDU',
     'map_title': 'ZARYS\nPODRÓŻY', 'map_subtitle': 'Kluczowe punkty programu',
     'map_desc': 'Zapraszamy do zapoznania się z poglądową mapą naszego wyjazdu.',
-    'map_zoom': 8, 'num_map_points': 3,
+    'num_map_points': 3,
     'map_pt_name_0': 'Warszawa', 'map_conn_0': 'Przelot (Linia przerywana + Samolot)',
     'map_pt_sym_0': True, 'map_pt_x_0': 15, 'map_pt_y_0': 15,
     'map_pt_name_1': 'Podgorica', 'map_conn_1': 'Przejazd (Linia ciągła)',
