@@ -1274,7 +1274,6 @@ with col_form:
         safe_text_area("Opis pod mapą:", height=100, key="map_desc")
         
         _section_header("AUTOMATYCZNY KREATOR MAPY")
-        map_zoom = st.slider("Zoom startowy (auto-zoom dostosuje dla wielu punktów):", 4, 12, key="map_zoom")
         st.number_input("Liczba punktów na trasie:", 1, 10, step=1, key="num_map_points")
         points_data = []
         for i in range(st.session_state['num_map_points']):
