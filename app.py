@@ -1257,7 +1257,7 @@ with col_form:
     # -----------------------------------------------------------------------
     elif page == "Mapa podróży":
         _guard(["map_hide", "map_overline", "map_title", "map_subtitle", "map_desc",
-                "map_zoom", "num_map_points", "map_dist_title",             
+                "num_map_points", "map_dist_title",             
                 "ors_api_key", "num_dist_pairs"])                                      
         map_keys = [
             'map_hide', 'map_overline', 'map_title', 'map_subtitle', 'map_desc',
