@@ -1275,7 +1275,6 @@ with col_form:
         
         _section_header("AUTOMATYCZNY KREATOR MAPY")
         st.number_input("Liczba punktów na trasie:", 1, 10, step=1, key="num_map_points")
-        points_data = []
         for i in range(st.session_state['num_map_points']):
             for dk, dv in [(f'map_pt_name_{i}', f'Punkt {i+1}'), (f'map_conn_{i}', 'Brak'),
                            (f'map_pt_sym_{i}', False), (f'map_pt_x_{i}', 15), (f'map_pt_y_{i}', 10)]:
