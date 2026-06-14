@@ -740,12 +740,13 @@ def get_b64(key: str, ratio: tuple = (4, 5)) -> str | None:
 MAX_ZOOM_RECURSION_DEPTH = 8
 @st.cache_data(max_entries=200)
 def get_tile_bytes(z, x, y):
-    # Carto Voyager - kolorowe, profesjonalne kafelki z nazwami państw, miast, rzeźbą terenu.
+    # OpenStreetMap standard - klasyczne kolorowe kafelki z żywymi kolorami:
+    # zielone tereny, niebieskie wody, wyraźne drogi i nazwy miast.
     # Alternatywy gdyby kiedyś:
-    #   - light_all (szary, monochrome) - basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png
+    #   - voyager (pastelowy) - basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png
+    #   - light_all (szary) - basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png
     #   - dark_all (ciemny) - basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png
-    #   - positron_nolabels (jasny bez napisów) - basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png
-    url = f"https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
+    url = f"https://tile.openstreetmap.org/{z}/{x}/{y}.png"
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'ActivezoneMap/1.0'})
         with urllib.request.urlopen(req, timeout=5) as response:
