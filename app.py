@@ -1261,7 +1261,7 @@ with col_form:
                 "ors_api_key", "num_dist_pairs"])                                      
         map_keys = [
             'map_hide', 'map_overline', 'map_title', 'map_subtitle', 'map_desc',
-            'img_map_bg', 'map_zoom', 'num_map_points', 'img_map_bg_auto', 'auto_map_points',
+            'img_map_bg', 'num_map_points', 'img_map_bg_auto', 'auto_map_points',
         ]
         for i in range(st.session_state.get('num_map_points', 3)):
             map_keys.extend([f'map_pt_name_{i}', f'map_conn_{i}', f'map_pt_sym_{i}',
