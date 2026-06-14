@@ -1317,7 +1317,9 @@ with col_form:
                                               'lat': lat, 'lon': lon})
                 if valid_pts:
                     try:
-                        bg_b64, final_pts = generate_map_data(valid_pts, zoom=map_zoom)
+                        # Zoom jest liczony automatycznie wewnątrz generate_map_data
+                        # (z bbox kraju lub z rozpiętości punktów - fallback)
+                        bg_b64, final_pts = generate_map_data(valid_pts)
                         if bg_b64 is not None or final_pts:
                             if bg_b64:
                                 st.session_state['img_map_bg_auto'] = bg_b64
