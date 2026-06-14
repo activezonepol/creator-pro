@@ -882,16 +882,47 @@ def generate_map_data(points, zoom=6, _depth=0):
             for p in points
         ]
         return None, final_points
-    # Auto-zoom: dobierz zoom tak żeby punkty zajmowały rozsądny obszar ekranu.
-    # Cel: wszystkie punkty mieszczą się w ~6x6 kafelkach (optymalny widok).
-    # Ignorujemy punkty symboliczne przy obliczaniu zoom.
-    if len(geo_pts) >= 2 and _depth == 0:
+
+    # === AUTO-ZOOM: priorytet 1 = bbox kraju docelowego (z COUNTRY_BBOX) ===
+    # Jeśli kraj jest w słowniku COUNTRY_BBOX, używamy jego granic +
+    # sensownego marginesu. Pokazuje cały kraj + kraje sąsiednie.
+    # Niezależne od wpisanych punktów - mapa zawsze pokazuje pełny kraj docelowy.
+    country_bbox_used = False
+    _country = st.session_state.get('country_name', '')
+    _country_bbox = COUNTRY_BBOX.get(_country) if _country else None
+    if _country_bbox and _depth == 0:
+        sw_lat, sw_lon, ne_lat, ne_lon = _country_bbox
+        lat_span = ne_lat - sw_lat
+        lon_span = ne_lon - sw_lon
+        span = max(lat_span, lon_span)
+        # Heurystyka: dobierz zoom na podstawie rozpiętości bbox kraju
+        if span < 0.5:
+            zoom = 11
+        elif span < 1.5:
+            zoom = 10
+        elif span < 3:
+            zoom = 9
+        elif span < 6:
+            zoom = 8
+        elif span < 12:
+            zoom = 7
+        elif span < 25:
+            zoom = 6
+        elif span < 50:
+            zoom = 5
+        else:
+            zoom = 4
+        country_bbox_used = True
+
+    # === AUTO-ZOOM: priorytet 2 = rozpiętość wpisanych punktów (fallback) ===
+    # Używany gdy kraju nie ma w słowniku COUNTRY_BBOX (np. "Inny")
+    # lub gdy operator nie wybrał kraju.
+    if not country_bbox_used and len(geo_pts) >= 2 and _depth == 0:
         lats = [p['lat'] for p in geo_pts]
         lons = [p['lon'] for p in geo_pts]
         lat_span = max(lats) - min(lats)
         lon_span = max(lons) - min(lons)
         span = max(lat_span, lon_span)
-        # Heurystyka: dobierz zoom na podstawie rozpiętości geograficznej
         if span < 0.5:
             zoom = 11
         elif span < 1.5:
