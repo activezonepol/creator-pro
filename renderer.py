@@ -939,16 +939,32 @@ def generate_map_data(points, zoom=6, _depth=0):
             zoom = 5
         else:
             zoom = 4
-    tiles = []
-    for p in geo_pts:
+    # Wyznaczamy zakres kafelków:
+    # - gdy używamy bbox kraju: obejmujemy cały bbox (cały kraj + sąsiedzi)
+    # - gdy używamy punktów: obejmujemy wszystkie punkty z marginesem
+    if country_bbox_used:
+        sw_lat, sw_lon, ne_lat, ne_lon = _country_bbox
         n = 2.0 ** zoom
-        x = (p['lon'] + 180.0) / 360.0 * n
-        y = (1.0 - math.asinh(math.tan(math.radians(p['lat']))) / math.pi) / 2.0 * n
-        tiles.append((x, y))
-    min_tx = int(min(t[0] for t in tiles)) - 1
-    max_tx = int(max(t[0] for t in tiles)) + 1
-    min_ty = int(min(t[1] for t in tiles)) - 1
-    max_ty = int(max(t[1] for t in tiles)) + 1
+        # SW = lewy dolny róg bbox, NE = prawy górny róg
+        x_sw = (sw_lon + 180.0) / 360.0 * n
+        x_ne = (ne_lon + 180.0) / 360.0 * n
+        y_sw = (1.0 - math.asinh(math.tan(math.radians(sw_lat))) / math.pi) / 2.0 * n
+        y_ne = (1.0 - math.asinh(math.tan(math.radians(ne_lat))) / math.pi) / 2.0 * n
+        min_tx = int(min(x_sw, x_ne)) - 1
+        max_tx = int(max(x_sw, x_ne)) + 1
+        min_ty = int(min(y_sw, y_ne)) - 1
+        max_ty = int(max(y_sw, y_ne)) + 1
+    else:
+        tiles = []
+        for p in geo_pts:
+            n = 2.0 ** zoom
+            x = (p['lon'] + 180.0) / 360.0 * n
+            y = (1.0 - math.asinh(math.tan(math.radians(p['lat']))) / math.pi) / 2.0 * n
+            tiles.append((x, y))
+        min_tx = int(min(t[0] for t in tiles)) - 1
+        max_tx = int(max(t[0] for t in tiles)) + 1
+        min_ty = int(min(t[1] for t in tiles)) - 1
+        max_ty = int(max(t[1] for t in tiles)) + 1
     # Ogranicz do max 9x9 kafelków żeby nie pobierać za dużo
     if (max_tx - min_tx + 1) * (max_ty - min_ty + 1) > 81:
         cx = (min_tx + max_tx) // 2
