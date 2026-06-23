@@ -1144,7 +1144,24 @@ def get_local_css(return_str=False):
         .app-list li.sub-item::before {{ content: '○'; left: 18px; top: 3px; font-size: 0.6em; color: {c_h2}; }}
         .app-image-col {{ position: absolute; top: -30px; right: -45px; bottom: -15px; width: 62%; clip-path: polygon(20% 0, 100% 0, 100% 100%, 0 100%); z-index: 1; background-color: #eff4f8; display: flex; align-items: center; justify-content: center; }}
         .app-image-col img {{ width: 100%; height: 100%; object-fit: cover; }}
-        .phone-mockup {{ position: absolute; top: 50%; left: 58%; transform: translate(-50%, -50%); width: 260px; height: 530px; background-color: #111; border-radius: 30px; border: 8px solid #111; box-shadow: -15px 20px 40px rgba(0,0,0,0.4); z-index: 10; overflow: hidden; }}
+        .phone-mockup {{ position: absolute; top: 50%; left: 58%; transform: translate(-50%, -50%); width: 260px; height: 480px; background-color: #111; border-radius: 30px; border: 8px solid #111; box-shadow: -15px 20px 40px rgba(0,0,0,0.4); z-index: 10; overflow: hidden; }}
+        @media print {{
+            .phone-mockup {{
+                position: absolute !important;
+                top: 50% !important;
+                left: 58% !important;
+                transform: translate(-50%, -50%) !important;
+                width: 240px !important;
+                height: 440px !important;
+                margin: 0 !important;
+            }}
+            .phone-screen {{
+                width: 100% !important;
+                height: 100% !important;
+                object-fit: contain !important;
+                object-position: top !important;
+            }}
+        }}
         .phone-mockup::before {{ content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 110px; height: 20px; background-color: #111; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; z-index: 11; }}
         .phone-screen {{ width: 100%; height: 100%; object-fit: cover; display: block; background: #fff; }}
         .brand-collage {{ display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 45% 55%; gap: 15px; height: 100%; width: 100%; }}
