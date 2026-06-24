@@ -465,6 +465,51 @@ defaults = {
     'about_desc': 'Activezone to agencja incentive travel...',
     'about_panel_title': 'NASZE WARTOŚCI', 'about_panel_text': 'Bezpieczeństwo\nProfesjonalizm',
     'team_count': 2, 'p_start_dt': date(2026, 10, 1),
+    # === SLAJD ESG ===
+    'esg_hide': False,
+    'esg_overline': 'ODPOWIEDZIALNOŚĆ',
+    'esg_title': 'ODPOWIEDZIALNY\nPARTNER ESG',
+    'esg_subtitle': 'Zgodność z wymaganiami procurement i raportowania ESG',
+    'esg_intro': (
+        'Standardy ESG są fundamentem naszego modelu operacyjnego. '
+        'Działamy zgodnie z najwyższymi normami środowiskowymi, społecznymi '
+        'i etycznymi — pomagamy działom zakupów wypełnić wymagania compliance '
+        'i wesprzeć raportowanie ESG bez dodatkowego nakładu pracy po Państwa stronie.'
+    ),
+    # ENVIRONMENTAL
+    'esg_e_title': 'ENVIRONMENTAL',
+    'esg_e_sub': 'Środowisko',
+    'esg_e_items': (
+        'Hotele z certyfikatami ekologicznymi (Green Key, BREEAM)\n'
+        'Optymalizacja tras i niskoemisyjne środki transportu\n'
+        'Zero-waste: cyfrowa logistyka przez aplikację Activezone'
+    ),
+    # SOCIAL
+    'esg_s_title': 'SOCIAL',
+    'esg_s_sub': 'Społeczność',
+    'esg_s_items': (
+        'Współpraca z lokalnymi dostawcami, przewodnikami i rzemieślnikami\n'
+        'Inkluzywność: równy dostęp niezależnie od wieku i sprawności\n'
+        'Programy CSR: warsztaty z fundacjami, projekty ekosystemowe'
+    ),
+    # GOVERNANCE
+    'esg_g_title': 'GOVERNANCE',
+    'esg_g_sub': 'Ład korporacyjny',
+    'esg_g_items': (
+        'Licencja organizatora turystyki nr 724\n'
+        'Gwarancja Compensa >1 000 000 PLN + polisa OC 500 000 PLN\n'
+        'Etyczny łańcuch dostaw i pełna transparentność budżetów'
+    ),
+    # KEY METRICS - 8 pól (4x2). Pola puste = nie renderują się.
+    # Każde pole: number (liczba/symbol, opcjonalne), value (główna wartość), label (etykieta)
+    'esg_m1_number': '1 000 000+', 'esg_m1_value': 'PLN', 'esg_m1_label': 'GWARANCJA UBEZPIECZENIOWA',
+    'esg_m2_number': '500 000+',   'esg_m2_value': 'PLN', 'esg_m2_label': 'POLISA OC',
+    'esg_m3_number': '724',        'esg_m3_value': '',    'esg_m3_label': 'LICENCJA ORGANIZATORA',
+    'esg_m4_number': '100%',       'esg_m4_value': '',    'esg_m4_label': 'POLSKA FIRMA',
+    'esg_m5_number': '',           'esg_m5_value': 'Green Key', 'esg_m5_label': 'CERTYFIKAT BAZY NOCLEGOWEJ',
+    'esg_m6_number': '',           'esg_m6_value': 'BREEAM',    'esg_m6_label': 'CERTYFIKAT BAZY NOCLEGOWEJ',
+    'esg_m7_number': '',           'esg_m7_value': 'Pracodawca Wrażliwy Społecznie', 'esg_m7_label': 'CERTYFIKAT',
+    'esg_m8_number': '',           'esg_m8_value': 'Umiejętności Jutra 3.0 AI',      'esg_m8_label': 'KURS GOOGLE',
 }
 # ---------------------------------------------------------------------------
 # NARZĘDZIA OGÓLNE
