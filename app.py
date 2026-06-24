@@ -850,6 +850,7 @@ with st.sidebar:
         _label_with_hide("Kosztorys str. 1", "koszt_hide_1"), 
         _label_with_hide("Kosztorys str. 2", "koszt_hide_2"),
         _label_with_hide("  ↳ Przerywnik nasza agencja", "sek_hide_2"), 
+        _label_with_hide("ESG", "esg_hide"),
         _label_with_hide("O nas", "about_hide"), 
         _label_with_hide("Referencje", "testim_hide")
     ])
