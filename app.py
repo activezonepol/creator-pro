@@ -2388,8 +2388,9 @@ with col_form:
         _guard(["esg_hide", "esg_overline", "esg_title", "esg_subtitle", "esg_intro",
                 "esg_e_title", "esg_e_sub", "esg_e_items",
                 "esg_s_title", "esg_s_sub", "esg_s_items",
-                "esg_g_title", "esg_g_sub", "esg_g_items"])
-        for _mi in range(1, 9):
+                "esg_g_title", "esg_g_sub", "esg_g_items",
+                "esg_quote", "esg_quote_source"])
+        for _mi in range(1, 7):  # 6 pól
             _guard([f'esg_m{_mi}_number', f'esg_m{_mi}_value', f'esg_m{_mi}_label'])
         
         esg_keys = [
@@ -2397,8 +2398,9 @@ with col_form:
             'esg_e_title', 'esg_e_sub', 'esg_e_items',
             'esg_s_title', 'esg_s_sub', 'esg_s_items',
             'esg_g_title', 'esg_g_sub', 'esg_g_items',
+            'esg_quote', 'esg_quote_source',
         ]
-        for _mi in range(1, 9):
+        for _mi in range(1, 7):  # 6 pól
             esg_keys.extend([f'esg_m{_mi}_number', f'esg_m{_mi}_value', f'esg_m{_mi}_label'])
         section_template_manager(esg_keys, "ESG", "ESG", "esg")
         
