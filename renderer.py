@@ -2469,6 +2469,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         )
         
         # Helper: pojedyncze pole metryki (renderowane tylko gdy ma treść)
+        # JEDNOLITY KOLOR: wszystko w kolorze akcentu (liczby, wartości, etykiety)
+        # na ciemnoszarym tle. Mniejsze pola, mniej powietrza.
         def _esg_metric(number, value, label):
             number = str(number or '').strip()
             value = str(value or '').strip()
@@ -2476,40 +2478,41 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             # Pole nie renderuje się jeśli brak liczby I wartości
             if not number and not value:
                 return ''
-            # Górny wiersz: liczba (jeśli jest) + wartość (jeśli jest)
+            # Górny wiersz - WSZYSTKO w kolorze akcentu
             if number and value:
+                # Liczba + jednostka (np. "1 000 000+ PLN")
                 top_html = (
-                    f'<div style="display:flex; align-items:baseline; gap:6px; '
-                    f'margin-bottom:6px; flex-wrap:wrap; line-height:1;">'
+                    f'<div style="display:flex; align-items:baseline; gap:5px; '
+                    f'margin-bottom:4px; flex-wrap:wrap; line-height:1;">'
                     f'<span style="font-family:\'{f_h1}\'; font-weight:800; '
-                    f'font-size:{fs_t+10}px; color:{acc}; line-height:1;">{number}</span>'
+                    f'font-size:{fs_t+7}px; color:{acc}; line-height:1;">{number}</span>'
                     f'<span style="font-family:\'{f_t}\'; font-weight:600; '
-                    f'font-size:{fs_t}px; color:#ffffff; line-height:1;">{value}</span>'
+                    f'font-size:{max(10,fs_t-2)}px; color:{acc}; line-height:1;">{value}</span>'
                     f'</div>'
                 )
             elif number:
                 top_html = (
                     f'<div style="font-family:\'{f_h1}\'; font-weight:800; '
-                    f'font-size:{fs_t+10}px; color:{acc}; margin-bottom:6px; '
+                    f'font-size:{fs_t+7}px; color:{acc}; margin-bottom:4px; '
                     f'line-height:1;">{number}</div>'
                 )
             else:
-                # Brak liczby — sama wartość (biała, certyfikat)
+                # Sama wartość (np. "Green Key", "Pracodawca Wrażliwy Społecznie")
                 top_html = (
                     f'<div style="font-family:\'{f_h2}\'; font-weight:700; '
-                    f'font-size:{fs_t+1}px; color:#ffffff; margin-bottom:6px; '
+                    f'font-size:{fs_t}px; color:{acc}; margin-bottom:4px; '
                     f'line-height:1.2;">{value}</div>'
                 )
-            # Etykieta (zawsze pomarańczowa, mała)
+            # Etykieta - jaśniejszy odcień akcentu (półprzezroczysty)
             label_html = (
-                f'<div style="font-family:\'{f_met}\'; font-size:{max(8,fs_met-5)}px; '
-                f'font-weight:700; letter-spacing:1.2px; color:{acc}; '
+                f'<div style="font-family:\'{f_met}\'; font-size:{max(8,fs_met-6)}px; '
+                f'font-weight:700; letter-spacing:1px; color:{acc}; opacity:0.75; '
                 f'text-transform:uppercase; line-height:1.2;">{label}</div>'
                 if label else ''
             )
             return (
-                f'<div style="background:#1e293b; padding:14px 12px; '
-                f'border-radius:6px; min-height:74px; display:flex; '
+                f'<div style="background:#1e293b; padding:10px 12px; '
+                f'border-radius:6px; min-height:54px; display:flex; '
                 f'flex-direction:column; justify-content:center;">'
                 f'{top_html}{label_html}</div>'
             )
