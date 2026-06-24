@@ -2436,10 +2436,12 @@ with col_form:
             safe_text_input("Podtytuł (PL):", key="esg_g_sub")
         safe_text_area("Punkty karty (każda linia = jeden punkt):", height=110, key="esg_g_items")
         
-        _section_header("METRYKI (8 pól, układ 4×2)")
+        _section_header("METRYKI (6 pól, układ 3×2 — po 2 na każdy obszar E/S/G)")
         st.caption("Każde pole ma trzy fragmenty: Liczba (np. '1 000 000+'), Wartość (np. 'PLN' lub nazwa certyfikatu), Etykieta (kategoria). Pola puste — nie wyświetlają się.")
-        for _mi in range(1, 9):
-            with st.expander(f"Pole {_mi}", expanded=False):
+        st.caption("Sugerowany układ: pola 1-2 = Environmental, pola 3-4 = Social, pola 5-6 = Governance.")
+        for _mi in range(1, 7):  # 6 pól
+            _area = 'E' if _mi <= 2 else ('S' if _mi <= 4 else 'G')
+            with st.expander(f"Pole {_mi} ({_area})", expanded=False):
                 c1, c2 = st.columns(2)
                 with c1:
                     safe_text_input(f"Liczba/symbol:", key=f"esg_m{_mi}_number",
@@ -2449,6 +2451,12 @@ with col_form:
                                     help="np. 'PLN', 'Green Key', nazwa certyfikatu.")
                 safe_text_input(f"Etykieta (mała):", key=f"esg_m{_mi}_label",
                                 help="np. 'GWARANCJA UBEZPIECZENIOWA', 'CERTYFIKAT'.")
+        
+        _section_header("CYTAT BRANŻOWY (dolna część slajdu)")
+        st.caption("Krótki cytat z prasy branżowej wzmacniający przekaz ESG. Wyświetla się pod paskiem metryk.")
+        safe_text_area("Cytat (bez cudzysłowów):", height=80, key="esg_quote",
+                       help="Cytat z artykułu branżowego o ESG (np. Think MICE).")
+        safe_text_input("Źródło cytatu (np. 'Think MICE'):", key="esg_quote_source")
 
     # -----------------------------------------------------------------------
     # 19. O NAS / PARTNERZY ZARZĄDZAJĄCY
