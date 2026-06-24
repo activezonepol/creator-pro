@@ -2505,7 +2505,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             # Etykieta - biała, lekko przezroczysta dla hierarchii
             label_html = (
                 f'<div style="font-family:\'{f_met}\'; font-size:{max(8,fs_met-6)}px; '
-                f'font-weight:700; letter-spacing:1px; color:#ffffff; opacity:0.85; '
+                f'font-weight:700; letter-spacing:1px; color:#ffffff; '
                 f'text-transform:uppercase; line-height:1.2;">{label}</div>'
                 if label else ''
             )
