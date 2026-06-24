@@ -2299,8 +2299,10 @@ with col_form:
         section_template_manager(koszt_keys, "KOS", "Kosztorys", "koszt")
         st.info("Poniższe opcje zarządzają obydwoma slajdami kosztorysu.")
         c1, c2 = st.columns(2)
-        c1.checkbox("Ukryj CAŁY Kosztorys (Slajd 1 i 2)", key="koszt_hide_1")
-        c2.checkbox("Ukryj TYLKO Slajd 2 (Ciąg dalszy)", key="koszt_hide_2")
+        with c1:
+            safe_checkbox("Ukryj CAŁY Kosztorys (Slajd 1 i 2)", key="koszt_hide_1")
+        with c2:
+            safe_checkbox("Ukryj TYLKO Slajd 2 (Ciąg dalszy)", key="koszt_hide_2")
         safe_text_input("Tytuł H1 (duży, górna część):", key="koszt_h1_title")
         safe_text_input("Overline (mały nadtytuł):", key="koszt_title")
         _section_header("GŁÓWNE DANE TABELI")
