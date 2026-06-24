@@ -2638,8 +2638,180 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             {_esg_quote_html}
         </div>{fh}""", "slide-esg"))
    
-    # --- 19. O nas / Zespół ---
+    # --- 19. O nas / Partnerzy Zarządzający ---
     if _should_render('slide-about', current_page, export_mode):
+        _about_overline = str(get_data('about_overline', 'NASZ ZESPÓŁ'))
+        _about_title = str(get_data('about_title', '')).replace(chr(10), '<br>')
+        _about_sub = str(get_data('about_sub', ''))
+        _about_desc = str(get_data('about_desc', '')).replace(chr(10), '<br>')
+        
+        # Helper: pole metryki About (identyczne jak w ESG - pomarańczowe tło, biały tekst)
+        def _about_metric(number, value, label):
+            number = str(number or '').strip()
+            value = str(value or '').strip()
+            label = str(label or '').strip()
+            if not number and not value:
+                return ''
+            if number and value:
+                top_html = (
+                    f'<div style="display:flex; align-items:baseline; gap:5px; '
+                    f'margin-bottom:3px; flex-wrap:wrap; line-height:1;">'
+                    f'<span style="font-family:\'{f_h1}\'; font-weight:800; '
+                    f'font-size:{fs_t+7}px; color:#ffffff; line-height:1;">{number}</span>'
+                    f'<span style="font-family:\'{f_t}\'; font-weight:600; '
+                    f'font-size:{max(10,fs_t-2)}px; color:#ffffff; line-height:1;">{value}</span>'
+                    f'</div>'
+                )
+            elif number:
+                top_html = (
+                    f'<div style="font-family:\'{f_h1}\'; font-weight:800; '
+                    f'font-size:{fs_t+7}px; color:#ffffff; margin-bottom:3px; '
+                    f'line-height:1;">{number}</div>'
+                )
+            else:
+                top_html = (
+                    f'<div style="font-family:\'{f_h2}\'; font-weight:700; '
+                    f'font-size:{fs_t}px; color:#ffffff; margin-bottom:3px; '
+                    f'line-height:1.2;">{value}</div>'
+                )
+            label_html = (
+                f'<div style="font-family:\'{f_met}\'; font-size:{max(8,fs_met-6)}px; '
+                f'font-weight:700; letter-spacing:1px; color:#ffffff; '
+                f'text-transform:uppercase; line-height:1.2;">{label}</div>'
+                if label else ''
+            )
+            return (
+                f'<div style="background:{acc}; padding:8px 12px; '
+                f'border-radius:6px; min-height:51px; display:flex; '
+                f'flex-direction:column; justify-content:center;">'
+                f'{top_html}{label_html}</div>'
+            )
+        
+        # Helper: kolumna osoby (zdjęcie + nazwisko + funkcja + biogram + bullety + cytat)
+        def _about_person(idx):
+            _name = str(get_data(f'about_p{idx}_name', '')).strip()
+            _role = str(get_data(f'about_p{idx}_role', '')).strip()
+            _bio = str(get_data(f'about_p{idx}_bio', '')).strip()
+            _bullets_raw = str(get_data(f'about_p{idx}_bullets', '')).strip()
+            _quote = str(get_data(f'about_p{idx}_quote', '')).strip()
+            _quote_src = str(get_data(f'about_p{idx}_quote_source', '')).strip()
+            _img_key = f't_img_{idx-1}'  # zachowuje kompatybilność z istniejącym mechanizmem zdjęć t_img_0/t_img_1
+            _img_b64 = get_b64(_img_key, (1, 1))
+            
+            # Zdjęcie - okrągłe, 130x130
+            if _img_b64:
+                _photo_html = _img_tag(
+                    _img_b64, _name or f'Osoba {idx}',
+                    style=('width:130px; height:130px; border-radius:50%; '
+                           'object-fit:cover; display:block; border:3px solid #fff; '
+                           'box-shadow:0 4px 12px rgba(0,0,0,0.15); flex-shrink:0;')
+                )
+            else:
+                _photo_html = (
+                    f'<div style="width:130px; height:130px; border-radius:50%; '
+                    f'background:#e2e8f0; display:flex; align-items:center; '
+                    f'justify-content:center; color:#94a3b8; font-family:\'{f_t}\'; '
+                    f'font-size:11px; flex-shrink:0;">ZDJĘCIE</div>'
+                )
+            
+            # Bullety
+            _bullet_items = [x.strip() for x in _bullets_raw.split('\n') if x.strip()]
+            _bullets_html = ''
+            if _bullet_items:
+                _bullets_html = (
+                    '<ul style="list-style:none; padding:0; margin:8px 0 0 0;">'
+                    + ''.join([
+                        f'<li style="margin-bottom:5px; font-family:\'{f_t}\'; '
+                        f'font-size:{max(10,fs_t-2)}px; color:{c_t}; line-height:1.35; '
+                        f'padding-left:14px; position:relative;">'
+                        f'<span style="position:absolute; left:0; top:0; color:{acc}; '
+                        f'font-weight:700;">›</span>{x}</li>'
+                        for x in _bullet_items
+                    ])
+                    + '</ul>'
+                )
+            
+            # Cytat - kursywa, lewy border akcent
+            _quote_html = ''
+            if _quote:
+                _src_html = (
+                    f'<div style="margin-top:4px; font-size:{max(8,fs_t-5)}px; '
+                    f'color:{acc}; font-weight:700; letter-spacing:0.5px; '
+                    f'text-transform:uppercase; font-style:normal;">— {_quote_src}</div>'
+                    if _quote_src else ''
+                )
+                _quote_html = (
+                    f'<div style="margin-top:8px; padding:8px 12px; '
+                    f'border-left:3px solid {acc}; background:#f8fafc; '
+                    f'font-family:\'{f_t}\'; font-size:{max(10,fs_t-2)}px; '
+                    f'font-style:italic; color:{c_t}; line-height:1.35;">'
+                    f'"{_quote}"{_src_html}'
+                    f'</div>'
+                )
+            
+            return (
+                f'<div style="flex:1; min-width:0; display:flex; flex-direction:column;">'
+                # Górny rząd: zdjęcie + nazwisko/funkcja
+                f'<div style="display:flex; gap:14px; align-items:center; margin-bottom:10px;">'
+                f'{_photo_html}'
+                f'<div style="flex:1; min-width:0;">'
+                f'<div style="font-family:\'{f_h2}\'; font-weight:800; '
+                f'font-size:{fs_t+3}px; color:{c_h2}; text-transform:uppercase; '
+                f'letter-spacing:0.8px; line-height:1.1; margin-bottom:4px;">{_name}</div>'
+                f'<div style="font-family:\'{f_t}\'; font-size:{max(9,fs_t-3)}px; '
+                f'color:{acc}; font-weight:600; line-height:1.3;">{_role}</div>'
+                f'<div style="width:30px; height:2px; background:{acc}; '
+                f'margin-top:5px;"></div>'
+                f'</div>'
+                f'</div>'
+                # Biogram
+                f'<div style="font-family:\'{f_t}\'; font-size:{max(10,fs_t-2)}px; '
+                f'color:{c_t}; line-height:1.4; text-align:justify;">{_bio}</div>'
+                # Bullety
+                f'{_bullets_html}'
+                # Cytat
+                f'{_quote_html}'
+                f'</div>'
+            )
+        
+        _person1_html = _about_person(1)
+        _person2_html = _about_person(2)
+        
+        # Pasek metryk (8 pól, układ 4x2) - warunkowy render
+        _about_metrics_parts = []
+        for _i in range(1, 9):
+            _m = _about_metric(
+                get_data(f'about_m{_i}_number', ''),
+                get_data(f'about_m{_i}_value', ''),
+                get_data(f'about_m{_i}_label', ''),
+            )
+            if _m:
+                _about_metrics_parts.append(_m)
+        
+        _about_metrics_html = ''
+        if _about_metrics_parts:
+            _about_metrics_html = (
+                f'<div style="display:grid; grid-template-columns:repeat(4, 1fr); '
+                f'gap:8px; margin-top:10px; margin-bottom:8px;">'
+                + ''.join(_about_metrics_parts) +
+                '</div>'
+            )
+        
+        hp.append(_shtml(f"""{lh}
+        <div style="display:flex; flex-direction:column; height:100%; width:100%; padding-top:8px;">
+            <div class="app-overline-style">{_about_overline}</div>
+            <div class="title-h1" style="margin-bottom:5px; font-size:{fs_h1_val-8}px;">{_about_title}</div>
+            <div class="title-sub" style="margin-bottom:12px; font-size:{max(11,fs_sub_val-8)}px;">{_about_sub}</div>
+            <div style="font-family:'{f_t}'; font-size:{max(10,fs_t-1)}px; line-height:1.5;
+                        color:{c_t}; margin-bottom:14px; max-width:96%;">
+                {_about_desc}
+            </div>
+            {_about_metrics_html}
+            <div style="display:flex; gap:20px; flex:1; min-height:0; margin-top:6px;">
+                {_person1_html}
+                {_person2_html}
+            </div>
+        </div>{fh}""", "slide-about"))
         tm_h = ""
         tc = get_data('team_count', 2)
         grid_cols = "1fr 1fr" if tc in (2, 4) else f"repeat({tc}, 1fr)"
