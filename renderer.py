@@ -1373,6 +1373,7 @@ def _should_render(slide_id, current_page, export_mode):
         "Wirtualny asystent":       "slide-virtual-assistant",
         "Kosztorys str. 1":         "slide-kosztorys-1",
         "Kosztorys str. 2":         "slide-kosztorys-2",
+        "ESG":                      "slide-esg",
         "O nas":                    "slide-about",
         "Referencje":               "slide-testimonials",
     }
