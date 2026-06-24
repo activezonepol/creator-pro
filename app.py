@@ -2449,43 +2449,76 @@ with col_form:
                                 help="np. 'GWARANCJA UBEZPIECZENIOWA', 'CERTYFIKAT'.")
 
     # -----------------------------------------------------------------------
-    # 19. O NAS
+    # 19. O NAS / PARTNERZY ZARZĄDZAJĄCY
     # -----------------------------------------------------------------------
     elif page == "O nas":
-        _guard(["about_hide", "about_overline", "about_title", "about_sub",  
-                "about_desc", "team_count"])                                 
+        _guard(["about_hide", "about_overline", "about_title", "about_sub", "about_desc",
+                "about_p1_name", "about_p1_role", "about_p1_bio", "about_p1_bullets",
+                "about_p1_quote", "about_p1_quote_source",
+                "about_p2_name", "about_p2_role", "about_p2_bio", "about_p2_bullets",
+                "about_p2_quote", "about_p2_quote_source"])
+        for _mi in range(1, 9):
+            _guard([f'about_m{_mi}_number', f'about_m{_mi}_value', f'about_m{_mi}_label'])
+        
         nas_keys = [
-            'about_hide', 'about_overline', 'about_title', 'about_sub',
-            'about_desc', 'about_panel_title', 'about_panel_text',
-            'team_count', 'img_about_clients',
+            'about_hide', 'about_overline', 'about_title', 'about_sub', 'about_desc',
+            'about_p1_name', 'about_p1_role', 'about_p1_bio', 'about_p1_bullets',
+            'about_p1_quote', 'about_p1_quote_source', 't_img_0',
+            'about_p2_name', 'about_p2_role', 'about_p2_bio', 'about_p2_bullets',
+            'about_p2_quote', 'about_p2_quote_source', 't_img_1',
         ]
-        for i in range(st.session_state.get('team_count', 2)):
-            nas_keys.extend([f't_name_{i}', f't_role_{i}', f't_desc_{i}', f't_img_{i}'])
+        for _mi in range(1, 9):
+            nas_keys.extend([f'about_m{_mi}_number', f'about_m{_mi}_value', f'about_m{_mi}_label'])
         section_template_manager(nas_keys, "NAS", "Zespol", "nas")
+        
         safe_checkbox("Ukryj ten slajd w PDF", key="about_hide")
         safe_text_input("Mały nadtytuł:", key="about_overline")
-        safe_text_area("Główny tytuł H1:", key="about_title")
+        safe_text_area("Główny tytuł H1:", key="about_title", height=80)
         safe_text_input("Podtytuł:", key="about_sub")
-        safe_text_area("Opis główny:", height=150, key="about_desc")
+        safe_text_area("Paragraf wprowadzający o firmie:", height=160, key="about_desc",
+                       help="Krótki opis firmy zorientowany na działy zakupów - lata, kontynenty, ESG, compliance.")
+        
+        _section_header("PARTNER 1 — JOANNA JABŁOŃSKA")
+        safe_text_input("Imię i nazwisko:", key="about_p1_name")
+        safe_text_input("Funkcja (Partner | Członek Zarządu | ...):", key="about_p1_role")
+        safe_text_area("Biogram:", height=160, key="about_p1_bio")
+        safe_text_area("Bullety (każda linia = jeden punkt, max 3-4):", height=100, key="about_p1_bullets",
+                       help="Krótkie konkretne fakty - lata doświadczenia, role branżowe, tytuły.")
+        safe_text_area("Cytat (bez cudzysłowów):", height=80, key="about_p1_quote",
+                       help="Krótki cytat z artykułu/wypowiedzi w prasie branżowej.")
+        safe_text_input("Źródło cytatu (np. 'Think MICE, październik 2025'):", key="about_p1_quote_source")
         st.file_uploader(
-            "Zdjęcie prawe (Klienci / Logotypy)",
-            key="up_img_about_clients",
-            on_change=_make_upload_callback('img_about_clients')
+            "Zdjęcie (kwadratowe, najlepiej 400x400 lub większe):",
+            key="up_t_img_0",
+            on_change=_make_upload_callback('t_img_0')
         )
-        st.number_input("Liczba osób w zespole:", 1, 4, step=1, key="team_count")
-        for i in range(st.session_state['team_count']):
-            for dk in [f"t_name_{i}", f"t_role_{i}", f"t_desc_{i}"]:
-                if dk not in st.session_state:
-                    st.session_state[dk] = ""
-            with st.expander(f"Osoba {i+1}"):
-                safe_text_input("Imię i nazwisko", key=f"t_name_{i}")
-                safe_text_input("Stanowisko", key=f"t_role_{i}")
-                safe_text_area("Krótki opis", key=f"t_desc_{i}")
-                st.file_uploader(
-                    "Zdjęcie (okrągłe)",
-                    key=f"up_t_img_{i}",
-                    on_change=_make_upload_callback(f"t_img_{i}")
-                )
+        
+        _section_header("PARTNER 2 — MARCIN ŁUKASZEWICZ")
+        safe_text_input("Imię i nazwisko:", key="about_p2_name")
+        safe_text_input("Funkcja:", key="about_p2_role")
+        safe_text_area("Biogram:", height=160, key="about_p2_bio")
+        safe_text_area("Bullety (każda linia = jeden punkt, max 3-4):", height=100, key="about_p2_bullets")
+        safe_text_area("Cytat (bez cudzysłowów):", height=80, key="about_p2_quote")
+        safe_text_input("Źródło cytatu (np. 'OOH Magazine'):", key="about_p2_quote_source")
+        st.file_uploader(
+            "Zdjęcie (kwadratowe, najlepiej 400x400 lub większe):",
+            key="up_t_img_1",
+            on_change=_make_upload_callback('t_img_1')
+        )
+        
+        _section_header("METRYKI / CERTYFIKATY (8 pól, układ 4×2)")
+        st.caption("Każde pole ma trzy fragmenty: Liczba (np. '724', '1997'), Wartość (np. 'Raport ESG' lub 'Pracodawca'), Etykieta (kategoria). Pola puste — nie wyświetlają się.")
+        for _mi in range(1, 9):
+            with st.expander(f"Pole {_mi}", expanded=False):
+                c1, c2 = st.columns(2)
+                with c1:
+                    safe_text_input(f"Liczba/symbol:", key=f"about_m{_mi}_number",
+                                    help="np. '724', '1997', 'SOIT'. Puste = pole bez liczby.")
+                with c2:
+                    safe_text_input(f"Wartość główna:", key=f"about_m{_mi}_value",
+                                    help="np. 'PLN', 'Raport ESG', 'Pakiet compliance'.")
+                safe_text_input(f"Etykieta (mała):", key=f"about_m{_mi}_label",
+                                help="np. 'LICENCJA ORGANIZATORA TOT', 'CZŁONEK STOWARZYSZENIA'.")
 
     # -----------------------------------------------------------------------
     # 20. REFERENCJE (Co o nas mówią)
