@@ -2398,6 +2398,157 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
     # --- 18. Przerywnik nasza agencja (sek_2) ---
     _render_sek(2)
    
+    # --- 18b. ESG (Odpowiedzialny partner) ---
+    if _should_render('slide-esg', current_page, export_mode):
+        _esg_overline = str(get_data('esg_overline', 'ODPOWIEDZIALNOŚĆ'))
+        _esg_title = str(get_data('esg_title', '')).replace(chr(10), '<br>')
+        _esg_subtitle = str(get_data('esg_subtitle', '')).replace(chr(10), '<br>')
+        _esg_intro = str(get_data('esg_intro', '')).replace(chr(10), '<br>')
+        
+        # Helper: karta ESG z watermark literą w tle
+        def _esg_card(letter, icon_fa, title, sub, items_raw):
+            _items = [x.strip() for x in str(items_raw or '').split('\n') if x.strip()]
+            _items_html = ''.join([
+                f'<li style="margin-bottom:8px; font-family:\'{f_t}\'; '
+                f'font-size:{fs_t}px; color:{c_t}; line-height:1.4; '
+                f'padding-left:18px; position:relative;">'
+                f'<span style="position:absolute; left:0; top:0; color:{acc}; '
+                f'font-weight:700; font-size:1.1em;">›</span>{x}</li>'
+                for x in _items
+            ])
+            return (
+                f'<div style="flex:1; background:#fff; border:1px solid #e2e8f0; '
+                f'border-radius:8px; padding:24px 22px; position:relative; '
+                f'overflow:hidden; display:flex; flex-direction:column;">'
+                # Watermark litera w tle (E/S/G) - bardzo jasna, duża
+                f'<div style="position:absolute; top:-30px; right:-15px; '
+                f'font-family:\'{f_h1}\'; font-weight:900; font-size:180px; '
+                f'color:{acc}; opacity:0.08; line-height:1; pointer-events:none; '
+                f'user-select:none;">{letter}</div>'
+                # Ikona
+                f'<div style="margin-bottom:14px; position:relative; z-index:1;">'
+                f'<i class="fa-solid {icon_fa}" style="color:{acc}; '
+                f'font-size:32px;"></i></div>'
+                # Tytuł kategorii
+                f'<div style="font-family:\'{f_h2}\'; font-weight:800; '
+                f'font-size:{fs_t+4}px; color:{c_h2}; text-transform:uppercase; '
+                f'letter-spacing:1.5px; margin-bottom:2px; position:relative; z-index:1;">'
+                f'{title}</div>'
+                # Podtytuł kategorii (PL)
+                f'<div style="font-family:\'{f_t}\'; font-size:{fs_t}px; '
+                f'color:{acc}; font-weight:600; margin-bottom:10px; '
+                f'position:relative; z-index:1;">{sub}</div>'
+                # Linia separatora
+                f'<div style="width:40px; height:2px; background:{acc}; '
+                f'margin-bottom:14px; position:relative; z-index:1;"></div>'
+                # Lista punktów
+                f'<ul style="list-style:none; padding:0; margin:0; '
+                f'position:relative; z-index:1; flex:1;">{_items_html}</ul>'
+                f'</div>'
+            )
+        
+        _card_e = _esg_card(
+            'E', 'fa-leaf',
+            str(get_data('esg_e_title', 'ENVIRONMENTAL')),
+            str(get_data('esg_e_sub', 'Środowisko')),
+            get_data('esg_e_items', ''),
+        )
+        _card_s = _esg_card(
+            'S', 'fa-people-group',
+            str(get_data('esg_s_title', 'SOCIAL')),
+            str(get_data('esg_s_sub', 'Społeczność')),
+            get_data('esg_s_items', ''),
+        )
+        _card_g = _esg_card(
+            'G', 'fa-shield-halved',
+            str(get_data('esg_g_title', 'GOVERNANCE')),
+            str(get_data('esg_g_sub', 'Ład korporacyjny')),
+            get_data('esg_g_items', ''),
+        )
+        
+        # Helper: pojedyncze pole metryki (renderowane tylko gdy ma treść)
+        def _esg_metric(number, value, label):
+            number = str(number or '').strip()
+            value = str(value or '').strip()
+            label = str(label or '').strip()
+            # Pole nie renderuje się jeśli brak liczby I wartości
+            if not number and not value:
+                return ''
+            # Górny wiersz: liczba (jeśli jest) + wartość (jeśli jest)
+            if number and value:
+                top_html = (
+                    f'<div style="display:flex; align-items:baseline; gap:6px; '
+                    f'margin-bottom:6px; flex-wrap:wrap; line-height:1;">'
+                    f'<span style="font-family:\'{f_h1}\'; font-weight:800; '
+                    f'font-size:{fs_t+10}px; color:{acc}; line-height:1;">{number}</span>'
+                    f'<span style="font-family:\'{f_t}\'; font-weight:600; '
+                    f'font-size:{fs_t}px; color:#ffffff; line-height:1;">{value}</span>'
+                    f'</div>'
+                )
+            elif number:
+                top_html = (
+                    f'<div style="font-family:\'{f_h1}\'; font-weight:800; '
+                    f'font-size:{fs_t+10}px; color:{acc}; margin-bottom:6px; '
+                    f'line-height:1;">{number}</div>'
+                )
+            else:
+                # Brak liczby — sama wartość (biała, certyfikat)
+                top_html = (
+                    f'<div style="font-family:\'{f_h2}\'; font-weight:700; '
+                    f'font-size:{fs_t+1}px; color:#ffffff; margin-bottom:6px; '
+                    f'line-height:1.2;">{value}</div>'
+                )
+            # Etykieta (zawsze pomarańczowa, mała)
+            label_html = (
+                f'<div style="font-family:\'{f_met}\'; font-size:{max(8,fs_met-5)}px; '
+                f'font-weight:700; letter-spacing:1.2px; color:{acc}; '
+                f'text-transform:uppercase; line-height:1.2;">{label}</div>'
+                if label else ''
+            )
+            return (
+                f'<div style="background:#1e293b; padding:14px 12px; '
+                f'border-radius:6px; min-height:74px; display:flex; '
+                f'flex-direction:column; justify-content:center;">'
+                f'{top_html}{label_html}</div>'
+            )
+        
+        _metrics_html_parts = []
+        for _i in range(1, 9):
+            _m = _esg_metric(
+                get_data(f'esg_m{_i}_number', ''),
+                get_data(f'esg_m{_i}_value', ''),
+                get_data(f'esg_m{_i}_label', ''),
+            )
+            if _m:
+                _metrics_html_parts.append(_m)
+        
+        # Pasek metryk - tylko jeśli są jakieś metryki
+        _metrics_section_html = ''
+        if _metrics_html_parts:
+            _metrics_section_html = (
+                f'<div style="display:grid; grid-template-columns:repeat(4, 1fr); '
+                f'gap:10px; margin-top:18px;">'
+                + ''.join(_metrics_html_parts) +
+                '</div>'
+            )
+        
+        hp.append(_shtml(f"""{lh}
+        <div style="display:flex; flex-direction:column; height:100%; width:100%; padding-top:8px;">
+            <div class="app-overline-style">{_esg_overline}</div>
+            <div class="title-h1" style="margin-bottom:5px; font-size:{fs_h1_val-8}px;">{_esg_title}</div>
+            <div class="title-sub" style="margin-bottom:14px; font-size:{max(11,fs_sub_val-8)}px;">{_esg_subtitle}</div>
+            <div style="font-family:'{f_t}'; font-size:{fs_t}px; line-height:1.55;
+                        color:{c_t}; margin-bottom:18px; max-width:92%;">
+                {_esg_intro}
+            </div>
+            <div style="display:flex; gap:16px; flex:1; min-height:0;">
+                {_card_e}
+                {_card_s}
+                {_card_g}
+            </div>
+            {_metrics_section_html}
+        </div>{fh}""", "slide-esg"))
+   
     # --- 19. O nas / Zespół ---
     if _should_render('slide-about', current_page, export_mode):
         tm_h = ""
