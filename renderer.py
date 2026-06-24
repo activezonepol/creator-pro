@@ -2579,7 +2579,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             )
         
         _metrics_html_parts = []
-        for _i in range(1, 9):
+        for _i in range(1, 7):  # 6 pól (po 2 na każdy obszar E/S/G)
             _m = _esg_metric(
                 get_data(f'esg_m{_i}_number', ''),
                 get_data(f'esg_m{_i}_value', ''),
@@ -2588,16 +2588,36 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             if _m:
                 _metrics_html_parts.append(_m)
         
-        # Pasek metryk - tylko jeśli są jakieś metryki
-        # margin-top:12px - mniejszy odstęp od kart żeby pasek był wyżej
-        # margin-bottom:14px - odstęp od footera (pomarańczowa linia + numer strony)
+        # Pasek metryk - siatka 3×2 (6 pól)
+        # margin-top:10px - mniejszy odstęp od kart żeby pasek był wyżej
+        # margin-bottom:8px - mniejszy odstęp od cytatu poniżej
         _metrics_section_html = ''
         if _metrics_html_parts:
             _metrics_section_html = (
-                f'<div style="display:grid; grid-template-columns:repeat(4, 1fr); '
-                f'gap:8px; margin-top:12px; margin-bottom:14px;">'
+                f'<div style="display:grid; grid-template-columns:repeat(3, 1fr); '
+                f'gap:8px; margin-top:10px; margin-bottom:8px;">'
                 + ''.join(_metrics_html_parts) +
                 '</div>'
+            )
+        
+        # === CYTAT z Think MICE ===
+        _esg_quote_text = str(get_data('esg_quote', '')).strip()
+        _esg_quote_src = str(get_data('esg_quote_source', '')).strip()
+        _esg_quote_html = ''
+        if _esg_quote_text:
+            _src_html = (
+                f'<span style="font-family:\'{f_t}\'; font-size:{max(9,fs_t-3)}px; '
+                f'color:{acc}; font-weight:700; letter-spacing:0.5px; '
+                f'text-transform:uppercase;"> — {_esg_quote_src}</span>'
+                if _esg_quote_src else ''
+            )
+            _esg_quote_html = (
+                f'<div style="margin-top:6px; padding:10px 16px; '
+                f'border-left:3px solid {acc}; background:#f8fafc; '
+                f'font-family:\'{f_t}\'; font-size:{max(11,fs_t-1)}px; '
+                f'font-style:italic; color:{c_t}; line-height:1.4;">'
+                f'"{_esg_quote_text}"{_src_html}'
+                f'</div>'
             )
         
         hp.append(_shtml(f"""{lh}
