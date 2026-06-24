@@ -460,11 +460,67 @@ defaults = {
     'testim_head_2': 'NAGRODA DLA KLIENTÓW',
     'testim_quote_2': 'Współpraca na najwyższym poziomie.',
     'testim_author_2': 'Marta Wiśniewska', 'testim_role_2': 'Head of Sales',
-    'about_hide': False, 'about_overline': 'NASZ ZESPÓŁ',
-    'about_title': 'POZNAJMY SIĘ', 'about_sub': 'ZESPÓŁ ACTIVEZONE',
-    'about_desc': 'Activezone to agencja incentive travel...',
+    'about_hide': False,
+    'about_overline': 'NASZ ZESPÓŁ',
+    'about_title': 'PARTNERZY\nZARZĄDZAJĄCY',
+    'about_sub': 'ZESPÓŁ ACTIVEZONE',
+    'about_desc': (
+        'Activezone to agencja MICE z ponad 20-letnim doświadczeniem na 5 kontynentach. '
+        'Łączymy wieloletnią ekspertyzę z autorską aplikacją mobilną, automatyzacją procesów '
+        'i pełnym wsparciem dla działów zakupów — od kalkulacji śladu węglowego po dokumentację '
+        'compliance i raportowanie ESG zgodne z dyrektywą CSRD. Jako agencja zrzeszona w SOIT '
+        'uczestniczymy w branżowych szkoleniach ESG oraz programie kompetencyjnym Google AI '
+        '"Umiejętności Jutra".'
+    ),
     'about_panel_title': 'NASZE WARTOŚCI', 'about_panel_text': 'Bezpieczeństwo\nProfesjonalizm',
     'team_count': 2, 'p_start_dt': date(2026, 10, 1),
+    # === NOWE POLA: Joanna ===
+    'about_p1_name': 'Joanna Jabłońska',
+    'about_p1_role': 'Partner | Członek Zarządu | Dyrektor Zarządzająca',
+    'about_p1_bio': (
+        'Współzałożycielka i Dyrektor Zarządzająca Activezone. Doktor Nauk (Akademia Wychowania '
+        'Fizycznego). Ponad 20 lat doświadczenia w branży MICE — osobiście zrealizowała projekty '
+        'na 5 kontynentach, od czarterów samolotów dla międzynarodowych korporacji po kameralne '
+        'wyjazdy VIP. W minionych kadencjach pełniła funkcję Wiceprezesa, a następnie Członka '
+        'Komisji Etyki Stowarzyszenia Organizatorów Incentive Travel (SOIT). Autorka publikacji '
+        'w prasie branżowej (OOH Magazine, Meeting Planner, Think MICE).'
+    ),
+    'about_p1_bullets': (
+        '20+ lat doświadczenia w MICE\n'
+        'Wiceprezes SOIT (kadencja 2018-2019), Komisja Etyki SOIT (2020-2021)\n'
+        'Doktor Nauk (Akademia Wychowania Fizycznego)'
+    ),
+    'about_p1_quote': (
+        'Incentive to nie koszt, ale inwestycja w ludzką stronę biznesu '
+        '— mierzalna, praktyczna, ale też pełna empatii.'
+    ),
+    'about_p1_quote_source': 'Think MICE, październik 2025',
+    # === NOWE POLA: Marcin ===
+    'about_p2_name': 'Marcin Łukaszewicz',
+    'about_p2_role': 'Partner | Członek Zarządu | Dyrektor Sprzedaży i Marketingu',
+    'about_p2_bio': (
+        'Współzałożyciel i Dyrektor Sprzedaży i Marketingu Activezone. Ponad 20 lat '
+        'doświadczenia w branży MICE — od 2003 roku kreuje strategiczne programy incentive '
+        'dla klientów korporacyjnych. Doświadczenie sportu wyczynowego — jako zawodnik '
+        'windsurfingu w klasie olimpijskiej oraz trener kadry — ukształtowało w nim precyzję '
+        'operacyjną, zarządzanie ryzykiem i umiejętność podejmowania decyzji pod presją. '
+        'Odpowiada za strategię produktową i inżynierię finansową projektów B2B. Jako wykładowca '
+        'SOIT współtworzy program Certyfikowany Pilot Incentive Travel (CPIT) — uczy '
+        'rachunkowości projektów MICE, optymalizacji VAT-marża i compliance budżetowego.'
+    ),
+    'about_p2_bullets': (
+        '20+ lat doświadczenia w MICE\n'
+        'Wykładowca SOIT (CPIT) — compliance i rozliczenia MICE\n'
+        'Cytowany w prasie branżowej (OOH Magazine, Meeting Planner, Puls Biznesu, Think MICE)'
+    ),
+    'about_p2_quote': (
+        'Prawdziwą wartością wyjazdu incentive jest możliwość skrócenia dystansu z resztą '
+        'zespołu. Podczas wyjazdu buduje się kapitał zaufania, który procentuje przez '
+        'kolejne miesiące pracy zdalnej.'
+    ),
+    'about_p2_quote_source': 'OOH Magazine',
+    # === POLE METRYK O NAS (8 pól) ===
+    'about_m1_number': '724',         'about_m1_value': '',
     # === SLAJD ESG ===
     'esg_hide': False,
     'esg_overline': 'ODPOWIEDZIALNOŚĆ',
