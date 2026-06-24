@@ -2635,6 +2635,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 {_card_g}
             </div>
             {_metrics_section_html}
+            {_esg_quote_html}
         </div>{fh}""", "slide-esg"))
    
     # --- 19. O nas / Zespół ---
