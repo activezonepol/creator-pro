@@ -558,14 +558,20 @@ defaults = {
     ),
     # KEY METRICS - 8 pól (4x2). Pola puste = nie renderują się.
     # Każde pole: number (liczba/symbol, opcjonalne), value (główna wartość), label (etykieta)
-    'esg_m1_number': '1 000 000+', 'esg_m1_value': 'PLN', 'esg_m1_label': 'GWARANCJA UBEZPIECZENIOWA',
-    'esg_m2_number': '500 000+',   'esg_m2_value': 'PLN', 'esg_m2_label': 'POLISA OC',
-    'esg_m3_number': '724',        'esg_m3_value': '',    'esg_m3_label': 'LICENCJA ORGANIZATORA',
-    'esg_m4_number': '100%',       'esg_m4_value': '',    'esg_m4_label': 'POLSKA FIRMA',
-    'esg_m5_number': '',           'esg_m5_value': 'Green Key', 'esg_m5_label': 'CERTYFIKAT BAZY NOCLEGOWEJ',
-    'esg_m6_number': '',           'esg_m6_value': 'BREEAM',    'esg_m6_label': 'CERTYFIKAT BAZY NOCLEGOWEJ',
-    'esg_m7_number': '',           'esg_m7_value': 'Pracodawca Wrażliwy Społecznie', 'esg_m7_label': 'CERTYFIKAT',
-    'esg_m8_number': '',           'esg_m8_value': 'Umiejętności Jutra 3.0 AI',      'esg_m8_label': 'KURS GOOGLE',
+    # ESG - 6 pól (po 2 na każdy obszar E/S/G)
+    'esg_m1_number': '',           'esg_m1_value': 'Green Key', 'esg_m1_label': 'CERTYFIKAT BAZY NOCLEGOWEJ',
+    'esg_m2_number': '',           'esg_m2_value': 'BREEAM',    'esg_m2_label': 'CERTYFIKAT BAZY NOCLEGOWEJ',
+    'esg_m3_number': '100%',       'esg_m3_value': '',          'esg_m3_label': 'LOKALNI DOSTAWCY I PRZEWODNICY',
+    'esg_m4_number': '',           'esg_m4_value': 'Programy CSR', 'esg_m4_label': 'DLA FUNDACJI I EKOSYSTEMÓW',
+    'esg_m5_number': '1 000 000', 'esg_m5_value': 'PLN',       'esg_m5_label': 'GWARANCJA UBEZPIECZENIOWA',
+    'esg_m6_number': '500 000',   'esg_m6_value': 'PLN',       'esg_m6_label': 'POLISA OC',
+    # === CYTAT ESG z Think MICE ===
+    'esg_quote': (
+        'Agencje zrzeszone w SOIT potrafią przygotować oferty wyjazdów motywacyjnych '
+        'z naciskiem na minimalizację śladu węglowego, wodnego oraz wspieranie lokalnych '
+        'społeczności odwiedzanych destynacji.'
+    ),
+    'esg_quote_source': 'Think MICE',
 }
 # ---------------------------------------------------------------------------
 # NARZĘDZIA OGÓLNE
