@@ -2812,33 +2812,6 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 {_person2_html}
             </div>
         </div>{fh}""", "slide-about"))
-        tm_h = ""
-        tc = get_data('team_count', 2)
-        grid_cols = "1fr 1fr" if tc in (2, 4) else f"repeat({tc}, 1fr)"
-        for i in range(tc):
-            it = get_b64(f't_img_{i}', (1, 1))
-            if it:
-                itg = _img_tag(it, 'ZDJĘCIE', style=f'width:70px;height:70px;border-radius:50%;border:2px solid {acc};object-fit:cover;')
-            else:
-                itg = "<div style='width:70px;height:70px;border-radius:50%;border:2px dashed #ccc;display:flex;align-items:center;justify-content:center;margin:0 auto 10px auto;color:#aaa;font-size:10px;'>ZDJĘCIE</div>"
-            tm_h += f"""<div style='display:flex; flex-direction:column; align-items:flex-start; text-align:left;'>
-                <div style="margin-bottom:8px;">{itg}</div>
-                <div style='font-family:Montserrat;font-weight:800;font-size:{max(12,fs_t)}px;color:{c_h2};line-height:1.2;margin-bottom:2px;'>{str(get_data(f't_name_{i}',''))}</div>
-                <div style='font-size:{max(9,fs_t-3)}px;color:{acc};font-weight:600;margin-bottom:6px;text-transform:uppercase;'>{str(get_data(f't_role_{i}',''))}</div>
-                <div style='font-size:{max(10,fs_t-2)}px;line-height:1.4;color:{c_t};'>{str(get_data(f't_desc_{i}') or '').replace(chr(10),'<br>')}</div>
-            </div>"""
-        c_img = get_b64('img_about_clients', (4, 5))
-        c_img_html = _img_tag(c_img, 'ZDJĘCIE / LOGA KLIENTÓW')
-        hp.append(_shtml(f"""{lh}<div class="premium-layout">
-            <div class="info-col" style="flex: 60; padding-right: 40px; padding-top: 15px; justify-content: flex-start; display: flex; flex-direction: column;">
-                <div class="app-overline-style"><span>{str(get_data('about_overline','NASZ ZESPÓŁ'))}</span></div>
-                <div class="title-h1" style="margin-bottom: 15px; font-size:{fs_h1_val-6}px;">{str(get_data('about_title','')).replace(chr(10),'<br>')}</div>
-                <div class="title-sub" style="margin-bottom:25px; font-size:{max(12,fs_sub_val-4)}px;">{str(get_data('about_sub','')).replace(chr(10),'<br>')}</div>
-                <div style="font-family: '{f_t}'; font-size: {fs_t}px; line-height: 1.6; color: {c_t}; text-align: justify; margin-bottom: 15px;">{str(get_data('about_desc') or '').replace(chr(10),'<br>')}</div>
-                <div style="display: grid; grid-template-columns: {grid_cols}; gap: 20px; margin-top: auto; border-top: 1px solid #eee; padding-top: 20px;">{tm_h}</div>
-            </div>
-            <div class="photo-col" style="flex: 40; background-color: #fcfcfc;">{c_img_html}</div>
-            </div>{fh}""", "slide-about"))
     # --- 20. Rekomendacje ---
     if _should_render('slide-testimonials', current_page, export_mode):
         t_main_img = get_b64('img_testim_main', (4, 5))
