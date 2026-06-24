@@ -2651,6 +2651,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         "Kosztorys str. 1":                 "slide-kosztorys-1",
         "Kosztorys str. 2":                 "slide-kosztorys-2",
         "  ↳ Przerywnik nasza agencja":     "slide-sek_2",
+        "ESG":                              "slide-esg",
         "O nas":                            "slide-about",
         "Referencje":                       "slide-testimonials"
     }.get(current_page, "")
