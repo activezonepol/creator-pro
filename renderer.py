@@ -2419,8 +2419,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 for x in _items
             ])
             return (
-                f'<div style="flex:1; background:#fff; border:1px solid #e2e8f0; '
-                f'border-radius:8px; padding:24px 22px; position:relative; '
+                f'<div style="flex:1; background:#fff; border:1px solid {acc}; '
+                f'border-radius:8px; padding:18px 22px 16px 22px; position:relative; '
                 f'overflow:hidden; display:flex; flex-direction:column;">'
                 # Watermark litera w tle (E/S/G) - bardzo jasna, duża
                 f'<div style="position:absolute; top:-30px; right:-15px; '
