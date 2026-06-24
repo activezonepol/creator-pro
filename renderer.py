@@ -2527,11 +2527,13 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 _metrics_html_parts.append(_m)
         
         # Pasek metryk - tylko jeśli są jakieś metryki
+        # margin-top:12px - mniejszy odstęp od kart żeby pasek był wyżej
+        # margin-bottom:14px - odstęp od footera (pomarańczowa linia + numer strony)
         _metrics_section_html = ''
         if _metrics_html_parts:
             _metrics_section_html = (
                 f'<div style="display:grid; grid-template-columns:repeat(4, 1fr); '
-                f'gap:10px; margin-top:18px;">'
+                f'gap:8px; margin-top:12px; margin-bottom:14px;">'
                 + ''.join(_metrics_html_parts) +
                 '</div>'
             )
