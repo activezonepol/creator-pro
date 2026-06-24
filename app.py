@@ -2382,6 +2382,73 @@ with col_form:
         )
 
     # -----------------------------------------------------------------------
+    # 18b. ESG (Odpowiedzialny partner)
+    # -----------------------------------------------------------------------
+    elif page == "ESG":
+        _guard(["esg_hide", "esg_overline", "esg_title", "esg_subtitle", "esg_intro",
+                "esg_e_title", "esg_e_sub", "esg_e_items",
+                "esg_s_title", "esg_s_sub", "esg_s_items",
+                "esg_g_title", "esg_g_sub", "esg_g_items"])
+        for _mi in range(1, 9):
+            _guard([f'esg_m{_mi}_number', f'esg_m{_mi}_value', f'esg_m{_mi}_label'])
+        
+        esg_keys = [
+            'esg_hide', 'esg_overline', 'esg_title', 'esg_subtitle', 'esg_intro',
+            'esg_e_title', 'esg_e_sub', 'esg_e_items',
+            'esg_s_title', 'esg_s_sub', 'esg_s_items',
+            'esg_g_title', 'esg_g_sub', 'esg_g_items',
+        ]
+        for _mi in range(1, 9):
+            esg_keys.extend([f'esg_m{_mi}_number', f'esg_m{_mi}_value', f'esg_m{_mi}_label'])
+        section_template_manager(esg_keys, "ESG", "ESG", "esg")
+        
+        safe_checkbox("Ukryj slajd w PDF", key="esg_hide")
+        safe_text_input("Mały nadtytuł (overline):", key="esg_overline")
+        safe_text_area("Główny tytuł H1:", key="esg_title", height=80)
+        safe_text_input("Podtytuł:", key="esg_subtitle")
+        safe_text_area("Tekst wprowadzający (pod tytułem):", height=120, key="esg_intro",
+                       help="Krótki opis 2-4 zdania. Wyjaśnia rolę ESG w pracy agencji.")
+        
+        _section_header("KARTA 1 — ENVIRONMENTAL (E)")
+        c1, c2 = st.columns(2)
+        with c1:
+            safe_text_input("Tytuł karty (EN):", key="esg_e_title")
+        with c2:
+            safe_text_input("Podtytuł (PL):", key="esg_e_sub")
+        safe_text_area("Punkty karty (każda linia = jeden punkt):", height=110, key="esg_e_items",
+                       help="Maksymalnie 3-4 punkty. Każda linia to osobny punkt z punktorem.")
+        
+        _section_header("KARTA 2 — SOCIAL (S)")
+        c1, c2 = st.columns(2)
+        with c1:
+            safe_text_input("Tytuł karty (EN):", key="esg_s_title")
+        with c2:
+            safe_text_input("Podtytuł (PL):", key="esg_s_sub")
+        safe_text_area("Punkty karty (każda linia = jeden punkt):", height=110, key="esg_s_items")
+        
+        _section_header("KARTA 3 — GOVERNANCE (G)")
+        c1, c2 = st.columns(2)
+        with c1:
+            safe_text_input("Tytuł karty (EN):", key="esg_g_title")
+        with c2:
+            safe_text_input("Podtytuł (PL):", key="esg_g_sub")
+        safe_text_area("Punkty karty (każda linia = jeden punkt):", height=110, key="esg_g_items")
+        
+        _section_header("METRYKI (8 pól, układ 4×2)")
+        st.caption("Każde pole ma trzy fragmenty: Liczba (np. '1 000 000+'), Wartość (np. 'PLN' lub nazwa certyfikatu), Etykieta (kategoria). Pola puste — nie wyświetlają się.")
+        for _mi in range(1, 9):
+            with st.expander(f"Pole {_mi}", expanded=False):
+                c1, c2 = st.columns(2)
+                with c1:
+                    safe_text_input(f"Liczba/symbol:", key=f"esg_m{_mi}_number",
+                                    help="np. '1 000 000+', '724', '100%'. Puste = pole bez liczby.")
+                with c2:
+                    safe_text_input(f"Wartość główna:", key=f"esg_m{_mi}_value",
+                                    help="np. 'PLN', 'Green Key', nazwa certyfikatu.")
+                safe_text_input(f"Etykieta (mała):", key=f"esg_m{_mi}_label",
+                                help="np. 'GWARANCJA UBEZPIECZENIOWA', 'CERTYFIKAT'.")
+
+    # -----------------------------------------------------------------------
     # 19. O NAS
     # -----------------------------------------------------------------------
     elif page == "O nas":
