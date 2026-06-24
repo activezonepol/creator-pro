@@ -2536,8 +2536,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             number = str(number or '').strip()
             value = str(value or '').strip()
             label = str(label or '').strip()
-            # Pole nie renderuje się jeśli brak liczby I wartości
-            if not number and not value:
+            # Pole renderuje się jeśli ma jakąkolwiek treść
+            if not number and not value and not label:
                 return ''
             # Górny wiersz - białe teksty na pomarańczowym tle
             if number and value:
