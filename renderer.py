@@ -1356,6 +1356,7 @@ def _should_render(slide_id, current_page, export_mode):
         "slide-kosztorys-2":        "koszt_hide_2",
         "slide-testimonials":       "testim_hide",
         "slide-about":              "about_hide",
+        "slide-esg":                "esg_hide",
     }
 
     # Słownik: nazwa strony -> dokładny ID slajdu (statyczne strony)
