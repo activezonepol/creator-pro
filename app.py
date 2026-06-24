@@ -2305,12 +2305,16 @@ with col_form:
         safe_text_input("Overline (mały nadtytuł):", key="koszt_title")
         _section_header("GŁÓWNE DANE TABELI")
         c1, c2 = st.columns(2)
-        c1.text_input("Wielkość grupy:", key="koszt_pax")
-        c2.text_input("Cena:", key="koszt_price")
+        with c1:
+            safe_text_input("Wielkość grupy:", key="koszt_pax")
+        with c2:
+            safe_text_input("Cena:", key="koszt_price")
         safe_text_input("Wybrany Hotel / Standard:", key="koszt_hotel")
         c1, c2 = st.columns(2)
-        c1.text_input("Ilość pokoi DBL:", key="koszt_dbl")
-        c2.text_input("Ilość pokoi SGL:", key="koszt_sgl")
+        with c1:
+            safe_text_input("Ilość pokoi DBL:", key="koszt_dbl")
+        with c2:
+            safe_text_input("Ilość pokoi SGL:", key="koszt_sgl")
         _section_header("AUTO-UZUPEŁNIANIE")
         if st.button("GENERUJ LISTĘ KOSZTÓW Z OFERTY", type="primary", use_container_width=True):
             auto_generate_kosztorys()
