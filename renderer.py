@@ -2649,9 +2649,6 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         def _about_metric(number, value, label):
             number = str(number or '').strip()
             value = str(value or '').strip()
-            label = str(label or '').strip()
-            if not number and not value:
-                return ''
             if number and value:
                 top_html = (
                     f'<div style="display:flex; align-items:baseline; gap:5px; '
