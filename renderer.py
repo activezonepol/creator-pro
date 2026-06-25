@@ -2530,41 +2530,42 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             get_data('esg_g_items', ''),
         )
         
-        # Helper: pojedyncze pole metryki (renderowane tylko gdy ma treść)
-        # Tło: kolor akcentu (pomarańcz). Tekst: biały.
+        # Helper: pole metryki ESG (pomarańczowe tło, biały tekst)
+        # Wszystkie 3 pola opcjonalne — pole renderuje się jeśli ma cokolwiek.
+        # 'number' = duża górna treść (może być liczbą lub tekstem)
+        # 'value' = mniejsza jednostka/dopełnienie obok
+        # 'label' = mała etykieta u dołu
         def _esg_metric(number, value, label):
             number = str(number or '').strip()
             value = str(value or '').strip()
             label = str(label or '').strip()
-            # Pole renderuje się jeśli ma jakąkolwiek treść
             if not number and not value and not label:
                 return ''
-            # Górny wiersz - białe teksty na pomarańczowym tle
+            # Górny rząd (number + ewentualnie value obok)
             if number and value:
-                # Liczba + jednostka (np. "1 000 000+ PLN")
                 top_html = (
-                    f'<div style="display:flex; align-items:baseline; gap:5px; '
-                    f'margin-bottom:3px; flex-wrap:wrap; line-height:1;">'
+                    f'<div style="display:flex; align-items:baseline; gap:4px; '
+                    f'margin-bottom:2px; flex-wrap:wrap; line-height:1;">'
                     f'<span style="font-family:\'{f_h1}\'; font-weight:800; '
-                    f'font-size:{fs_t+7}px; color:#ffffff; line-height:1;">{number}</span>'
+                    f'font-size:{fs_t+3}px; color:#ffffff; line-height:1;">{number}</span>'
                     f'<span style="font-family:\'{f_t}\'; font-weight:600; '
-                    f'font-size:{max(10,fs_t-2)}px; color:#ffffff; line-height:1;">{value}</span>'
+                    f'font-size:{max(9,fs_t-3)}px; color:#ffffff; line-height:1;">{value}</span>'
                     f'</div>'
                 )
             elif number:
                 top_html = (
                     f'<div style="font-family:\'{f_h1}\'; font-weight:800; '
-                    f'font-size:{fs_t+7}px; color:#ffffff; margin-bottom:3px; '
-                    f'line-height:1;">{number}</div>'
+                    f'font-size:{fs_t+3}px; color:#ffffff; margin-bottom:2px; '
+                    f'line-height:1.1;">{number}</div>'
                 )
-            else:
-                # Sama wartość (np. "Green Key", "Pracodawca Wrażliwy Społecznie")
+            elif value:
                 top_html = (
                     f'<div style="font-family:\'{f_h2}\'; font-weight:700; '
-                    f'font-size:{fs_t}px; color:#ffffff; margin-bottom:3px; '
+                    f'font-size:{max(10,fs_t-1)}px; color:#ffffff; margin-bottom:2px; '
                     f'line-height:1.2;">{value}</div>'
                 )
-            # Etykieta - biała, lekko przezroczysta dla hierarchii
+            else:
+                top_html = ''
             label_html = (
                 f'<div style="font-family:\'{f_met}\'; font-size:{max(8,fs_met-6)}px; '
                 f'font-weight:700; letter-spacing:1px; color:#ffffff; '
@@ -2572,8 +2573,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 if label else ''
             )
             return (
-                f'<div style="background:{acc}; padding:8px 12px; '
-                f'border-radius:6px; min-height:51px; display:flex; '
+                f'<div style="background:{acc}; padding:6px 10px; '
+                f'border-radius:5px; min-height:40px; display:flex; '
                 f'flex-direction:column; justify-content:center;">'
                 f'{top_html}{label_html}</div>'
             )
