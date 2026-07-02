@@ -1258,15 +1258,21 @@ def get_local_css(return_str=False):
                 top: 50% !important;
                 left: 58% !important;
                 transform: translate(-50%, -50%) !important;
-                width: 240px !important;
-                height: 440px !important;
+                width: 260px !important;
+                height: 480px !important;
                 margin: 0 !important;
+                background-color: #111 !important;
+                border: 8px solid #111 !important;
+                border-radius: 30px !important;
+                overflow: hidden !important;
             }}
             .phone-screen {{
                 width: 100% !important;
                 height: 100% !important;
-                object-fit: contain !important;
-                object-position: top !important;
+                object-fit: cover !important;
+                object-position: top center !important;
+                display: block !important;
+                background: #fff !important;
             }}
         }}
         .phone-mockup::before {{ content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 110px; height: 20px; background-color: #111; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; z-index: 11; }}
