@@ -2517,18 +2517,18 @@ with col_form:
         )
         
         _section_header("METRYKI / CERTYFIKATY (8 pól, układ 4×2)")
-        st.caption("Każde pole ma trzy fragmenty: Liczba (np. '724', '1997'), Wartość (np. 'Raport ESG' lub 'Pracodawca'), Etykieta (kategoria). Pola puste — nie wyświetlają się.")
+        st.caption("Każde pole ma trzy fragmenty: Treść główna (duża górna, np. '724' lub 'Pakiet compliance'), Dopełnienie (mniejsze obok, np. 'PLN'), Etykieta (mała, np. 'LICENCJA TOT'). Wystarczy wpisać dowolne z tych pól — puste pola nie wyświetlają się.")
         for _mi in range(1, 9):
             with st.expander(f"Pole {_mi}", expanded=False):
                 c1, c2 = st.columns(2)
                 with c1:
-                    safe_text_input(f"Liczba/symbol:", key=f"about_m{_mi}_number",
-                                    help="np. '724', '1997', 'SOIT'. Puste = pole bez liczby.")
+                    safe_text_input(f"Treść główna:", key=f"about_m{_mi}_number",
+                                    help="Duża górna treść — liczba lub tekst (np. '724', '1997', 'SOIT', 'Pakiet compliance').")
                 with c2:
-                    safe_text_input(f"Wartość główna:", key=f"about_m{_mi}_value",
-                                    help="np. 'PLN', 'Raport ESG', 'Pakiet compliance'.")
+                    safe_text_input(f"Dopełnienie:", key=f"about_m{_mi}_value",
+                                    help="Mniejsze dopełnienie obok treści głównej (np. 'PLN', 'os.', '%').")
                 safe_text_input(f"Etykieta (mała):", key=f"about_m{_mi}_label",
-                                help="np. 'LICENCJA ORGANIZATORA TOT', 'CZŁONEK STOWARZYSZENIA'.")
+                                help="Mała etykieta u dołu pola (np. 'LICENCJA ORGANIZATORA TOT', 'CZŁONEK STOWARZYSZENIA').")
 
     # -----------------------------------------------------------------------
     # 20. REFERENCJE (Co o nas mówią)
