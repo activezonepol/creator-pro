@@ -387,7 +387,7 @@ defaults = {
     'koszt_opcje': '',
     'app_hide': False, 'app_overline': 'KOMUNIKACJA I COMPLIANCE',
     'app_title': 'APLIKACJA\nI ZARZĄDZANIE DANYMI',
-    'app_subtitle': 'Administracja danych uczestników\ni komunikacja po stronie Activezone',
+    'app_subtitle': 'Administracja danych uczestników i komunikacja\n po stronie Activezone',
     'app_features': ('Aplikacja w spersonalizowanej szacie graficznej — pełny branding klienta: logo, kolorystyka, materiały wizerunkowe\n'
                  'Pełne informacje i komunikacja z uczestnikami przez aplikację — program szczegółowy, opisy atrakcji, hotele, kontakty, SMS, powiadomienia push, listy obecności, skanowanie kodów QR\n'
                  'Szyfrowane zbieranie danych osobowych uczestników zgodnie z RODO — dane dietetyczne, alergie, informacje paszportowe i ubezpieczeniowe\n'
