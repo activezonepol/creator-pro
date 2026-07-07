@@ -1272,9 +1272,15 @@ def get_local_css(return_str=False):
             z-index: 11;
         }}
         @media print {{
-            /* Klasa .phone-mockup w print nie potrzebuje żadnych stylów -
-               wszystko jest INLINE w renderze (specyficzność wygra automatycznie).
-               ::before pozostaje jak w normalnym CSS. */
+            /* Wymuszamy że telefon jest NIEPODZIELNY między stronami PDF.
+               Chrome domyślnie tnie długi element (480px) na 2 strony -
+               page-break-inside:avoid wymusza traktowanie jako całości. */
+            .phone-mockup {{
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                page-break-before: avoid !important;
+                page-break-after: avoid !important;
+            }}
             .phone-mockup::before {{
                 content: '' !important;
                 position: absolute !important;
