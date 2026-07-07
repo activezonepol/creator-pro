@@ -2311,13 +2311,29 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         ibg = get_b64('img_app_bg', (16, 9))
         bg_html = _img_tag(ibg, 'ZDJĘCIE TŁA')
         iscr = get_b64('img_app_screen', (9, 16))
-        # object-fit:contain żeby ekran nie był przycinany, object-position:top żeby góra była widoczna
+        # Systemowe rozwiązanie: obraz ekranu jako background-image telefonu.
+        # Eliminuje problem overlay <img> w @media print - background-image działa
+        # niezawodnie w Chrome/Opera print gdy włączona "Grafika w tle".
+        # Style pozycjonowania INLINE - specyficzność wyższa niż @media print,
+        # co gwarantuje że telefon zawsze jest w tym samym miejscu (ekran/druk).
         if iscr:
-            scr_html = _img_tag(iscr, 'EKRAN APP', 
-                                style='width:100%;height:100%;object-fit:contain;object-position:top;display:block;background:#fff;',
-                                extra_class='phone-screen')
+            _phone_style = (
+                f"position:absolute; top:50%; left:58%; "
+                f"transform:translate(-50%,-50%); width:260px; height:480px; "
+                f"border:8px solid #111; border-radius:30px; "
+                f"box-shadow:-15px 20px 40px rgba(0,0,0,0.4); z-index:10; "
+                f"background-image:url({iscr}); background-size:cover; "
+                f"background-position:top center; background-repeat:no-repeat; "
+                f"background-color:#fff;"
+            )
         else:
-            scr_html = '<div class="photo-placeholder" style="background:#fff;">EKRAN APP</div>'
+            _phone_style = (
+                "position:absolute; top:50%; left:58%; "
+                "transform:translate(-50%,-50%); width:260px; height:480px; "
+                "border:8px solid #111; border-radius:30px; "
+                "box-shadow:-15px 20px 40px rgba(0,0,0,0.4); z-index:10; "
+                "background-color:#fff;"
+            )
         fh_app = "".join([f"<li>{f.strip()}</li>" for f in get_data('app_features', '').split('\n') if f.strip()])
         hp.append(_shtml(f"""{lh}<div style="position:relative;height:100%;width:100%;display:flex; overflow:hidden;">
             <div style="flex:0 0 52%; max-width:52%; z-index:2; display:flex; flex-direction:column; padding-right:16px; padding-top:15px; justify-content:flex-start;">
@@ -2326,7 +2342,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 <div class="title-sub" style="margin-bottom:14px; font-size:{max(10,fs_sub_val-6)}px;">{str(get_data('app_subtitle','')).replace(chr(10),'<br>')}</div>
                 <ul class="app-list" style="margin-top:0;">{fh_app}</ul></div>
             <div class="app-image-col" style="top:-30px;right:-45px;bottom:0;">{bg_html}</div>
-            <div class="phone-mockup">{scr_html}</div></div>{fh}""", "slide-app"))
+            <div class="phone-mockup" style="{_phone_style}"></div></div>{fh}""", "slide-app"))
             
     # --- Branding ---
     if _should_render('slide-branding', current_page, export_mode):
