@@ -385,19 +385,16 @@ defaults = {
     'koszt_zawiera_1': 'Wybierz z listy auto-uzupełniania',
     'koszt_zawiera_2': '', 'koszt_nie_zawiera': 'Napiwki\nWydatki osobiste\nAtrakcje wymienione jako opcje',
     'koszt_opcje': '',
-    'app_hide': False, 'app_overline': 'KOMUNIKACJA',
+    'app_hide': False, 'app_overline': 'KOMUNIKACJA I COMPLIANCE',
     'app_title': 'APLIKACJA\nNA WYJAZD',
-    'app_subtitle': 'Dedykowana na wyjazd aplikacja dla uczestników',
-    'app_features': ('Intuicyjna obsługa\n'
-                     'Wygoda i nowoczesność / branding\n'
-                     'Po pobraniu działa offline\n'
-                     'Zawiera program i wszystkie ważne informacje\n'
-                     'Formularz danych: dieta, zakwaterowanie, ubezpieczenie\n'
-                     'Możliwość dodawania zdjęć i filmów przez uczestników\n'
-                     'Możliwość przeprowadzania konkursów\n'
-                     'Komunikacja SMS\n'
-                     'Komunikacja "push" w aplikacji\n'
-                     'Czat w aplikacji dla uczestników'),
+    'app_subtitle': 'Administracja danych uczestników i komunikacja po stronie Activezone',
+    'app_features': ('Aplikacja w spersonalizowanej szacie graficznej — pełny branding klienta: logo, kolorystyka, materiały wizerunkowe\n'
+                 'Pełne informacje i komunikacja z uczestnikami przez aplikację — program szczegółowy, opisy atrakcji, hotele, kontakty, SMS, powiadomienia push, listy obecności, skanowanie kodów QR\n'
+                 'Szyfrowane zbieranie danych osobowych uczestników zgodnie z RODO — dane dietetyczne, alergie, informacje paszportowe i ubezpieczeniowe\n'
+                 'Dokumenty imienne w aplikacji — bilet, karta pokładowa, voucher hotelowy, polisa, wiza — cyfrowo, zawsze dostępne\n'
+                 'Grywalizacja i ankiety — konkursy, quizy oraz ankiety wewnętrzne zwiększające zaangażowanie uczestników\n'
+                 'Badanie satysfakcji NPS — raport dla zarządu i działu HR\n'
+                 'Wsparcie celów ESG, materiały cyfrowe zamiast druku'),
     'brand_hide': False, 'brand_overline': 'IDENTYFIKACJA',
     'brand_title': 'MATERIAŁY\nBRANDINGOWE',
     'brand_subtitle': 'Komunikacja przed, w trakcie i po wyjeździe',
