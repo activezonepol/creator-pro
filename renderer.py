@@ -1251,32 +1251,44 @@ def get_local_css(return_str=False):
         .app-list li.sub-item::before {{ content: '○'; left: 18px; top: 3px; font-size: 0.6em; color: {c_h2}; }}
         .app-image-col {{ position: absolute; top: -30px; right: -45px; bottom: -15px; width: 62%; clip-path: polygon(20% 0, 100% 0, 100% 100%, 0 100%); z-index: 1; background-color: #eff4f8; display: flex; align-items: center; justify-content: center; }}
         .app-image-col img {{ width: 100%; height: 100%; object-fit: cover; }}
-        .phone-mockup {{ position: absolute; top: 50%; left: 58%; transform: translate(-50%, -50%); width: 260px; height: 480px; background-color: #111; border-radius: 30px; border: 8px solid #111; box-shadow: -15px 20px 40px rgba(0,0,0,0.4); z-index: 10; overflow: hidden; }}
+        /* Telefon mockup - pusta ramka, obraz ekranu jest wstawiany INLINE
+           przez background-image w renderze slajdu Aplikacji.
+           Systemowe rozwiązanie: eliminuje overlay <img> który psuł się w print. */
+        .phone-mockup {{
+            /* Wszystkie pozycje/wymiary/tła ustawiane INLINE w renderze -
+               klasa jest tylko dla ::before (kropka głośnika u góry). */
+        }}
+        .phone-mockup::before {{
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 110px;
+            height: 20px;
+            background-color: #111;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            z-index: 11;
+        }}
         @media print {{
-            .phone-mockup {{
+            /* Klasa .phone-mockup w print nie potrzebuje żadnych stylów -
+               wszystko jest INLINE w renderze (specyficzność wygra automatycznie).
+               ::before pozostaje jak w normalnym CSS. */
+            .phone-mockup::before {{
+                content: '' !important;
                 position: absolute !important;
-                top: 50% !important;
-                left: 58% !important;
-                transform: translate(-50%, -50%) !important;
-                width: 260px !important;
-                height: 480px !important;
-                margin: 0 !important;
+                top: 0 !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                width: 110px !important;
+                height: 20px !important;
                 background-color: #111 !important;
-                border: 8px solid #111 !important;
-                border-radius: 30px !important;
-                overflow: hidden !important;
-            }}
-            .phone-screen {{
-                width: 100% !important;
-                height: 100% !important;
-                object-fit: cover !important;
-                object-position: top center !important;
-                display: block !important;
-                background: #fff !important;
+                border-bottom-left-radius: 12px !important;
+                border-bottom-right-radius: 12px !important;
+                z-index: 11 !important;
             }}
         }}
-        .phone-mockup::before {{ content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 110px; height: 20px; background-color: #111; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; z-index: 11; }}
-        .phone-screen {{ width: 100%; height: 100%; object-fit: cover; display: block; background: #fff; }}
         .brand-collage {{ display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 45% 55%; gap: 15px; height: 100%; width: 100%; }}
         .brand-img-1 {{ grid-column: 1; grid-row: 1; border-radius: 8px 50px 8px 8px; overflow: hidden; background-color: #fcfcfc; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; }}
         .brand-img-1 img {{ width: 100%; height: 100%; object-fit: cover; }}
