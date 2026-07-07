@@ -2354,7 +2354,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             )
         fh_app = "".join([f"<li>{f.strip()}</li>" for f in get_data('app_features', '').split('\n') if f.strip()])
         hp.append(_shtml(f"""{lh}<div style="position:relative;height:100%;width:100%;display:flex; overflow:hidden;">
-            <div style="flex:0 0 52%; max-width:52%; z-index:2; display:flex; flex-direction:column; padding-right:16px; padding-top:15px; justify-content:flex-start;">
+            <div style="flex:0 0 44%; max-width:44%; z-index:2; display:flex; flex-direction:column; padding-right:16px; padding-top:15px; justify-content:flex-start;">
                 <div class="app-overline-style"><span>{str(get_data('app_overline',''))}</span></div>
                 <div class="title-h1" style="margin-bottom:10px; font-size:{fs_h1_val-8}px;">{str(get_data('app_title','')).replace(chr(10),'<br>')}</div>
                 <div class="title-sub" style="margin-bottom:14px; font-size:{max(10,fs_sub_val-6)}px;">{str(get_data('app_subtitle','')).replace(chr(10),'<br>')}</div>
