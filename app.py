@@ -975,6 +975,12 @@ with st.sidebar:
                 st.rerun()
 
     st.markdown("---")
+
+    st.markdown(
+        f"<div style='font-size:10px;font-weight:700;color:{_acc_save};text-transform:uppercase;"
+        f"letter-spacing:1px;margin-bottom:8px;'>EDYCJA SLAJDÓW</div>",
+        unsafe_allow_html=True,
+    )
     
     # 3. BUDOWANIE LISTY STRON (ZGODNIE ZE SPISEM TREŚCI)
     # Sufiksy menu: ikony po nazwie, kolorowane przez Streamlit markdown.
