@@ -781,7 +781,191 @@ with st.sidebar:
         f"</div>",
         unsafe_allow_html=True
     )
-    
+
+    # ==========================================================================
+    # DWA STAŁE PRZYCISKI — najczęstsze, jednoklikowe czynności startowe.
+    # ==========================================================================
+    _acc_save = st.session_state.get('color_accent', '#FF6600')
+    st.markdown(
+        f"<style>"
+        f"[data-testid='stSidebar'] button[kind='primary'] {{"
+        f"background-color: {_acc_save} !important;"
+        f"border-color: {_acc_save} !important;"
+        f"color: white !important;"
+        f"min-height: 44px !important;"
+        f"}}"
+        f"[data-testid='stSidebar'] [data-testid='stExpander'] summary {{"
+        f"min-height: 44px !important;"
+        f"padding: 0 16px !important;"
+        f"background-color: {_acc_save} !important;"
+        f"color: white !important;"
+        f"border-radius: 4px !important;"
+        f"font-family: 'Montserrat', sans-serif !important;"
+        f"text-transform: uppercase !important;"
+        f"font-size: 12px !important;"
+        f"letter-spacing: 1px !important;"
+        f"font-weight: 600 !important;"
+        f"}}"
+        f"[data-testid='stSidebar'] [data-testid='stExpander'] summary svg {{"
+        f"fill: white !important;"
+        f"}}"
+        f"</style>",
+        unsafe_allow_html=True
+    )
+
+    _col_new, _col_dup = st.columns(2)
+    with _col_new:
+        if st.button("+ NOWY PROJEKT", use_container_width=True, type="primary", key="btn_new_project_top"):
+            _new_project()
+    with _col_dup:
+        if st.button("⧉ ZAPISZ JAKO NOWY", use_container_width=True, type="primary", key="btn_dup_current_top"):
+            _duplicate_current_project()
+
+    st.markdown("<div style='margin-bottom:10px;'></div>", unsafe_allow_html=True)
+
+    # ==========================================================================
+    # ZWIJANY PANEL: ZARZĄDZANIE OFERTĄ (rzadsze czynności — domyślnie zwinięty)
+    # ==========================================================================
+    with st.expander("▸ ZARZĄDZANIE OFERTĄ", expanded=False):
+
+        # --- Wczytaj inny projekt ---
+        st.markdown(
+            f"<div style='font-size:10px;font-weight:700;color:{_acc_save};text-transform:uppercase;"
+            f"letter-spacing:1px;margin-bottom:8px;'>WCZYTAJ INNY PROJEKT</div>",
+            unsafe_allow_html=True,
+        )
+        if st.button("ZAPISZ W BAZIE", use_container_width=True, type="primary", key="manual_save_btn"):
+            save_to_supabase()
+            st.rerun()
+
+        _all_offers = fetch_all_offers(supabase)
+        _current_proj_id = st.session_state.get('active_project_id')
+
+        if _all_offers and st.button("OSTATNI PROJEKT", use_container_width=True, key="btn_last_proj", type="primary"):
+            _sorted = sorted(_all_offers, key=lambda x: x.get('updated_at', ''), reverse=True)
+            if _sorted:
+                _switch_project(_sorted[0]['id'])
+
+        if _all_offers:
+            _proj_options = ["-- Wybierz --"] + [
+                f"{o.get('project_code', '???')} | {o.get('project_name', 'bez nazwy')[:30]}"
+                for o in _all_offers
+            ]
+            _proj_ids = [None] + [o['id'] for o in _all_offers]
+
+            _curr_idx = 0
+            if _current_proj_id and _current_proj_id in _proj_ids:
+                _curr_idx = _proj_ids.index(_current_proj_id)
+
+            _selected_proj = st.selectbox(
+                "Wybierz projekt z bazy:",
+                _proj_options,
+                index=_curr_idx,
+                key="proj_select",
+            )
+            _sel_idx = _proj_options.index(_selected_proj)
+            if _sel_idx > 0 and _proj_ids[_sel_idx] != _current_proj_id:
+                if st.button("WCZYTAJ WYBRANY", use_container_width=True, key="btn_load_proj", type="primary"):
+                    _switch_project(_proj_ids[_sel_idx])
+        else:
+            st.caption("Brak projektów w bazie.")
+
+        st.markdown("---")
+
+        # --- Dysk lokalny ---
+        st.markdown(
+            f"<div style='font-size:10px;font-weight:700;color:{_acc_save};text-transform:uppercase;"
+            f"letter-spacing:1px;margin-bottom:8px;'>DYSK LOKALNY</div>",
+            unsafe_allow_html=True,
+        )
+        if st.button("POBIERZ PREZENTACJĘ NA DYSK", use_container_width=True, key="prep_download_btn", type="primary"):
+            with st.spinner("Przygotowywanie pliku..."):
+                proj = _build_proj_dict()
+                st.session_state['temp_proj_json'] = json.dumps(proj, ensure_ascii=False)
+
+        if 'temp_proj_json' in st.session_state:
+            st.download_button(
+                "📥 POBIERZ PLIK",
+                st.session_state['temp_proj_json'],
+                get_project_filename(),
+                use_container_width=True,
+                key="dl_proj_sidebar",
+                help="Zapisz prezentację jako plik na swój komputer",
+            )
+
+        upf_sidebar = st.file_uploader(
+            "WGRAJ PROJEKT Z DYSKU",
+            type=['json'],
+            key="up_proj_sidebar",
+        )
+        if upf_sidebar and st.button("📤 WCZYTAJ", use_container_width=True, key="btn_load_sidebar"):
+            data, error = _validate_and_load_json(upf_sidebar)
+            if error:
+                st.error(f"❌ {error}")
+            else:
+                try:
+                    load_project_data(data)
+                    st.success(f"✅ Wczytano prezentację ({len(data)} pól)")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ Błąd: {str(e)[:100]}")
+
+        st.markdown(
+            "<div style='font-size:10px;color:#64748b;font-style:italic;"
+            "margin:8px 0 0 0;padding:6px 10px;background:#f1f5f9;border-radius:4px;"
+            "border-left:3px solid #94a3b8;'>"
+            "💡 Zapis/wczytanie pojedynczego slajdu (np. hotelu, atrakcji) "
+            "znajduje się w panelu edycji tego slajdu."
+            "</div>",
+            unsafe_allow_html=True
+        )
+
+        st.markdown("---")
+
+        # --- Eksport dla klienta ---
+        st.markdown(
+            f"<div style='font-size:10px;font-weight:700;color:{_acc_save};text-transform:uppercase;"
+            f"letter-spacing:1px;margin-bottom:8px;'>EKSPORT DLA KLIENTA</div>",
+            unsafe_allow_html=True,
+        )
+        if st.button("PRZYGOTUJ OFERTĘ DO POBRANIA HTML", type="secondary", use_container_width=True, key="btn_prep_offer_sidebar"):
+            with st.spinner("Generowanie ostatecznego pliku oferty..."):
+                export_content = build_presentation(export_mode=True)
+                acc = st.session_state.get('color_accent', '#FF6600')
+                t_main = st.session_state.get('t_main', 'Oferta')
+                client_html = (
+                    f'<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8">'
+                    f'<title>{t_main}</title>'
+                    f'<link rel="icon" href="data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' '
+                    f'viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23FF6600\'/></svg>">'
+                    f'{get_local_css(return_str=True)}'
+                    f'<style>body{{background:#f4f5f7;margin:0;}} .presentation-wrapper{{height:100vh;overflow-y:auto;scroll-snap-type:y proximity;}}'
+                    f'.client-export-btn{{position:fixed;top:20px;left:20px;z-index:9999;background:{acc};color:white;border:none;'
+                    f'padding:15px 25px;border-radius:4px;font-family:sans-serif;font-size:12px;font-weight:700;'
+                    f'text-transform:uppercase;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.3);}}'
+                    f'@media print{{.client-export-btn{{display:none !important;}} .presentation-wrapper{{height:auto !important;overflow:visible !important;}}}}'
+                    f'</style></head><body>'
+                    f'<button class="client-export-btn" onclick="window.print()">POBIERZ JAKO PDF</button>'
+                    f'<div class="presentation-wrapper">{export_content}</div></body></html>'
+                )
+                st.session_state['ready_export_html'] = client_html
+                st.rerun()
+        if st.session_state.get('ready_export_html'):
+            st.download_button(
+                "POBIERZ GOTOWY PLIK HTML",
+                st.session_state['ready_export_html'],
+                get_project_filename().replace('.json', '.html'),
+                "text/html",
+                type="primary",
+                use_container_width=True,
+                key="dl_ready_html_sidebar",
+            )
+        if st.button("PODGLĄD PEŁNOEKRANOWY", use_container_width=True, key="btn_fullscreen_sidebar"):
+            st.session_state['client_mode'] = True
+            st.rerun()
+
+    st.markdown("---")
+
     # 2. MIGRACJA ZDJĘĆ
     if any(isinstance(st.session_state.get(k), bytes) for k in IMAGE_KEYS):
         st.warning("⚠️ Wykryto zdjęcia w pamięci.")
