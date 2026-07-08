@@ -720,21 +720,11 @@ def load_project_data(project_data: dict):
     a w bazie jest poprawna wartość — wczytujemy (bo None oznacza "brak
     inicjalizacji", nie "świadomy wybór użytkownika").
     """
-    # Klucze zarezerwowane dla Streamlit (przyciski/widżety) — nie wczytujemy
-    forbidden_keys = {
-        'manual_save_btn', 'attr_add_btn', 'nav_top_radio', 'nav_bot_radio',
-        'btn_add_attraction_main', 'last_page', 'up_export',
-        '_data_loaded_once', '_debug_loaded',
-    }
-    forbidden_prefixes = (
-        'attrnav_', 'attrup_', 'attrdn_', 'attrdel_',
-        'btn_', 'up_', 'dl_',
-    )
     for k, v in project_data.items():
-        # 1. Pomijamy klucze przycisków i kontrolek Streamlit
-        if k in forbidden_keys:
-            continue
-        if any(k.startswith(p) for p in forbidden_prefixes):
+        # 1. JEDYNY filtr: czy to w ogóle jest prawdziwa dana oferty?
+        # Zastępuje starą, niekompletną blacklistę (forbidden_keys/prefixes) -
+        # ta lista zawsze była o krok za nowymi widgetami dodawanymi w app.py.
+        if not is_offer_data_key(k):
             continue
         # 2. None w bazie nie nadpisuje niczego
         if v is None:
