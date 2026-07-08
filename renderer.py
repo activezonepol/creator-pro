@@ -621,6 +621,95 @@ def parse_date_and_days():
         pass
 _COLOR_KEYS = {'color_h1', 'color_h2', 'color_sub', 'color_accent', 'color_text', 'color_metric'}
 _SIZE_KEYS = {'font_size_h1', 'font_size_h2', 'font_size_sub', 'font_size_text', 'font_size_metric'}
+
+# ===========================================================================
+# ALLOWLIST DANYCH OFERTY — jedyne, wspólne źródło prawdy o tym, co jest
+# prawdziwą daną projektu, a co elementem interfejsu (przycisk, selectbox,
+# kontrolka nawigacji). Używane w TRZECH miejscach:
+#   1. data_utils._build_proj_dict()  - PRZED zapisem do bazy/JSON
+#   2. renderer.load_project_data()   - PRZY odczycie (auto-load, wgraj plik)
+#   3. renderer.force_load_project_data() - PRZY wymuszonym odczycie
+#
+# Zasada: NIE wymieniamy z góry "złych" kluczy (blacklist - niekompletna
+# z definicji, bo każdy nowy widget trzeba by pamiętać dopisać).
+# Zamiast tego wymieniamy, co JEST prawdziwą daną - reszta jest odrzucana
+# automatycznie, także nowe widgety dodane w przyszłości bez żadnej zmiany
+# tutaj.
+#
+# Dopasowanie wzorcem jest ZAWSZE kotwiczone (fullmatch, nie startswith) -
+# np. 'attr_' łapie dokładnie "attr_0", "attr_123", ale NIE "attr_up_0"
+# ani "attr_order" (kolizja nazw z kontrolkami zarządzania listą atrakcji).
+# ===========================================================================
+import re as _re_allow
+
+# Klucze administracyjne prawdziwe, ale nieobecne w `defaults` (bo ich
+# wartość zależy od zawartości konkretnej oferty, nie ma jednej wartości
+# domyślnej sensownej dla wszystkich projektów).
+_ADMIN_DATA_KEYS = {
+    'num_hotels', 'num_attr', 'num_places', 'num_days', 'num_map_points',
+    'num_dist_pairs', 'num_jaj_dist_pairs', 'num_sekcje',
+    'hotel_order', 'attr_order', 'place_attr_order',
+    'country_code', 'country_name', 'storage_folder', 'p_start_dt',
+    'active_project_id', 'ors_api_key', 'testim_count',
+}
+
+# Wzorce pól dynamicznych (prefiks{numer} lub prefiks{numer}_sufiks).
+# Każdy wzorzec jest osobnym, precyzyjnym regexem - fullmatch, nie startswith.
+_DYNAMIC_DATA_PATTERNS = [
+    # --- Hotele ---
+    r'^h_hide_\d+$', r'^h_overline_\d+$', r'^h_title_\d+$', r'^h_subtitle_\d+$',
+    r'^h_url_\d+$', r'^h_booking_\d+$', r'^h_amenities_\d+$', r'^h_text_\d+$',
+    r'^h_advantages_\d+$',
+    r'^img_hotel_1_\d+$', r'^img_hotel_1b_\d+$', r'^img_hotel_2_\d+$', r'^img_hotel_3_\d+$',
+    # --- Atrakcje ---
+    r'^amain_\d+$', r'^asub_\d+$', r'^aday_\d+$', r'^atype_\d+$', r'^aopis_\d+$',
+    r'^ahide_\d+$', r'^aopt_label_\d+$', r'^aicons_\d+$',
+    r'^ah_\d+$', r'^at1_\d+$', r'^at2_\d+$', r'^at3_\d+$',
+    # --- Miejsca (starszy mechanizm, zachowany dla kompatybilności) ---
+    r'^pmain_\d+$', r'^psub_\d+$', r'^popis_\d+$', r'^pover_\d+$',
+    r'^pday_\d+$', r'^phide_\d+$',
+    r'^pimg1_\d+$', r'^pimg2_\d+$', r'^pimg3_\d+$', r'^pimg4_\d+$',
+    # --- Program (dzień) ---
+    r'^img_d_\d+$', r'^attr_\d+$', r'^desc_\d+$',
+    # --- Przerywniki sekcji (sek_0 .. sek_4) ---
+    r'^sek_\d+_title$', r'^sek_\d+_sub$', r'^sek_hide_\d+$',
+    r'^sek_\d+_bg$', r'^sek_\d+_txt$', r'^sek_\d+_sub_color$', r'^sek_\d+_img$',
+    # --- Mapa podróży ---
+    r'^map_pt_name_\d+$', r'^map_conn_\d+$', r'^map_pt_sym_\d+$',
+    r'^map_pt_x_\d+$', r'^map_pt_y_\d+$',
+    r'^dist_a_\d+$', r'^dist_b_\d+$', r'^dist_km_\d+$', r'^dist_time_\d+$',
+    # --- Jak jedziemy - odległości ---
+    r'^jaj_dist_a_\d+$', r'^jaj_dist_b_\d+$', r'^jaj_dist_km_\d+$', r'^jaj_dist_time_\d+$',
+    # --- Referencje ---
+    r'^testim_img_\d+$', r'^testim_head_\d+$', r'^testim_quote_\d+$',
+    r'^testim_author_\d+$', r'^testim_role_\d+$',
+    # --- Metryki O nas / ESG ---
+    r'^about_m\d+_number$', r'^about_m\d+_value$', r'^about_m\d+_label$',
+    r'^esg_m\d+_number$', r'^esg_m\d+_value$', r'^esg_m\d+_label$',
+    # --- Zdjęcia partnerów O nas ---
+    r'^t_img_\d+$',
+]
+_DYNAMIC_DATA_REGEXES = [_re_allow.compile(p) for p in _DYNAMIC_DATA_PATTERNS]
+
+def is_offer_data_key(key: str) -> bool:
+    """
+    Jedyne, wspólne źródło prawdy: czy `key` jest prawdziwą daną oferty
+    (którą wolno zapisać do bazy/JSON i wczytać z powrotem), czy elementem
+    interfejsu Streamlit (przycisk, selectbox, checkbox nawigacji), którego
+    NIGDY nie wolno przechowywać - bo koliduje z tworzeniem widgetu przy
+    następnym uruchomieniu (StreamlitValueAssignmentNotAllowedError).
+    """
+    if key in defaults:
+        return True
+    if key in _ADMIN_DATA_KEYS:
+        return True
+    if key in IMAGE_KEYS:
+        return True
+    for rx in _DYNAMIC_DATA_REGEXES:
+        if rx.fullmatch(key):
+            return True
+    return False
+
 def load_project_data(project_data: dict):
     """
     Wczytuje dane do session_state — TYLKO dla kluczy które jeszcze
