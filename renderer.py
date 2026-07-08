@@ -1249,54 +1249,66 @@ def get_local_css(return_str=False):
         .app-image-col {{ position: absolute; top: -30px; right: -45px; bottom: -15px; width: 62%; clip-path: polygon(20% 0, 100% 0, 100% 100%, 0 100%); z-index: 1; background-color: #eff4f8; display: flex; align-items: center; justify-content: center; }}
         .app-image-col img {{ width: 100%; height: 100%; object-fit: cover; }}
         /* Telefon mockup - pusta ramka, obraz ekranu jest wstawiany INLINE
-           przez background-image w renderze slajdu Aplikacji.
-           Systemowe rozwiązanie: eliminuje overlay <img> który psuł się w print. */
-        /* Bug Skia w Chromium print: transform:translate() promuje element
-               do osobnej warstwy GPU, co w print powoduje rozbicie rasteryzacji
-               na kafle i dziwne renderowanie (element rozdzielony w połowie,
-               cień na krawędziach segmentów, obraz obcięty).
-               Rozwiązanie: pozycjonowanie przez calc() zamiast transform.
-               Telefon ma stałe wymiary 220x400 - offset to połowa wymiarów. */
-            .phone-mockup {{
-                position: absolute !important;
-                top: calc(50% - 200px) !important;
-                left: calc(58% - 110px) !important;
-                transform: none !important;
-                width: 220px !important;
-                height: 400px !important;
-                border: 7px solid #111 !important;
-                border-radius: 26px !important;
-                background-size: cover !important;
-                background-position: top center !important;
-                background-repeat: no-repeat !important;
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-                z-index: 10 !important;
-            }}
-        @media print {{
-            /* Wymuszamy że telefon jest NIEPODZIELNY między stronami PDF.
-               Chrome domyślnie tnie długi element (480px) na 2 strony -
-               page-break-inside:avoid wymusza traktowanie jako całości. */
-            .phone-mockup {{
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-                page-break-before: avoid !important;
-                page-break-after: avoid !important;
-            }}
-            .phone-mockup::before {{
-                content: '' !important;
-                position: absolute !important;
-                top: 0 !important;
-                left: 50% !important;
-                transform: translateX(-50%) !important;
-                width: 110px !important;
-                height: 20px !important;
-                background-color: #111 !important;
-                border-bottom-left-radius: 12px !important;
-                border-bottom-right-radius: 12px !important;
-                z-index: 11 !important;
-            }}
-        }}
+   przez background-image w renderze slajdu Aplikacji (Python, renderer.py).
+   Na ekranie: transform:translate(-50%,-50%) + 260x480 (ustawiane inline).
+   W PRINCIE: nadpisujemy na calc()+transform:none - patrz uzasadnienie niżej. */
+.phone-mockup {{
+    /* pozostaje puste poza ekranowym ::before (kropka głośnika) -
+       wszystkie wymiary/pozycja na ekranie pochodzą z inline style w Pythonie */
+}}
+.phone-mockup::before {{
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110px;
+    height: 20px;
+    background-color: #111;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    z-index: 11;
+}}
+
+@media print {{
+    /* Bug Skia w Chromium print: transform:translate() promuje element
+       do osobnej warstwy GPU, co w print powoduje rozbicie rasteryzacji
+       na kafle (element rozdzielony w połowie, cień na krawędziach
+       segmentów, obraz obcięty). Rozwiązanie: pozycjonowanie przez
+       calc() zamiast transform - TYLKO w print, ekran zostaje bez zmian.
+       Wymiary 260x480 (te same co na ekranie) - offset to połowa wymiarów. */
+    .phone-mockup {{
+        position: absolute !important;
+        top: calc(50% - 240px) !important;
+        left: calc(58% - 130px) !important;
+        transform: none !important;
+        width: 260px !important;
+        height: 480px !important;
+        border: 8px solid #111 !important;
+        border-radius: 30px !important;
+        background-size: cover !important;
+        background-position: top center !important;
+        background-repeat: no-repeat !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        page-break-before: avoid !important;
+        page-break-after: avoid !important;
+        z-index: 10 !important;
+    }}
+    .phone-mockup::before {{
+        content: '' !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 110px !important;
+        height: 20px !important;
+        background-color: #111 !important;
+        border-bottom-left-radius: 12px !important;
+        border-bottom-right-radius: 12px !important;
+        z-index: 11 !important;
+    }}
+}}
         .brand-collage {{ display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 45% 55%; gap: 15px; height: 100%; width: 100%; }}
         .brand-img-1 {{ grid-column: 1; grid-row: 1; border-radius: 8px 50px 8px 8px; overflow: hidden; background-color: #fcfcfc; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; }}
         .brand-img-1 img {{ width: 100%; height: 100%; object-fit: cover; }}
