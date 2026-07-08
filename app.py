@@ -818,6 +818,11 @@ with st.sidebar:
         f"letter-spacing:1px;margin-bottom:8px;'>EDYCJA PREZENTACJI</div>",
         unsafe_allow_html=True,
     )
+    st.markdown(
+        f"<div style='font-size:10px;font-weight:700;color:{_acc_save};text-transform:uppercase;"
+        f"letter-spacing:1px;margin-bottom:8px;'>EDYCJA PREZENTACJI</div>",
+        unsafe_allow_html=True,
+    )
     if st.button("+ NOWY PROJEKT", use_container_width=True, type="primary", key="btn_new_project_top"):
         _new_project()
     if st.button("⧉ ZAPISZ JAKO NOWY", use_container_width=True, type="primary", key="btn_dup_current_top"):
