@@ -39,6 +39,15 @@ def get_data(key, default=None):
 # ---------------------------------------------------------------------------
 # STAŁE I DANE
 # ---------------------------------------------------------------------------
+# Wspólne źródło prawdy dla wymiarów mockupu telefonu (slajd "Aplikacja").
+# Używane w inline style (build_presentation) ORAZ w @media print (get_local_css).
+# Zmieniaj TYLKO tutaj — nie duplikuj tych liczb nigdzie indziej w kodzie.
+PHONE_MOCKUP_W = 230        # proporcja ~0.479 - bliżej realnego smartfona niż 260
+PHONE_MOCKUP_H = 480
+PHONE_MOCKUP_BORDER = 8
+PHONE_MOCKUP_RADIUS = 30
+PHONE_MOCKUP_LEFT_PCT = 58   # pozioma pozycja środka telefonu, % szerokości slajdu
+
 COUNTRIES_DICT = {
     "-- Wybierz kraj --": "",
     "Albania": "ALB", "Andora": "AND", "Arabia Saudyjska": "SAU",
