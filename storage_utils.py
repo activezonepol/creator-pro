@@ -1,4 +1,6 @@
 import io
+import re
+import uuid
 import streamlit as st
 from PIL import Image, ImageOps
 
@@ -8,6 +10,15 @@ from db_utils import save_to_supabase
 # Zmienne globalne
 STORAGE_BUCKET = "nexa-images"
 STORAGE_USER = "default_user"
+
+# Klucze zdjęć atrakcji (foto główne + 3 miniatury). Dla tych pól NIE
+# nadpisujemy pliku po nazwie klucza - każdy upload dostaje unikalną nazwę
+# (attr_{uuid}), żeby zdjęcia gromadziły się w galerii kraju do ponownego
+# użycia w innych ofertach, zamiast znikać przy kolejnym uploadzie.
+_ATTR_GALLERY_KEY_PATTERN = re.compile(r'^(ah|at1|at2|at3)_\d+$')
+
+def _is_attraction_image_key(key: str) -> bool:
+    return bool(_ATTR_GALLERY_KEY_PATTERN.match(key))
 
 def upload_image(supabase_client, key: str, raw_bytes: bytes, max_dim: int = 1000, is_logo: bool = False) -> str | None:
     """Optymalizuje zdjęcie i uploaduje do Supabase Storage. Zwraca publiczny URL."""
