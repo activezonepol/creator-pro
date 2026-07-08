@@ -83,6 +83,19 @@ def _switch_project(project_id):
     st.session_state['last_supabase_save'] = time.time()  # opóźnij auto-save
     st.rerun()
 
+def _duplicate_current_project():
+    """Duplikuje AKTUALNIE OTWARTY projekt jednym kliknięciem — bez szukania
+    go na liście. Oryginał zostaje nietknięty, operator przechodzi na kopię."""
+    from db_utils import clone_offer
+    sb = st.session_state.get('supabase')
+    current_id = st.session_state.get('active_project_id')
+    if not sb or not current_id:
+        st.error("Brak aktywnego projektu do skopiowania.")
+        return
+    new_id = clone_offer(sb, current_id)
+    if new_id:
+        _switch_project(new_id)
+
 def _new_project(copy_from_id=None):
     """Tworzy nowy projekt - pusty lub jako kopia istniejącego."""
     from db_utils import fetch_offer_by_id, clone_offer
