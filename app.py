@@ -889,7 +889,7 @@ with st.sidebar:
             )
 
         upf_sidebar = st.file_uploader(
-            "WGRAJ PROJEKT Z DYSKU",
+            "WGRAJ PREZENTACJE Z DYSKU",
             type=['json'],
             key="up_proj_sidebar",
         )
