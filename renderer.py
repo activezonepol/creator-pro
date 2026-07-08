@@ -1260,31 +1260,12 @@ def get_local_css(return_str=False):
         .app-image-col {{ position: absolute; top: -30px; right: -45px; bottom: -15px; width: 62%; clip-path: polygon(20% 0, 100% 0, 100% 100%, 0 100%); z-index: 1; background-color: #eff4f8; display: flex; align-items: center; justify-content: center; }}
         .app-image-col img {{ width: 100%; height: 100%; object-fit: cover; }}
         /* Telefon mockup - pusta ramka, obraz ekranu jest wstawiany INLINE
-   przez background-image w renderze slajdu Aplikacji (Python, renderer.py).
-   Na ekranie: transform:translate(-50%,-50%) + 260x480 (ustawiane inline).
-   W PRINCIE: nadpisujemy na calc()+transform:none - patrz uzasadnienie niżej. */
-.phone-mockup {{
-    /* pozostaje puste poza ekranowym ::before (kropka głośnika) -
-       wszystkie wymiary/pozycja na ekranie pochodzą z inline style w Pythonie */
-}}
-.phone-mockup::before {{
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 110px;
-    height: 20px;
-    background-color: #111;
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
-    z-index: 11;
-}}
-
-@media print {{
-    .phone-mockup {{
-            /* Wymiary/pozycja na EKRANIE ustawiane inline w Pythonie.
-               Ta klasa zawiera tylko ::before poniżej. */
+           przez background-image w renderze slajdu Aplikacji (Python, renderer.py).
+           Na ekranie: pozycja/wymiary ustawiane inline w Pythonie (bez transform).
+           W PRINCIE: nadpisujemy na calc()+transform:none - patrz uzasadnienie niżej. */
+        .phone-mockup {{
+            /* pozostaje puste poza ekranowym ::before (kropka głośnika) -
+               wszystkie wymiary/pozycja na ekranie pochodzą z inline style w Pythonie */
         }}
         .phone-mockup::before {{
             content: '';
@@ -1299,6 +1280,7 @@ def get_local_css(return_str=False):
             border-bottom-right-radius: 12px;
             z-index: 11;
         }}
+
         @media print {{
             /* Bug Skia w Chromium print: transform promuje element do warstwy
                GPU, co rozbija rasteryzację na kafle. Rozwiązanie: calc()
@@ -1335,7 +1317,7 @@ def get_local_css(return_str=False):
                 border-bottom-right-radius: 12px !important;
                 z-index: 11 !important;
             }}
-}}
+        }}
         .brand-collage {{ display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 45% 55%; gap: 15px; height: 100%; width: 100%; }}
         .brand-img-1 {{ grid-column: 1; grid-row: 1; border-radius: 8px 50px 8px 8px; overflow: hidden; background-color: #fcfcfc; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; }}
         .brand-img-1 img {{ width: 100%; height: 100%; object-fit: cover; }}
