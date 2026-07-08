@@ -128,3 +128,33 @@ def get_logo_html(url: str, max_height: str = "80px") -> str:
 def migrate_bytes_to_storage(supabase_client):
     """Alias dla nowej funkcji (dla kompatybilności wstecznej z app.py)."""
     return cleanup_session_bytes_to_storage(supabase_client)
+
+def list_country_gallery(supabase_client, country_code: str, name_prefix: str = "attr_"):
+    """
+    Zwraca listę publicznych URL-i zdjęć zapisanych w folderze danego kraju,
+    których nazwa pliku zaczyna się od name_prefix (np. 'attr_' dla galerii
+    zdjęć atrakcji). Używane do wielokrotnego wyboru tego samego zdjęcia
+    w różnych atrakcjach/ofertach zamiast wgrywania go za każdym razem od nowa.
+    """
+    _country_prefix = str(country_code or '').strip().upper()
+    if not _country_prefix or len(_country_prefix) != 3:
+        _country_prefix = "XXX"
+    folder_path = f"{STORAGE_USER}/{_country_prefix}"
+    try:
+        files = supabase_client.storage.from_(STORAGE_BUCKET).list(folder_path)
+    except Exception:
+        return []
+    if not files:
+        return []
+    urls = []
+    for f in files:
+        _name = f.get('name', '')
+        if not _name.startswith(name_prefix):
+            continue
+        _full_path = f"{folder_path}/{_name}"
+        try:
+            _url = supabase_client.storage.from_(STORAGE_BUCKET).get_public_url(_full_path)
+            urls.append(_url)
+        except Exception:
+            continue
+    return urls
