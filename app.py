@@ -826,6 +826,9 @@ with st.sidebar:
         _new_project()
     if st.button("⧉ ZAPISZ JAKO NOWY", use_container_width=True, type="primary", key="btn_dup_current_top"):
         _duplicate_current_project()
+    if st.button("ZAPISZ W BAZIE", use_container_width=True, type="primary", key="manual_save_btn"):
+        save_to_supabase()
+        st.rerun()
 
     st.markdown("<div style='margin-bottom:10px;'></div>", unsafe_allow_html=True)
 
