@@ -1251,23 +1251,28 @@ def get_local_css(return_str=False):
         /* Telefon mockup - pusta ramka, obraz ekranu jest wstawiany INLINE
            przez background-image w renderze slajdu Aplikacji.
            Systemowe rozwiązanie: eliminuje overlay <img> który psuł się w print. */
-        .phone-mockup {{
-            /* Wszystkie pozycje/wymiary/tła ustawiane INLINE w renderze -
-               klasa jest tylko dla ::before (kropka głośnika u góry). */
-        }}
-        .phone-mockup::before {{
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 110px;
-            height: 20px;
-            background-color: #111;
-            border-bottom-left-radius: 12px;
-            border-bottom-right-radius: 12px;
-            z-index: 11;
-        }}
+        /* Bug Skia w Chromium print: transform:translate() promuje element
+               do osobnej warstwy GPU, co w print powoduje rozbicie rasteryzacji
+               na kafle i dziwne renderowanie (element rozdzielony w połowie,
+               cień na krawędziach segmentów, obraz obcięty).
+               Rozwiązanie: pozycjonowanie przez calc() zamiast transform.
+               Telefon ma stałe wymiary 220x400 - offset to połowa wymiarów. */
+            .phone-mockup {{
+                position: absolute !important;
+                top: calc(50% - 200px) !important;
+                left: calc(58% - 110px) !important;
+                transform: none !important;
+                width: 220px !important;
+                height: 400px !important;
+                border: 7px solid #111 !important;
+                border-radius: 26px !important;
+                background-size: cover !important;
+                background-position: top center !important;
+                background-repeat: no-repeat !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                z-index: 10 !important;
+            }}
         @media print {{
             /* Wymuszamy że telefon jest NIEPODZIELNY między stronami PDF.
                Chrome domyślnie tnie długi element (480px) na 2 strony -
