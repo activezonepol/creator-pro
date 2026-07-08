@@ -828,7 +828,7 @@ with st.sidebar:
     # ==========================================================================
     # ZWIJANY PANEL: ZARZĄDZANIE OFERTĄ (rzadsze czynności — domyślnie zwinięty)
     # ==========================================================================
-    with st.expander("＋  ZARZĄDZANIE OFERTĄ", expanded=False):
+    with st.expander("ZARZĄDZANIE OFERTĄ", expanded=False):
 
         # --- Wczytaj inny projekt ---
         st.markdown(
