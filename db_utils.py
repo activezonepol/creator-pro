@@ -110,9 +110,12 @@ def save_to_supabase(allow_create: bool = True):
                 'updated_at': datetime.utcnow().isoformat()
             }
             supabase_client.table('projects').update(update_data).eq('id', existing_id).execute()
-        else:
+        elif allow_create:
             # Brak active_project_id (nowy projekt) LUB ID nie istnieje w bazie
             # (np. skasowany ręcznie w Supabase) -> tworzymy NOWY wiersz.
+            # Ta gałąź wykonuje się TYLKO gdy allow_create=True (jawna akcja
+            # użytkownika) - ambientny auto-save (allow_create=False) nigdy
+            # tu nie trafia, patrz gałąź "else" niżej.
             insert_data = {
                 'user_email': 'default_user',
                 'project_name': project_name,
@@ -133,6 +136,15 @@ def save_to_supabase(allow_create: bool = True):
             # tworzyły kolejnych duplikatów przy każdym zapisie.
             if result.data:
                 st.session_state['active_project_id'] = result.data[0].get('id')
+        else:
+            # Brak aktywnego projektu, a wywołanie NIE ma prawa go utworzyć
+            # (ambientny auto-save w tle, allow_create=False). Pomijamy zapis
+            # w ciszy - czekamy na jawną akcję użytkownika. To jest sedno
+            # naprawy: eliminuje "widmowe", nikomu niepotrzebne puste wiersze
+            # tworzone tylko dlatego, że minęło 20 sekund bezczynności.
+            st.session_state['last_save_status'] = "Oczekuję na pierwszy zapis..."
+            st.session_state['last_save_status_type'] = 'warning'
+            return
         
         # ============================================================
         # KROK 4: STATUS ZALEZNY OD STANU KRAJU
