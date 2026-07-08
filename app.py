@@ -928,7 +928,7 @@ with st.sidebar:
             f"letter-spacing:1px;margin-bottom:8px;'>EKSPORT DLA KLIENTA</div>",
             unsafe_allow_html=True,
         )
-        if st.button("PRZYGOTUJ OFERTĘ DO POBRANIA HTML", type="secondary", use_container_width=True, key="btn_prep_offer_sidebar"):
+        if st.button("PRZYGOTUJ HTML DO POBRANIA", type="secondary", use_container_width=True, key="btn_prep_offer_sidebar"):
             with st.spinner("Generowanie ostatecznego pliku oferty..."):
                 export_content = build_presentation(export_mode=True)
                 acc = st.session_state.get('color_accent', '#FF6600')
