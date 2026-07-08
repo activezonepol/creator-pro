@@ -754,6 +754,39 @@ def load_project_data(project_data: dict):
                 pass
         else:
             st.session_state[k] = v
+
+def force_load_project_data(project_data: dict):
+    """
+    Wariant load_project_data() dla ŚWIADOMEGO wgrania pliku z dysku
+    (przycisk 'Wgraj prezentację z dysku'). W odróżnieniu od
+    load_project_data() ZAWSZE nadpisuje istniejące klucze w session_state -
+    operator jawnie zażądał zastąpienia bieżących danych zawartością pliku.
+    Zapobiega "mieszaniu się" starego i nowego projektu (np. tekst z jednego,
+    zdjęcia z drugiego), które występowało gdy część pól była już wypełniona.
+    Korzysta z tej samej allowlisty (is_offer_data_key) co load_project_data,
+    więc elementy interfejsu Streamlit nadal nigdy nie trafiają do sesji.
+    """
+    for k, v in project_data.items():
+        if not is_offer_data_key(k):
+            continue
+        if v is None:
+            continue
+        if k in IMAGE_KEYS and isinstance(v, str):
+            if v.startswith('http://') or v.startswith('https://') or v.startswith('data:'):
+                st.session_state[k] = v
+            else:
+                try:
+                    st.session_state[k] = base64.b64decode(v)
+                except Exception:
+                    st.session_state[k] = v
+        elif k == 'p_start_dt' and isinstance(v, str):
+            try:
+                st.session_state[k] = date.fromisoformat(v)
+            except Exception:
+                pass
+        else:
+            st.session_state[k] = v  # ZAWSZE nadpisuje - bez sprawdzania czy klucz już istnieje
+
 def get_project_filename():
     d_str = st.session_state.get('t_date', '')
     yy, mm = "XX", "XX"
