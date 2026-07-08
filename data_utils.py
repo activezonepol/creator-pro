@@ -1,30 +1,25 @@
 # data_utils.py
-
 import streamlit as st
 from datetime import date, datetime
-from renderer import EXCLUDE_EXPORT_KEYS
+from renderer import is_offer_data_key
 
 def _build_proj_dict():
+    """
+    Buduje słownik danych oferty do zapisu (Supabase / plik JSON).
+    JEDYNY filtr: is_offer_data_key() - allowlist współdzielona z odczytem
+    (renderer.load_project_data / force_load_project_data). Dzięki temu
+    elementy interfejsu (przyciski, selectboxy, kontrolki nawigacji) nigdy
+    nie trafiają do zapisanych danych - niezależnie od tego, jaki mają typ
+    Pythona czy jak długi jest ich tekst.
+    """
     proj = {}
-    
-    # Klucze techniczne Streamlita i inne śmieci
-    internal_keys = ['_upload_status', '_save_count', '_last_save']
-    
     for k, v in st.session_state.items():
-        # 1. KLUCZOWY FILTR: Ignoruj wszystko co zaczyna się od 'up_'
-        # To tutaj odrzucamy te ciężkie pliki, które ważyły 8MB
-        if k.startswith('up_') or k.startswith('_') or k in internal_keys:
+        if not is_offer_data_key(k):
             continue
-            
-        # 2. FILTR TYPÓW: Zapisuj tylko lekkie dane (tekst, linki, liczby)
-        if not isinstance(v, (str, int, float, bool, list, dict, date, datetime)) or v is None:
+        if v is None:
             continue
-
-        # 3. BEZPIECZNIK: Jeśli string jest nienaturalnie długi (>10 tyś znaków)
-        # i nie jest linkiem, to znaczy że to ukryte zdjęcie - pomin je.
-        if isinstance(v, str) and len(v) > 10000 and not v.startswith("http"):
+        if not isinstance(v, (str, int, float, bool, list, dict, date, datetime)):
             continue
-
         try:
             if isinstance(v, (date, datetime)):
                 proj[k] = v.isoformat()
@@ -32,5 +27,4 @@ def _build_proj_dict():
                 proj[k] = v
         except Exception:
             pass
-            
     return proj
