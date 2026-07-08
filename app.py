@@ -813,13 +813,10 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-    _col_new, _col_dup = st.columns(2)
-    with _col_new:
-        if st.button("+ NOWY PROJEKT", use_container_width=True, type="primary", key="btn_new_project_top"):
-            _new_project()
-    with _col_dup:
-        if st.button("⧉ ZAPISZ JAKO NOWY", use_container_width=True, type="primary", key="btn_dup_current_top"):
-            _duplicate_current_project()
+    if st.button("+ NOWY PROJEKT", use_container_width=True, type="primary", key="btn_new_project_top"):
+        _new_project()
+    if st.button("⧉ ZAPISZ JAKO NOWY", use_container_width=True, type="primary", key="btn_dup_current_top"):
+        _duplicate_current_project()
 
     st.markdown("<div style='margin-bottom:10px;'></div>", unsafe_allow_html=True)
 
