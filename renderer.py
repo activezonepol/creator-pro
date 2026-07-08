@@ -1282,43 +1282,59 @@ def get_local_css(return_str=False):
 }}
 
 @media print {{
-    /* Bug Skia w Chromium print: transform:translate() promuje element
-       do osobnej warstwy GPU, co w print powoduje rozbicie rasteryzacji
-       na kafle (element rozdzielony w połowie, cień na krawędziach
-       segmentów, obraz obcięty). Rozwiązanie: pozycjonowanie przez
-       calc() zamiast transform - TYLKO w print, ekran zostaje bez zmian.
-       Wymiary 260x480 (te same co na ekranie) - offset to połowa wymiarów. */
     .phone-mockup {{
-        position: absolute !important;
-        top: calc(50% - 240px) !important;
-        left: calc(58% - 130px) !important;
-        transform: none !important;
-        width: 260px !important;
-        height: 480px !important;
-        border: 8px solid #111 !important;
-        border-radius: 30px !important;
-        background-size: cover !important;
-        background-position: top center !important;
-        background-repeat: no-repeat !important;
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
-        page-break-before: avoid !important;
-        page-break-after: avoid !important;
-        z-index: 10 !important;
-    }}
-    .phone-mockup::before {{
-        content: '' !important;
-        position: absolute !important;
-        top: 0 !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        width: 110px !important;
-        height: 20px !important;
-        background-color: #111 !important;
-        border-bottom-left-radius: 12px !important;
-        border-bottom-right-radius: 12px !important;
-        z-index: 11 !important;
-    }}
+            /* Wymiary/pozycja na EKRANIE ustawiane inline w Pythonie.
+               Ta klasa zawiera tylko ::before poniżej. */
+        }}
+        .phone-mockup::before {{
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 110px;
+            height: 20px;
+            background-color: #111;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            z-index: 11;
+        }}
+        @media print {{
+            /* Bug Skia w Chromium print: transform promuje element do warstwy
+               GPU, co rozbija rasteryzację na kafle. Rozwiązanie: calc()
+               zamiast transform, TYLKO w print. Wymiary z PHONE_MOCKUP_*
+               (patrz góra pliku) - te same co na ekranie. */
+            .phone-mockup {{
+                position: absolute !important;
+                top: calc(50% - {_half_h}px) !important;
+                left: calc({PHONE_MOCKUP_LEFT_PCT}% - {_half_w}px) !important;
+                transform: none !important;
+                width: {PHONE_MOCKUP_W}px !important;
+                height: {PHONE_MOCKUP_H}px !important;
+                border: {PHONE_MOCKUP_BORDER}px solid #111 !important;
+                border-radius: {PHONE_MOCKUP_RADIUS}px !important;
+                background-size: cover !important;
+                background-position: top center !important;
+                background-repeat: no-repeat !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                page-break-before: avoid !important;
+                page-break-after: avoid !important;
+                z-index: 10 !important;
+            }}
+            .phone-mockup::before {{
+                content: '' !important;
+                position: absolute !important;
+                top: 0 !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                width: 110px !important;
+                height: 20px !important;
+                background-color: #111 !important;
+                border-bottom-left-radius: 12px !important;
+                border-bottom-right-radius: 12px !important;
+                z-index: 11 !important;
+            }}
 }}
         .brand-collage {{ display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 45% 55%; gap: 15px; height: 100%; width: 100%; }}
         .brand-img-1 {{ grid-column: 1; grid-row: 1; border-radius: 8px 50px 8px 8px; overflow: hidden; background-color: #fcfcfc; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; }}
