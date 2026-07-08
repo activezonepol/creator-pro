@@ -1890,6 +1890,32 @@ with col_form:
                             st.session_state[_aicons_key].pop(_pos)
                             st.rerun()
             
+            # === GALERIA ZDJĘĆ KRAJU (wspólna dla foto głównego i miniatur) ===
+            from storage_utils import list_country_gallery
+            _gallery_country = st.session_state.get('country_code', '') or 'XXX'
+            with st.expander(f"Wybierz z galerii ({_gallery_country})", expanded=False):
+                _gallery_urls = list_country_gallery(supabase, _gallery_country, name_prefix="attr_")
+                if not _gallery_urls:
+                    st.caption("Brak zapisanych zdjęć atrakcji dla tego kraju. Wgraj nowe zdjęcie poniżej.")
+                else:
+                    _gal_target = st.radio(
+                        "Wstaw wybrane zdjęcie do pola:",
+                        ["Foto Główne", "Fot. 1", "Fot. 2", "Fot. 3"],
+                        key=f"gal_target_{_i}",
+                        horizontal=True,
+                    )
+                    _gal_target_key = {
+                        "Foto Główne": f"ah_{_i}", "Fot. 1": f"at1_{_i}",
+                        "Fot. 2": f"at2_{_i}", "Fot. 3": f"at3_{_i}",
+                    }[_gal_target]
+                    _gcols = st.columns(4)
+                    for _gi, _gurl in enumerate(_gallery_urls):
+                        with _gcols[_gi % 4]:
+                            st.image(_gurl, use_container_width=True)
+                            if st.button("Wybierz", key=f"gal_pick_{_i}_{_gi}", use_container_width=True):
+                                st.session_state[_gal_target_key] = _gurl
+                                st.rerun()
+
             st.file_uploader(
                 "Foto Główne",
                 key=f"up_ah_{_i}",
