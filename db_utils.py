@@ -67,13 +67,25 @@ def save_to_supabase():
         # ============================================================
         # KROK 3: UPSERT DO BAZY
         # ============================================================
-        existing = supabase_client.table('projects').select('id, storage_folder').eq(
-            'user_email', 'default_user'
-        ).order('updated_at', desc=True).limit(1).execute()
+        # KRYTYCZNE: identyfikujemy projekt WYŁĄCZNIE po active_project_id
+        # z session_state - NIGDY po "najnowszy wiersz danego usera".
+        # Poprzednia wersja pytała bazę o najnowszy zaktualizowany wiersz
+        # dla user_email, co przy tworzeniu NOWEGO projektu (active_project_id
+        # = None) trafiało z powrotem w poprzedni, wciąż "najnowszy" projekt
+        # i go nadpisywało - realna utrata danych klienta.
+        existing_id = st.session_state.get('active_project_id')
         
-        if existing.data:
-            project_id = existing.data[0]['id']
-            existing_folder = existing.data[0].get('storage_folder')
+        if existing_id:
+            # Sprawdzamy czy wiersz o tym ID faktycznie istnieje (obrona przed
+            # nieaktualnym/skasowanym ID w sesji)
+            check = supabase_client.table('projects').select('id, storage_folder').eq(
+                'id', existing_id
+            ).execute()
+        else:
+            check = None
+        
+        if existing_id and check and check.data:
+            existing_folder = check.data[0].get('storage_folder')
             if existing_folder:
                 storage_folder = existing_folder
                 st.session_state['storage_folder'] = existing_folder
@@ -90,8 +102,10 @@ def save_to_supabase():
                 'data': project_data,
                 'updated_at': datetime.utcnow().isoformat()
             }
-            supabase_client.table('projects').update(update_data).eq('id', project_id).execute()
+            supabase_client.table('projects').update(update_data).eq('id', existing_id).execute()
         else:
+            # Brak active_project_id (nowy projekt) LUB ID nie istnieje w bazie
+            # (np. skasowany ręcznie w Supabase) -> tworzymy NOWY wiersz.
             insert_data = {
                 'user_email': 'default_user',
                 'project_name': project_name,
@@ -105,8 +119,13 @@ def save_to_supabase():
                 'data': project_data,
                 'updated_at': datetime.utcnow().isoformat()
             }
-            supabase_client.table('projects').insert(insert_data).execute()
+            result = supabase_client.table('projects').insert(insert_data).execute()
             st.session_state['storage_folder'] = storage_folder
+            # KRYTYCZNE: zapisujemy nowe ID do sesji, żeby KOLEJNE auto-save'y
+            # (co 20s) trafiały w TEN sam, nowo utworzony wiersz, a nie
+            # tworzyły kolejnych duplikatów przy każdym zapisie.
+            if result.data:
+                st.session_state['active_project_id'] = result.data[0].get('id')
         
         # ============================================================
         # KROK 4: STATUS ZALEZNY OD STANU KRAJU
