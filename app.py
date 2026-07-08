@@ -1189,9 +1189,14 @@ with col_form:
             index=_current_index,
         )
         # Aktualizujemy session_state RECZNIE (bez key=)
+        _country_changed = st.session_state.get('country_name') != _selected_country
         st.session_state['country_name'] = _selected_country
         # Aktualizujemy country_code od razu
         _sync_country_code()
+        # Natychmiastowy zapis przy zmianie kraju - bez czekania na kolejny
+        # rerun wywołany innym kliknięciem (np. wejściem na inny slajd).
+        if _country_changed:
+            save_to_supabase()
         for k, l in [
             ('t_main', 'Tytuł H1'), ('t_sub', 'Podtytuł'), ('t_klient', 'Klient'),
             ('t_kierunek', 'Kierunek'), ('t_pax', 'Liczba osób'),
