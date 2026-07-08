@@ -23,8 +23,15 @@ from code_generator import (
 # ---------------------------------------------------------------------------
 # 1. GLOWNY ZAPIS SYSTEMOWY (auto-save w app.py)
 # ---------------------------------------------------------------------------
-def save_to_supabase():
+def save_to_supabase(allow_create: bool = True):
     """Systemowy zapis projektu - zawsze zapisuje, status zalezny od stanu kraju.
+    
+    allow_create: czy wolno UTWORZYĆ nowy wiersz gdy brak active_project_id.
+    False = tylko ambientny, cykliczny auto-save w tle (nie wolno tworzyć
+    "widmowych" pustych projektów samoistnie). True (domyślnie) = wywołania
+    z jawnej akcji użytkownika (Nowy projekt, Zapisz jako nowy, przycisk
+    ZAPISZ W BAZIE, upload zdjęcia) - tam tworzenie nowego wiersza jest
+    zamierzone i oczekiwane.
     
     PROCES:
     1. Generuje kod oferty (zawsze, OTH dla pustego/Inny)
