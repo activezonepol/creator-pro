@@ -843,10 +843,6 @@ with st.sidebar:
             f"letter-spacing:1px;margin-bottom:8px;'>WCZYTAJ INNY PROJEKT</div>",
             unsafe_allow_html=True,
         )
-        if st.button("ZAPISZ W BAZIE", use_container_width=True, type="primary", key="manual_save_btn"):
-            save_to_supabase()
-            st.rerun()
-
         _all_offers = fetch_all_offers(supabase)
         _current_proj_id = st.session_state.get('active_project_id')
 
