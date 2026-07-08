@@ -37,7 +37,10 @@ def upload_image(supabase_client, key: str, raw_bytes: bytes, max_dim: int = 100
                 content_type, file_ext = "image/jpeg", "jpg"
             optimized_bytes = buf.getvalue()
             
-        storage_path = f"{STORAGE_USER}/{key}.{file_ext}"
+        _country_prefix = str(st.session_state.get('country_code', '') or '').strip().upper()
+        if not _country_prefix or len(_country_prefix) != 3:
+            _country_prefix = "XXX"
+        storage_path = f"{STORAGE_USER}/{_country_prefix}/{key}.{file_ext}"
         
         try:
             supabase_client.storage.from_(STORAGE_BUCKET).remove([storage_path])
