@@ -964,9 +964,7 @@ with st.sidebar:
             st.session_state['client_mode'] = True
             st.rerun()
 
-    st.markdown("---")
-
-    # 2. MIGRACJA ZDJĘĆ
+    # 2. MIGRACJA ZDJĘĆ (widoczne tylko jeśli faktycznie wykryto zdjęcia w pamięci)
     if any(isinstance(st.session_state.get(k), bytes) for k in IMAGE_KEYS):
         st.warning("⚠️ Wykryto zdjęcia w pamięci.")
         if st.button("🔄 Migruj zdjęcia do Storage", type="primary"):
