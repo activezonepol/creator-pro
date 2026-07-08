@@ -1201,8 +1201,12 @@ with col_form:
             'Tytuł H1', key='t_main',
             on_change=save_to_supabase,
         )
+        safe_text_input(
+            'Klient', key='t_klient',
+            on_change=save_to_supabase,
+        )
         for k, l in [
-            ('t_sub', 'Podtytuł'), ('t_klient', 'Klient'),
+            ('t_sub', 'Podtytuł'),
             ('t_kierunek', 'Kierunek'), ('t_pax', 'Liczba osób'),
             ('t_hotel', 'Hotel'), ('t_trans', 'Dojazd'),
         ]:
