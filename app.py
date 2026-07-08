@@ -838,11 +838,6 @@ with st.sidebar:
         _all_offers = fetch_all_offers(supabase)
         _current_proj_id = st.session_state.get('active_project_id')
 
-        if _all_offers and st.button("OSTATNI PROJEKT", use_container_width=True, key="btn_last_proj", type="primary"):
-            _sorted = sorted(_all_offers, key=lambda x: x.get('updated_at', ''), reverse=True)
-            if _sorted:
-                _switch_project(_sorted[0]['id'])
-
         if _all_offers:
             _proj_options = ["-- Wybierz --"] + [
                 f"{o.get('project_code', '???')} | {o.get('project_name', 'bez nazwy')[:30]}"
@@ -866,6 +861,9 @@ with st.sidebar:
                     _switch_project(_proj_ids[_sel_idx])
         else:
             st.caption("Brak projektów w bazie.")
+
+        if st.button("⧉ ZAPISZ JAKO NOWY", use_container_width=True, type="primary", key="btn_dup_current_expander"):
+            _duplicate_current_project()
 
         st.markdown("---")
 
