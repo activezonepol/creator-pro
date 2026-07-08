@@ -59,13 +59,19 @@ def upload_image(supabase_client, key: str, raw_bytes: bytes, max_dim: int = 100
         _country_prefix = str(st.session_state.get('country_code', '') or '').strip().upper()
         if not _country_prefix or len(_country_prefix) != 3:
             _country_prefix = "XXX"
-        storage_path = f"{STORAGE_USER}/{_country_prefix}/{key}.{file_ext}"
-        
-        try:
-            supabase_client.storage.from_(STORAGE_BUCKET).remove([storage_path])
-        except Exception:
-            pass
-            
+
+        if _is_attraction_image_key(key):
+            # Nazwa unikalna - nic nie nadpisujemy, zdjęcie zostaje w galerii
+            # kraju do ponownego wyboru w innych atrakcjach/ofertach.
+            _unique_name = f"attr_{uuid.uuid4().hex[:12]}"
+            storage_path = f"{STORAGE_USER}/{_country_prefix}/{_unique_name}.{file_ext}"
+        else:
+            storage_path = f"{STORAGE_USER}/{_country_prefix}/{key}.{file_ext}"
+            try:
+                supabase_client.storage.from_(STORAGE_BUCKET).remove([storage_path])
+            except Exception:
+                pass
+
         supabase_client.storage.from_(STORAGE_BUCKET).upload(
             storage_path, optimized_bytes, file_options={"content-type": content_type}
         )
