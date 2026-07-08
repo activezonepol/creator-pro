@@ -1197,8 +1197,12 @@ with col_form:
         # rerun wywołany innym kliknięciem (np. wejściem na inny slajd).
         if _country_changed:
             save_to_supabase()
+        safe_text_input(
+            'Tytuł H1', key='t_main',
+            on_change=save_to_supabase,
+        )
         for k, l in [
-            ('t_main', 'Tytuł H1'), ('t_sub', 'Podtytuł'), ('t_klient', 'Klient'),
+            ('t_sub', 'Podtytuł'), ('t_klient', 'Klient'),
             ('t_kierunek', 'Kierunek'), ('t_pax', 'Liczba osób'),
             ('t_hotel', 'Hotel'), ('t_trans', 'Dojazd'),
         ]:
