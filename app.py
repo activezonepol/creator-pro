@@ -1890,55 +1890,49 @@ with col_form:
                             st.session_state[_aicons_key].pop(_pos)
                             st.rerun()
             
-            # === GALERIA ZDJĘĆ KRAJU (wspólna dla foto głównego i miniatur) ===
+            # === WYBÓR ŹRÓDŁA ZDJĘCIA: przełącznik "Z dysku" / "Z galerii kraju"
+            # nad każdym polem. Dopiero wybór "Z galerii" pokazuje miniatury -
+            # domyślnie widoczny jest tylko zwykły uploader z dysku. ===
             from storage_utils import list_country_gallery
             _gallery_country = st.session_state.get('country_code', '') or 'XXX'
-            with st.expander(f"Wybierz z galerii ({_gallery_country})", expanded=False):
-                _gallery_urls = list_country_gallery(supabase, _gallery_country, name_prefix="attr_")
-                if not _gallery_urls:
-                    st.caption("Brak zapisanych zdjęć atrakcji dla tego kraju. Wgraj nowe zdjęcie poniżej.")
-                else:
-                    _gal_target = st.radio(
-                        "Wstaw wybrane zdjęcie do pola:",
-                        ["Foto Główne", "Fot. 1", "Fot. 2", "Fot. 3"],
-                        key=f"gal_target_{_i}",
+            _gallery_urls = list_country_gallery(supabase, _gallery_country, name_prefix="attr_")
+
+            def _render_image_field(field_label, target_key, upload_key, widget_suffix):
+                if _gallery_urls:
+                    _source = st.radio(
+                        field_label,
+                        ["Z dysku", f"Z galerii ({_gallery_country})"],
+                        key=f"src_{widget_suffix}",
                         horizontal=True,
                     )
-                    _gal_target_key = {
-                        "Foto Główne": f"ah_{_i}", "Fot. 1": f"at1_{_i}",
-                        "Fot. 2": f"at2_{_i}", "Fot. 3": f"at3_{_i}",
-                    }[_gal_target]
-                    _gcols = st.columns(4)
+                else:
+                    _source = "Z dysku"
+                if _source == "Z dysku":
+                    st.file_uploader(
+                        field_label,
+                        key=upload_key,
+                        on_change=_make_upload_callback(target_key),
+                        label_visibility="collapsed" if _gallery_urls else "visible",
+                    )
+                else:
+                    _gcols = st.columns(3)
                     for _gi, _gurl in enumerate(_gallery_urls):
-                        with _gcols[_gi % 4]:
+                        with _gcols[_gi % 3]:
                             st.image(_gurl, use_container_width=True)
-                            if st.button("Wybierz", key=f"gal_pick_{_i}_{_gi}", use_container_width=True):
-                                st.session_state[_gal_target_key] = _gurl
+                            if st.button("Użyj", key=f"gal_{widget_suffix}_{_gi}", use_container_width=True):
+                                st.session_state[target_key] = _gurl
                                 st.rerun()
 
-            st.file_uploader(
-                "Foto Główne",
-                key=f"up_ah_{_i}",
-                on_change=_make_upload_callback(f"ah_{_i}")
-            )
+            _render_image_field("Foto Główne", f"ah_{_i}", f"up_ah_{_i}", f"ah_{_i}")
 
             _ac1, _ac2, _ac3 = st.columns(3)
-            
-            _ac1.file_uploader(
-                "Fot. 1",
-                key=f"up_at1_{_i}",
-                on_change=_make_upload_callback(f"at1_{_i}")
-            )
-            _ac2.file_uploader(
-                "Fot. 2",
-                key=f"up_at2_{_i}",
-                on_change=_make_upload_callback(f"at2_{_i}")
-            )
-            _ac3.file_uploader(
-                "Fot. 3",
-                key=f"up_at3_{_i}",
-                on_change=_make_upload_callback(f"at3_{_i}")
-            )
+
+            with _ac1:
+                _render_image_field("Fot. 1", f"at1_{_i}", f"up_at1_{_i}", f"at1_{_i}")
+            with _ac2:
+                _render_image_field("Fot. 2", f"at2_{_i}", f"up_at2_{_i}", f"at2_{_i}")
+            with _ac3:
+                _render_image_field("Fot. 3", f"at3_{_i}", f"up_at3_{_i}", f"at3_{_i}")
 
     # -----------------------------------------------------------------------
     # 9. PRZERYWNIK HOTEL
