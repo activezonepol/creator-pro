@@ -2357,11 +2357,16 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         # niezawodnie w Chrome/Opera print gdy włączona "Grafika w tle".
         # Style pozycjonowania INLINE - specyficzność wyższa niż @media print,
         # co gwarantuje że telefon zawsze jest w tym samym miejscu (ekran/druk).
+        _half_w = PHONE_MOCKUP_W // 2
+        _half_h = PHONE_MOCKUP_H // 2
+        _phone_pos = (
+            f"top:calc(50% - {_half_h}px); left:calc({PHONE_MOCKUP_LEFT_PCT}% - {_half_w}px); "
+            f"width:{PHONE_MOCKUP_W}px; height:{PHONE_MOCKUP_H}px;"
+        )
         if iscr:
             _phone_style = (
-                f"position:absolute; top:50%; left:58%; "
-                f"transform:translate(-50%,-50%); width:260px; height:480px; "
-                f"border:8px solid #111; border-radius:30px; "
+                f"position:absolute; {_phone_pos} "
+                f"border:{PHONE_MOCKUP_BORDER}px solid #111; border-radius:{PHONE_MOCKUP_RADIUS}px; "
                 f"box-shadow:-15px 20px 40px rgba(0,0,0,0.4); z-index:10; "
                 f"background-image:url({iscr}); background-size:cover; "
                 f"background-position:top center; background-repeat:no-repeat; "
@@ -2369,11 +2374,10 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             )
         else:
             _phone_style = (
-                "position:absolute; top:50%; left:58%; "
-                "transform:translate(-50%,-50%); width:260px; height:480px; "
-                "border:8px solid #111; border-radius:30px; "
-                "box-shadow:-15px 20px 40px rgba(0,0,0,0.4); z-index:10; "
-                "background-color:#fff;"
+                f"position:absolute; {_phone_pos} "
+                f"border:{PHONE_MOCKUP_BORDER}px solid #111; border-radius:{PHONE_MOCKUP_RADIUS}px; "
+                f"box-shadow:-15px 20px 40px rgba(0,0,0,0.4); z-index:10; "
+                f"background-color:#fff;"
             )
         fh_app = "".join([f"<li>{f.strip()}</li>" for f in get_data('app_features', '').split('\n') if f.strip()])
         hp.append(_shtml(f"""{lh}<div style="position:relative;height:100%;width:100%;display:flex; overflow:hidden;">
