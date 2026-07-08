@@ -885,7 +885,7 @@ with st.sidebar:
 
         if 'temp_proj_json' in st.session_state:
             st.download_button(
-                "📥 POBIERZ PLIK",
+                "POBIERZ PLIK PREZENTACJI",
                 st.session_state['temp_proj_json'],
                 get_project_filename(),
                 use_container_width=True,
