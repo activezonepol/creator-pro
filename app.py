@@ -702,7 +702,11 @@ if not st.session_state.get('client_mode', False):
         st.session_state['last_supabase_save'] = 0
     current_time = time.time()
     if current_time - st.session_state['last_supabase_save'] > 20:
-        save_to_supabase()
+        # allow_create=False: cykliczny auto-save w tle NIGDY nie tworzy
+        # nowego wiersza samoistnie - tylko aktualizuje już istniejący,
+        # aktywny projekt. Zapobiega "widmowym" pustym wierszom powstającym
+        # tylko dlatego, że minęło 20s bezczynności na świeżym/pustym stanie.
+        save_to_supabase(allow_create=False)
 
 # --- DEFINICJA ZMIENNYCH GLOBALNYCH (Bez spacji na początku!) ---
 _n_attr = st.session_state.get('num_attr', 0)
