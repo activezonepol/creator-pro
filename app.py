@@ -760,11 +760,11 @@ with st.sidebar:
     if _editing_name == 'NAZWA PROJEKTU':
         _editing_name = '(bez nazwy)'
     st.markdown(
-        f"<div style='background:#fff7ed;border-left:3px solid {_acc_top};padding:8px 12px;"
+        f"<div style='background:#fff7ed;border-left:3px solid {_acc_top};padding:10px 12px;"
         f"margin-bottom:15px;border-radius:4px;'>"
         f"<div style='font-size:9px;font-weight:700;color:#9a3412;text-transform:uppercase;"
-        f"letter-spacing:1px;margin-bottom:2px;'>Aktualnie edytujesz:</div>"
-        f"<div style='font-size:12px;font-weight:600;color:#1e293b;line-height:1.3;'>{_editing_name}</div>"
+        f"letter-spacing:1px;margin-bottom:4px;'>Aktualnie edytujesz:</div>"
+        f"<div style='font-size:20px;font-weight:700;color:#1e293b;line-height:1.25;'>{_editing_name}</div>"
         f"</div>",
         unsafe_allow_html=True
     )
