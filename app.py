@@ -898,17 +898,17 @@ with st.sidebar:
             type=['json'],
             key="up_proj_sidebar",
         )
-        if upf_sidebar and st.button("📤 WCZYTAJ", use_container_width=True, key="btn_load_sidebar"):
+        if upf_sidebar and st.button("WCZYTAJ", use_container_width=True, key="btn_load_sidebar"):
             data, error = _validate_and_load_json(upf_sidebar)
             if error:
-                st.error(f"❌ {error}")
+                st.error(f"Błąd: {error}")
             else:
                 try:
-                    load_project_data(data)
-                    st.success(f"✅ Wczytano prezentację ({len(data)} pól)")
+                    force_load_project_data(data)
+                    st.success(f"Wczytano prezentację ({len(data)} pól) — poprzednie dane zastąpione")
                     st.rerun()
                 except Exception as e:
-                    st.error(f"❌ Błąd: {str(e)[:100]}")
+                    st.error(f"Błąd: {str(e)[:100]}")
 
         st.markdown(
             "<div style='font-size:10px;color:#64748b;font-style:italic;"
