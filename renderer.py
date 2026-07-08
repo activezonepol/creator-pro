@@ -650,7 +650,16 @@ _ADMIN_DATA_KEYS = {
     'num_dist_pairs', 'num_jaj_dist_pairs', 'num_sekcje',
     'hotel_order', 'attr_order', 'place_attr_order',
     'country_code', 'country_name', 'storage_folder', 'p_start_dt',
-    'active_project_id', 'ors_api_key', 'testim_count',
+    'ors_api_key', 'testim_count',
+    # UWAGA: 'active_project_id' CELOWO nie jest tutaj. To czysto techniczny
+    # identyfikator BIEŻĄCEJ SESJI ROBOCZEJ (który wiersz w bazie aktualizować),
+    # nie dana oferty. Zapisanie go do JSON/eksportu i odtworzenie przy
+    # wczytaniu powodowało realny bug: stary, martwy ID z zapisanego dawniej
+    # pliku nadpisywał bieżący aktywny projekt, co przy kolejnym auto-save
+    # tworzyło DODATKOWY, niechciany wiersz w bazie (bo martwy ID nie
+    # istniał już w tabeli). active_project_id jest zarządzany WYŁĄCZNIE
+    # przez _new_project/_switch_project/_duplicate_current_project i samą
+    # logikę insert/update w save_to_supabase - nigdy przez JSON.
 }
 
 # Wzorce pól dynamicznych (prefiks{numer} lub prefiks{numer}_sufiks).
