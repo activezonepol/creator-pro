@@ -682,19 +682,15 @@ if st.session_state['client_mode']:
         st.session_state['client_mode'] = False
         st.rerun()
     
-    # Pełny podgląd = CAŁA prezentacja (export_mode=True), przewijalnie,
-    # dokładnie tak jak zobaczy ją klient. Poprzednia wersja wywoływała
-    # build_presentation() bez export_mode, co przez literówkę w domyślnym
-    # argumencie funkcji ("Strona Tytułowa" zamiast "Strona tytułowa")
-    # nie dopasowywało żadnego slajdu - stąd pusty, szary ekran.
     if "client_preview" not in st.session_state:
         st.session_state.client_preview = st.empty()
     
     with st.session_state.client_preview.container():
-        _full_html = build_presentation(export_mode=True)
+        _slides_html = build_presentation(export_mode=True)
+        _css_html = get_local_css(return_str=True)
         import streamlit.components.v1 as components
         components.html(
-            f"""<div style="height:100vh; overflow-y:auto; background:#f4f5f7;">{_full_html}</div>""",
+            f"""{_css_html}<div class="presentation-wrapper" style="height:100vh; overflow-y:auto;">{_slides_html}</div>""",
             height=900, scrolling=True,
         )
         
