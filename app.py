@@ -833,9 +833,9 @@ with st.sidebar:
     st.markdown("<div style='margin-bottom:10px;'></div>", unsafe_allow_html=True)
 
     # ==========================================================================
-    # ZWIJANY PANEL: ZARZĄDZANIE OFERTĄ (rzadsze czynności — domyślnie zwinięty)
+    # ZWIJANY PANEL: ZARZĄDZANIE PREZENTACJĄ (rzadsze czynności — domyślnie zwinięty)
     # ==========================================================================
-    with st.expander("ZARZĄDZANIE OFERTĄ", expanded=False):
+    with st.expander("ZARZĄDZANIE PREZENTACJĄ", expanded=False):
 
         # --- Wczytaj inny projekt ---
         st.markdown(
