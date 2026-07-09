@@ -1797,8 +1797,25 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         </div>
         """
         
+        # Region wyświetlany tylko jeśli wypełniony - jako osobny wiersz na
+        # całą szerokość nad siatką metryczek (może być dłuższym tekstem,
+        # np. "Hanoi – Hoi An – Zatoka Ha Long", więc nie mieści się dobrze
+        # w jednej kolumnie siatki 2-kolumnowej).
+        _t_region_val = str(get_data('t_region', '') or '').strip()
+        region_html = (
+            f"""
+            <div style="margin-bottom:18px;">
+                <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
+                            color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">REGION / TRASA</div>
+                <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{_t_region_val}</div>
+            </div>
+            """
+            if _t_region_val else ''
+        )
+
         # Subtelne metryczki - etykiety w kolorze akcentu, wartości regular weight
         metrics_html = f"""
+        {region_html}
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px 30px; margin-top:10px;">
             <div>
                 <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
