@@ -597,27 +597,46 @@ def create_slug(text):
     text = re.sub(r'[-\s]+', '-', text)
     return text.strip('-')
 def parse_date_and_days():
+    """
+    Parsuje pole 'Termin' ze strony tytułowej i ustawia p_start_dt/num_days.
+
+    NAPRAWA 1 (kolejność wzorców): m1 sprawdzany był kiedyś PRZED m2 i nie
+    był zakotwiczony (^...$) - dla wpisu "06.10-09.10.2026" (pełny format
+    DD.MM-DD.MM.RRRR) potrafił błędnie dopasować się do FRAGMENTU
+    "10-09.10.2026", dając błędną datę startu przesuniętą o kilka dni.
+    Teraz m2 (pełny format) sprawdzany jest pierwszy, oba wzorce są
+    zakotwiczone - żaden nie złapie przypadkowego podciągu.
+
+    NAPRAWA 2 (ochrona ręcznej korekty): jeśli operator zaznaczył
+    'prg_start_override' (rzadki przypadek: program zaczyna się w innym
+    dniu niż przylot), p_start_dt NIE jest nadpisywane przy ponownym
+    wywołaniu tej funkcji - tylko num_days aktualizuje się normalnie.
+    """
     d_str = st.session_state.get('t_date', '').strip()
-    m1 = re.search(r'(\d{1,2})\s*-\s*(\d{1,2})\.(\d{1,2})\.(\d{4})', d_str)
+    _override = bool(st.session_state.get('prg_start_override', False))
     m2 = re.search(r'^(\d{1,2})\.(\d{1,2})\s*-\s*(\d{1,2})\.(\d{1,2})\.(\d{4})$', d_str)
+    m1 = re.search(r'^(\d{1,2})\s*-\s*(\d{1,2})\.(\d{1,2})\.(\d{4})$', d_str)
     m3 = re.search(r'^(\d{1,2})\.(\d{1,2})\.(\d{4})$', d_str)
     try:
-        if m1:
-            s_dt = date(int(m1.group(4)), int(m1.group(3)), int(m1.group(1)))
-            st.session_state['num_days'] = (
-                date(int(m1.group(4)), int(m1.group(3)), int(m1.group(2))) - s_dt
-            ).days + 1
-            st.session_state['p_start_dt'] = s_dt
-        elif m2:
+        if m2:
             s_dt = date(int(m2.group(5)), int(m2.group(2)), int(m2.group(1)))
             st.session_state['num_days'] = (
                 date(int(m2.group(5)), int(m2.group(4)), int(m2.group(3))) - s_dt
             ).days + 1
-            st.session_state['p_start_dt'] = s_dt
+            if not _override:
+                st.session_state['p_start_dt'] = s_dt
+        elif m1:
+            s_dt = date(int(m1.group(4)), int(m1.group(3)), int(m1.group(1)))
+            st.session_state['num_days'] = (
+                date(int(m1.group(4)), int(m1.group(3)), int(m1.group(2))) - s_dt
+            ).days + 1
+            if not _override:
+                st.session_state['p_start_dt'] = s_dt
         elif m3:
             s_dt = date(int(m3.group(3)), int(m3.group(2)), int(m3.group(1)))
             st.session_state['num_days'] = 1
-            st.session_state['p_start_dt'] = s_dt
+            if not _override:
+                st.session_state['p_start_dt'] = s_dt
     except Exception:
         pass
 _COLOR_KEYS = {'color_h1', 'color_h2', 'color_sub', 'color_accent', 'color_text', 'color_metric'}
