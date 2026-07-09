@@ -1860,15 +1860,20 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         </div>
         """
         
-        # Layout: zdjęcie szersze (65% lewa kolumna), info 35% prawa
+        # Layout zdjęcie/tekst - proporcja ustawiana WYŁĄCZNIE przez flex:62/38.
+        # box-sizing:border-box na obu kolumnach jest KLUCZOWE: bez tego,
+        # padding prawej kolumny (95px w poziomie) dolicza się PONAD wyliczoną
+        # przez flex-grow szerokość (domyślny content-box), przesuwając realną
+        # proporcję z zamierzonych 62:38 do ok. 52:48 - dokładnie ten objaw,
+        # który widać na zrzutach ekranu.
         hp.append(_shtml(f"""{playfair_import}{lh}
-        <div style="display:flex; gap:0; flex-grow:1; min-height:0; width:100%; overflow:hidden; margin:-30px -45px -15px -45px; padding:0;">
-            <div style="flex:62 1 0; position:relative; height:100%; overflow:hidden; background:#fcfcfc;">
+        <div style="display:flex; gap:0; flex-grow:1; min-height:0; width:100%; overflow:hidden; margin:-30px -45px -15px -45px; padding:0; box-sizing:border-box;">
+            <div style="flex:62 1 0; position:relative; height:100%; overflow:hidden; background:#fcfcfc; box-sizing:border-box;">
                 <div style="position:absolute; top:0; left:0; width:100%; height:100%;">
                     {im1}
                 </div>
             </div>
-            <div style="flex:38 1 0; display:flex; flex-direction:column; height:100%; justify-content:center; padding:30px 45px 15px 50px;">
+            <div style="flex:38 1 0; display:flex; flex-direction:column; height:100%; justify-content:center; padding:30px 45px 15px 50px; box-sizing:border-box;">
                 {lcli_container}
                 {title_html}
                 {metrics_html}
