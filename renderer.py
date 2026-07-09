@@ -895,9 +895,15 @@ Wymagania:
 {_wskazowki_block}
 Napisz sam opis, bez żadnego wstępu ani komentarza."""
 
+    # Alias "gemini-flash-latest" zamiast sztywnej wersji modelu - Google
+    # automatycznie kieruje go na aktualnie zalecany, dostępny model Flash.
+    # Modele Gemini bywają wycofywane dla nowych kluczy API co kilka miesięcy
+    # (np. gemini-2.5-flash-lite przestał być dostępny dla nowych użytkowników
+    # jeszcze przed swoim planowanym terminem wycofania) - alias chroni przed
+    # koniecznością ręcznej aktualizacji nazwy modelu przy każdym takim cięciu.
     url = (
         "https://generativelanguage.googleapis.com/v1beta/models/"
-        f"gemini-2.5-flash-lite:generateContent?key={api_key}"
+        f"gemini-flash-latest:generateContent?key={api_key}"
     )
     body = _json.dumps({
         "contents": [{"parts": [{"text": prompt}]}],
