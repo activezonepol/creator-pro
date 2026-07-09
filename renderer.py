@@ -1822,7 +1822,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         <div style="margin-top:10px;">
             <div style="margin-bottom:20px;">
                 <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
-                            color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">PRZYGOTOWANO DLA</div>
+                            color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">PRZYGOTOWANO DLA:</div>
                 <div style="font-family:'{f_t}'; font-weight:600; font-size:{fs_t+8}px; color:{c_t};">{get_data('t_klient','')}</div>
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px 30px;">
