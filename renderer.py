@@ -926,8 +926,6 @@ Napisz sam opis, bez żadnego wstępu ani komentarza."""
     except Exception as e:
         return None, f"Błąd połączenia z Gemini: {str(e)[:150]}"
 
-
-def auto_generate_kosztorys():
 def auto_generate_kosztorys():
     s = st.session_state
     
