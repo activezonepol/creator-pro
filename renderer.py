@@ -910,27 +910,42 @@ Napisz sam opis, bez żadnego wstępu ani komentarza."""
         "generationConfig": {"temperature": 0.8, "maxOutputTokens": 500},
     }).encode('utf-8')
 
-    try:
-        req = _ur.Request(
-            url, data=body,
-            headers={'Content-Type': 'application/json'},
-            method='POST',
-        )
-        with _ur.urlopen(req, timeout=20) as resp:
-            data = _json.loads(resp.read().decode('utf-8'))
-        _candidates = data.get('candidates', [])
-        if not _candidates:
-            return None, "Model nie zwrócił żadnej odpowiedzi (możliwe zablokowanie treści)."
-        _parts = _candidates[0].get('content', {}).get('parts', [])
-        _text = ''.join(p.get('text', '') for p in _parts).strip()
-        if not _text:
-            return None, "Odpowiedź modelu była pusta."
-        return _text, None
-    except _ue.HTTPError as e:
-        _detail = e.read().decode('utf-8', errors='ignore')[:200]
-        return None, f"Błąd API Gemini ({e.code}): {_detail}"
-    except Exception as e:
-        return None, f"Błąd połączenia z Gemini: {str(e)[:150]}"
+    import time as _time
+    _max_retries = 3
+    _last_error = None
+    for _attempt in range(_max_retries):
+        try:
+            req = _ur.Request(
+                url, data=body,
+                headers={'Content-Type': 'application/json'},
+                method='POST',
+            )
+            with _ur.urlopen(req, timeout=20) as resp:
+                data = _json.loads(resp.read().decode('utf-8'))
+            _candidates = data.get('candidates', [])
+            if not _candidates:
+                return None, "Model nie zwrócił żadnej odpowiedzi (możliwe zablokowanie treści)."
+            _parts = _candidates[0].get('content', {}).get('parts', [])
+            _text = ''.join(p.get('text', '') for p in _parts).strip()
+            if not _text:
+                return None, "Odpowiedź modelu była pusta."
+            return _text, None
+        except _ue.HTTPError as e:
+            _detail = e.read().decode('utf-8', errors='ignore')[:200]
+            # 503 (przeciążenie) i 429 (limit) to błędy PRZEJŚCIOWE - warto
+            # ponowić próbę zamiast od razu pokazywać błąd operatorowi.
+            if e.code in (503, 429) and _attempt < _max_retries - 1:
+                _last_error = f"Błąd API Gemini ({e.code}): {_detail}"
+                _time.sleep(2 * (_attempt + 1))  # 2s, potem 4s
+                continue
+            return None, f"Błąd API Gemini ({e.code}): {_detail}"
+        except Exception as e:
+            _last_error = f"Błąd połączenia z Gemini: {str(e)[:150]}"
+            if _attempt < _max_retries - 1:
+                _time.sleep(2 * (_attempt + 1))
+                continue
+            return None, _last_error
+    return None, _last_error or "Nieznany błąd po wielu próbach."
 
 def auto_generate_kosztorys():
     s = st.session_state
