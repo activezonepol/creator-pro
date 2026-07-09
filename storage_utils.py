@@ -28,7 +28,7 @@ _ATTR_GALLERY_KEY_PATTERN = re.compile(r'^(ah|at1|at2|at3)_\d+$')
 def _is_attraction_image_key(key: str) -> bool:
     return bool(_ATTR_GALLERY_KEY_PATTERN.match(key))
 
-def upload_image(supabase_client, key: str, raw_bytes: bytes, max_dim: int = 1000, is_logo: bool = False) -> str | None:
+def upload_image(supabase_client, key: str, raw_bytes: bytes, max_dim: int = 1400, is_logo: bool = False) -> str | None:
     """Optymalizuje zdjęcie i uploaduje do Supabase Storage. Zwraca publiczny URL."""
     if not raw_bytes:
         return None
