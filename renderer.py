@@ -336,7 +336,7 @@ defaults = {
     't_main': 'NAZWA PROJEKTU', 't_sub': 'PODTYTUŁ PROJEKTU',
     't_klient': 'NAZWA KLIENTA', 't_kierunek': 'KIERUNEK',
     't_date': 'DD.MM-DD.MM.RRRR', 't_pax': '0', 't_hotel': 'WPISZ STANDARD',
-    't_trans': 'WPISZ TRANSPORT',
+    't_trans': 'WPISZ TRANSPORT', 't_region': '',
     'hide_logo_cli': False,
     'k_hide': False, 'k_overline': 'NASZ KIERUNEK', 'k_main': 'NAZWA KIERUNKU',
     'k_sub': 'PODTYTUŁ KIERUNKU', 'k_opis': 'Opisz tutaj piękno kierunku...',
