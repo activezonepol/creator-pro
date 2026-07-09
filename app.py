@@ -955,7 +955,7 @@ with st.sidebar:
                 st.rerun()
         if st.session_state.get('ready_export_html'):
             st.download_button(
-                "POBIERZ GOTOWY PLIK HTML",
+                "POBIERZ PREZENTACJE HTML",
                 st.session_state['ready_export_html'],
                 get_project_filename().replace('.json', '.html'),
                 "text/html",
