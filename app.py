@@ -26,7 +26,7 @@ from renderer import (
     get_project_filename, auto_generate_kosztorys, build_day_options,
     optimize_img, optimize_logo, geocode_place, generate_map_data,
     get_road_distance, format_duration,
-    get_local_css, build_presentation,
+    get_local_css, build_presentation, generate_kierunek_opis_ai,
 )
 from storage_utils import (
     upload_image, 
