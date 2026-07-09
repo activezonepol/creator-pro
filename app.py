@@ -1628,7 +1628,17 @@ with col_form:
             _guard([f"attr_{_d}", f"desc_{_d}"])                                     
         safe_checkbox("Ukryj CAŁĄ sekcję Programu w PDF", key="prg_hide")
         safe_number_input("Ilość dni:", key="num_days", default=4, min_value=1, max_value=15, step=1)
-        st.date_input("Data startu:", key="p_start_dt")
+
+        safe_checkbox(
+            "Program zaczyna się w innym dniu niż przylot (rzadki przypadek)",
+            key="prg_start_override",
+        )
+        if st.session_state.get('prg_start_override', False):
+            st.date_input("Data startu (ręcznie ustawiona):", key="p_start_dt")
+            st.caption("Data startu programu jest teraz niezależna od terminu na stronie tytułowej.")
+        else:
+            st.date_input("Data startu:", key="p_start_dt", disabled=True)
+            st.caption("Data startu wynika automatycznie z terminu na stronie tytułowej.")
         for d in range(st.session_state.get("num_days", 4)):
             with st.expander(f"Dzień {d+1}"):
                 for dk in [f"attr_{d}", f"desc_{d}"]:
