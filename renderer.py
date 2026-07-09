@@ -895,54 +895,54 @@ Wymagania:
 {_wskazowki_block}
 Napisz sam opis, bez żadnego wstępu ani komentarza."""
 
-    # Łańcuch modeli zapasowych: jeśli pierwszy model jest przeciążony (503)
-    # lub ma wyczerpany limit (429), próbujemy kolejnego z listy zamiast
-    # tylko ponawiać ten sam model. Rozwiązuje sytuację, gdy jeden konkretny
-    # model ma akurat trwałe przeciążenie w publicznym API, niezależnie od
-    # liczby ponowień na TYM SAMYM modelu.
-    _model_chain = ["gemini-3.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"]
+    # TYLKO gemini-3.5-flash - jedyny model potwierdzony jako dostępny dla
+    # tego klucza API (gemini-2.5-flash i gemini-2.5-flash-lite zwracają 404
+    # "no longer available to new users" - Google wycofał je z nowych kluczy).
+    # Przy przejściowym przeciążeniu (503) próbujemy do 4 razy z rosnącym
+    # odstępem zamiast przełączać się na model, do którego i tak nie ma dostępu.
+    url = (
+        "https://generativelanguage.googleapis.com/v1beta/models/"
+        f"gemini-3.5-flash:generateContent?key={api_key}"
+    )
     body = _json.dumps({
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": 0.8, "maxOutputTokens": 500},
     }).encode('utf-8')
 
     import time as _time
+    _max_retries = 4
     _last_error = None
-    for _model_name in _model_chain:
-        url = (
-            "https://generativelanguage.googleapis.com/v1beta/models/"
-            f"{_model_name}:generateContent?key={api_key}"
-        )
-        for _attempt in range(2):  # 2 próby na model, potem przechodzimy dalej
-            try:
-                req = _ur.Request(
-                    url, data=body,
-                    headers={'Content-Type': 'application/json'},
-                    method='POST',
-                )
-                with _ur.urlopen(req, timeout=20) as resp:
-                    data = _json.loads(resp.read().decode('utf-8'))
-                _candidates = data.get('candidates', [])
-                if not _candidates:
-                    _last_error = "Model nie zwrócił żadnej odpowiedzi (możliwe zablokowanie treści)."
-                    break
-                _parts = _candidates[0].get('content', {}).get('parts', [])
-                _text = ''.join(p.get('text', '') for p in _parts).strip()
-                if not _text:
-                    _last_error = "Odpowiedź modelu była pusta."
-                    break
-                return _text, None  # sukces - zwracamy od razu
-            except _ue.HTTPError as e:
-                _detail = e.read().decode('utf-8', errors='ignore')[:200]
-                _last_error = f"Błąd API Gemini ({e.code}, model {_model_name}): {_detail}"
-                if e.code in (503, 429) and _attempt == 0:
-                    _time.sleep(2)
-                    continue
-                break  # inny błąd lub druga próba nieudana -> następny model
-            except Exception as e:
-                _last_error = f"Błąd połączenia z Gemini ({_model_name}): {str(e)[:150]}"
-                break
-    return None, _last_error or "Nieznany błąd po wypróbowaniu wszystkich modeli."
+    for _attempt in range(_max_retries):
+        try:
+            req = _ur.Request(
+                url, data=body,
+                headers={'Content-Type': 'application/json'},
+                method='POST',
+            )
+            with _ur.urlopen(req, timeout=20) as resp:
+                data = _json.loads(resp.read().decode('utf-8'))
+            _candidates = data.get('candidates', [])
+            if not _candidates:
+                return None, "Model nie zwrócił żadnej odpowiedzi (możliwe zablokowanie treści)."
+            _parts = _candidates[0].get('content', {}).get('parts', [])
+            _text = ''.join(p.get('text', '') for p in _parts).strip()
+            if not _text:
+                return None, "Odpowiedź modelu była pusta."
+            return _text, None
+        except _ue.HTTPError as e:
+            _detail = e.read().decode('utf-8', errors='ignore')[:200]
+            if e.code in (503, 429) and _attempt < _max_retries - 1:
+                _last_error = f"Błąd API Gemini ({e.code}): {_detail}"
+                _time.sleep(3 * (_attempt + 1))  # 3s, 6s, 9s
+                continue
+            return None, f"Błąd API Gemini ({e.code}): {_detail}"
+        except Exception as e:
+            _last_error = f"Błąd połączenia z Gemini: {str(e)[:150]}"
+            if _attempt < _max_retries - 1:
+                _time.sleep(3 * (_attempt + 1))
+                continue
+            return None, _last_error
+    return None, _last_error or "Nieznany błąd po wielu próbach."
 
 def auto_generate_kosztorys():
     s = st.session_state
