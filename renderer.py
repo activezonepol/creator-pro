@@ -1823,7 +1823,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             <div style="margin-bottom:20px; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;">
                 <span style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
                              color:{acc}; text-transform:uppercase; letter-spacing:2.5px; white-space:nowrap;">PRZYGOTOWANO DLA</span>
-                <span style="font-family:'{f_t}'; font-weight:600; font-size:{fs_t+8}px; color:{c_t};">{get_data('t_klient','')}</span>
+                <span style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_klient','')}</span>
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px 30px;">
                 <div>
