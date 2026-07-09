@@ -678,19 +678,25 @@ def _rebuild_slide_order():
 # TRYB KLIENTA
 # ---------------------------------------------------------------------------
 if st.session_state['client_mode']:
-    # ... (Twój kod ze stylem CSS zostaje bez zmian) ...
-    
-    if st.button("ZAKOŃCZ PODGLĄD"):
+    if st.button("ZAKOŃCZ PODGLĄD", type="primary"):
         st.session_state['client_mode'] = False
         st.rerun()
     
-    # --- ZMIANA W TYM MIEJSCU ---
-    # Zamiast bezpośredniego wywołania, używamy kontenera:
+    # Pełny podgląd = CAŁA prezentacja (export_mode=True), przewijalnie,
+    # dokładnie tak jak zobaczy ją klient. Poprzednia wersja wywoływała
+    # build_presentation() bez export_mode, co przez literówkę w domyślnym
+    # argumencie funkcji ("Strona Tytułowa" zamiast "Strona tytułowa")
+    # nie dopasowywało żadnego slajdu - stąd pusty, szary ekran.
     if "client_preview" not in st.session_state:
         st.session_state.client_preview = st.empty()
     
     with st.session_state.client_preview.container():
-        build_presentation()
+        _full_html = build_presentation(export_mode=True)
+        import streamlit.components.v1 as components
+        components.html(
+            f"""<div style="height:100vh; overflow-y:auto; background:#f4f5f7;">{_full_html}</div>""",
+            height=900, scrolling=True,
+        )
         
     st.stop()
     
