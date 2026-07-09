@@ -870,7 +870,7 @@ with st.sidebar:
         else:
             st.caption("Brak projektów w bazie.")
 
-        if st.button("⧉ ZAPISZ JAKO NOWY", use_container_width=True, type="primary", key="btn_dup_current_expander"):
+        if st.button("ZAPISZ JAKO NOWY", use_container_width=True, type="primary", key="btn_dup_current_expander"):
             _duplicate_current_project()
 
         st.markdown("---")
