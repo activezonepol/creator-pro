@@ -377,6 +377,7 @@ defaults = {
     'map_dist_title': 'ODLEGŁOŚCI I CZAS DOJAZDU',
     'num_dist_pairs': 0,
     'ors_api_key': '',
+    'prg_start_override': False,
     'num_hotels': 1,
     'h_hide_0': False, 'h_overline_0': 'ZAKWATEROWANIE',
     'h_title_0': 'NAZWA HOTELU 5*',
