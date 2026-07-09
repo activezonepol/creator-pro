@@ -963,7 +963,7 @@ with st.sidebar:
                 use_container_width=True,
                 key="dl_ready_html_sidebar",
             )
-        if st.button("PODGLĄD PEŁNOEKRANOWY", use_container_width=True, key="btn_fullscreen_sidebar"):
+        if st.button("PODGLĄD PEŁNOEKRANOWY", type="primary", use_container_width=True, key="btn_fullscreen_sidebar"):
             st.session_state['client_mode'] = True
             st.rerun()
 
