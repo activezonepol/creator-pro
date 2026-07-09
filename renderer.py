@@ -828,6 +828,106 @@ def get_project_filename():
     tit = re.sub(r'[^A-Za-z0-9_-]', '',
                  str(st.session_state.get('t_main', 'OFERTA')).replace(' ', '_'))
     return f"{yy}-{mm}-{cc}-{cli}-{tit}.json"
+# ---------------------------------------------------------------------------
+# GENEROWANIE OPISU KIERUNKU PRZEZ AI (Gemini)
+# ---------------------------------------------------------------------------
+def generate_kierunek_opis_ai(dodatkowe_wskazowki: str = "") -> tuple[str | None, str | None]:
+    """
+    Generuje opis kierunku przez Gemini API na podstawie kontekstu już
+    wprowadzonego w formularzu (nazwa kierunku, kraj, region) oraz
+    opcjonalnych dodatkowych wskazówek operatora.
+
+    Zwraca (wygenerowany_tekst, błąd) - dokładnie jedno z nich jest None.
+    NIE zapisuje nic do session_state - to obowiązek wywołującego (operator
+    musi świadomie zaakceptować wynik przed wstawieniem do k_opis).
+    """
+    import json as _json
+    import urllib.request as _ur
+    import urllib.error as _ue
+
+    api_key = None
+    try:
+        api_key = st.secrets["gemini"]["api_key"]
+    except Exception:
+        return None, "Brak klucza API Gemini w konfiguracji aplikacji (sekcja [gemini] w Secrets)."
+
+    k_main = str(get_data('k_main', '') or '').strip() or 'kierunek nieokreślony'
+    country_name = str(get_data('country_name', '') or '').strip()
+    if country_name in ('', '-- Wybierz kraj --', 'Inny'):
+        country_name = k_main
+    t_region = str(get_data('t_region', '') or '').strip()
+
+    _region_block = (
+        f"Region/trasa wyjazdu: {t_region}\n\n"
+        f"WAŻNE: pisz WYŁĄCZNIE o wskazanym regionie/trasie ({t_region}), "
+        f"nie o kraju jako całości.\n"
+        if t_region else
+        f"Region/trasa wyjazdu: (nie podano)\n\n"
+        f"WAŻNE: region nie został podany - opisz {country_name} ogólnie.\n"
+    )
+
+    _wskazowki_block = (
+        f"\nDodatkowe wskazówki od operatora: {dodatkowe_wskazowki.strip()}\n"
+        if dodatkowe_wskazowki and dodatkowe_wskazowki.strip() else ""
+    )
+
+    prompt = f"""Napisz opis kierunku turystycznego na potrzeby oferty wyjazdu incentive
+travel (wyjazd motywacyjny/integracyjny dla pracowników firmy). Opis będzie
+czytany przez dział zakupów w korporacji, który ocenia ofertę - pisz więc
+językiem naturalnym i żywym, ale rzeczowym: unikaj sztampowych zwrotów
+marketingowych typu "niezapomniane wrażenia" czy "prawdziwa perła", zamiast
+tego pokaż konkretnie, co czyni to miejsce atrakcyjnym.
+
+Kierunek: {k_main}
+Kraj: {country_name}
+{_region_block}
+Wymagania:
+- Długość: 6-8 zdań (ok. 140-180 słów)
+- Język: polski, naturalny, jak dobrze napisany tekst dziennikarski
+- Kierunek ma wybrzmieć jako atrakcyjny wybór, ale wiarygodnie - poprzez
+  konkretne, sensoryczne lub praktyczne szczegóły (krajobraz, klimat,
+  charakter miejsca, rodzaj doświadczeń możliwych na miejscu), nie przez
+  puste superlatywy
+- Możesz naturalnie wspomnieć, dlaczego to miejsce dobrze nadaje się na
+  wyjazd integracyjny/motywacyjny dla zespołu
+- NIE używaj nagłówków, punktorów ani cudzysłowów
+- NIE wymyślaj konkretnych nazw hoteli, atrakcji czy dat
+{_wskazowki_block}
+Napisz sam opis, bez żadnego wstępu ani komentarza."""
+
+    url = (
+        "https://generativelanguage.googleapis.com/v1beta/models/"
+        f"gemini-2.5-flash-lite:generateContent?key={api_key}"
+    )
+    body = _json.dumps({
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.8, "maxOutputTokens": 500},
+    }).encode('utf-8')
+
+    try:
+        req = _ur.Request(
+            url, data=body,
+            headers={'Content-Type': 'application/json'},
+            method='POST',
+        )
+        with _ur.urlopen(req, timeout=20) as resp:
+            data = _json.loads(resp.read().decode('utf-8'))
+        _candidates = data.get('candidates', [])
+        if not _candidates:
+            return None, "Model nie zwrócił żadnej odpowiedzi (możliwe zablokowanie treści)."
+        _parts = _candidates[0].get('content', {}).get('parts', [])
+        _text = ''.join(p.get('text', '') for p in _parts).strip()
+        if not _text:
+            return None, "Odpowiedź modelu była pusta."
+        return _text, None
+    except _ue.HTTPError as e:
+        _detail = e.read().decode('utf-8', errors='ignore')[:200]
+        return None, f"Błąd API Gemini ({e.code}): {_detail}"
+    except Exception as e:
+        return None, f"Błąd połączenia z Gemini: {str(e)[:150]}"
+
+
+def auto_generate_kosztorys():
 def auto_generate_kosztorys():
     s = st.session_state
     
