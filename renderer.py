@@ -945,17 +945,25 @@ Napisz sam opis, bez żadnego wstępu ani komentarza."""
                 return None, _err
         return None, _err
 
-    _text, _err = _call_gemini("gemini-3.5-flash", retries=4, base_delay=3)
+    # Łańcuch modeli - wszystkie GA (ogólnodostępne), potwierdzone jako
+    # aktywne na tym koncie:
+    #   1. gemini-3.5-flash    - model główny, najlepszy stosunek jakość/koszt
+    #   2. gemini-3.1-flash-lite - tańszy/szybszy, inna pula zasobów - dobry
+    #                              zamiennik przy przeciążeniu głównego modelu
+    #   3. gemini-3.1-pro      - ostateczność, droższy, próbowany TYLKO RAZ
+    _text, _err = _call_gemini("gemini-3.5-flash", retries=3, base_delay=3)
     if _text:
         return _text, None
 
-    # Ostateczność: próba modelu wyższego poziomu, tylko RAZ
-    _text2, _err2 = _call_gemini("gemini-3.1-pro", retries=1, base_delay=0)
+    _text2, _err2 = _call_gemini("gemini-3.1-flash-lite", retries=2, base_delay=2)
     if _text2:
         return _text2, None
 
-    return None, f"{_err} | Rezerwowy model również zawiódł: {_err2}""
+    _text3, _err3 = _call_gemini("gemini-3.1-pro", retries=1, base_delay=0)
+    if _text3:
+        return _text3, None
 
+    return None, f"{_err} | {_err2} | {_err3}"
 def auto_generate_kosztorys():
     s = st.session_state
     
