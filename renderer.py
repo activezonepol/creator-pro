@@ -1868,12 +1868,12 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         # który widać na zrzutach ekranu.
         hp.append(_shtml(f"""{playfair_import}{lh}
         <div style="display:flex; gap:0; flex-grow:1; min-height:0; width:100%; overflow:hidden; margin:-30px -45px -15px -45px; padding:0; box-sizing:border-box;">
-            <div style="flex:70 1 0; position:relative; height:100%; overflow:hidden; background:#fcfcfc; box-sizing:border-box;">
+            <div style="flex:65 1 0; position:relative; height:100%; overflow:hidden; background:#fcfcfc; box-sizing:border-box;">
                 <div style="position:absolute; top:0; left:0; width:100%; height:100%;">
                     {im1}
                 </div>
             </div>
-            <div style="flex:30 1 0; display:flex; flex-direction:column; height:100%; justify-content:center; padding:30px 20px 15px 40px; box-sizing:border-box;">
+            <div style="flex:35 1 0; display:flex; flex-direction:column; height:100%; justify-content:center; padding:30px 20px 15px 40px; box-sizing:border-box;">
                 {lcli_container}
                 {title_html}
                 {metrics_html}
