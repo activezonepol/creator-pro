@@ -1265,6 +1265,48 @@ with col_form:
         safe_text_input("Podtytuł:", key="k_sub")
         safe_text_area("Opis (prawa kolumna):", height=160, key="k_opis",
                      help="Główny opis kierunku po prawej stronie slajdu.")
+
+        with st.expander("Generuj opis (AI)", expanded=False):
+            st.caption(
+                "AI wykorzysta nazwę kierunku, kraj i region (jeśli wypełniony "
+                "na stronie tytułowej) jako kontekst. Wygenerowany tekst pojawi "
+                "się poniżej do akceptacji - nic nie zostanie nadpisane automatycznie."
+            )
+            _ai_hint = st.text_area(
+                "Dodatkowe wskazówki (opcjonalnie):",
+                key="k_opis_ai_hint",
+                height=70,
+                placeholder="np. podkreśl aspekt przygody i natury, styl bardziej formalny...",
+            )
+            if st.button("Generuj opis", key="btn_gen_k_opis_ai", type="primary", use_container_width=True):
+                with st.spinner("Generowanie opisu..."):
+                    _wynik, _blad = generate_kierunek_opis_ai(_ai_hint)
+                if _blad:
+                    st.error(_blad)
+                    st.session_state.pop('k_opis_ai_result', None)
+                else:
+                    st.session_state['k_opis_ai_result'] = _wynik
+                    st.rerun()
+
+            if st.session_state.get('k_opis_ai_result'):
+                st.text_area(
+                    "Wygenerowany opis (podgląd):",
+                    value=st.session_state['k_opis_ai_result'],
+                    key="k_opis_ai_preview",
+                    height=180,
+                )
+                _c1, _c2 = st.columns(2)
+                with _c1:
+                    if st.button("Wstaw do opisu", key="btn_accept_k_opis_ai", type="primary", use_container_width=True):
+                        st.session_state['k_opis'] = st.session_state['k_opis_ai_result']
+                        st.session_state.pop('k_opis_ai_result', None)
+                        save_to_supabase()
+                        st.success("Wstawiono wygenerowany opis.")
+                        st.rerun()
+                with _c2:
+                    if st.button("Odrzuć", key="btn_reject_k_opis_ai", use_container_width=True):
+                        st.session_state.pop('k_opis_ai_result', None)
+                        st.rerun()
         
         _section_header("FAKTY KIERUNKU (ikony pod tekstem)")
         st.caption("Zaznacz ikony do pokazania. Limit wartości: 21 znaków. Układ: rząd po 3 ikony.")
