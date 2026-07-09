@@ -1813,39 +1813,49 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             if _t_region_val else ''
         )
 
-        # Subtelne metryczki - etykiety w kolorze akcentu, wartości regular weight
+        # Metryczki strony tytułowej - układ 4 wierszy:
+        # 1. Klient (pełna szerokość, wizualny akcent - większa czcionka)
+        # 2. Termin | Liczba osób
+        # 3. Kierunek | Region
+        # 4. Dojazd | Hotel
         metrics_html = f"""
-        {region_html}
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px 30px; margin-top:10px;">
-            <div>
+        <div style="margin-top:10px;">
+            <div style="margin-bottom:20px;">
                 <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
-                            color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">KLIENT</div>
-                <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_klient','')}</div>
+                            color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">PRZYGOTOWANO DLA</div>
+                <div style="font-family:'{f_t}'; font-weight:600; font-size:{fs_t+8}px; color:{c_t};">{get_data('t_klient','')}</div>
             </div>
-            <div>
-                <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
-                            color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">KIERUNEK</div>
-                <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_kierunek','')}</div>
-            </div>
-            <div>
-                <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
-                            color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">TERMIN</div>
-                <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_date','')}</div>
-            </div>
-            <div>
-                <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
-                            color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">LICZBA OSÓB</div>
-                <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_pax','')}</div>
-            </div>
-            <div>
-                <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
-                            color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">HOTEL</div>
-                <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_hotel','')}</div>
-            </div>
-            <div>
-                <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
-                            color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">DOJAZD</div>
-                <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_trans','')}</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px 30px;">
+                <div>
+                    <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
+                                color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">TERMIN</div>
+                    <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_date','')}</div>
+                </div>
+                <div>
+                    <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
+                                color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">LICZBA OSÓB</div>
+                    <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_pax','')}</div>
+                </div>
+                <div>
+                    <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
+                                color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">KIERUNEK</div>
+                    <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_kierunek','')}</div>
+                </div>
+                <div>
+                    <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
+                                color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">REGION</div>
+                    <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_region','')}</div>
+                </div>
+                <div>
+                    <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
+                                color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">DOJAZD</div>
+                    <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_trans','')}</div>
+                </div>
+                <div>
+                    <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
+                                color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">HOTEL</div>
+                    <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_hotel','')}</div>
+                </div>
             </div>
         </div>
         """
