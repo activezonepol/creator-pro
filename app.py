@@ -1209,7 +1209,15 @@ with col_form:
         )
         for k, l in [
             ('t_sub', 'Podtytuł'),
-            ('t_kierunek', 'Kierunek'), ('t_pax', 'Liczba osób'),
+            ('t_kierunek', 'Kierunek'),
+        ]:
+            safe_text_input(l, key=k)
+        safe_text_input(
+            'Region / trasa wyjazdu (opcjonalnie)', key='t_region',
+            help='Np. "Hanoi – Hoi An – Zatoka Ha Long" - konkretna trasa/region w kraju docelowym.',
+        )
+        for k, l in [
+            ('t_pax', 'Liczba osób'),
             ('t_hotel', 'Hotel'), ('t_trans', 'Dojazd'),
         ]:
             safe_text_input(l, key=k)
