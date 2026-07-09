@@ -651,7 +651,7 @@ _ADMIN_DATA_KEYS = {
     'num_dist_pairs', 'num_jaj_dist_pairs', 'num_sekcje',
     'hotel_order', 'attr_order', 'place_attr_order',
     'country_code', 'country_name', 'storage_folder', 'p_start_dt',
-    'ors_api_key', 'testim_count',
+    'ors_api_key', 'testim_count', 'prg_start_override',
     # UWAGA: 'active_project_id' CELOWO nie jest tutaj. To czysto techniczny
     # identyfikator BIEŻĄCEJ SESJI ROBOCZEJ (który wiersz w bazie aktualizować),
     # nie dana oferty. Zapisanie go do JSON/eksportu i odtworzenie przy
