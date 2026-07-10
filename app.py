@@ -278,7 +278,10 @@ def _check_login():
             else:
                 st.error("Nieprawidłowy login lub hasło.")
         st.markdown(
-            "<div style='text-align:center; color:#94a3b8; font-size:11px; margin-top:30px;'>"
+            "<div style='text-align:center; color:#94a3b8; font-size:11px; margin-top:20px;'>"
+            "Zapomniałeś hasła? Napisz do administratora aplikacji."
+            "</div>"
+            "<div style='text-align:center; color:#94a3b8; font-size:11px; margin-top:10px;'>"
             "www.activezone.pl"
             "</div>",
             unsafe_allow_html=True,
