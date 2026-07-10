@@ -252,7 +252,7 @@ def _check_login():
                 <div style="font-family:'Montserrat', sans-serif; font-weight:600;
                             font-size:13px; color:#FF6600; text-transform:uppercase;
                             letter-spacing:3px; margin-top:8px;">
-                    NEXA kreator ofert MICE
+                    kreator ofert MICE NEXA
                 </div>
             </div>
             """,
