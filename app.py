@@ -892,10 +892,41 @@ with st.sidebar:
         f"letter-spacing:1px;margin-bottom:8px;'>EDYCJA PREZENTACJI</div>",
         unsafe_allow_html=True,
     )
+
+    # 1. NOWY PROJEKT
     if st.button("+ NOWY PROJEKT", use_container_width=True, type="primary", key="btn_new_project_top"):
         _new_project()
+
+    # 2. WCZYTAJ PROJEKT Z BAZY
+    _all_offers_top = fetch_all_offers(supabase)
+    _current_proj_id_top = st.session_state.get('active_project_id')
+    if _all_offers_top:
+        _proj_options_top = ["-- Wybierz projekt --"] + [
+            f"{o.get('project_code', '???')} | {o.get('project_name', 'bez nazwy')[:30]}"
+            for o in _all_offers_top
+        ]
+        _proj_ids_top = [None] + [o['id'] for o in _all_offers_top]
+        _curr_idx_top = 0
+        if _current_proj_id_top and _current_proj_id_top in _proj_ids_top:
+            _curr_idx_top = _proj_ids_top.index(_current_proj_id_top)
+        _selected_proj_top = st.selectbox(
+            "Wczytaj projekt z bazy:",
+            _proj_options_top,
+            index=_curr_idx_top,
+            key="proj_select_top",
+        )
+        _sel_idx_top = _proj_options_top.index(_selected_proj_top)
+        if _sel_idx_top > 0 and _proj_ids_top[_sel_idx_top] != _current_proj_id_top:
+            if st.button("WCZYTAJ WYBRANY", use_container_width=True, key="btn_load_proj_top", type="primary"):
+                _switch_project(_proj_ids_top[_sel_idx_top])
+    else:
+        st.caption("Brak projektów w bazie.")
+
+    # 3. ZAPISZ JAKO NOWY
     if st.button("ZAPISZ JAKO NOWY", use_container_width=True, type="primary", key="btn_dup_current_top"):
         _duplicate_current_project()
+
+    # 4. ZAPISZ W BAZIE
     if st.button("ZAPISZ W BAZIE", use_container_width=True, type="primary", key="manual_save_btn"):
         save_to_supabase()
         st.rerun()
