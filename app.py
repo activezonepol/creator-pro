@@ -247,23 +247,15 @@ def _check_login():
         st.markdown(
             """
             <div style="text-align:center; margin-bottom:30px;">
-                <div style="font-family:'Montserrat', sans-serif; font-weight:800;
-                            font-size:32px; color:#003366; letter-spacing:1px;">
-                    ACTIVEZONE
-                </div>
+                <img src="https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/LOGO/Activezone%20trojkat_png%20przezroczyste.png"
+                     style="max-width:140px; max-height:140px; object-fit:contain; margin-bottom:10px;">
                 <div style="font-family:'Montserrat', sans-serif; font-weight:600;
                             font-size:13px; color:#FF6600; text-transform:uppercase;
-                            letter-spacing:3px; margin-top:4px;">
-                    Kreator Ofert MICE
+                            letter-spacing:3px; margin-top:8px;">
+                    NEXA kreator ofert MICE
                 </div>
             </div>
             """,
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            "<div style='text-align:center; color:#64748b; font-size:13px; margin-bottom:25px;'>"
-            "Zaloguj się, aby przejść do panelu tworzenia ofert."
-            "</div>",
             unsafe_allow_html=True,
         )
         with st.form("login_form"):
