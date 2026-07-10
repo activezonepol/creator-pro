@@ -37,10 +37,20 @@ from storage_utils import (
     run_migration_flow,
 )
 
+# ---------------------------------------------------------------------------
+# KONFIGURACJA STRONY — MUSI być pierwszym wywołaniem Streamlit w całym
+# skrypcie. Przeniesione tutaj (z dotychczasowego miejsca dużo niżej), bo
+# ekran logowania renderował się PRZED tą linią - przez co widoczny był
+# wąski, domyślny układ "centered" na ekranie logowania, a dopiero po
+# zalogowaniu (kolejny przebieg skryptu) aplikacja przełączała się na
+# szeroki układ "wide", dając widoczny, mylący "skok" szerokości okna.
+# ---------------------------------------------------------------------------
+st.set_page_config(layout="wide", page_title="Activezone Oferta",
+                   initial_sidebar_state="expanded")
+
 # --- INICJALIZACJA UI ---
 if "preview_container" not in st.session_state:
     st.session_state.preview_container = st.empty()
-
 # ---------------------------------------------------------------------------
 # HELPERY ZARZĄDZANIA PROJEKTAMI
 # ---------------------------------------------------------------------------
