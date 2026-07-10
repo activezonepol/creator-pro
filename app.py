@@ -223,6 +223,38 @@ def init_supabase() -> Client:
 supabase = init_supabase()
 st.session_state['supabase'] = supabase
 
+# ---------------------------------------------------------------------------
+# LOGOWANIE — proste, login+hasło z Secrets. Mały, stały zespół (3-8 osób),
+# hasła w jawnym tekście w Secrets (Secrets same w sobie są niepubliczne).
+# Nie dzieli danych na prywatne konta - wszyscy widzą wszystkie oferty,
+# login służy do identyfikacji (kto edytuje co) i blokad edycji.
+# ---------------------------------------------------------------------------
+def _check_login():
+    if st.session_state.get('current_user'):
+        return True
+
+    st.markdown(
+        "<h2 style='text-align:center; margin-top:60px;'>Logowanie</h2>",
+        unsafe_allow_html=True,
+    )
+    _col_l, _col_m, _col_r = st.columns([1, 1, 1])
+    with _col_m:
+        with st.form("login_form"):
+            _login = st.text_input("Login")
+            _pass = st.text_input("Hasło", type="password")
+            _submitted = st.form_submit_button("Zaloguj", type="primary", use_container_width=True)
+        if _submitted:
+            _users = dict(st.secrets.get("users", {}))
+            if _login in _users and _users[_login] == _pass:
+                st.session_state['current_user'] = _login
+                st.rerun()
+            else:
+                st.error("Nieprawidłowy login lub hasło.")
+    return False
+
+if not _check_login():
+    st.stop()
+
 def _validate_and_load_json(uploaded_file, expected_keys=None):
     """
     Bezpiecznie ładuje i waliduje JSON z uploaded file.
