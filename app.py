@@ -938,44 +938,6 @@ with st.sidebar:
     # ==========================================================================
     with st.expander("ZARZĄDZANIE PREZENTACJĄ", expanded=False):
 
-        # --- Wczytaj inny projekt ---
-        st.markdown(
-            f"<div style='font-size:10px;font-weight:700;color:{_acc_save};text-transform:uppercase;"
-            f"letter-spacing:1px;margin-bottom:8px;'>WCZYTAJ INNY PROJEKT</div>",
-            unsafe_allow_html=True,
-        )
-        _all_offers = fetch_all_offers(supabase)
-        _current_proj_id = st.session_state.get('active_project_id')
-
-        if _all_offers:
-            _proj_options = ["-- Wybierz --"] + [
-                f"{o.get('project_code', '???')} | {o.get('project_name', 'bez nazwy')[:30]}"
-                for o in _all_offers
-            ]
-            _proj_ids = [None] + [o['id'] for o in _all_offers]
-
-            _curr_idx = 0
-            if _current_proj_id and _current_proj_id in _proj_ids:
-                _curr_idx = _proj_ids.index(_current_proj_id)
-
-            _selected_proj = st.selectbox(
-                "Wybierz projekt z bazy:",
-                _proj_options,
-                index=_curr_idx,
-                key="proj_select",
-            )
-            _sel_idx = _proj_options.index(_selected_proj)
-            if _sel_idx > 0 and _proj_ids[_sel_idx] != _current_proj_id:
-                if st.button("WCZYTAJ WYBRANY", use_container_width=True, key="btn_load_proj", type="primary"):
-                    _switch_project(_proj_ids[_sel_idx])
-        else:
-            st.caption("Brak projektów w bazie.")
-
-        if st.button("ZAPISZ JAKO NOWY", use_container_width=True, type="primary", key="btn_dup_current_expander"):
-            _duplicate_current_project()
-
-        st.markdown("---")
-
         # --- Dysk lokalny ---
         st.markdown(
             f"<div style='font-size:10px;font-weight:700;color:{_acc_save};text-transform:uppercase;"
