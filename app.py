@@ -234,11 +234,38 @@ def _check_login():
         return True
 
     st.markdown(
-        "<h2 style='text-align:center; margin-top:60px;'>Logowanie</h2>",
+        """
+        <style>
+        [data-testid="stAppViewContainer"] > .block-container { padding-top: 4rem !important; }
+        </style>
+        """,
         unsafe_allow_html=True,
     )
-    _col_l, _col_m, _col_r = st.columns([1, 1, 1])
+
+    _col_l, _col_m, _col_r = st.columns([1, 1.2, 1])
     with _col_m:
+        st.markdown(
+            """
+            <div style="text-align:center; margin-bottom:30px;">
+                <div style="font-family:'Montserrat', sans-serif; font-weight:800;
+                            font-size:32px; color:#003366; letter-spacing:1px;">
+                    ACTIVEZONE
+                </div>
+                <div style="font-family:'Montserrat', sans-serif; font-weight:600;
+                            font-size:13px; color:#FF6600; text-transform:uppercase;
+                            letter-spacing:3px; margin-top:4px;">
+                    Kreator Ofert MICE
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            "<div style='text-align:center; color:#64748b; font-size:13px; margin-bottom:25px;'>"
+            "Zaloguj się, aby przejść do panelu tworzenia ofert."
+            "</div>",
+            unsafe_allow_html=True,
+        )
         with st.form("login_form"):
             _login = st.text_input("Login")
             _pass = st.text_input("Hasło", type="password")
@@ -250,6 +277,12 @@ def _check_login():
                 st.rerun()
             else:
                 st.error("Nieprawidłowy login lub hasło.")
+        st.markdown(
+            "<div style='text-align:center; color:#94a3b8; font-size:11px; margin-top:30px;'>"
+            "www.activezone.pl"
+            "</div>",
+            unsafe_allow_html=True,
+        )
     return False
 
 if not _check_login():
