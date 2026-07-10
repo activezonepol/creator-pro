@@ -467,10 +467,8 @@ def _section_header(label):
     )
 
 # ---------------------------------------------------------------------------
-# KONFIGURACJA STRONY
+# STYLE SIDEBARA (set_page_config przeniesiony na sam początek pliku)
 # ---------------------------------------------------------------------------
-st.set_page_config(layout="wide", page_title="Activezone Oferta",
-                   initial_sidebar_state="expanded")
 st.markdown("""
 <style>
 /* Zmniejszenie sidebara i powiększenie głównej części */
