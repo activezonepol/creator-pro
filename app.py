@@ -1053,8 +1053,9 @@ with st.sidebar:
     # 3. BUDOWANIE LISTY STRON (ZGODNIE ZE SPISEM TREŚCI)
     # Sufiksy menu: ikony po nazwie, kolorowane przez Streamlit markdown.
     # Aby dodać nowy sufiks: zdefiniuj stałą i dopisz do _MENU_SUFFIXES.
+    # Aby dodać nowy sufiks: zdefiniuj stałą i dopisz do _MENU_SUFFIXES.
     _HIDE_SUFFIX = "  :red[✖]"
-    _OPT_SUFFIX  = "  :blue[◆]"
+    _OPT_SUFFIX  = "  :red[(opcja)]"
     _MENU_SUFFIXES = (_HIDE_SUFFIX, _OPT_SUFFIX)
     
     def _strip_hide_suffix(name):
