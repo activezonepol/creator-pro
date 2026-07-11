@@ -252,7 +252,7 @@ def _check_login():
         unsafe_allow_html=True,
     )
 
-    _col_l, _col_m, _col_r = st.columns([1, 1.2, 1])
+    _col_l, _col_m, _col_r = st.columns([2, 1.2, 2])
     with _col_m:
         st.markdown(
             """
