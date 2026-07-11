@@ -701,9 +701,10 @@ def _attr_add():
     order = _attr_order()
     order.append(n)
     st.session_state['attr_order'] = order
-    # Ustawiamy nową stronę używając poprawnego formatu dla menu
-    new_name = _attr_display_name(len(order)-1)
-    st.session_state['last_page'] = f"   ★ {new_name}"
+    # Zapamiętujemy STABILNY indeks atrakcji (n), nie jej nazwę - nazwa
+    # jeszcze nie istnieje (nowa, pusta atrakcja) i zmieni się zaraz po
+    # wpisaniu tytułu.
+    st.session_state['_last_attr_idx'] = n
 
 def _attr_move(pos, direction):
     """Przesuwa atrakcję i aktualizuje last_page."""
