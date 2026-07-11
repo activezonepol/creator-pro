@@ -129,6 +129,7 @@ def migrate_bytes_to_storage(supabase_client):
     """Alias dla nowej funkcji (dla kompatybilności wstecznej z app.py)."""
     return cleanup_session_bytes_to_storage(supabase_client)
 
+@st.cache_data(ttl=20, show_spinner=False)
 def list_country_gallery(supabase_client, country_code: str, name_prefix: str = "attr_"):
     """
     Zwraca listę publicznych URL-i zdjęć zapisanych w folderze danego kraju,
