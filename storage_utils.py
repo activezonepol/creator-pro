@@ -142,7 +142,7 @@ def list_country_gallery(_supabase_client, country_code: str, name_prefix: str =
         _country_prefix = "XXX"
     folder_path = f"{STORAGE_USER}/{_country_prefix}"
     try:
-        files = supabase_client.storage.from_(STORAGE_BUCKET).list(folder_path)
+        files = _supabase_client.storage.from_(STORAGE_BUCKET).list(folder_path)
     except Exception:
         return []
     if not files:
@@ -154,7 +154,7 @@ def list_country_gallery(_supabase_client, country_code: str, name_prefix: str =
             continue
         _full_path = f"{folder_path}/{_name}"
         try:
-            _url = supabase_client.storage.from_(STORAGE_BUCKET).get_public_url(_full_path)
+            _url = _supabase_client.storage.from_(STORAGE_BUCKET).get_public_url(_full_path)
             urls.append(_url)
         except Exception:
             continue
