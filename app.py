@@ -1126,13 +1126,26 @@ with st.sidebar:
 
     # 4. GŁÓWNE MENU RADIO
     _last_p = st.session_state.get('last_page', "Strona tytułowa")
-    # Jeśli last_page to "Jak jedziemy?" a w _all_pages jest "Jak jedziemy?  :red[✕]" (ukryty),
-    # znajdz pasujący element po stripowaniu suffixu
+    _last_attr_idx = st.session_state.get('_last_attr_idx')
+
     _idx = 0
-    for _ii, _ll in enumerate(_all_pages):
-        if _strip_hide_suffix(_ll) == _strip_hide_suffix(_last_p):
-            _idx = _ii
-            break
+    if _last_attr_idx is not None:
+        # NAJPIERW próbujemy dopasować po STABILNYM indeksie atrakcji (_ai),
+        # nie po treści etykiety - etykieta zawiera tytuł atrakcji (amain_X),
+        # który zmienia się w trakcie pisania, więc dopasowanie po tekście
+        # gubi zaznaczenie i przeskakuje na pozycję 0 przy każdej literze
+        # wpisanej w polu tytułu.
+        for _page_pos, _ai_candidate in _attr_page_indices.items():
+            if _ai_candidate == _last_attr_idx:
+                _idx = _page_pos
+                break
+    else:
+        # Dopasowanie po treści etykiety - dla wszystkich stron NIE będących
+        # atrakcją (te mają stałe, nie zmieniające się w locie nazwy).
+        for _ii, _ll in enumerate(_all_pages):
+            if _strip_hide_suffix(_ll) == _strip_hide_suffix(_last_p):
+                _idx = _ii
+                break
     
     def _handle_nav():
         # Zapisujemy do last_page wartość BEZ suffixu - dzięki temu elif page == "..." działa
