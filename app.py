@@ -713,8 +713,8 @@ def _attr_move(pos, direction):
     if 0 <= new_pos < len(order):
         order[pos], order[new_pos] = order[new_pos], order[pos]
         st.session_state['attr_order'] = order
-        # Po przesunięciu ustawiamy last_page na nową pozycję
-        st.session_state['last_page'] = f"   ★ {_attr_display_name(new_pos)}"
+        # Zapamiętujemy STABILNY indeks atrakcji, nie jej nazwę.
+        st.session_state['_last_attr_idx'] = order[new_pos]
 
 def _attr_delete(pos):
     """Usuwa atrakcję i wraca do przerywnika."""
