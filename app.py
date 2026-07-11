@@ -268,6 +268,18 @@ def _check_login():
             """,
             unsafe_allow_html=True,
         )
+        st.markdown(
+            """
+            <style>
+            div[data-testid="stFormSubmitButton"] button {
+                background-color: #FF6600 !important;
+                border-color: #FF6600 !important;
+                color: white !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
         with st.form("login_form"):
             _login = st.text_input("Login")
             _pass = st.text_input("Hasło", type="password")
