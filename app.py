@@ -1055,7 +1055,7 @@ with st.sidebar:
     # Aby dodać nowy sufiks: zdefiniuj stałą i dopisz do _MENU_SUFFIXES.
     # Aby dodać nowy sufiks: zdefiniuj stałą i dopisz do _MENU_SUFFIXES.
     _HIDE_SUFFIX = "  :red[✖]"
-    _OPT_SUFFIX  = "  :(opcja)"
+    _OPT_SUFFIX  = "  :red[opcja]"
     _MENU_SUFFIXES = (_HIDE_SUFFIX, _OPT_SUFFIX)
     
     def _strip_hide_suffix(name):
