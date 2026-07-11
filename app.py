@@ -295,7 +295,7 @@ def _check_login():
             "<div style='text-align:center; color:#475569; font-size:16px; font-weight:600; margin-top:20px;'>"
             "Zapomniałeś hasła? Napisz do administratora aplikacji."
             "</div>"
-            "<div style='text-align:center; color:#94a3b8; font-size:11px; margin-top:10px;'>"
+            "<div style='text-align:center; color:#475569; font-size:16px; font-weight:600; margin-top:10px;'>"
             "www.activezone.pl"
             "</div>",
             unsafe_allow_html=True,
