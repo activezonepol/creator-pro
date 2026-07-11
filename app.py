@@ -1098,8 +1098,10 @@ with st.sidebar:
         "Opis atrakcji"
     ]
     # Atrakcje dynamiczne
+    _attr_page_indices = {}  # mapowanie: indeks w _all_pages -> indeks atrakcji (_ai)
     for _ap in range(_n_attr):
         _ai = _attr_order()[_ap]
+        _attr_page_indices[len(_all_pages)] = _ai
         _all_pages.append(_label_attr(f"    ★ {_attr_display_name(_ap)}", f"ahide_{_ai}", f"aopt_label_{_ai}"))
     
     _all_pages.append(_label_with_hide("  ↳ Przerywnik hotel", "sek_hide_0"))
