@@ -1164,7 +1164,6 @@ with st.sidebar:
         st.session_state['_last_attr_idx'] = _found_ai
         if 'scroll_target' in st.session_state:
             del st.session_state['scroll_target']
-            del st.session_state['scroll_target']
     page = st.radio("Nawigacja", _all_pages, index=_idx, key="main_nav_radio", 
                     label_visibility="collapsed", on_change=_handle_nav)
     # Normalizujemy page - usuwamy suffix ukrytego slajdu, żeby elif page == "..." działało
