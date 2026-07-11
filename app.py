@@ -1149,8 +1149,19 @@ with st.sidebar:
     
     def _handle_nav():
         # Zapisujemy do last_page wartość BEZ suffixu - dzięki temu elif page == "..." działa
-        st.session_state['last_page'] = _strip_hide_suffix(st.session_state['main_nav_radio'])
+        _chosen = st.session_state['main_nav_radio']
+        st.session_state['last_page'] = _strip_hide_suffix(_chosen)
+        # Zapamiętaj STABILNY indeks atrakcji (_ai), jeśli wybrano atrakcję -
+        # pozwala poprawnie odnaleźć pozycję na liście nawet gdy tytuł
+        # atrakcji zmieni się w trakcie edycji (patrz uzasadnienie przy _idx).
+        _found_ai = None
+        for _page_pos, _ai_candidate in _attr_page_indices.items():
+            if _all_pages[_page_pos] == _chosen:
+                _found_ai = _ai_candidate
+                break
+        st.session_state['_last_attr_idx'] = _found_ai
         if 'scroll_target' in st.session_state:
+            del st.session_state['scroll_target']
             del st.session_state['scroll_target']
     page = st.radio("Nawigacja", _all_pages, index=_idx, key="main_nav_radio", 
                     label_visibility="collapsed", on_change=_handle_nav)
