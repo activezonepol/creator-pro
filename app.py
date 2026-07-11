@@ -724,6 +724,7 @@ def _attr_delete(pos):
         st.session_state['num_attr'] = st.session_state.get('num_attr', 1) - 1
         st.session_state['attr_order'] = order
         st.session_state['last_page'] = "  ↳ Przerywnik atrakcje"
+        st.session_state['_last_attr_idx'] = None  # wracamy do strony NIE-atrakcji
         st.session_state['_attr_focused'] = None
 
 def _attr_display_name(pos):
