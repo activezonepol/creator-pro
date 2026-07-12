@@ -1303,6 +1303,24 @@ with col_form:
         st.session_state['country_name'] = _selected_country
         # Aktualizujemy country_code od razu
         _sync_country_code()
+
+        # Auto-uzupełnienie faktów o kraju (stolica, waluta, mieszkańcy,
+        # różnica czasu) - TYLKO przy faktycznej zmianie kraju. Jeśli
+        # operator później ręcznie poprawi te pola (np. przetłumaczy nazwę
+        # stolicy), zostaną nietknięte aż do kolejnej zmiany kraju.
+        if _country_changed:
+            _cc = st.session_state.get('country_code', '')
+            _facts = fetch_country_facts(_cc)
+            if _facts:
+                if _facts.get('stolica'):
+                    st.session_state['k_icon_stolica_val'] = _facts['stolica']
+                if _facts.get('waluta'):
+                    st.session_state['k_icon_waluta_val'] = _facts['waluta']
+                if _facts.get('mieszkancy'):
+                    st.session_state['k_icon_mieszkancy_val'] = _facts['mieszkancy']
+                if _facts.get('strefa'):
+                    st.session_state['k_icon_strefa_val'] = _facts['strefa']
+
         # Natychmiastowy zapis przy zmianie kraju - bez czekania na kolejny
         # rerun wywołany innym kliknięciem (np. wejściem na inny slajd).
         if _country_changed:
