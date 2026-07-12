@@ -1110,7 +1110,7 @@ with st.sidebar:
         _label_with_hide("  ↳ Przerywnik program", "sek_hide_3"), 
         _label_with_hide("Program wyjazdu", "prg_hide"),
         _label_with_hide("  ↳ Przerywnik atrakcje", "sek_hide_1"), 
-        "Opis atrakcji"
+        "Zarządzanie atrakcjami"
     ]
     # Atrakcje dynamiczne
     _attr_page_indices = {}  # mapowanie: indeks w _all_pages -> indeks atrakcji (_ai)
