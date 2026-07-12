@@ -1653,16 +1653,48 @@ with col_form:
         safe_checkbox("Ukryj ten slajd w PDF", key="l_hide")
         safe_text_input("Mały nadtytuł:", key="l_overline")
         safe_text_input("Tytuł (H1):", key="l_main")
-        for k, l in [('l_sub', 'Podtytuł'), ('m_route', 'Trasa'), ('m_luggage', 'Bagaż'),
-                     ('f1', 'Lot 1'), ('f2', 'Lot 2')]:
+        for k, l in [('l_sub', 'Podtytuł'), ('m_route', 'Trasa'), ('m_luggage', 'Bagaż')]:
             safe_text_input(l, key=k)
+
+        def _make_time_callback(k):
+            def _cb():
+                _formatted, _is_valid = format_flight_time(st.session_state.get(k, ''))
+                st.session_state[k] = _formatted
+                st.session_state[f'_{k}_valid'] = _is_valid
+            return _cb
+
+        def _render_flight_leg(n, label):
+            _section_header(label)
+            c1, c2 = st.columns(2)
+            c1.text_input("Nr lotu", key=f"f{n}_nr", placeholder="np. LO 535")
+            c2.text_input("Data", key=f"f{n}_data", placeholder="np. 06OCT")
+            st.text_input("Trasa (skróty lotnisk)", key=f"f{n}_trasa", placeholder="np. WAW-BUD")
+            c3, c4 = st.columns(2)
+            c3.text_input(
+                "Godzina wylotu (format 00:00)", key=f"f{n}_wylot",
+                on_change=_make_time_callback(f"f{n}_wylot"),
+                placeholder="np. 10:40",
+            )
+            if st.session_state.get(f'_f{n}_wylot_valid') is False:
+                c3.warning("Nierozpoznany format godziny - popraw ręcznie (wzór: 00:00).")
+            c4.text_input(
+                "Godzina przylotu (format 00:00)", key=f"f{n}_przylot",
+                on_change=_make_time_callback(f"f{n}_przylot"),
+                placeholder="np. 12:00",
+            )
+            if st.session_state.get(f'_f{n}_przylot_valid') is False:
+                c4.warning("Nierozpoznany format godziny - popraw ręcznie (wzór: 00:00).")
+
+        _render_flight_leg(1, "LOT TAM")
+        _render_flight_leg(2, "LOT POWRÓT")
+
         if safe_checkbox("Lot z przesiadką", key="l_przesiadka"):
-            _section_header("DANE PRZESIADKI I KOLEJNE ODCINKI LOTU")
+            _section_header("DANE PRZESIADKI")
             c1, c2 = st.columns(2)
             c1.text_input("Port przesiadkowy:", key="l_port")
             c2.text_input("Długość przesiadki:", key="l_czas")
-            for k, l in [('f3', 'Lot 3'), ('f4', 'Lot 4')]:
-                safe_text_input(l, key=k)
+            _render_flight_leg(3, "LOT TAM - odcinek 2 (po przesiadce)")
+            _render_flight_leg(4, "LOT POWRÓT - odcinek 2 (po przesiadce)")
         for k, l in [('l_desc', 'Opis'), ('l_extra', 'Dodatkowe info')]:
             safe_text_area(l, key=k)
         st.file_uploader(
