@@ -2414,16 +2414,21 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         il = get_b64('img_hero_l', (4, 5))
         iml = _img_tag(il, 'FOTO SAMOLOTU')
         
-        f_keys = ['f1', 'f2']
+        _leg_numbers = [1, 2]
         if get_data('l_przesiadka', False):
-            f_keys.extend(['f3', 'f4'])
-            
+            _leg_numbers.extend([3, 4])
+
         rows = ""
-        for f_key in f_keys:
-            f_val = str(get_data(f_key, ''))
-            parts = f_val.split(',')
-            if len(parts) >= 4:
-                rows += f"<tr><td>{parts[0]}</td><td>{parts[1]}</td><td>{parts[2]}</td><td>{parts[3]}</td></tr>"
+        for _n in _leg_numbers:
+            _nr = str(get_data(f'f{_n}_nr', '')).strip()
+            _data_lot = str(get_data(f'f{_n}_data', '')).strip()
+            _trasa = str(get_data(f'f{_n}_trasa', '')).strip()
+            _wylot = str(get_data(f'f{_n}_wylot', '')).strip()
+            _przylot = str(get_data(f'f{_n}_przylot', '')).strip()
+            if not (_nr or _data_lot or _trasa or _wylot or _przylot):
+                continue
+            _godziny = f"{_wylot} - {_przylot}" if (_wylot or _przylot) else ""
+            rows += f"<tr><td>{_nr}</td><td>{_data_lot}</td><td>{_trasa}</td><td>{_godziny}</td></tr>"
                 
         przesiadka_html = ""
         if get_data('l_przesiadka', False):
