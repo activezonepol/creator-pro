@@ -841,15 +841,18 @@ def _country_facts_cache_set(iso2: str, data: dict):
     cache = st.session_state.setdefault('_country_facts_cache', {})
     cache[iso2] = data
 
-def fetch_country_facts(iso2_code: str) -> dict | None:
+def fetch_country_facts(country_code: str) -> dict | None:
     """
     Pobiera z REST Countries (darmowe, publiczne API, bez klucza) fakty
     o kraju: stolica, waluta, liczba mieszkańców, przybliżona różnica czasu
-    względem Polski. Zwraca None przy błędzie (np. brak internetu, zły kod).
+    względem Polski. Akceptuje kod ISO3 (np. "HUN") - dokładnie taki format,
+    jaki jest już w session_state['country_code'] - REST Countries obsługuje
+    zarówno ISO2, jak i ISO3 pod tym samym endpointem /alpha/{code}.
+    Zwraca None przy błędzie (np. brak internetu, zły kod).
     """
-    if not iso2_code:
+    if not country_code:
         return None
-    cached = _country_facts_cache_get(iso2_code)
+    cached = _country_facts_cache_get(country_code)
     if cached is not None:
         return cached
 
@@ -857,7 +860,7 @@ def fetch_country_facts(iso2_code: str) -> dict | None:
     import urllib.request as _ur
 
     try:
-        url = f"https://restcountries.com/v3.1/alpha/{iso2_code}?fields=capital,currencies,population,timezones"
+        url = f"https://restcountries.com/v3.1/alpha/{country_code}?fields=capital,currencies,population,timezones"
         req = _ur.Request(url, headers={'User-Agent': 'Activezone-Oferty/1.0'})
         with _ur.urlopen(req, timeout=8) as resp:
             data = _json.loads(resp.read().decode('utf-8'))
