@@ -1308,9 +1308,12 @@ with col_form:
         # różnica czasu) - TYLKO przy faktycznej zmianie kraju. Jeśli
         # operator później ręcznie poprawi te pola (np. przetłumaczy nazwę
         # stolicy), zostaną nietknięte aż do kolejnej zmiany kraju.
+        st.write(f"DEBUG: _country_changed={_country_changed}, _selected_country={_selected_country}")
         if _country_changed:
             _cc = st.session_state.get('country_code', '')
+            st.write(f"DEBUG: country_code={_cc}")
             _facts = fetch_country_facts(_cc)
+            st.write(f"DEBUG: facts={_facts}")
             if _facts:
                 # Ustawiamy RÓWNOCZEŚNIE klucz docelowy i jego bufor
                 # (buffer_{key}) - safe_text_input/safe_text_area synchronizują
