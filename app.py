@@ -1914,7 +1914,7 @@ with col_form:
         _page_idx = -1
         for _ii, _ll in enumerate(_all_pages):
             _ll_stripped = _strip_hide_suffix(_ll)
-            if _ll_stripped == "Opis atrakcji":
+            if _ll_stripped == "Zarządzanie atrakcjami":
                 _opis_idx = _ii
             if _ll_stripped == page:
                 _page_idx = _ii
