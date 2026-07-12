@@ -3257,7 +3257,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         "  ↳ Przerywnik program":           "slide-sek_3",
         "Program wyjazdu":                  "slide-program",
         "  ↳ Przerywnik atrakcje":          "slide-sek_1",
-        "Opis atrakcji":                    fid,
+        "Zarządzanie atrakcjami":           fid,
         "  ↳ Przerywnik hotel":             "slide-sek_0",
         "Opis hoteli":                      hid,
         "  ↳ Przerywnik serwisy dodatkowe": "slide-sek_4",
