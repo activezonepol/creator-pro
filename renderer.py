@@ -1724,7 +1724,7 @@ def _should_render(slide_id, current_page, export_mode):
     - Konkretna atrakcja (★ Nazwa) -> tylko ten attr_X
     - Konkretny hotel (❯ Hotel N) -> tylko ten slide-hotel-X
     - Przerywnik (↳ Przerywnik X) -> tylko ten przerywnik
-    - "Opis atrakcji" -> wszystkie atrakcje (lista)
+    - "Zarządzanie atrakcjami" -> wszystkie atrakcje (lista)
     - "Opis hoteli" / "Zakwaterowanie" -> wszystkie hotele (lista)
     """
     # Słownik: slide_id -> klucz "hide" w session_state
