@@ -843,12 +843,15 @@ def _country_facts_cache_set(iso2: str, data: dict):
 
 def fetch_country_facts(country_code: str) -> dict | None:
     """
-    Pobiera z REST Countries (darmowe, publiczne API, bez klucza) fakty
-    o kraju: stolica, waluta, liczba mieszkańców, przybliżona różnica czasu
-    względem Polski. Akceptuje kod ISO3 (np. "HUN") - dokładnie taki format,
-    jaki jest już w session_state['country_code'] - REST Countries obsługuje
-    zarówno ISO2, jak i ISO3 pod tym samym endpointem /alpha/{code}.
-    Zwraca None przy błędzie (np. brak internetu, zły kod).
+    Pobiera z REST Countries v5 (wymaga darmowego klucza API, patrz
+    st.secrets['restcountries']['api_key']) fakty o kraju: stolica, waluta,
+    liczba mieszkańców, przybliżona różnica czasu względem Polski.
+    Akceptuje kod ISO3 (np. "HUN"). Zwraca None przy błędzie.
+
+    UWAGA: stary, bezkluczowy endpoint v3.1 przestał zwracać te dane
+    (puste pola mimo odpowiedzi 200 OK) - firma przeniosła całą usługę
+    na płatny/rejestrowany v5 (darmowy poziom nadal dostępny, ale wymaga
+    klucza API przekazywanego w nagłówku Authorization: Bearer).
     """
     if not country_code:
         return None
@@ -856,22 +859,37 @@ def fetch_country_facts(country_code: str) -> dict | None:
     if cached is not None:
         return cached
 
+    try:
+        api_key = st.secrets["restcountries"]["api_key"]
+    except Exception:
+        return None
+
     import json as _json
     import urllib.request as _ur
-
     try:
-        url = f"https://restcountries.com/v3.1/alpha/{country_code}?fields=capital,currencies,population,timezones"
-        req = _ur.Request(url, headers={'User-Agent': 'Activezone-Oferty/1.0'})
+        url = f"https://api.restcountries.com/countries/v5/codes.alpha_3/{country_code}"
+        req = _ur.Request(
+            url,
+            headers={
+                'User-Agent': 'Activezone-Oferty/1.0',
+                'Authorization': f'Bearer {api_key}',
+            },
+        )
         with _ur.urlopen(req, timeout=8) as resp:
-            data = _json.loads(resp.read().decode('utf-8'))
+            result = _json.loads(resp.read().decode('utf-8'))
 
-        capital = (data.get('capital') or [''])[0]
+        # Single-value read (/codes.alpha_3/{code}) zwraca listę obiektów
+        # (zwykle jednoelementową) - bierzemy pierwszy wynik.
+        objects = result.get('data', {}).get('objects', [])
+        if not objects:
+            return None
+        data = objects[0]
 
-        currencies = data.get('currencies') or {}
-        currency_name = ''
-        if currencies:
-            first_cur = next(iter(currencies.values()))
-            currency_name = first_cur.get('name', '')
+        capitals = data.get('capitals') or []
+        capital = capitals[0].get('name', '') if capitals else ''
+
+        currencies = data.get('currencies') or []
+        currency_name = currencies[0].get('name', '') if currencies else ''
 
         population = data.get('population')
         if population:
