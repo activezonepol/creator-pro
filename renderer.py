@@ -746,6 +746,9 @@ _DYNAMIC_DATA_PATTERNS = [
     r'^pimg1_\d+$', r'^pimg2_\d+$', r'^pimg3_\d+$', r'^pimg4_\d+$',
     # --- Program (dzień) ---
     r'^img_d_\d+$', r'^attr_\d+$', r'^desc_\d+$',
+    # --- Loty: osobne pola per odcinek (1-4) ---
+    r'^f[1-4]_nr$', r'^f[1-4]_data$', r'^f[1-4]_trasa$',
+    r'^f[1-4]_wylot$', r'^f[1-4]_przylot$',
     # --- Przerywniki sekcji (sek_0 .. sek_4) ---
     r'^sek_\d+_title$', r'^sek_\d+_sub$', r'^sek_hide_\d+$',
     r'^sek_\d+_bg$', r'^sek_\d+_txt$', r'^sek_\d+_sub_color$', r'^sek_\d+_img$',
