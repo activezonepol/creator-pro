@@ -831,6 +831,91 @@ def get_project_filename():
 # ---------------------------------------------------------------------------
 # GENEROWANIE OPISU KIERUNKU PRZEZ AI (Gemini)
 # ---------------------------------------------------------------------------
+def _country_facts_cache_get(iso2: str):
+    """Cache faktów o kraju na czas trwania sesji - żeby nie odpytywać API
+    wielokrotnie przy każdej zmianie strony."""
+    cache = st.session_state.setdefault('_country_facts_cache', {})
+    return cache.get(iso2)
+
+def _country_facts_cache_set(iso2: str, data: dict):
+    cache = st.session_state.setdefault('_country_facts_cache', {})
+    cache[iso2] = data
+
+def fetch_country_facts(iso2_code: str) -> dict | None:
+    """
+    Pobiera z REST Countries (darmowe, publiczne API, bez klucza) fakty
+    o kraju: stolica, waluta, liczba mieszkańców, przybliżona różnica czasu
+    względem Polski. Zwraca None przy błędzie (np. brak internetu, zły kod).
+    """
+    if not iso2_code:
+        return None
+    cached = _country_facts_cache_get(iso2_code)
+    if cached is not None:
+        return cached
+
+    import json as _json
+    import urllib.request as _ur
+
+    try:
+        url = f"https://restcountries.com/v3.1/alpha/{iso2_code}?fields=capital,currencies,population,timezones"
+        req = _ur.Request(url, headers={'User-Agent': 'Activezone-Oferty/1.0'})
+        with _ur.urlopen(req, timeout=8) as resp:
+            data = _json.loads(resp.read().decode('utf-8'))
+
+        capital = (data.get('capital') or [''])[0]
+
+        currencies = data.get('currencies') or {}
+        currency_name = ''
+        if currencies:
+            first_cur = next(iter(currencies.values()))
+            currency_name = first_cur.get('name', '')
+
+        population = data.get('population')
+        if population:
+            population_str = f"{population / 1_000_000:.2f} mln".replace('.', ',')
+        else:
+            population_str = ''
+
+        timezones = data.get('timezones') or []
+        time_diff_str = _compute_time_diff(timezones[0]) if timezones else 'brak'
+
+        facts = {
+            'stolica': capital,
+            'waluta': currency_name,
+            'mieszkancy': population_str,
+            'strefa': time_diff_str,
+        }
+        _country_facts_cache_set(iso2_code, facts)
+        return facts
+    except Exception:
+        return None
+
+def _compute_time_diff(tz_string: str) -> str:
+    """
+    Oblicza przybliżoną różnicę czasu względem Polski na podstawie stringa
+    strefy czasowej z REST Countries (format: 'UTC+02:00', 'UTC-05:00', 'UTC').
+    Polska: UTC+1 zimą / UTC+2 latem (przybliżenie: UTC+2, bo oferty MICE
+    dotyczą głównie sezonu letniego/jesiennego).
+    """
+    import re as _re_tz
+    m = _re_tz.match(r'UTC([+-]\d{2}):(\d{2})', tz_string)
+    if not m:
+        return 'brak'
+    offset_h = int(m.group(1))
+    offset_m = int(m.group(2))
+    total_minutes = offset_h * 60 + (offset_m if offset_h >= 0 else -offset_m)
+    poland_offset_minutes = 2 * 60  # UTC+2 (czas letni, przybliżenie)
+    diff_minutes = total_minutes - poland_offset_minutes
+    if diff_minutes == 0:
+        return 'brak'
+    diff_h = diff_minutes / 60
+    sign = '+' if diff_h > 0 else ''
+    if diff_h == int(diff_h):
+        return f"{sign}{int(diff_h)}h"
+    return f"{sign}{diff_h:.1f}h".replace('.', ',')
+
+
+def generate_kierunek_opis_ai(dodatkowe_wskazowki: str = "") -> tuple[str | None, str | None]:
 def generate_kierunek_opis_ai(dodatkowe_wskazowki: str = "") -> tuple[str | None, str | None]:
     """
     Generuje opis kierunku przez Gemini API na podstawie kontekstu już
