@@ -596,7 +596,53 @@ def create_slug(text):
     text = re.sub(r'[^\w\s-]', '', text)
     text = re.sub(r'[-\s]+', '-', text)
     return text.strip('-')
+    import re as _re_time
+
+def format_flight_time(raw: str) -> tuple[str, bool]:
+    """
+    Formatuje wpisaną godzinę do formatu HH:MM. Obsługuje: '9.30', '09.30',
+    '9:30', '0900', '9', '09'. Zwraca (sformatowana_wartość, czy_poprawne).
+    Gdy wejście jest niejednoznaczne/niepoprawne, zwraca oryginalny tekst
+    bez zmian i is_valid=False - operator dostaje ostrzeżenie zamiast
+    cichego, błędnego zgadywania.
+    """
+    raw = (raw or '').strip()
+    if not raw:
+        return raw, True
+
+    # H.MM lub HH.MM (kropka zamiast dwukropka)
+    m = _re_time.fullmatch(r'(\d{1,2})[.:](\d{2})', raw)
+    if m:
+        h, mm = int(m.group(1)), int(m.group(2))
+        if 0 <= h <= 23 and 0 <= mm <= 59:
+            return f"{h:02d}:{mm:02d}", True
+        return raw, False
+
+    # HHMM bez separatora (np. "0900", "930")
+    m = _re_time.fullmatch(r'(\d{3,4})', raw)
+    if m:
+        digits = m.group(1)
+        if len(digits) == 3:
+            h, mm = int(digits[0]), int(digits[1:])
+        else:
+            h, mm = int(digits[:2]), int(digits[2:])
+        if 0 <= h <= 23 and 0 <= mm <= 59:
+            return f"{h:02d}:{mm:02d}", True
+        return raw, False
+
+    # Sama godzina, bez minut (np. "9", "09") - domyślnie :00
+    m = _re_time.fullmatch(r'(\d{1,2})', raw)
+    if m:
+        h = int(m.group(1))
+        if 0 <= h <= 23:
+            return f"{h:02d}:00", True
+        return raw, False
+
+    return raw, False
+
+
 def parse_date_and_days():
+    def parse_date_and_days():
     """
     Parsuje pole 'Termin' ze strony tytułowej i ustawia p_start_dt/num_days.
 
