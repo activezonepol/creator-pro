@@ -888,7 +888,7 @@ def fetch_country_facts(country_code: str) -> dict | None:
             'mieszkancy': population_str,
             'strefa': time_diff_str,
         }
-        _country_facts_cache_set(iso2_code, facts)
+        _country_facts_cache_set(country_code, facts)
         return facts
     except Exception:
         return None
@@ -900,6 +900,22 @@ def _compute_time_diff(tz_string: str) -> str:
     Polska: UTC+1 zimą / UTC+2 latem (przybliżenie: UTC+2, bo oferty MICE
     dotyczą głównie sezonu letniego/jesiennego).
     """
+    import re as _re_tz
+    m = _re_tz.match(r'UTC([+-]\d{2}):(\d{2})', tz_string)
+    if not m:
+        return 'brak'
+    offset_h = int(m.group(1))
+    offset_m = int(m.group(2))
+    total_minutes = offset_h * 60 + (offset_m if offset_h >= 0 else -offset_m)
+    poland_offset_minutes = 2 * 60  # UTC+2 (czas letni, przybliżenie)
+    diff_minutes = total_minutes - poland_offset_minutes
+    if diff_minutes == 0:
+        return 'brak'
+    diff_h = diff_minutes / 60
+    sign = '+' if diff_h > 0 else ''
+    if diff_h == int(diff_h):
+        return f"{sign}{int(diff_h)}h"
+    return f"{sign}{diff_h:.1f}h".replace('.', ',')
     import re as _re_tz
     m = _re_tz.match(r'UTC([+-]\d{2}):(\d{2})', tz_string)
     if not m:
