@@ -1810,8 +1810,8 @@ def _should_render(slide_id, current_page, export_mode):
             return slide_id == f"slide-hotel-{hotel_pos}"
         return False
 
-    # 3d. "Opis atrakcji" -> wszystkie atrakcje (lista)
-    if current_page == "Opis atrakcji":
+    # 3d. "Zarządzanie atrakcjami" -> wszystkie atrakcje (lista)
+    if current_page == "Zarządzanie atrakcjami":
         return slide_id.startswith("attr_")
 
     # 3e. "Opis hoteli" / "Zakwaterowanie" -> wszystkie hotele (lista)
