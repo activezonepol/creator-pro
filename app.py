@@ -1181,7 +1181,14 @@ with st.sidebar:
                     label_visibility="collapsed", on_change=_handle_nav)
     # Normalizujemy page - usuwamy suffix ukrytego slajdu, żeby elif page == "..." działało
     page = _strip_hide_suffix(page)
-
+    # KRYTYCZNE: last_page MUSI zawsze być zsynchronizowane z faktycznie
+    # wybranym `page` - niezależnie czy wybór nastąpił przez kliknięcie
+    # (obsłużone w _handle_nav), czy przez _idx/_last_attr_idx (np. świeżo
+    # dodana/przesunięta atrakcja). Podgląd (col_preview) czyta WYŁĄCZNIE
+    # last_page, więc bez tej linii nowo dodana atrakcja pokazywała pusty,
+    # szary podgląd, dopóki last_page nie zsynchronizowało się przy
+    # następnym kliknięciu w inny slajd.
+    st.session_state['last_page'] = page
 # ---------------------------------------------------------------------------
 # Blok zarządzania projektami/dyskiem/eksportem przeniesiony wyżej,
 # zaraz po "Aktualnie edytujesz" — patrz sekcja nawigacji w sidebarze.
