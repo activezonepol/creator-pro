@@ -1312,14 +1312,22 @@ with col_form:
             _cc = st.session_state.get('country_code', '')
             _facts = fetch_country_facts(_cc)
             if _facts:
-                if _facts.get('stolica'):
-                    st.session_state['k_icon_stolica_val'] = _facts['stolica']
-                if _facts.get('waluta'):
-                    st.session_state['k_icon_waluta_val'] = _facts['waluta']
-                if _facts.get('mieszkancy'):
-                    st.session_state['k_icon_mieszkancy_val'] = _facts['mieszkancy']
-                if _facts.get('strefa'):
-                    st.session_state['k_icon_strefa_val'] = _facts['strefa']
+                # Ustawiamy RÓWNOCZEŚNIE klucz docelowy i jego bufor
+                # (buffer_{key}) - safe_text_input/safe_text_area synchronizują
+                # bufor z kluczem TYLKO przy renderze danego pola. Pisząc
+                # tylko do klucza docelowego (z pominięciem bufora), przy
+                # świeżo utworzonym projekcie (gdzie _new_project() mogła już
+                # wyczyścić stary bufor) dochodziło do KeyError przy próbie
+                # odczytania nieistniejącego buffer_key w _handle_change.
+                for _fk, _val in [
+                    ('k_icon_stolica_val', _facts.get('stolica')),
+                    ('k_icon_waluta_val', _facts.get('waluta')),
+                    ('k_icon_mieszkancy_val', _facts.get('mieszkancy')),
+                    ('k_icon_strefa_val', _facts.get('strefa')),
+                ]:
+                    if _val:
+                        st.session_state[_fk] = _val
+                        st.session_state[f'buffer_{_fk}'] = _val
 
         # Natychmiastowy zapis przy zmianie kraju - bez czekania na kolejny
         # rerun wywołany innym kliknięciem (np. wejściem na inny slajd).
