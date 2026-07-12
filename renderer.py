@@ -917,8 +917,6 @@ def _compute_time_diff(tz_string: str) -> str:
         return f"{sign}{int(diff_h)}h"
     return f"{sign}{diff_h:.1f}h".replace('.', ',')
 
-
-def generate_kierunek_opis_ai(dodatkowe_wskazowki: str = "") -> tuple[str | None, str | None]:
 def generate_kierunek_opis_ai(dodatkowe_wskazowki: str = "") -> tuple[str | None, str | None]:
     """
     Generuje opis kierunku przez Gemini API na podstawie kontekstu już
