@@ -1857,9 +1857,9 @@ with col_form:
         )
             
     # -----------------------------------------------------------------------
-    # 8. OPIS ATRAKCJI (kontener — przycisk dodawania + lista atrakcji)
+    # 8. OPIS ATRAKCJI - ZARZĄDZANIE ATRAKCJAMI (kontener — przycisk dodawania + lista atrakcji)
     # -----------------------------------------------------------------------
-    elif page == "Opis atrakcji":
+    elif page == "Zarządzanie atrakcjami":
         _guard(["num_attr", "attr_order"])
         
         # PRZYCISK DODAWANIA ATRAKCJI
