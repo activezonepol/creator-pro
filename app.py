@@ -74,7 +74,8 @@ def _switch_project(project_id):
         if k in ('supabase', 'preview_container', 'client_mode', '_loaded_from_supabase',
                  'active_project_id', 'last_supabase_save', 'last_save_status',
                  'last_save_status_type', 'last_save_extra', 'last_save_count',
-                 'last_save_project_name', '_upload_counter', 'current_user'):
+                 'last_save_project_name', '_upload_counter', 'current_user',
+                 'project_selected'):
             continue
         if k.startswith(('up_', 'btn_', 'dl_', 'main_nav_', 'manual_', 'res_', 'attr_up_',
                          'attr_dn_', 'attr_del_', 'hotel_up_', 'hotel_dn_', 'hotel_del_',
