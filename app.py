@@ -126,7 +126,8 @@ def _new_project(copy_from_id=None):
         keys_to_remove = []
         for k in list(st.session_state.keys()):
             if k in ('supabase', 'preview_container', 'client_mode', '_loaded_from_supabase',
-                     'last_supabase_save', '_upload_counter', 'current_user'):
+                     'last_supabase_save', '_upload_counter', 'current_user',
+                     'project_selected'):
                 continue
             if k.startswith(('up_', 'btn_', 'dl_', 'main_nav_', 'manual_', 'res_', 'attr_up_',
                              'attr_dn_', 'attr_del_', 'hotel_up_', 'hotel_dn_', 'hotel_del_',
