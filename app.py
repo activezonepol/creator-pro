@@ -561,13 +561,19 @@ if not st.session_state['project_selected']:
             border-color: #FF6600 !important;
             color: white !important;
         }
-        /* Powiększenie etykiet pól (Wczytaj istniejący projekt, Wgraj z dysku) */
+        /* Powiększenie i wyśrodkowanie etykiet pól (Wczytaj istniejący projekt, Wgraj z dysku) */
+        [data-testid="stSelectbox"] label,
+        [data-testid="stFileUploader"] label {
+            width: 100% !important;
+            text-align: center !important;
+        }
         [data-testid="stSelectbox"] label p,
         [data-testid="stFileUploader"] label p,
         [data-testid="stFileUploaderDropzoneInstructions"] div {
             font-size: 16px !important;
             font-weight: 600 !important;
             color: #475569 !important;
+            text-align: center !important;
         }
         /* Powiększenie tekstu opcji na liście rozwijanej (nazwy projektów) */
         [data-testid="stSelectbox"] div[data-baseweb="select"] * {
