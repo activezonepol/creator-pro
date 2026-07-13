@@ -901,14 +901,14 @@ def load_project_data(project_data: dict):
                     st.session_state[k] = base64.b64decode(v)
                 except Exception:
                     st.session_state[k] = v
-        elif k == 'p_start_dt' and isinstance(v, str):
+        elif k in ('p_start_dt', 'f1_data', 'f2_data', 'f3_data', 'f4_data',
+                   't_date_from', 't_date_to') and isinstance(v, str):
             try:
                 st.session_state[k] = date.fromisoformat(v)
             except Exception:
                 pass
         else:
             st.session_state[k] = v
-
 def force_load_project_data(project_data: dict):
     """
     Wariant load_project_data() dla ŚWIADOMEGO wgrania pliku z dysku
