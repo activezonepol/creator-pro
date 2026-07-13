@@ -575,8 +575,12 @@ if not st.session_state['project_selected']:
             color: #475569 !important;
             text-align: center !important;
         }
-        /* Powiększenie tekstu w zamkniętym polu (wybrana wartość) */
-        [data-testid="stSelectbox"] [data-baseweb="select"] * {
+        /* Powiększenie tekstu w zamkniętym polu (wybrana wartość) - szeroki
+           selektor łapiący element z tekstem niezależnie od głębokości
+           zagnieżdżenia oraz ewentualnego "value container" BaseWeb. */
+        [data-testid="stSelectbox"],
+        [data-testid="stSelectbox"] *,
+        [data-testid="stSelectbox"] input {
             font-size: 19px !important;
         }
         /* Powiększenie tekstu na rozwiniętej liście (nazwy projektów) -
