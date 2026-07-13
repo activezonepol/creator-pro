@@ -606,6 +606,7 @@ def format_flight_time(raw: str) -> tuple[str, bool]:
     bez zmian i is_valid=False - operator dostaje ostrzeżenie zamiast
     cichego, błędnego zgadywania.
     """
+    import re as _re_time
     raw = (raw or '').strip()
     if not raw:
         return raw, True
