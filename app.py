@@ -575,12 +575,20 @@ if not st.session_state['project_selected']:
             color: #475569 !important;
             text-align: center !important;
         }
-        /* Powiększenie tekstu opcji na liście rozwijanej (nazwy projektów) */
-        [data-testid="stSelectbox"] div[data-baseweb="select"] * {
-            font-size: 18px !important;
+        /* Powiększenie tekstu w zamkniętym polu (wybrana wartość) */
+        [data-testid="stSelectbox"] [data-baseweb="select"],
+        [data-testid="stSelectbox"] [data-baseweb="select"] div,
+        [data-testid="stSelectbox"] [data-baseweb="select"] span {
+            font-size: 19px !important;
         }
-        div[data-baseweb="popover"] li {
-            font-size: 18px !important;
+        /* Powiększenie tekstu na rozwiniętej liście (nazwy projektów) -
+           renderowana przez Streamlit jako "portal", stąd szerokie,
+           globalne selektory zamiast zagnieżdżonych w komponencie. */
+        [data-baseweb="popover"] li,
+        [data-baseweb="popover"] li *,
+        [data-baseweb="popover"] [role="option"],
+        [data-baseweb="popover"] [role="option"] * {
+            font-size: 19px !important;
         }
         </style>
         """,
