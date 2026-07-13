@@ -688,6 +688,35 @@ def format_flight_time(raw: str) -> tuple[str, bool]:
     return raw, False
 
 
+def compute_term_and_days():
+    """
+    Oblicza t_date (sformatowany string terminu, np. '06.10-09.10.2026'),
+    num_days oraz p_start_dt na podstawie DWÓCH osobnych pól kalendarza:
+    t_date_from i t_date_to. Zastępuje stare parsowanie tekstu
+    (parse_date_and_days) - eliminuje całą kategorię błędów wynikających
+    z niejednoznacznych formatów wpisywanych ręcznie (przesunięcia dat,
+    złe rozpoznanie dnia/miesiąca).
+
+    Szanuje prg_start_override: jeśli operator ręcznie ustawił inny dzień
+    startu Programu (rzadki przypadek), p_start_dt NIE jest nadpisywane.
+    """
+    d_from = st.session_state.get('t_date_from')
+    d_to = st.session_state.get('t_date_to')
+
+    if not d_from or not d_to:
+        return
+
+    if d_to < d_from:
+        # Zabezpieczenie przed odwróconym zakresem - nie liczymy ujemnych dni
+        return
+
+    st.session_state['t_date'] = f"{d_from.strftime('%d.%m')}-{d_to.strftime('%d.%m.%Y')}"
+    st.session_state['num_days'] = (d_to - d_from).days + 1
+
+    if not st.session_state.get('prg_start_override', False):
+        st.session_state['p_start_dt'] = d_from
+
+
 def parse_date_and_days():
     """
     Parsuje pole 'Termin' ze strony tytułowej i ustawia p_start_dt/num_days.
