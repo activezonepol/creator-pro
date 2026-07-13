@@ -22,7 +22,7 @@ from my_components import safe_text_input, safe_text_area, safe_checkbox, safe_s
 from renderer import (
     COUNTRIES_DICT, FONTS_LIST, hotel_icons, icon_map, ATTR_ICONS_AVAILABLE, defaults, IMAGE_KEYS,
     EXCLUDE_EXPORT_KEYS, pl_days_map,
-    clean_str, create_slug, parse_date_and_days, load_project_data, force_load_project_data,
+    clean_str, create_slug, parse_date_and_days, compute_term_and_days, load_project_data, force_load_project_data,
     get_project_filename, auto_generate_kosztorys, build_day_options,
     optimize_img, optimize_logo, geocode_place, generate_map_data,
     get_road_distance, format_duration,
