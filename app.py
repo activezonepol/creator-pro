@@ -1659,8 +1659,11 @@ with col_form:
 
         def _make_time_callback(k):
             def _cb():
-                _formatted, _is_valid = format_flight_time(st.session_state.get(k, ''))
+                _buffer_k = f"buffer_{k}"
+                _raw_value = st.session_state.get(_buffer_k, st.session_state.get(k, ''))
+                _formatted, _is_valid = format_flight_time(_raw_value)
                 st.session_state[k] = _formatted
+                st.session_state[_buffer_k] = _formatted
                 st.session_state[f'_{k}_valid'] = _is_valid
             return _cb
 
