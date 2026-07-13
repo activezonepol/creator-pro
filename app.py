@@ -565,7 +565,7 @@ if not st.session_state['project_selected']:
         """,
         unsafe_allow_html=True,
     )
-    _gate_l, _gate_m, _gate_r = st.columns([3, 1, 3])
+    _gate_l, _gate_m, _gate_r = st.columns([2.5, 1.15, 2.5])
     with _gate_m:
         st.markdown(
             """
