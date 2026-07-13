@@ -23,6 +23,29 @@ from code_generator import (
 # ---------------------------------------------------------------------------
 # 1. GLOWNY ZAPIS SYSTEMOWY (auto-save w app.py)
 # ---------------------------------------------------------------------------
+def _get_unique_project_name(base_name: str, supabase_client) -> str:
+    """
+    Zwraca nazwę projektu unikalną w bazie. Jeśli base_name już istnieje,
+    dopisuje kolejny wolny numer porządkowy: "Nazwa (1)", "Nazwa (2)", itd.
+    Używane przy wgrywaniu projektu z dysku i przy "Zapisz jako nowy" -
+    ułatwia rozróżnienie projektów o bardzo podobnych/identycznych nazwach
+    (częste przy tym samym kliencie/kierunku) i pokazuje kolejność powstania.
+    """
+    try:
+        existing = supabase_client.table('projects').select('project_name').execute()
+        existing_names = {row.get('project_name', '') for row in (existing.data or [])}
+    except Exception:
+        return base_name  # przy błędzie połączenia - nie blokuj, zwróć oryginał
+
+    if base_name not in existing_names:
+        return base_name
+
+    _n = 1
+    while f"{base_name} ({_n})" in existing_names:
+        _n += 1
+    return f"{base_name} ({_n})"
+
+
 def save_to_supabase(allow_create: bool = True):
     """Systemowy zapis projektu - zawsze zapisuje, status zalezny od stanu kraju.
     
