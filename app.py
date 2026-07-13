@@ -606,10 +606,10 @@ if not st.session_state['project_selected']:
             unsafe_allow_html=True,
         )
         st.markdown(
-            f"<div style='width:100%; text-align:center; display:block;'>"
-            f"<h2 style='width:100%; text-align:center; margin-bottom:6px; font-size:22px;'>Witaj, {st.session_state.get('current_user','')}!</h2>"
-            f"<p style='width:100%; text-align:center; color:#475569; font-weight:600; margin-bottom:6px; font-size:16px;'>Miło Cię widzieć!</p>"
-            f"<p style='width:100%; text-align:center; color:#475569; font-weight:600; margin-bottom:30px; font-size:16px;'>Co chcesz zrobić?</p>"
+            f"<div style='width:100%; text-align:center;'>"
+            f"<div style='margin-bottom:6px; font-size:22px; font-weight:700; color:#1e293b;'>Witaj, {st.session_state.get('current_user','')}!</div>"
+            f"<p style='color:#475569; font-weight:600; margin-bottom:6px; font-size:16px;'>Miło Cię widzieć!</p>"
+            f"<p style='color:#475569; font-weight:600; margin-bottom:30px; font-size:16px;'>Co chcesz zrobić?</p>"
             f"</div>",
             unsafe_allow_html=True,
         )
