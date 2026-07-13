@@ -1667,9 +1667,11 @@ with col_form:
         def _render_flight_leg(n, label):
             _section_header(label)
             c1, c2 = st.columns(2)
-            c1.text_input("Nr lotu", key=f"f{n}_nr", placeholder="np. LO 535")
-            c2.text_input("Data", key=f"f{n}_data", placeholder="np. 06OCT")
-            st.text_input("Trasa (skróty lotnisk)", key=f"f{n}_trasa", placeholder="np. WAW-BUD")
+            with c1:
+                safe_text_input("Nr lotu", key=f"f{n}_nr", placeholder="np. LO 535")
+            with c2:
+                safe_text_input("Data", key=f"f{n}_data", placeholder="np. 06OCT")
+            safe_text_input("Trasa (skróty lotnisk)", key=f"f{n}_trasa", placeholder="np. WAW-BUD")
             c3, c4 = st.columns(2)
             c3.text_input(
                 "Godzina wylotu (format 00:00)", key=f"f{n}_wylot",
