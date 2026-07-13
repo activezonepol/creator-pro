@@ -555,58 +555,74 @@ if not st.session_state['project_selected']:
     st.markdown(
         """
         <style>
-        [data-testid="stAppViewContainer"] > .block-container { padding-top: 3rem !important; max-width: 700px; }
+        [data-testid="stAppViewContainer"] > .block-container { padding-top: 3rem !important; }
+        div[data-testid="stButton"] button[kind="primary"] {
+            background-color: #FF6600 !important;
+            border-color: #FF6600 !important;
+            color: white !important;
+        }
         </style>
         """,
         unsafe_allow_html=True,
     )
-    st.markdown(
-        f"<h2 style='text-align:center; margin-bottom:10px;'>Witaj, {st.session_state.get('current_user','')}!</h2>"
-        f"<p style='text-align:center; color:#64748b; margin-bottom:40px;'>Co chcesz zrobić?</p>",
-        unsafe_allow_html=True,
-    )
+    _gate_l, _gate_m, _gate_r = st.columns([3, 1, 3])
+    with _gate_m:
+        st.markdown(
+            """
+            <div style="text-align:center; margin-bottom:20px;">
+                <img src="https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/LOGO/Activezone%20trojkat_png%20przezroczyste.png"
+                     style="max-width:140px; max-height:140px; object-fit:contain; margin-bottom:10px;">
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            f"<h2 style='text-align:center; margin-bottom:10px; font-size:20px;'>Witaj, {st.session_state.get('current_user','')}!</h2>"
+            f"<p style='text-align:center; color:#64748b; margin-bottom:30px; font-size:13px;'>Co chcesz zrobić?</p>",
+            unsafe_allow_html=True,
+        )
 
-    if st.button("+ NOWY PROJEKT", use_container_width=True, type="primary", key="gate_new_project"):
-        _new_project()
-        for _k, _v in defaults.items():
-            st.session_state.setdefault(_k, _v)
-        st.session_state['project_selected'] = True
-        st.rerun()
-
-    st.markdown("<div style='margin:25px 0; text-align:center; color:#94a3b8;'>— lub —</div>", unsafe_allow_html=True)
-
-    _gate_offers = fetch_all_offers(supabase)
-    if _gate_offers:
-        _gate_options = ["-- Wybierz projekt --"] + [
-            f"{o.get('project_code', '???')} | {o.get('project_name', 'bez nazwy')[:30]}"
-            for o in _gate_offers
-        ]
-        _gate_ids = [None] + [o['id'] for o in _gate_offers]
-        _gate_selected = st.selectbox("Wczytaj istniejący projekt z bazy:", _gate_options, key="gate_proj_select")
-        _gate_idx = _gate_options.index(_gate_selected)
-        if _gate_idx > 0:
-            if st.button("WCZYTAJ WYBRANY", use_container_width=True, type="primary", key="gate_load_btn"):
-                _switch_project(_gate_ids[_gate_idx])
-                for _k, _v in defaults.items():
-                    st.session_state.setdefault(_k, _v)
-                st.session_state['project_selected'] = True
-                st.rerun()
-    else:
-        st.caption("Brak projektów w bazie.")
-
-    st.markdown("<div style='margin:25px 0; text-align:center; color:#94a3b8;'>— lub —</div>", unsafe_allow_html=True)
-
-    _gate_upload = st.file_uploader("Wgraj projekt z dysku (JSON):", type=['json'], key="gate_uploader")
-    if _gate_upload and st.button("WGRAJ Z PLIKU", use_container_width=True, type="primary", key="gate_upload_btn"):
-        _gate_data, _gate_error = _validate_and_load_json(_gate_upload)
-        if _gate_error:
-            st.error(f"Błąd: {_gate_error}")
-        else:
-            force_load_project_data(_gate_data)
+        if st.button("DODAJ NOWY PROJEKT", use_container_width=True, type="primary", key="gate_new_project"):
+            _new_project()
             for _k, _v in defaults.items():
                 st.session_state.setdefault(_k, _v)
             st.session_state['project_selected'] = True
             st.rerun()
+
+        st.markdown("<div style='margin:20px 0; text-align:center; color:#94a3b8; font-size:12px;'>— lub —</div>", unsafe_allow_html=True)
+
+        _gate_offers = fetch_all_offers(supabase)
+        if _gate_offers:
+            _gate_options = ["-- Wybierz projekt --"] + [
+                f"{o.get('project_code', '???')} | {o.get('project_name', 'bez nazwy')[:30]}"
+                for o in _gate_offers
+            ]
+            _gate_ids = [None] + [o['id'] for o in _gate_offers]
+            _gate_selected = st.selectbox("Wczytaj istniejący projekt z bazy:", _gate_options, key="gate_proj_select")
+            _gate_idx = _gate_options.index(_gate_selected)
+            if _gate_idx > 0:
+                if st.button("WCZYTAJ WYBRANY", use_container_width=True, type="primary", key="gate_load_btn"):
+                    _switch_project(_gate_ids[_gate_idx])
+                    for _k, _v in defaults.items():
+                        st.session_state.setdefault(_k, _v)
+                    st.session_state['project_selected'] = True
+                    st.rerun()
+        else:
+            st.caption("Brak projektów w bazie.")
+
+        st.markdown("<div style='margin:20px 0; text-align:center; color:#94a3b8; font-size:12px;'>— lub —</div>", unsafe_allow_html=True)
+
+        _gate_upload = st.file_uploader("Wgraj projekt z dysku (JSON):", type=['json'], key="gate_uploader")
+        if _gate_upload and st.button("WGRAJ Z PLIKU", use_container_width=True, type="primary", key="gate_upload_btn"):
+            _gate_data, _gate_error = _validate_and_load_json(_gate_upload)
+            if _gate_error:
+                st.error(f"Błąd: {_gate_error}")
+            else:
+                force_load_project_data(_gate_data)
+                for _k, _v in defaults.items():
+                    st.session_state.setdefault(_k, _v)
+                st.session_state['project_selected'] = True
+                st.rerun()
 
     st.stop()
 # Ładuj defaults dla kluczy których nie ma w bazie
