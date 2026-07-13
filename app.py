@@ -621,11 +621,8 @@ if not st.session_state['project_selected']:
         )
 
         if st.button("DODAJ NOWY PROJEKT", use_container_width=True, type="primary", key="gate_new_project"):
-            _new_project()
-            for _k, _v in defaults.items():
-                st.session_state.setdefault(_k, _v)
             st.session_state['project_selected'] = True
-            st.rerun()
+            _new_project()
 
         st.markdown(
             "<div style='width:100%; margin:20px 0; text-align:center; color:#475569; font-weight:600; font-size:16px;'>— lub —</div>",
