@@ -576,9 +576,7 @@ if not st.session_state['project_selected']:
             text-align: center !important;
         }
         /* Powiększenie tekstu w zamkniętym polu (wybrana wartość) */
-        [data-testid="stSelectbox"] [data-baseweb="select"],
-        [data-testid="stSelectbox"] [data-baseweb="select"] div,
-        [data-testid="stSelectbox"] [data-baseweb="select"] span {
+        [data-testid="stSelectbox"] [data-baseweb="select"] * {
             font-size: 19px !important;
         }
         /* Powiększenie tekstu na rozwiniętej liście (nazwy projektów) -
