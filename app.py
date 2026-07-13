@@ -540,61 +540,73 @@ div[data-testid="stExpander"] {
 if 'client_mode' not in st.session_state:
     st.session_state['client_mode'] = False
 # ---------------------------------------------------------------------------
-# AUTO-LOAD Z SUPABASE przy starcie sesji
+# BRAMKA WYBORU PROJEKTU — zamiast automatycznego wczytywania ostatnio
+# edytowanej oferty, operator MUSI świadomie wybrać: nowy projekt, wczytać
+# istniejący z bazy, lub wgrać z dysku. Eliminuje mylącą sytuację, w której
+# operator nie wie, czy edytuje "swój" projekt, czy cudzy, i czy jego zmiany
+# nadpiszą coś, na czym pracuje ktoś inny.
 # ---------------------------------------------------------------------------
-if '_loaded_from_supabase' not in st.session_state:
-    try:
-        # Pobierz aktywny projekt (z session_state) lub najnowszy
-        _active_id = st.session_state.get('active_project_id')
-        if _active_id:
-            result = supabase.table('projects').select('data, id').eq(
-                'id', _active_id
-            ).execute()
+st.session_state.setdefault('_loaded_from_supabase', True)  # zachowane dla kompatybilności
+st.session_state.setdefault('project_selected', False)
+
+if not st.session_state['project_selected']:
+    st.markdown(
+        """
+        <style>
+        [data-testid="stAppViewContainer"] > .block-container { padding-top: 3rem !important; max-width: 700px; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f"<h2 style='text-align:center; margin-bottom:10px;'>Witaj, {st.session_state.get('current_user','')}!</h2>"
+        f"<p style='text-align:center; color:#64748b; margin-bottom:40px;'>Co chcesz zrobić?</p>",
+        unsafe_allow_html=True,
+    )
+
+    if st.button("+ NOWY PROJEKT", use_container_width=True, type="primary", key="gate_new_project"):
+        _new_project()
+        for _k, _v in defaults.items():
+            st.session_state.setdefault(_k, _v)
+        st.session_state['project_selected'] = True
+        st.rerun()
+
+    st.markdown("<div style='margin:25px 0; text-align:center; color:#94a3b8;'>— lub —</div>", unsafe_allow_html=True)
+
+    _gate_offers = fetch_all_offers(supabase)
+    if _gate_offers:
+        _gate_options = ["-- Wybierz projekt --"] + [
+            f"{o.get('project_code', '???')} | {o.get('project_name', 'bez nazwy')[:30]}"
+            for o in _gate_offers
+        ]
+        _gate_ids = [None] + [o['id'] for o in _gate_offers]
+        _gate_selected = st.selectbox("Wczytaj istniejący projekt z bazy:", _gate_options, key="gate_proj_select")
+        _gate_idx = _gate_options.index(_gate_selected)
+        if _gate_idx > 0:
+            if st.button("WCZYTAJ WYBRANY", use_container_width=True, type="primary", key="gate_load_btn"):
+                _switch_project(_gate_ids[_gate_idx])
+                for _k, _v in defaults.items():
+                    st.session_state.setdefault(_k, _v)
+                st.session_state['project_selected'] = True
+                st.rerun()
+    else:
+        st.caption("Brak projektów w bazie.")
+
+    st.markdown("<div style='margin:25px 0; text-align:center; color:#94a3b8;'>— lub —</div>", unsafe_allow_html=True)
+
+    _gate_upload = st.file_uploader("Wgraj projekt z dysku (JSON):", type=['json'], key="gate_uploader")
+    if _gate_upload and st.button("WGRAJ Z PLIKU", use_container_width=True, type="primary", key="gate_upload_btn"):
+        _gate_data, _gate_error = _validate_and_load_json(_gate_upload)
+        if _gate_error:
+            st.error(f"Błąd: {_gate_error}")
         else:
-            result = supabase.table('projects').select('data, id').eq(
-                'user_email', 'default_user'
-            ).order('updated_at', desc=True).limit(1).execute()
-        
-        if result.data and result.data[0].get('data'):
-            project_data = result.data[0]['data']
-            st.session_state['active_project_id'] = result.data[0].get('id')
-            
-            # KLUCZOWE: Usuń klucze widgetów zanim wczytasz do session_state
-            # (kolizja z Streamlit widget management)
-            widget_keys = [
-                'attr_add_btn', 'attr_select', 'nav_top_radio', 'nav_bot_radio',
-                '_supabase_data', 'last_supabase_save', 'last_save_status',
-                'btn_add_hotel_main', 'main_nav_radio', 'manual_save_btn'
-            ]
-            # Usuń też prefiksy widgetów (przyciskami i innymi widgetami Streamlita)
-            widget_prefixes = [
-                'attrnav_', 'attrup_', 'attrdn_', 'attrdel_',
-                'hotel_up_', 'hotel_dn_', 'hotel_del_',
-                'btn_', 'ho_up_', 'ho_dn_', 'ho_del_',
-                'res_sek_', 'btn_sek_', 'btn_show_hot_', 'btn_apply_',
-                'dl_', 'up_', 'del_', 'attr_up_', 'attr_dn_', 'attr_del_',
-                'prep_', 'proj_', 'dup_', 'new_proj_'
-            ]
-            
-            keys_to_remove = []
-            for key in project_data.keys():
-                if key in widget_keys:
-                    keys_to_remove.append(key)
-                elif any(key.startswith(prefix) for prefix in widget_prefixes):
-                    keys_to_remove.append(key)
-            
-            for key in keys_to_remove:
-                project_data.pop(key, None)
-            
-            load_project_data(project_data)
-            st.session_state['_loaded_from_supabase'] = True
-        else:
-            # Brak zapisanego projektu — załaduj defaults
-            st.session_state['_loaded_from_supabase'] = True
-    except Exception as e:
-        # Błąd połączenia — kontynuuj z defaults
-        print(f"Błąd ładowania projektu z Supabase: {e}")
-        st.session_state['_loaded_from_supabase'] = True
+            force_load_project_data(_gate_data)
+            for _k, _v in defaults.items():
+                st.session_state.setdefault(_k, _v)
+            st.session_state['project_selected'] = True
+            st.rerun()
+
+    st.stop()
 # Ładuj defaults dla kluczy których nie ma w bazie
 for k, v in defaults.items():
     if k not in st.session_state:
