@@ -577,8 +577,11 @@ if not st.session_state['project_selected']:
             unsafe_allow_html=True,
         )
         st.markdown(
-            f"<h2 style='text-align:center; margin-bottom:10px; font-size:20px;'>Witaj, {st.session_state.get('current_user','')}!</h2>"
-            f"<p style='text-align:center; color:#64748b; margin-bottom:30px; font-size:13px;'>Co chcesz zrobić?</p>",
+            f"<div style='width:100%; text-align:center;'>"
+            f"<h2 style='margin-bottom:6px; font-size:22px;'>Witaj, {st.session_state.get('current_user','')}!</h2>"
+            f"<p style='color:#475569; font-weight:600; margin-bottom:6px; font-size:16px;'>Miło Cię widzieć!</p>"
+            f"<p style='color:#475569; font-weight:600; margin-bottom:30px; font-size:16px;'>Co chcesz zrobić?</p>"
+            f"</div>",
             unsafe_allow_html=True,
         )
 
@@ -589,7 +592,10 @@ if not st.session_state['project_selected']:
             st.session_state['project_selected'] = True
             st.rerun()
 
-        st.markdown("<div style='margin:20px 0; text-align:center; color:#94a3b8; font-size:12px;'>— lub —</div>", unsafe_allow_html=True)
+        st.markdown(
+            "<div style='width:100%; margin:20px 0; text-align:center; color:#475569; font-weight:600; font-size:16px;'>— lub —</div>",
+            unsafe_allow_html=True,
+        )
 
         _gate_offers = fetch_all_offers(supabase)
         if _gate_offers:
@@ -610,7 +616,10 @@ if not st.session_state['project_selected']:
         else:
             st.caption("Brak projektów w bazie.")
 
-        st.markdown("<div style='margin:20px 0; text-align:center; color:#94a3b8; font-size:12px;'>— lub —</div>", unsafe_allow_html=True)
+        st.markdown(
+            "<div style='width:100%; margin:20px 0; text-align:center; color:#475569; font-weight:600; font-size:16px;'>— lub —</div>",
+            unsafe_allow_html=True,
+        )
 
         _gate_upload = st.file_uploader("Wgraj projekt z dysku (JSON):", type=['json'], key="gate_uploader")
         if _gate_upload and st.button("WGRAJ Z PLIKU", use_container_width=True, type="primary", key="gate_upload_btn"):
