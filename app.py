@@ -561,6 +561,21 @@ if not st.session_state['project_selected']:
             border-color: #FF6600 !important;
             color: white !important;
         }
+        /* Powiększenie etykiet pól (Wczytaj istniejący projekt, Wgraj z dysku) */
+        [data-testid="stSelectbox"] label p,
+        [data-testid="stFileUploader"] label p,
+        [data-testid="stFileUploaderDropzoneInstructions"] div {
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            color: #475569 !important;
+        }
+        /* Powiększenie tekstu opcji na liście rozwijanej (nazwy projektów) */
+        [data-testid="stSelectbox"] div[data-baseweb="select"] * {
+            font-size: 18px !important;
+        }
+        div[data-baseweb="popover"] li {
+            font-size: 18px !important;
+        }
         </style>
         """,
         unsafe_allow_html=True,
