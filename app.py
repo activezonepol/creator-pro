@@ -640,11 +640,8 @@ if not st.session_state['project_selected']:
             _gate_idx = _gate_options.index(_gate_selected)
             if _gate_idx > 0:
                 if st.button("WCZYTAJ WYBRANY", use_container_width=True, type="primary", key="gate_load_btn"):
-                    _switch_project(_gate_ids[_gate_idx])
-                    for _k, _v in defaults.items():
-                        st.session_state.setdefault(_k, _v)
                     st.session_state['project_selected'] = True
-                    st.rerun()
+                    _switch_project(_gate_ids[_gate_idx])
         else:
             st.caption("Brak projektów w bazie.")
 
