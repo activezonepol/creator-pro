@@ -659,6 +659,11 @@ if not st.session_state['project_selected']:
                 force_load_project_data(_gate_data)
                 for _k, _v in defaults.items():
                     st.session_state.setdefault(_k, _v)
+                # Zapewniamy unikalną nazwę - jeśli wgrany plik ma nazwę
+                # identyczną z już istniejącym projektem w bazie, dopisujemy
+                # kolejny wolny numer porządkowy, np. "Nazwa (1)".
+                _orig_name = st.session_state.get('t_main', '')
+                st.session_state['t_main'] = _get_unique_project_name(_orig_name, supabase)
                 st.session_state['project_selected'] = True
                 st.rerun()
 
