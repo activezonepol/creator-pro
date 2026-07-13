@@ -582,13 +582,17 @@ if not st.session_state['project_selected']:
             font-size: 19px !important;
         }
         /* Powiększenie tekstu na rozwiniętej liście (nazwy projektów) -
-           renderowana przez Streamlit jako "portal", stąd szerokie,
-           globalne selektory zamiast zagnieżdżonych w komponencie. */
-        [data-baseweb="popover"] li,
-        [data-baseweb="popover"] li *,
-        [data-baseweb="popover"] [role="option"],
-        [data-baseweb="popover"] [role="option"] * {
+           renderowana przez Streamlit jako "portal" poza głównym drzewem
+           komponentu, stąd szerokie, globalne selektory pokrywające różne
+           możliwe warianty struktury BaseWeb (popover / menu / listbox). */
+        [data-baseweb="popover"] *,
+        [data-baseweb="menu"] *,
+        ul[role="listbox"] li,
+        ul[role="listbox"] li *,
+        li[role="option"],
+        li[role="option"] * {
             font-size: 19px !important;
+            line-height: 1.6 !important;
         }
         </style>
         """,
