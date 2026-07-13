@@ -1277,9 +1277,19 @@ with col_form:
             'img_hero_t', 'logo_az', 'logo_cli', 'hide_logo_cli',
         ]
         section_template_manager(tit_keys, "TYT", "strona-tytulowa", "tit")
-        safe_text_input("Termin:", key="t_date",
-                        help="Wpisz datę w formacie DD.MM-DD.MM.RRRR (np. 30.11-4.12.2026)",
-                        on_change=lambda: (parse_date_and_days(), save_to_supabase()))
+        _tc1, _tc2 = st.columns(2)
+        with _tc1:
+            st.date_input(
+                "Data rozpoczęcia:", key="t_date_from",
+                format="DD.MM.YYYY",
+                on_change=lambda: (compute_term_and_days(), save_to_supabase()),
+            )
+        with _tc2:
+            st.date_input(
+                "Data zakończenia:", key="t_date_to",
+                format="DD.MM.YYYY",
+                on_change=lambda: (compute_term_and_days(), save_to_supabase()),
+            )
         # Callback do synchronizacji country_code z country_name
         def _sync_country_code():
             name = st.session_state.get('country_name', '')
