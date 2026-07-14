@@ -1017,6 +1017,8 @@ with st.sidebar:
         st.caption("Brak projektów w bazie.")
 
     # 3. ZAPISZ JAKO NOWY
+    if st.session_state.get('_debug_counter_error'):
+        st.error(f"DEBUG - błąd licznika: {st.session_state['_debug_counter_error']}")
     if st.button("ZAPISZ JAKO NOWY", use_container_width=True, type="primary", key="btn_dup_current_top"):
         _duplicate_current_project()
 
