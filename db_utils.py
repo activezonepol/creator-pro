@@ -45,24 +45,18 @@ def _get_next_project_code_number(source_project_code: str, supabase_client) -> 
     numeru) - dwa niezależne projekty (np. różni klienci, ten sam kraj)
     mają całkowicie osobne liczniki, nawet jeśli ich kody są do siebie
     podobne.
+
+    UŻYWA atomowej funkcji Postgresa (get_next_project_counter) zamiast
+    dwóch osobnych zapytań select+update - eliminuje race condition, który
+    powodował, że dwa kliknięcia "Zapisz jako nowy" blisko w czasie mogły
+    odczytać ten sam max_counter i wygenerować DWA identyczne kody kopii.
     """
     _base_code = _extract_base_project_code(source_project_code)
     try:
-        existing = supabase_client.table('project_name_counters').select('max_counter').eq(
-            'base_name', _base_code
+        result = supabase_client.rpc(
+            'get_next_project_counter', {'p_base_name': _base_code}
         ).execute()
-        if existing.data:
-            _current_max = existing.data[0].get('max_counter', 0)
-            _new_max = _current_max + 1
-            supabase_client.table('project_name_counters').update(
-                {'max_counter': _new_max}
-            ).eq('base_name', _base_code).execute()
-        else:
-            _new_max = 1
-            supabase_client.table('project_name_counters').insert(
-                {'base_name': _base_code, 'max_counter': _new_max}
-            ).execute()
-        return _new_max
+        return result.data
     except Exception:
         return 1  # przy błędzie połączenia - bezpieczny fallback, nie blokuj kopiowania
 
