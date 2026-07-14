@@ -997,6 +997,12 @@ with st.sidebar:
         _curr_idx_top = 0
         if _current_proj_id_top and _current_proj_id_top in _proj_ids_top:
             _curr_idx_top = _proj_ids_top.index(_current_proj_id_top)
+        st.markdown(
+            "<div style='font-size:13px; color:#64748b; margin-bottom:4px;'>"
+            "Wybierz projekt z listy, a następnie naciśnij \"Wczytaj\", aby go otworzyć."
+            "</div>",
+            unsafe_allow_html=True,
+        )
         _selected_proj_top = st.selectbox(
             "Wczytaj projekt z bazy:",
             _proj_options_top,
@@ -1004,7 +1010,7 @@ with st.sidebar:
             key="proj_select_top",
         )
         _sel_idx_top = _proj_options_top.index(_selected_proj_top)
-        if _sel_idx_top > 0 and _proj_ids_top[_sel_idx_top] != _current_proj_id_top:
+        if _sel_idx_top > 0:
             if st.button("WCZYTAJ WYBRANY", use_container_width=True, key="btn_load_proj_top", type="primary"):
                 _switch_project(_proj_ids_top[_sel_idx_top])
     else:
