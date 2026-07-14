@@ -57,10 +57,8 @@ def _get_next_project_code_number(source_project_code: str, supabase_client) -> 
         result = supabase_client.rpc(
             'get_next_project_counter', {'p_base_name': _base_code}
         ).execute()
-        _st_debug.session_state['last_save_status'] = f"DEBUG: base_code={_base_code}, result.data={result.data}, typ={type(result.data)}"
         return result.data
-    except Exception as e:
-        _st_debug.session_state['last_save_status'] = f"DEBUG BŁĄD: {str(e)}"
+    except Exception:
         return 1
 
 def save_to_supabase(allow_create: bool = True):
