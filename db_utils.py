@@ -269,10 +269,14 @@ def clone_offer(supabase_client, source_offer_id, user_email='default_user'):
         if not source:
             return None
         
+        _source_code = str(source.get('project_code', ''))
+        _next_num = _get_next_project_code_number(_source_code, supabase_client)
+        _base_code_clean = _extract_base_project_code(_source_code)
+
         new_data = {
             'user_email': user_email,
-            'project_name': "Kopia: " + str(source.get('project_name', 'Oferta')),
-            'project_code': str(source.get('project_code', '')) + '-V2',
+            'project_name': str(source.get('project_name', 'Oferta')),
+            'project_code': f"{_base_code_clean} ({_next_num})",
             'country': source.get('country'),
             'country_name': source.get('country_name'),
             'year': source.get('year'),
