@@ -51,16 +51,18 @@ def _get_next_project_code_number(source_project_code: str, supabase_client) -> 
     powodował, że dwa kliknięcia "Zapisz jako nowy" blisko w czasie mogły
     odczytać ten sam max_counter i wygenerować DWA identyczne kody kopii.
     """
+    import streamlit as _st_debug
     _base_code = _extract_base_project_code(source_project_code)
+    _st_debug.session_state['_debug_counter_error'] = f"WYWOŁANO z base_code={_base_code}"
     try:
         result = supabase_client.rpc(
             'get_next_project_counter', {'p_base_name': _base_code}
         ).execute()
+        _st_debug.session_state['_debug_counter_error'] = f"base_code={_base_code}, result.data={result.data}, typ={type(result.data)}"
         return result.data
     except Exception as e:
-        import streamlit as _st_debug
-        _st_debug.session_state['_debug_counter_error'] = str(e)
-        return 1  # przy błędzie połączenia - bezpieczny fallback, nie blokuj kopiowania
+        _st_debug.session_state['_debug_counter_error'] = f"BŁĄD: {str(e)}"
+        return 1
 
 def save_to_supabase(allow_create: bool = True):
     """Systemowy zapis projektu - zawsze zapisuje, status zalezny od stanu kraju.
