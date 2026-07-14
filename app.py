@@ -98,6 +98,7 @@ def _switch_project(project_id):
 def _duplicate_current_project():
     """Duplikuje AKTUALNIE OTWARTY projekt jednym kliknięciem — bez szukania
     go na liście. Oryginał zostaje nietknięty, operator przechodzi na kopię."""
+    st.session_state['_debug_counter_error'] = "WESZŁO do _duplicate_current_project"
     from db_utils import clone_offer
     sb = st.session_state.get('supabase')
     current_id = st.session_state.get('active_project_id')
