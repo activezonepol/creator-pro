@@ -23,28 +23,48 @@ from code_generator import (
 # ---------------------------------------------------------------------------
 # 1. GLOWNY ZAPIS SYSTEMOWY (auto-save w app.py)
 # ---------------------------------------------------------------------------
-def _get_unique_project_name(base_name: str, supabase_client) -> str:
+import re as _re_counter
+
+def _extract_base_project_code(project_code: str) -> str:
     """
-    Zwraca nazwę projektu unikalną w bazie. Jeśli base_name już istnieje,
-    dopisuje kolejny wolny numer porządkowy: "Nazwa (1)", "Nazwa (2)", itd.
-    Używane przy wgrywaniu projektu z dysku i przy "Zapisz jako nowy" -
-    ułatwia rozróżnienie projektów o bardzo podobnych/identycznych nazwach
-    (częste przy tym samym kliencie/kierunku) i pokazuje kolejność powstania.
+    Usuwa końcowy dopisek ' (N)' z kodu projektu, jeśli występuje - żeby
+    kopiowanie KOPII zawsze odwoływało się do TEGO SAMEGO licznika co
+    kopiowanie oryginału. Np. '26-10-HUN-X (2)' -> '26-10-HUN-X'.
     """
+    return _re_counter.sub(r'\s*\(\d+\)$', '', project_code or '').strip()
+
+
+def _get_next_project_code_number(source_project_code: str, supabase_client) -> int:
+    """
+    Zwraca kolejny, ZAWSZE ROSNĄCY numer dla kopii danego, oryginalnego
+    project_code - niezależnie od tego, czy wcześniejsze kopie nadal
+    istnieją pod tym numerem, czy zostały zmienione/usunięte (Wariant B:
+    numer nigdy się nie cofa do "wolnych" miejsc, zawsze rośnie).
+
+    Klucz licznika to KONKRETNY, źródłowy project_code (bez dopisanego
+    numeru) - dwa niezależne projekty (np. różni klienci, ten sam kraj)
+    mają całkowicie osobne liczniki, nawet jeśli ich kody są do siebie
+    podobne.
+    """
+    _base_code = _extract_base_project_code(source_project_code)
     try:
-        existing = supabase_client.table('projects').select('project_name').execute()
-        existing_names = {row.get('project_name', '') for row in (existing.data or [])}
+        existing = supabase_client.table('project_name_counters').select('max_counter').eq(
+            'base_name', _base_code
+        ).execute()
+        if existing.data:
+            _current_max = existing.data[0].get('max_counter', 0)
+            _new_max = _current_max + 1
+            supabase_client.table('project_name_counters').update(
+                {'max_counter': _new_max}
+            ).eq('base_name', _base_code).execute()
+        else:
+            _new_max = 1
+            supabase_client.table('project_name_counters').insert(
+                {'base_name': _base_code, 'max_counter': _new_max}
+            ).execute()
+        return _new_max
     except Exception:
-        return base_name  # przy błędzie połączenia - nie blokuj, zwróć oryginał
-
-    if base_name not in existing_names:
-        return base_name
-
-    _n = 1
-    while f"{base_name} ({_n})" in existing_names:
-        _n += 1
-    return f"{base_name} ({_n})"
-
+        return 1  # przy błędzie połączenia - bezpieczny fallback, nie blokuj kopiowania
 
 def save_to_supabase(allow_create: bool = True):
     """Systemowy zapis projektu - zawsze zapisuje, status zalezny od stanu kraju.
