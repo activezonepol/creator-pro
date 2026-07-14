@@ -57,7 +57,9 @@ def _get_next_project_code_number(source_project_code: str, supabase_client) -> 
             'get_next_project_counter', {'p_base_name': _base_code}
         ).execute()
         return result.data
-    except Exception:
+    except Exception as e:
+        import streamlit as _st_debug
+        _st_debug.error(f"DEBUG - błąd RPC licznika: {str(e)}")
         return 1  # przy błędzie połączenia - bezpieczny fallback, nie blokuj kopiowania
 
 def save_to_supabase(allow_create: bool = True):
