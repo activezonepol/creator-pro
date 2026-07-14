@@ -934,12 +934,22 @@ with st.sidebar:
     _editing_name = st.session_state.get('t_main', '').strip() or '(bez nazwy)'
     if _editing_name == 'NAZWA PROJEKTU':
         _editing_name = '(bez nazwy)'
+    _editing_id = st.session_state.get('active_project_id')
+    _editing_code = '(nowy, niezapisany projekt)'
+    if _editing_id:
+        try:
+            _code_lookup = supabase.table('projects').select('project_code').eq('id', _editing_id).execute()
+            if _code_lookup.data:
+                _editing_code = _code_lookup.data[0].get('project_code', '')
+        except Exception:
+            _editing_code = ''
     st.markdown(
         f"<div style='background:#fff7ed;border-left:3px solid {_acc_top};padding:10px 12px;"
         f"margin-bottom:15px;border-radius:4px;'>"
         f"<div style='font-size:9px;font-weight:700;color:#9a3412;text-transform:uppercase;"
         f"letter-spacing:1px;margin-bottom:4px;'>Aktualnie edytujesz:</div>"
         f"<div style='font-size:20px;font-weight:700;color:#1e293b;line-height:1.25;'>{_editing_name}</div>"
+        f"<div style='font-size:11px;color:#78716c;margin-top:2px;font-family:monospace;'>{_editing_code}</div>"
         f"</div>",
         unsafe_allow_html=True
     )
