@@ -1043,6 +1043,21 @@ with st.sidebar:
     # 3. ZAPISZ JAKO NOWY
     if st.button("ZAPISZ JAKO NOWY", use_container_width=True, type="primary", key="btn_dup_current_top"):
         _duplicate_current_project()
+    st.markdown(
+        """
+        <style>
+        div[data-testid="stButton"] button[kind="primary"] {
+            white-space: normal !important;
+            height: auto !important;
+            min-height: 44px !important;
+            line-height: 1.3 !important;
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
     if st.button("ZAPISZ JAKO KOLEJNĄ WERSJĘ DLA KLIENTA", use_container_width=True, type="primary", key="btn_version_current_top"):
         _create_new_version()
 
