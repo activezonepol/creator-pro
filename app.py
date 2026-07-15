@@ -1035,7 +1035,7 @@ with st.sidebar:
         st.caption("Brak projektów w bazie.")
 
     # 3. ZAPISZ JAKO NOWY
-    if st.button("ZAPISZ JAKO NOWY", use_container_width=True, type="primary", key="btn_dup_current_top"):
+    if st.button("ZAPISZ WCZYTANY JAKO NOWY", use_container_width=True, type="primary", key="btn_dup_current_top"):
         _duplicate_current_project()
     st.markdown(
         """
@@ -1043,10 +1043,10 @@ with st.sidebar:
         div[data-testid="stButton"] button[kind="primary"] {
             white-space: normal !important;
             height: auto !important;
-            min-height: 46px !important;
-            line-height: 1.3 !important;
-            padding-top: 8px !important;
-            padding-bottom: 8px !important;
+            min-height: 60px !important;
+            line-height: 1.4 !important;
+            padding-top: 12px !important;
+            padding-bottom: 12px !important;
         }
         </style>
         """,
