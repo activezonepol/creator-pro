@@ -93,6 +93,24 @@ def save_to_supabase(allow_create: bool = True):
         return
     
     project_code = code_data['code']
+
+    # KLUCZOWE: doklejamy TRWAŁY numer wersji (jeśli ten projekt jest wersją,
+    # np. "-V2"), odczytany z bazy dla tego konkretnego wiersza - inaczej
+    # generate_project_code() (który zawsze liczy kod OD ZERA z aktualnej
+    # nazwy/kraju/klienta) nadpisywałby go czystym kodem przy każdym
+    # auto-save, gubiąc numer wersji (dokładnie ten błąd, który naprawiamy).
+    _existing_id_for_version = st.session_state.get('active_project_id')
+    if _existing_id_for_version:
+        try:
+            _v_lookup = supabase_client.table('projects').select('version_suffix').eq(
+                'id', _existing_id_for_version
+            ).execute()
+            if _v_lookup.data:
+                _version_suffix = _v_lookup.data[0].get('version_suffix') or ''
+                if _version_suffix:
+                    project_code = f"{project_code}{_version_suffix}"
+        except Exception:
+            pass
     country_iso = code_data['country_iso']
     country_name = code_data['country_name']
     year = code_data['year']
