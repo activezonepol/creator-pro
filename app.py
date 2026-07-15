@@ -108,6 +108,20 @@ def _duplicate_current_project():
     if new_id:
         _switch_project(new_id)
 
+def _create_new_version():
+    """Tworzy KOLEJNĄ WERSJĘ tej samej oferty dla tego samego klienta
+    (Mechanizm 2) - w odróżnieniu od _duplicate_current_project(), nazwa/
+    klient/kraj pozostają identyczne, dostaje trwały numer wersji V-2, V-3..."""
+    from db_utils import clone_offer_as_version
+    sb = st.session_state.get('supabase')
+    current_id = st.session_state.get('active_project_id')
+    if not sb or not current_id:
+        st.error("Brak aktywnego projektu do wersjonowania.")
+        return
+    new_id = clone_offer_as_version(sb, current_id)
+    if new_id:
+        _switch_project(new_id)
+
 def _new_project(copy_from_id=None):
     """Tworzy nowy projekt - pusty lub jako kopia istniejącego."""
     from db_utils import fetch_offer_by_id, clone_offer
