@@ -1022,8 +1022,8 @@ with st.sidebar:
         if _current_proj_id_top and _current_proj_id_top in _proj_ids_top:
             _curr_idx_top = _proj_ids_top.index(_current_proj_id_top)
         st.markdown(
-            "<div style='font-size:13px; color:#64748b; margin-bottom:4px;'>"
-            "Wybierz projekt z listy, a następnie naciśnij \"Wczytaj\", aby go otworzyć."
+            "<div style='font-size:13px; color:#000000; margin-bottom:4px;'>"
+            "Wybierz projekt z bazy, a następnie wczytaj przyciskiem."
             "</div>",
             unsafe_allow_html=True,
         )
