@@ -1029,6 +1029,8 @@ with st.sidebar:
     # 3. ZAPISZ JAKO NOWY
     if st.button("ZAPISZ JAKO NOWY", use_container_width=True, type="primary", key="btn_dup_current_top"):
         _duplicate_current_project()
+    if st.button("ZAPISZ JAKO KOLEJNĄ WERSJĘ DLA KLIENTA", use_container_width=True, type="primary", key="btn_version_current_top"):
+        _create_new_version()
 
     # 4. ZAPISZ W BAZIE
     if st.button("ZAPISZ W BAZIE", use_container_width=True, type="primary", key="manual_save_btn"):
