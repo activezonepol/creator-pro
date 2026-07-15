@@ -1021,14 +1021,8 @@ with st.sidebar:
         _curr_idx_top = 0
         if _current_proj_id_top and _current_proj_id_top in _proj_ids_top:
             _curr_idx_top = _proj_ids_top.index(_current_proj_id_top)
-        st.markdown(
-            "<div style='font-size:13px; color:#000000; margin-bottom:4px;'>"
-            "Wybierz projekt z bazy, a następnie wczytaj przyciskiem."
-            "</div>",
-            unsafe_allow_html=True,
-        )
         _selected_proj_top = st.selectbox(
-            "Wczytaj projekt z bazy:",
+            "Wybierz projekt z bazy, a następnie wczytaj przyciskiem:",
             _proj_options_top,
             index=_curr_idx_top,
             key="proj_select_top",
