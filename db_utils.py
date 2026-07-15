@@ -284,11 +284,11 @@ def clone_offer_as_version(supabase_client, source_offer_id, user_email='default
         # klonowania wersji z wersji, np. V-2 -> V-3) - usuwamy końcowe "-VN".
         _base_code_clean = _re_counter.sub(r'-V\d+$', '', _source_code).strip()
         _next_num = _get_next_project_code_number(_base_code_clean, supabase_client)
-
+        _version_num = _next_num + 1  # oryginał = "wersja 1" (niewidoczna), pierwsza kopia = V-2
         new_data = {
             'user_email': user_email,
             'project_name': str(source.get('project_name', 'Oferta')),
-            'project_code': f"{_base_code_clean}-V{_next_num}",
+            'project_code': f"{_base_code_clean}-V{_version_num}",
             'country': source.get('country'),
             'country_name': source.get('country_name'),
             'year': source.get('year'),
