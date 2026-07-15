@@ -296,7 +296,7 @@ def clone_offer_as_version(supabase_client, source_offer_id, user_email='default
             'client_short': source.get('client_short'),
             'storage_folder': source.get('storage_folder'),
             'data': source.get('data', {}),
-            'version_suffix': f"-V{_next_num}",
+            'version_suffix': f"-V{_version_num}",
             'updated_at': datetime.utcnow().isoformat(),
         }
 
