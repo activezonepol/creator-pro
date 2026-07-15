@@ -258,20 +258,27 @@ def delete_offer(supabase_client, offer_id):
 
 
 def clone_offer(supabase_client, source_offer_id, user_email='default_user'):
-    """Klonuje istniejaca oferte (tworzy kopie z nowym ID)."""
+    """
+    Klonuje istniejaca oferte jako PUNKT STARTOWY DLA INNEJ OFERTY
+    (Mechanizm 1 - 'Zapisz jako nowy'). Nazwa dostaje wyraźny, tymczasowy
+    prefiks "KOPIA - ", zachęcający operatora do natychmiastowej zmiany
+    nazwy/klienta/kraju - bo to ma być INNA oferta, nie kolejna wersja
+    tej samej. project_code przeliczy się naturalnie przy najbliższym
+    zapisie, na podstawie nowych danych wpisanych przez operatora.
+
+    Dla wersjonowania TEJ SAMEJ oferty (ten sam klient/kraj, kolejna wersja
+    programu) patrz clone_offer_as_version().
+    """
     try:
         source = fetch_offer_by_id(supabase_client, source_offer_id)
         if not source:
             return None
-        
-        _source_code = str(source.get('project_code', ''))
-        _next_num = _get_next_project_code_number(_source_code, supabase_client)
-        _base_code_clean = _extract_base_project_code(_source_code)
 
+        _source_name = str(source.get('project_name', 'Oferta'))
         new_data = {
             'user_email': user_email,
-            'project_name': str(source.get('project_name', 'Oferta')),
-            'project_code': f"{_base_code_clean} ({_next_num})",
+            'project_name': f"KOPIA - {_source_name}",
+            'project_code': str(source.get('project_code', '')),
             'country': source.get('country'),
             'country_name': source.get('country_name'),
             'year': source.get('year'),
@@ -279,9 +286,10 @@ def clone_offer(supabase_client, source_offer_id, user_email='default_user'):
             'client_short': source.get('client_short'),
             'storage_folder': source.get('storage_folder'),
             'data': source.get('data', {}),
+            'version_suffix': '',
             'updated_at': datetime.utcnow().isoformat(),
         }
-        
+
         result = supabase_client.table('projects').insert(new_data).execute()
         if result.data:
             return result.data[0].get('id')
