@@ -1043,7 +1043,7 @@ with st.sidebar:
         div[data-testid="stButton"] button[kind="primary"] {
             white-space: normal !important;
             height: auto !important;
-            min-height: 44px !important;
+            min-height: 46px !important;
             line-height: 1.3 !important;
             padding-top: 8px !important;
             padding-bottom: 8px !important;
