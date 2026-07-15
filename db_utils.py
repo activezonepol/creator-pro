@@ -257,6 +257,58 @@ def delete_offer(supabase_client, offer_id):
         return False
 
 
+def clone_offer_as_version(supabase_client, source_offer_id, user_email='default_user'):
+    """
+    Klonuje istniejaca oferte jako KOLEJNĄ WERSJĘ TEJ SAMEJ oferty dla
+    tego samego klienta (Mechanizm 2 - 'Zapisz jako kolejną wersję dla
+    klienta'). W odróżnieniu od clone_offer() (kopia jako punkt startowy
+    dla INNEJ oferty): nazwa, klient, kraj, region pozostają IDENTYCZNE
+    jak w oryginale - to nadal ta sama oferta, tylko zaktualizowana wersja
+    programu/kosztorysu, do której wraca się przy porównywaniu historii
+    zmian wysyłanych klientowi.
+
+    Numer wersji (V-2, V-3, ...) jest TRWAŁY - zapisany w osobnej kolumnie
+    version_suffix, dokładany przez save_to_supabase() do przeliczonego
+    project_code przy KAŻDYM zapisie, więc nie ginie przy auto-save
+    (w odróżnieniu od wcześniejszej, błędnej próby zaszycia numeru
+    bezpośrednio w project_code, który save_to_supabase() i tak przelicza
+    od zera z t_main/kraju/klienta przy każdym zapisie).
+    """
+    try:
+        source = fetch_offer_by_id(supabase_client, source_offer_id)
+        if not source:
+            return None
+
+        _source_code = str(source.get('project_code', ''))
+        # Rdzeń kodu bez ewentualnego istniejącego sufiksu wersji (na wypadek
+        # klonowania wersji z wersji, np. V-2 -> V-3) - usuwamy końcowe "-VN".
+        _base_code_clean = _re_counter.sub(r'-V\d+$', '', _source_code).strip()
+        _next_num = _get_next_project_code_number(_base_code_clean, supabase_client)
+
+        new_data = {
+            'user_email': user_email,
+            'project_name': str(source.get('project_name', 'Oferta')),
+            'project_code': f"{_base_code_clean}-V{_next_num}",
+            'country': source.get('country'),
+            'country_name': source.get('country_name'),
+            'year': source.get('year'),
+            'month': source.get('month'),
+            'client_short': source.get('client_short'),
+            'storage_folder': source.get('storage_folder'),
+            'data': source.get('data', {}),
+            'version_suffix': f"-V{_next_num}",
+            'updated_at': datetime.utcnow().isoformat(),
+        }
+
+        result = supabase_client.table('projects').insert(new_data).execute()
+        if result.data:
+            return result.data[0].get('id')
+        return None
+    except Exception as e:
+        st.error("Blad tworzenia wersji oferty: " + str(e))
+        return None
+
+
 def clone_offer(supabase_client, source_offer_id, user_email='default_user'):
     """
     Klonuje istniejaca oferte jako PUNKT STARTOWY DLA INNEJ OFERTY
