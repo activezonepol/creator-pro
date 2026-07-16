@@ -1040,13 +1040,16 @@ with st.sidebar:
     st.markdown(
         """
         <style>
-        button[kind="primary"]:has(div:contains("KOLEJNĄ WERSJĘ")) {
+        .st-key-btn_version_current_top button {
             min-height: 60px !important;
             height: auto !important;
             white-space: normal !important;
+            line-height: 1.4 !important;
+            padding-top: 12px !important;
+            padding-bottom: 12px !important;
         }
-        .stButton {
-            width: 100%;
+        .st-key-btn_version_current_top button p {
+            white-space: normal !important;
         }
         </style>
         """,
