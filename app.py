@@ -1040,13 +1040,13 @@ with st.sidebar:
     st.markdown(
         """
         <style>
-        div[data-testid="stButton"] button[kind="primary"] {
-            white-space: normal !important;
-            height: auto !important;
+        button[kind="primary"]:has(div:contains("KOLEJNĄ WERSJĘ")) {
             min-height: 60px !important;
-            line-height: 1.4 !important;
-            padding-top: 12px !important;
-            padding-bottom: 12px !important;
+            height: auto !important;
+            white-space: normal !important;
+        }
+        .stButton {
+            width: 100%;
         }
         </style>
         """,
