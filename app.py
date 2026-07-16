@@ -1040,16 +1040,24 @@ with st.sidebar:
     st.markdown(
         """
         <style>
+        .st-key-btn_version_current_top,
+        .st-key-btn_version_current_top .stButton,
         .st-key-btn_version_current_top button {
-            min-height: 60px !important;
             height: auto !important;
-            white-space: normal !important;
-            line-height: 1.4 !important;
-            padding-top: 12px !important;
-            padding-bottom: 12px !important;
+            min-height: 60px !important;
         }
+        .st-key-btn_version_current_top button {
+            white-space: normal !important;
+            line-height: 1.3 !important;
+            padding-top: 10px !important;
+            padding-bottom: 10px !important;
+        }
+        .st-key-btn_version_current_top button div,
+        .st-key-btn_version_current_top button span,
         .st-key-btn_version_current_top button p {
             white-space: normal !important;
+            font-size: 1rem !important;
+            height: auto !important;
         }
         </style>
         """,
