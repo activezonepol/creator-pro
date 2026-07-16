@@ -1037,32 +1037,7 @@ with st.sidebar:
     # 3. ZAPISZ JAKO NOWY
     if st.button("ZAPISZ WCZYTANY JAKO NOWY", use_container_width=True, type="primary", key="btn_dup_current_top"):
         _duplicate_current_project()
-    st.markdown(
-        """
-        <style>
-        .st-key-btn_version_current_top,
-        .st-key-btn_version_current_top .stButton,
-        .st-key-btn_version_current_top button {
-            height: auto !important;
-            min-height: 60px !important;
-        }
-        .st-key-btn_version_current_top button {
-            white-space: normal !important;
-            line-height: 1.3 !important;
-            padding-top: 10px !important;
-            padding-bottom: 10px !important;
-        }
-        .st-key-btn_version_current_top button div,
-        .st-key-btn_version_current_top button span,
-        .st-key-btn_version_current_top button p {
-            white-space: normal !important;
-            font-size: 1rem !important;
-            height: auto !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+    
     if st.button("ZAPISZ JAKO KOLEJNĄ WERSJĘ DLA KLIENTA", use_container_width=True, type="primary", key="btn_version_current_top"):
         _create_new_version()
 
