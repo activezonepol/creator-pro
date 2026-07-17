@@ -1036,7 +1036,6 @@ with st.sidebar:
         _curr_idx_top = 0
         if _current_proj_id_top and _current_proj_id_top in _proj_ids_top:
             _curr_idx_top = _proj_ids_top.index(_current_proj_id_top)
-        st.caption(f"DEBUG: _curr_idx_top={_curr_idx_top}, wartość w session_state PRZED renderem = {st.session_state.get('proj_select_top', 'BRAK KLUCZA')}")
         _selected_proj_top = st.selectbox(
             "Wybierz projekt z bazy, a następnie wczytaj przyciskiem:",
             _proj_options_top,
