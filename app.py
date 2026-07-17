@@ -1045,7 +1045,7 @@ with st.sidebar:
     if st.button("ZAPISZ WCZYTANY JAKO NOWY", use_container_width=True, type="primary", key="btn_dup_current_top"):
         _duplicate_current_project()
     
-    if st.button("ZAPISZ WCZYTANY PROGRAM JAKO KOLEJNĄ WERSJĘ", use_container_width=True, type="primary", key="btn_version_current_top"):
+    if st.button("ZAPISZ WCZYTANY JAKO KOLEJNĄ WERSJĘ", use_container_width=True, type="primary", key="btn_version_current_top"):
         _create_new_version()
 
     # 4. ZAPISZ W BAZIE
