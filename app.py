@@ -57,6 +57,7 @@ if "preview_container" not in st.session_state:
 # ---------------------------------------------------------------------------
 def _switch_project(project_id):
     """Wczytuje projekt o danym ID z bazy i ustawia jako aktywny."""
+    print(f"===DEBUG_SWITCH=== _switch_project WYWOŁANE z project_id={project_id}", flush=True)
     from db_utils import fetch_offer_by_id
     sb = st.session_state.get('supabase')
     if not sb:
@@ -64,8 +65,10 @@ def _switch_project(project_id):
         return
     offer = fetch_offer_by_id(sb, project_id)
     if not offer:
+        print(f"===DEBUG_SWITCH=== NIE znaleziono oferty dla project_id={project_id}", flush=True)
         st.error("Nie znaleziono projektu")
         return
+    print(f"===DEBUG_SWITCH=== Znaleziono ofertę, ustawiam active_project_id={project_id}", flush=True)
     
     # Wyczyść aktualne dane (zachowując kluczowe ustawienia widgetów)
     keys_to_remove = []
