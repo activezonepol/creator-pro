@@ -242,10 +242,10 @@ def fetch_all_offers(supabase_client, user_email='default_user'):
     try:
         response = supabase_client.table('projects').select(
             'id, project_name, project_code, country, country_name, '
-            'year, month, client_short, storage_folder, updated_at'
+            'year, month, client_short, storage_folder, updated_at, version_suffix'
         ).eq('user_email', user_email).order('country', desc=False).order(
             'year', desc=True
-        ).order('month', desc=True).execute()
+        ).order('month', desc=True).order('updated_at', desc=True).execute()
         
         return response.data or []
     except Exception as e:
