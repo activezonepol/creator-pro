@@ -995,6 +995,14 @@ with st.sidebar:
         f"[data-testid='stSidebar'] [data-testid='stExpander'] summary svg {{"
         f"fill: white !important;"
         f"}}"
+        f".st-key-btn_version_current_top button[kind='primary'] {{"
+        f"min-height: 60px !important;"
+        f"height: auto !important;"
+        f"white-space: normal !important;"
+        f"line-height: 1.3 !important;"
+        f"padding-top: 10px !important;"
+        f"padding-bottom: 10px !important;"
+        f"}}"
         f"</style>",
         unsafe_allow_html=True
     )
