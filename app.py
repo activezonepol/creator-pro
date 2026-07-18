@@ -2560,6 +2560,11 @@ with col_form:
                 
                 # EDYCJA POL
                 safe_checkbox("Ukryj ten slajd w PDF", key=f"h_hide_{i}")
+                safe_text_input(
+                    "Wpisz gdy hotel opcjonalny lub alternatywny:",
+                    key=f"hopt_label_{i}", max_chars=25,
+                    help="Np. opcjonalna, alternatywa, dodatkowa opłata. Puste = brak oznaczenia.",
+                )
                 safe_text_input("Mały nadtytuł:", key=f"h_overline_{i}")
                 safe_text_area("Nazwa hotelu (H1):", key=f"h_title_{i}")
                 safe_text_input("Podtytuł:", key=f"h_subtitle_{i}")
