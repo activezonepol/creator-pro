@@ -1305,6 +1305,59 @@ with st.sidebar:
     # szary podgląd, dopóki last_page nie zsynchronizowało się przy
     # następnym kliknięciu w inny slajd.
     st.session_state['last_page'] = page
+
+    # ==========================================================================
+    # STREFA ADMINISTRATORA — widoczna TYLKO dla loginów z listy w Secrets
+    # ([admins] users = [...]). Pozwala trwale usunąć projekt z bazy.
+    # Usuwa WYŁĄCZNIE wiersz w tabeli projects - zdjęcia w Storage NIE są
+    # kasowane (mogą być współdzielone między kopiami/wersjami tego samego
+    # projektu, więc automatyczne kasowanie plików byłoby ryzykowne).
+    # ==========================================================================
+    _admin_users = list(st.secrets.get("admins", {}).get("users", []))
+    _current_user_login = st.session_state.get('current_user', '')
+
+    if _current_user_login in _admin_users:
+        st.markdown("---")
+        with st.expander("STREFA ADMINISTRATORA", expanded=False):
+            st.caption("Trwałe usunięcie projektu z bazy. Tej operacji nie da się cofnąć.")
+
+            _admin_all_offers = fetch_all_offers(supabase)
+            if _admin_all_offers:
+                _admin_options = ["-- Wybierz projekt do usunięcia --"] + [
+                    f"{o.get('project_code', '???')} | {o.get('project_name', 'bez nazwy')[:30]}"
+                    for o in _admin_all_offers
+                ]
+                _admin_ids = [None] + [o['id'] for o in _admin_all_offers]
+                _admin_selected = st.selectbox(
+                    "Projekt do usunięcia:",
+                    _admin_options,
+                    key="admin_delete_select",
+                )
+                _admin_idx = _admin_options.index(_admin_selected)
+
+                if _admin_idx > 0:
+                    _target_id = _admin_ids[_admin_idx]
+                    _target_label = _admin_options[_admin_idx]
+                    st.warning(f"Zamierzasz trwale usunąć: **{_target_label}**")
+                    _confirm_delete = st.checkbox(
+                        "Rozumiem, że tej operacji nie da się cofnąć.",
+                        key="admin_delete_confirm",
+                    )
+                    if _confirm_delete:
+                        if st.button("USUŃ PROJEKT NA STAŁE", type="primary", use_container_width=True, key="admin_delete_btn"):
+                            from db_utils import delete_offer
+                            _success = delete_offer(supabase, _target_id)
+                            if _success:
+                                st.success(f"Usunięto projekt: {_target_label}")
+                                if st.session_state.get('active_project_id') == _target_id:
+                                    st.session_state['active_project_id'] = None
+                                st.session_state.pop('admin_delete_confirm', None)
+                                st.rerun()
+                            else:
+                                st.error("Nie udało się usunąć projektu.")
+            else:
+                st.caption("Brak projektów w bazie.")
+
 # ---------------------------------------------------------------------------
 # Blok zarządzania projektami/dyskiem/eksportem przeniesiony wyżej,
 # zaraz po "Aktualnie edytujesz" — patrz sekcja nawigacji w sidebarze.
