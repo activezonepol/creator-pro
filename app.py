@@ -1028,9 +1028,20 @@ with st.sidebar:
     _all_offers_top = fetch_all_offers(supabase)
     _current_proj_id_top = st.session_state.get('active_project_id')
     if _all_offers_top:
+        def _build_project_label(o):
+            _p_name = str(o.get('project_name', 'bez nazwy'))
+            _v_suffix = str(o.get('version_suffix', '') or '')
+            if _v_suffix:
+                _prefix = f"[{_v_suffix.lstrip('-')}] "
+            elif _p_name.startswith('KOPIA - '):
+                _prefix = "[KOPIA] "
+                _p_name = _p_name[len('KOPIA - '):]
+            else:
+                _prefix = ""
+            return f"{_prefix}{_p_name[:28]} | {o.get('project_code', '???')}"
+
         _proj_options_top = ["-- Wybierz projekt --"] + [
-            f"{o.get('project_code', '???')} | {o.get('project_name', 'bez nazwy')[:30]}"
-            for o in _all_offers_top
+            _build_project_label(o) for o in _all_offers_top
         ]
         _proj_ids_top = [None] + [o['id'] for o in _all_offers_top]
         _curr_idx_top = 0
