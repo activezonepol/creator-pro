@@ -1029,16 +1029,15 @@ with st.sidebar:
     _current_proj_id_top = st.session_state.get('active_project_id')
     if _all_offers_top:
         def _build_project_label(o):
-            _p_name = str(o.get('project_name', 'bez nazwy'))
+            _p_name = str(o.get('project_name', ''))
             _v_suffix = str(o.get('version_suffix', '') or '')
             if _v_suffix:
-                _prefix = f"[{_v_suffix.lstrip('-')}] "
+                _prefix = f"{_v_suffix.lstrip('-')} | "
             elif _p_name.startswith('KOPIA - '):
-                _prefix = "[KOPIA] "
-                _p_name = _p_name[len('KOPIA - '):]
+                _prefix = "KOPIA | "
             else:
                 _prefix = ""
-            return f"{_prefix}{_p_name[:28]} | {o.get('project_code', '???')}"
+            return f"{_prefix}{o.get('project_code', '???')}"
 
         _proj_options_top = ["-- Wybierz projekt --"] + [
             _build_project_label(o) for o in _all_offers_top
