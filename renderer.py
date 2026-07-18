@@ -2671,6 +2671,20 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             h3 = get_b64(f'img_hotel_3_{i}', (16, 9))
             h1_html = _img_tag(h1, 'ZDJ. LEWE 1')
             h1b_html = _img_tag(h1b, 'ZDJ. LEWE 2')
+
+            # Chip "OPCJA" (lub inna etykieta) - prawy górny róg zdjęcia,
+            # analogiczny do chipa atrakcji.
+            _hopt_text = str(get_data(f'hopt_label_{i}', '') or '').strip()
+            _hopt_chip = (
+                f'<div style="position:absolute; top:14px; right:14px; '
+                f'background:{acc}; color:#fff; padding:6px 14px; '
+                f'border-radius:4px; font-family:\'{f_met}\'; '
+                f'font-size:11px; font-weight:700; letter-spacing:1.5px; '
+                f'text-transform:uppercase; white-space:nowrap; '
+                f'box-shadow:0 2px 8px rgba(0,0,0,0.15); z-index:5;">'
+                f'{_hopt_text}</div>'
+                if _hopt_text else ''
+            )
             url_val = str(get_data(f'h_url_{i}', '')).strip()
             # POPRAWKA 2: URL w linii z podtytułem (wyrównany do prawej), podlinkowany
             _url_clean = url_val.replace('https://', '').replace('http://', '') if url_val else ''
