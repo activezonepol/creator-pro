@@ -1255,9 +1255,14 @@ with st.sidebar:
     
     _all_pages.append(_label_with_hide("  ↳ Przerywnik hotel", "sek_hide_0"))
     _all_pages.append("Opis hoteli")
-    # Hotele dynamiczne
+    # Hotele dynamiczne - kafelki NIE renderują składni markdown (:red[...]),
+    # więc budujemy etykietę ręcznie z czarnym _HIDE_SUFFIX_PLAIN, zamiast
+    # przez _label_with_hide() (ta zostaje z czerwonym, dla zwykłych stron).
     for _hp in range(_n_hotels):
-        _all_pages.append(_label_with_hide(f"    ❯ Hotel {_hp+1}", f"h_hide_{_hp}"))
+        _hotel_name = f"    ❯ Hotel {_hp+1}"
+        if st.session_state.get(f"h_hide_{_hp}", False):
+            _hotel_name += _HIDE_SUFFIX_PLAIN
+        _all_pages.append(_hotel_name)
     
     _all_pages.extend([
         _label_with_hide("  ↳ Przerywnik serwisy dodatkowe", "sek_hide_4"), 
