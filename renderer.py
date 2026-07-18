@@ -2242,6 +2242,61 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         </div>
         """
         
+        # Plakietka "Wersja + Data przygotowania" - lewy dolny róg zdjęcia.
+        # Elegancka, półprzezroczysta plakietka w stylu magazynu podróżniczego
+        # (nie sztywny, korporacyjny prostokąt). Dynamicznie dopasowuje się:
+        # jeśli oba elementy ukryte - plakietka znika całkowicie; jeśli tylko
+        # jeden ukryty - drugi zostaje sam, bez samotnego separatora "·".
+        _hide_ver = bool(get_data('hide_version_label', False))
+        _hide_date = bool(get_data('hide_prepared_date', False))
+        _dark_bg = get_data('badge_dark_bg', True)
+        if _dark_bg is None:
+            _dark_bg = True
+
+        _ver_suffix_raw = str(get_data('version_suffix', '') or '')
+        _ver_num = 1
+        if _ver_suffix_raw:
+            _ver_match = re.search(r'V(\d+)', _ver_suffix_raw)
+            if _ver_match:
+                _ver_num = int(_ver_match.group(1))
+        _ver_text = f"WERSJA {_ver_num}"
+
+        _created_raw = str(get_data('t_created_at', '') or '')
+        _date_text = ''
+        if _created_raw:
+            try:
+                _created_date_obj = datetime.fromisoformat(_created_raw.replace('Z', '+00:00'))
+                _date_text = f"Przygotowano: {_created_date_obj.strftime('%d.%m.%Y')}"
+            except Exception:
+                _date_text = ''
+
+        _badge_parts = []
+        if not _hide_date and _date_text:
+            _badge_parts.append(_date_text)
+        if not _hide_ver:
+            _badge_parts.append(_ver_text)
+        _badge_content = "  ·  ".join(_badge_parts)
+
+        if _badge_content:
+            if _dark_bg:
+                _badge_bg = "rgba(17,17,17,0.55)"
+                _badge_color = "#ffffff"
+            else:
+                _badge_bg = "rgba(255,255,255,0.80)"
+                _badge_color = acc
+            badge_html = f"""
+            <div style="position:absolute; left:24px; bottom:24px; z-index:5;
+                        background:{_badge_bg}; color:{_badge_color};
+                        padding:8px 18px; border-radius:2px;
+                        font-family:'{f_met}', sans-serif; font-weight:500;
+                        font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+                        backdrop-filter:blur(2px);">
+                {_badge_content}
+            </div>
+            """
+        else:
+            badge_html = ""
+
         # Layout zdjęcie/tekst - proporcja ustawiana WYŁĄCZNIE przez flex:62/38.
         # box-sizing:border-box na obu kolumnach jest KLUCZOWE: bez tego,
         # padding prawej kolumny (95px w poziomie) dolicza się PONAD wyliczoną
@@ -2254,6 +2309,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
                 <div style="position:absolute; top:0; left:0; width:100%; height:100%;">
                     {im1}
                 </div>
+                {badge_html}
             </div>
             <div style="flex:35 1 0; display:flex; flex-direction:column; height:100%; justify-content:center; padding:30px 20px 15px 40px; box-sizing:border-box;">
                 {lcli_container}
