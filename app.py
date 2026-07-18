@@ -1040,7 +1040,7 @@ with st.sidebar:
             "Wybierz projekt z bazy, a następnie wczytaj przyciskiem:",
             _proj_options_top,
             index=_curr_idx_top,
-            key="proj_select_top",
+            key=f"proj_select_top_{_current_proj_id_top}",
         )
         _sel_idx_top = _proj_options_top.index(_selected_proj_top)
         if _sel_idx_top > 0:
