@@ -810,7 +810,7 @@ _DYNAMIC_DATA_PATTERNS = [
     # --- Hotele ---
     r'^h_hide_\d+$', r'^h_overline_\d+$', r'^h_title_\d+$', r'^h_subtitle_\d+$',
     r'^h_url_\d+$', r'^h_booking_\d+$', r'^h_amenities_\d+$', r'^h_text_\d+$',
-    r'^h_advantages_\d+$',
+    r'^h_advantages_\d+$', r'^hopt_label_\d+$',
     r'^img_hotel_1_\d+$', r'^img_hotel_1b_\d+$', r'^img_hotel_2_\d+$', r'^img_hotel_3_\d+$',
     # --- Atrakcje ---
     r'^amain_\d+$', r'^asub_\d+$', r'^aday_\d+$', r'^atype_\d+$', r'^aopis_\d+$',
