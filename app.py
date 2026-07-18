@@ -2527,10 +2527,11 @@ with col_form:
                     (f'h_hide_{i}', False), (f'h_overline_{i}', 'ZAKWATEROWANIE'),
                     (f'h_title_{i}', f'NAZWA HOTELU {i+1} 5*'),
                     (f'h_subtitle_{i}', 'Komfort i elegancja na najwyższym poziomie'),
-                    (f'h_url_{i}', 'www.przykładowy-hotel.com'), (f'h_booking_{i}', '8.9'),
+                    (f'h_url_{i}', '[www.przykładowy-hotel.com](https://www.przykładowy-hotel.com)'), (f'h_booking_{i}', '8.9'),
                     (f'h_amenities_{i}', ["Basen", "SPA", "Wi-Fi", "Restauracja", "Plaża"]),
                     (f'h_text_{i}', 'Zapewniamy zakwaterowanie w starannie wyselekcjonowanym hotelu.'),
                     (f'h_advantages_{i}', 'Położenie tuż przy prywatnej plaży'),
+                    (f'hopt_label_{i}', ''),
                 ]
                 for dk, dv in _h_defaults:
                     # Buforujemy do _buffer_KEY przed pierwszym widgetem żeby Streamlit nie wyrzucił
