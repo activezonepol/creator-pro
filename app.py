@@ -1357,6 +1357,10 @@ with st.sidebar:
                                 st.error("Nie udało się usunąć projektu.")
             else:
                 st.caption("Brak projektów w bazie.")
+    # Dodatkowy odstęp na końcu sidebara, żeby rozwinięta lista wyboru
+    # projektu w Strefie Administratora miała miejsce na przewijanie,
+    # zamiast ucinać się na dolnej krawędzi widocznego obszaru.
+    st.markdown("<div style='margin-bottom:250px;'></div>", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
 # Blok zarządzania projektami/dyskiem/eksportem przeniesiony wyżej,
