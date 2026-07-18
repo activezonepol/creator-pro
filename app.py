@@ -970,12 +970,12 @@ with st.sidebar:
         except Exception:
             _editing_code = ''
     st.markdown(
-        f"<div style='background:#fff7ed;border-left:3px solid {_acc_top};padding:10px 12px;"
+        f"<div style='background:#fff7ed;border-left:3px solid {_acc_top};padding:12px 14px;"
         f"margin-bottom:15px;border-radius:4px;'>"
-        f"<div style='font-size:9px;font-weight:700;color:#9a3412;text-transform:uppercase;"
-        f"letter-spacing:1px;margin-bottom:4px;'>Aktualnie edytujesz:</div>"
-        f"<div style='font-size:20px;font-weight:700;color:#1e293b;line-height:1.25;'>{_editing_name}</div>"
-        f"<div style='font-size:11px;color:#78716c;margin-top:2px;font-family:monospace;'>{_editing_code}</div>"
+        f"<div style='font-size:14px;font-weight:700;color:#000000;text-transform:uppercase;"
+        f"letter-spacing:1px;margin-bottom:6px;'>Aktualnie edytujesz:</div>"
+        f"<div style='font-size:25px;font-weight:700;color:#000000;line-height:1.25;'>{_editing_name}</div>"
+        f"<div style='font-size:14px;font-weight:700;color:#000000;margin-top:4px;font-family:monospace;'>{_editing_code}</div>"
         f"</div>",
         unsafe_allow_html=True
     )
