@@ -1551,6 +1551,33 @@ with col_form:
             ('t_hotel', 'Hotel'), ('t_trans', 'Dojazd'),
         ]:
             safe_text_input(l, key=k)
+
+        _section_header("WERSJA I DATA PRZYGOTOWANIA (widoczne na slajdzie)")
+        _v_suffix_raw = str(st.session_state.get('version_suffix', '') or '')
+        _v_number = 1
+        if _v_suffix_raw:
+            _v_match = re.search(r'V(\d+)', _v_suffix_raw)
+            if _v_match:
+                _v_number = int(_v_match.group(1))
+        _created_raw = st.session_state.get('t_created_at', '')
+        _created_display = _created_raw[:16].replace('T', ', ') if _created_raw else '(brak danych)'
+        st.caption(f"V{_v_number} (wersja {_v_number})  ·  Przygotowano: {_created_display}")
+
+        _vc1, _vc2, _vc3 = st.columns(3)
+        with _vc1:
+            safe_checkbox("Ukryj wersję w prezentacji", key="hide_version_label")
+        with _vc2:
+            safe_checkbox("Ukryj datę w prezentacji", key="hide_prepared_date")
+        with _vc3:
+            _bg_choice = st.radio(
+                "Tło plakietki:",
+                ["Ciemne", "Jasne"],
+                index=0 if st.session_state.get('badge_dark_bg', True) else 1,
+                key="badge_bg_radio",
+                horizontal=True,
+            )
+            st.session_state['badge_dark_bg'] = (_bg_choice == "Ciemne")
+
         st.file_uploader(
             "Zdjęcie główne (4:5)",
             key="up_img_hero_t",
