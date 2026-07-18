@@ -2288,7 +2288,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             <div style="position:absolute; left:24px; bottom:24px; z-index:5;
                         background:{_badge_bg}; color:{_badge_color};
                         padding:8px 18px; border-radius:2px;
-                        font-family:'{f_met}', sans-serif; font-weight:500;
+                        font-family:'{f_met}', sans-serif; font-weight:700;
                         font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
                         backdrop-filter:blur(2px);">
                 {_badge_content}
