@@ -2554,7 +2554,7 @@ with col_form:
                     f'h_hide_{i}', f'h_overline_{i}', f'h_title_{i}', f'h_subtitle_{i}',
                     f'h_url_{i}', f'h_booking_{i}', f'h_amenities_{i}', f'h_text_{i}',
                     f'h_advantages_{i}', f'img_hotel_1_{i}', f'img_hotel_1b_{i}',
-                    f'img_hotel_2_{i}', f'img_hotel_3_{i}',
+                    f'img_hotel_2_{i}', f'img_hotel_3_{i}', f'hopt_label_{i}',
                 ]
                 section_template_manager(h_keys, "HOT", st.session_state.get(f'h_title_{i}', f'hotel-{i+1}'), f"hot_{i}", index=i)
                 
