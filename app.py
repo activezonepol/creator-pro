@@ -1193,12 +1193,16 @@ with st.sidebar:
     )
     
     # 3. BUDOWANIE LISTY STRON (ZGODNIE ZE SPISEM TREŚCI)
-    # Sufiksy menu: ikony po nazwie, kolorowane przez Streamlit markdown.
+    # Sufiksy menu: ikony po nazwie. UWAGA: składnia markdown Streamlit
+    # (":red[...]") działa TYLKO w zwykłych opcjach st.radio (Mapa podróży,
+    # Jak lecimy? itd.), NIE działa w "kartowych" kafelkach hoteli/atrakcji
+    # (tam wyświetla się dosłowny tekst ":red[✖]" zamiast koloru) - dlatego
+    # dla kafelków używamy osobnego, zwykłego, czarnego znaku.
     # Aby dodać nowy sufiks: zdefiniuj stałą i dopisz do _MENU_SUFFIXES.
-    # Aby dodać nowy sufiks: zdefiniuj stałą i dopisz do _MENU_SUFFIXES.
-    _HIDE_SUFFIX = "  :red[✖]"
+    _HIDE_SUFFIX = "  :red[✖]"        # zwykłe strony (st.radio) - czerwony
+    _HIDE_SUFFIX_PLAIN = "  ✖"        # kafelki hoteli/atrakcji - czarny
     _OPT_SUFFIX  = "  (opcja)"
-    _MENU_SUFFIXES = (_HIDE_SUFFIX, _OPT_SUFFIX)
+    _MENU_SUFFIXES = (_HIDE_SUFFIX, _HIDE_SUFFIX_PLAIN, _OPT_SUFFIX)
     
     def _strip_hide_suffix(name):
         """Usuwa wszystkie sufiksy menu (kolejność dowolna, ilość dowolna)."""
