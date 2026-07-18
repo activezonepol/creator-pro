@@ -103,6 +103,7 @@ def _switch_project(project_id):
     # Data przygotowania TEJ KONKRETNEJ wersji/kopii - stały, niezmienny
     # znacznik z bazy (created_at), niezależny od późniejszych edycji treści.
     st.session_state['t_created_at'] = offer.get('created_at', '')
+    st.session_state['version_suffix'] = offer.get('version_suffix', '')
     st.session_state['last_supabase_save'] = time.time()  # opóźnij auto-save
     st.rerun()
 
