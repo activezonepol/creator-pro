@@ -2202,12 +2202,14 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         # 4. Dojazd | Hotel
         metrics_html = f"""
         <div style="margin-top:10px;">
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px 30px; margin-bottom:20px; align-items:baseline;">
-                <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
-                            color:{acc}; text-transform:uppercase; letter-spacing:2.5px; white-space:nowrap;">PRZYGOTOWANO DLA</div>
-                <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_klient','')}</div>
-            </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px 30px;">
+                <div>
+                    <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
+                                color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">PRZYGOTOWANO DLA</div>
+                </div>
+                <div>
+                    <div style="font-family:'{f_t}'; font-weight:400; font-size:{fs_t+2}px; color:{c_t};">{get_data('t_klient','')}</div>
+                </div>
                 <div>
                     <div style="font-family:'{f_met}'; font-weight:600; font-size:{max(9, fs_met-4)}px;
                                 color:{acc}; text-transform:uppercase; letter-spacing:2.5px; margin-bottom:6px;">TERMIN</div>
