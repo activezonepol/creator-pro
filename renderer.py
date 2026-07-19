@@ -460,22 +460,22 @@ defaults = {
     'testim_title': 'CO O NAS\nMÓWIĄ?',
     'testim_subtitle': 'REKOMENDACJE POPARTE REALNYMI WYNIKAMI',
     'testim_count': 3,
-    'img_testim_main': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/LOGO/loga%20klientow%202026.png',
+    'img_testim_main': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/LOGO/loga_klientow_2026.png',
 
     'testim_head_0': 'Rejs po morzu Śródziemnym',
     'testim_quote_0': 'To, co nas ogromnie ujęło to indywidualne podejście do uczestników, duży wybór różnorodnych aktywności, elastyczność organizacyjna, szybkość reagowania na nasze potrzeby. (...) Podczas realizacji bardzo dobra była identyfikacja naszej firmy i przygotowane materiały.',
     'testim_author_0': 'Katarzyna Bzdela', 'testim_role_0': 'MR Manager',
-    'testim_img_0': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/LOGO/VOLVO%20okragle.jpg',
+    'testim_img_0': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/LOGO/volvo-logo.jpg',
 
     'testim_head_1': 'Najlepsi partnerzy w Indiach',
     'testim_quote_1': 'Doskonałe zaplanowanie wyjazdu, świetna organizacja i logistyka na miejscu pozwoliły nam zrealizować niezwykły program, w kilku odległych od siebie miejscach w Indiach. Zaproponowany program był fantastyczny - oryginalny i ciekawy, z efektami WOW, które przerosły nasze oczekiwania (...). Bardzo przydatna okazała się aplikacja dedykowana na wyjazd.',
     'testim_author_1': 'Adam Rowicki', 'testim_role_1': 'Prezes Zarządu',
-    'testim_img_1': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/LOGO/logo%20NAU.png',
+    'testim_img_1': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/LOGO/nau-logo.png',
 
     'testim_head_2': 'Konferencja VIP dla Partnerów',
     'testim_quote_2': 'Profesjonalne działania, elastyczność, szybka reakcja na zmiany i rzetelność to słowa charakteryzujące współpracę z Activezone w trakcie przygotowań, jak i podczas wyjazdu. Program konferencji był różnorodny i doskonale zaplanowany. Było to szczególnie dla nas ważne ze względu na niezwykle wymagających Gości.',
     'testim_author_2': 'Daniel Kaliszuk', 'testim_role_2': 'Członek Zarządu',
-    'testim_img_2': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/LOGO/interrisk%20kwadrat.jpg',
+    'testim_img_2': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/LOGO/interrisk-logo.jpg',
 
     'about_hide': False,
     'about_overline': 'NASZ ZESPÓŁ',
