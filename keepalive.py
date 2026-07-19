@@ -8,7 +8,7 @@ zapytanie HTTP nie wystarcza, bo Streamlit Cloud zwraca statyczną
 import os
 from playwright.sync_api import sync_playwright
 
-APP_URL = os.environ.get("STREAMLIT_APP_URL", "https://TWOJA-APLIKACJA.streamlit.app/")
+APP_URL = os.environ.get("STREAMLIT_APP_URL", "https://creator-pro.streamlit.app/")
 
 def wake_up_app():
     with sync_playwright() as p:
