@@ -458,7 +458,7 @@ defaults = {
     'sek_3_title': 'PROGRAM', 'sek_3_sub': 'NASZ PLAN WYJAZDU', 'sek_3_hide': False,
     'testim_hide': False, 'testim_overline': 'REKOMENDACJE',
     'testim_title': 'CO O NAS\nMÓWIĄ?',
-    'testim_subtitle': '100% NASZYCH KLIENTÓW JEST CAŁKOWICIE ZADOWOLONYCH Z NASZYCH USŁUG.',
+    'testim_subtitle': 'REKOMENDACJE POPARTE REALNYMI WYNIKAMI',
     'testim_count': 3,
     'img_testim_main': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/LOGO/loga%20klientow%202026.png',
 
