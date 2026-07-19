@@ -3106,7 +3106,7 @@ with col_form:
             key="up_img_testim_main",
             on_change=_make_upload_callback('img_testim_main')
         )
-        st.number_input("Liczba opinii:", 1, 4, step=1, key="testim_count")
+        safe_number_input("Liczba opinii:", key="testim_count", default=3, min_value=1, max_value=4, step=1)
         with st.expander("OPINIE (rozwiń, aby edytować)", expanded=False):
             for i in range(st.session_state['testim_count']):
                 for dk in [f"testim_head_{i}", f"testim_quote_{i}",
