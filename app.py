@@ -3068,8 +3068,9 @@ with col_form:
         
         _section_header("METRYKI / CERTYFIKATY (8 pól, układ 4×2)")
         st.caption("Każde pole ma trzy fragmenty: Treść główna (duża górna, np. '724' lub 'Pakiet compliance'), Dopełnienie (mniejsze obok, np. 'PLN'), Etykieta (mała, np. 'LICENCJA TOT'). Wystarczy wpisać dowolne z tych pól — puste pola nie wyświetlają się.")
-        for _mi in range(1, 9):
-            with st.expander(f"Pole {_mi}", expanded=False):
+        with st.expander("POLA METRYK I CERTYFIKATÓW (rozwiń, aby edytować)", expanded=False):
+            for _mi in range(1, 9):
+                st.markdown(f"**Pole {_mi}**")
                 c1, c2 = st.columns(2)
                 with c1:
                     safe_text_input(f"Treść główna:", key=f"about_m{_mi}_number",
@@ -3079,6 +3080,8 @@ with col_form:
                                     help="Mniejsze dopełnienie obok treści głównej (np. 'PLN', 'os.', '%').")
                 safe_text_input(f"Etykieta (mała):", key=f"about_m{_mi}_label",
                                 help="Mała etykieta u dołu pola (np. 'LICENCJA ORGANIZATORA TOT', 'CZŁONEK STOWARZYSZENIA').")
+                if _mi < 8:
+                    st.markdown("---")
 
     # -----------------------------------------------------------------------
     # 20. REFERENCJE (Co o nas mówią)
