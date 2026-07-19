@@ -1262,6 +1262,9 @@ with st.sidebar:
         _hotel_name = f"    ❯ Hotel {_hp+1}"
         if st.session_state.get(f"h_hide_{_hp}", False):
             _hotel_name += _HIDE_SUFFIX_PLAIN
+        _hopt_text_check = str(st.session_state.get(f"hopt_label_{_hp}", "") or "").strip()
+        if _hopt_text_check:
+            _hotel_name += _OPT_SUFFIX
         _all_pages.append(_hotel_name)
     
     _all_pages.extend([
