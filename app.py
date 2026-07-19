@@ -1072,9 +1072,7 @@ with st.sidebar:
 
     # 4. ZAPISZ W BAZIE
     if st.button("ZAPISZ W BAZIE", use_container_width=True, type="primary", key="manual_save_btn"):
-        st.session_state['_debug_loaded'] = f"DEBUG PRZED zapisem: testim_count={st.session_state.get('testim_count')}"
         save_to_supabase()
-        st.session_state['_debug_loaded'] += f" | PO zapisie: testim_count={st.session_state.get('testim_count')}"
         st.rerun()
 
     st.markdown("<div style='margin-bottom:10px;'></div>", unsafe_allow_html=True)
