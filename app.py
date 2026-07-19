@@ -900,6 +900,7 @@ _n_hotels = st.session_state.get('num_hotels', 0)
 # SIDEBAR — NAWIGACJA (WERSJA CZYSTA I KOMPLETNA)
 # ---------------------------------------------------------------------------
 with st.sidebar:
+    st.error("TEST WIDOCZNOŚCI DEBUG - jeśli to widzisz, zmiany w pliku działają")
     # Pokaż status load w sidebarze (debug)
     if '_debug_loaded' in st.session_state:
         st.caption(st.session_state['_debug_loaded'])
