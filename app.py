@@ -3109,13 +3109,12 @@ with col_form:
             on_change=_make_upload_callback('img_testim_main')
         )
         safe_number_input("Liczba opinii:", key="testim_count", default=3, min_value=1, max_value=4, step=1)
-        with st.expander("OPINIE (rozwiń, aby edytować)", expanded=False):
-            for i in range(st.session_state['testim_count']):
-                for dk in [f"testim_head_{i}", f"testim_quote_{i}",
-                           f"testim_author_{i}", f"testim_role_{i}"]:
-                    if dk not in st.session_state:
-                        st.session_state[dk] = ""
-                st.markdown(f"**Opinia {i+1}**")
+        for i in range(st.session_state['testim_count']):
+            for dk in [f"testim_head_{i}", f"testim_quote_{i}",
+                       f"testim_author_{i}", f"testim_role_{i}"]:
+                if dk not in st.session_state:
+                    st.session_state[dk] = ""
+            with st.expander(f"Opinia {i+1}"):
                 st.file_uploader(
                     "Zdjęcie / Logo",
                     key=f"up_testim_img_{i}",
@@ -3128,8 +3127,6 @@ with col_form:
                     safe_text_input("Autor (Pogrubiony)", key=f"testim_author_{i}")
                 with c2:
                     safe_text_input("Stanowisko", key=f"testim_role_{i}")
-                if i < st.session_state['testim_count'] - 1:
-                    st.markdown("---")
     # -----------------------------------------------------------------------
     # WYGLĄD I KOLORY
     # -----------------------------------------------------------------------
