@@ -863,22 +863,7 @@ def _rebuild_slide_order():
 # TRYB KLIENTA
 # ---------------------------------------------------------------------------
 if st.session_state['client_mode']:
-    st.markdown(
-        """
-        <style>
-        div[data-testid="stButton"] button[kind="primary"] {
-            position: fixed !important;
-            top: 12px !important;
-            right: 12px !important;
-            z-index: 999999 !important;
-            width: auto !important;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3) !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-    if st.button("✕ ZAKOŃCZ PODGLĄD", type="primary"):
+    if st.button("ZAKOŃCZ PODGLĄD", type="primary"):
         st.session_state['client_mode'] = False
         st.rerun()
     
