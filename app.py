@@ -866,7 +866,19 @@ if st.session_state['client_mode']:
     if st.button("ZAKOŃCZ PODGLĄD", type="primary"):
         st.session_state['client_mode'] = False
         st.rerun()
+    if "client_preview" not in st.session_state:
+        st.session_state.client_preview = st.empty()
     
+    with st.session_state.client_preview.container():
+        _slides_html = build_presentation(export_mode=True)
+        _css_html = get_local_css(return_str=True)
+        import streamlit.components.v1 as components
+        components.html(
+            f"""{_css_html}<div class="presentation-wrapper" style="height:100vh; overflow-y:auto;">{_slides_html}</div>""",
+            height=900, scrolling=True,
+        )
+        
+    st.stop()
 # ---------------------------------------------------------------------------
 # AUTO-SAVE DO SUPABASE
 # ---------------------------------------------------------------------------
