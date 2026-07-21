@@ -2469,7 +2469,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         ul_points_html = f'<ul class="app-list" style="margin-top:10px;">{"".join(ul_points)}</ul>' if ul_points else ''
         # --- Siatka odległości ---
         num_dp = get_data('num_dist_pairs', 0)
-        dist_title = str(get_data('map_dist_title', 'ODLEGŁOŚCI I CZAS DOJAZDU'))
+        dist_title = str(get_data('map_dist_title', 'ODLEGŁOŚCI I CZASY DOJAZDÓW'))
         dist_rows_html = ''
         if num_dp > 0:
             rows_html = ''
