@@ -1874,7 +1874,7 @@ def get_local_css(return_str=False):
         .testim-item {{ display: flex; gap: 15px; padding: 12px 0; border-top: 1px solid #eaeaea; align-items: center; }}
         .testim-item:first-of-type {{ border-top: 2px solid #eee; }}
         .testim-item:last-of-type {{ border-bottom: 2px solid #eee; }}
-        .testim-img-wrapper {{ flex: 0 0 80px; height: 80px; background: #fcfcfc; border: 1px solid #eee; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; }}
+        .testim-img-wrapper {{ flex: 0 0 80px; height: 80px; background: #fcfcfc; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; }}
         .testim-img-wrapper img {{ width: 100%; height: 100%; object-fit: cover; }}
         .testim-content {{ flex: 1; display: flex; flex-direction: column; gap: 4px; }}
         .testim-head {{ font-family: '{f_h2}'; font-size: {max(10, fs_t - 2)}px; font-weight: 700; color: {c_h2}; text-transform: uppercase; letter-spacing: 1px; }}
