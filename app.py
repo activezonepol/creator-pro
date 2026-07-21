@@ -2030,11 +2030,12 @@ with col_form:
                         if km is not None:
                             st.session_state[f'jaj_dist_km_{di}'] = f'{km}'
                             st.session_state[f'jaj_dist_time_{di}'] = format_duration(mins)
+                            st.session_state[f'buffer_jaj_dist_km_{di}'] = f'{km}'
+                            st.session_state[f'buffer_jaj_dist_time_{di}'] = format_duration(mins)
                             if err:
                                 st.warning(f"✓ Zapisano: {km} km, {format_duration(mins)}\n\n⚠️ {err}")
                             else:
                                 st.success(f"✓ Trasa drogowa: {km} km, {format_duration(mins)}")
-                            st.rerun()
                         else:
                             st.error(f"Nie udało się pobrać trasy.\n\n{err}")
                 cd1, cd2 = st.columns(2)
