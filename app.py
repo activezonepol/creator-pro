@@ -2038,8 +2038,10 @@ with col_form:
                         else:
                             st.error(f"Nie udało się pobrać trasy.\n\n{err}")
                 cd1, cd2 = st.columns(2)
-                cd1.text_input("Odległość (km) — edytowalna:", key=f"jaj_dist_km_{di}")
-                cd2.text_input("Czas dojazdu — edytowalny:", key=f"jaj_dist_time_{di}")
+                with cd1:
+                    safe_text_input("Odległość (km) — edytowalna:", key=f"jaj_dist_km_{di}")
+                with cd2:
+                    safe_text_input("Czas dojazdu — edytowalny:", key=f"jaj_dist_time_{di}")
 
     # -----------------------------------------------------------------------
     # 5. PRZERYWNIK PROGRAMU (Wstawiony z Twojego kodu)
