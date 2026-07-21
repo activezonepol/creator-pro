@@ -478,6 +478,8 @@ defaults = {
     'testim_img_2': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/LOGO/interrisk-logo.jpg',
 
     'about_hide': False,
+    't_img_0': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/LOGO/JoannaJablonska.png',
+    't_img_1': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/LOGO/MarcinLukaszewicz.png',
     'about_overline': 'NASZ ZESPÓŁ',
     'about_title': 'PARTNERZY\nZARZĄDZAJĄCY',
     'about_sub': 'ZESPÓŁ ACTIVEZONE',
