@@ -405,6 +405,7 @@ defaults = {
                  'Grywalizacja i ankiety — konkursy, quizy oraz ankiety wewnętrzne zwiększające zaangażowanie uczestników\n'
                  'Badanie satysfakcji NPS — raport dla zarządu i działu HR\n'
                  'Wsparcie celów ESG, materiały cyfrowe zamiast druku'),
+    'img_app_screen': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/LOGO/aplikacja1.jpg',
     'brand_hide': False, 'brand_overline': 'IDENTYFIKACJA',
     'brand_title': 'MATERIAŁY\nBRANDINGOWE',
     'brand_subtitle': 'Komunikacja przed, w trakcie i po wyjeździe',
