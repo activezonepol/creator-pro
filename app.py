@@ -863,7 +863,19 @@ def _rebuild_slide_order():
 # TRYB KLIENTA
 # ---------------------------------------------------------------------------
 if st.session_state['client_mode']:
-    if st.button("ZAKOŃCZ PODGLĄD", type="primary"):
+    st.markdown(
+        """
+        <style>
+        div[data-testid="stButton"] button[kind="primary"] {
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    if st.button("✕ ZAKOŃCZ PODGLĄD", type="primary", use_container_width=True):
         st.session_state['client_mode'] = False
         st.rerun()
     
@@ -876,7 +888,7 @@ if st.session_state['client_mode']:
         import streamlit.components.v1 as components
         components.html(
             f"""{_css_html}<div class="presentation-wrapper" style="height:100vh; overflow-y:auto;">{_slides_html}</div>""",
-            height=900, scrolling=True,
+            height=700, scrolling=True,
         )
         
     st.stop()
