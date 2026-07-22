@@ -1191,17 +1191,30 @@ with st.sidebar:
             f"letter-spacing:1px;margin-bottom:8px;'>WYSYŁKA NA SERWER (TEST)</div>",
             unsafe_allow_html=True,
         )
-        if st.button("Testuj połączenie FTP", key="test_ftp_btn", use_container_width=True):
-            import ftplib
-            try:
-                _ftp = ftplib.FTP()
-                _ftp.connect(st.secrets["ftp"]["host"], int(st.secrets["ftp"]["port"]), timeout=10)
-                _ftp.login(st.secrets["ftp"]["username"], st.secrets["ftp"]["password"])
-                _files = _ftp.nlst()
-                st.success(f"✓ Połączenie udane! Zawartość folderu: {_files}")
-                _ftp.quit()
-            except Exception as e:
-                st.error(f"✗ Błąd połączenia: {str(e)}")
+        if st.button("Testuj połączenie FTP (zwykłe, port 21)", key="test_ftp_btn", use_container_width=True):
+                import ftplib
+                try:
+                    _ftp = ftplib.FTP()
+                    _ftp.connect(st.secrets["ftp"]["host"], 21, timeout=10)
+                    _ftp.login(st.secrets["ftp"]["username"], st.secrets["ftp"]["password"])
+                    _files = _ftp.nlst()
+                    st.success(f"✓ FTP (port 21) udane! Zawartość: {_files}")
+                    _ftp.quit()
+                except Exception as e:
+                    st.error(f"✗ Błąd FTP (port 21): {str(e)}")
+
+            if st.button("Testuj połączenie FTPS (szyfrowane, port 990)", key="test_ftps_btn", use_container_width=True):
+                import ftplib
+                try:
+                    _ftps = ftplib.FTP_TLS()
+                    _ftps.connect(st.secrets["ftp"]["host"], 990, timeout=10)
+                    _ftps.login(st.secrets["ftp"]["username"], st.secrets["ftp"]["password"])
+                    _ftps.prot_p()
+                    _files = _ftps.nlst()
+                    st.success(f"✓ FTPS (port 990) udane! Zawartość: {_files}")
+                    _ftps.quit()
+                except Exception as e:
+                    st.error(f"✗ Błąd FTPS (port 990): {str(e)}")
 
     # 2. MIGRACJA ZDJĘĆ (widoczne tylko jeśli faktycznie wykryto zdjęcia w pamięci)
     if any(isinstance(st.session_state.get(k), bytes) for k in IMAGE_KEYS):
