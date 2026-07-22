@@ -1210,7 +1210,11 @@ with st.sidebar:
                 _ftps.connect(st.secrets["ftp"]["host"], 990, timeout=10)
                 _ftps.login(st.secrets["ftp"]["username"], st.secrets["ftp"]["password"])
                 _ftps.prot_p()
-
+                _files = _ftps.nlst()
+                st.success(f"✓ FTPS (port 990) udane! Zawartość: {_files}")
+                _ftps.quit()
+            except Exception as e:
+                st.error(f"✗ Błąd FTPS (port 990): {str(e)}")
     # 2. MIGRACJA ZDJĘĆ (widoczne tylko jeśli faktycznie wykryto zdjęcia w pamięci)
     if any(isinstance(st.session_state.get(k), bytes) for k in IMAGE_KEYS):
         st.warning("⚠️ Wykryto zdjęcia w pamięci.")
