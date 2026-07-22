@@ -1185,6 +1185,24 @@ with st.sidebar:
             st.session_state['client_mode'] = True
             st.rerun()
 
+        st.markdown("---")
+        st.markdown(
+            f"<div style='font-size:10px;font-weight:700;color:{_acc_save};text-transform:uppercase;"
+            f"letter-spacing:1px;margin-bottom:8px;'>WYSYŁKA NA SERWER (TEST)</div>",
+            unsafe_allow_html=True,
+        )
+        if st.button("Testuj połączenie FTP", key="test_ftp_btn", use_container_width=True):
+            import ftplib
+            try:
+                _ftp = ftplib.FTP()
+                _ftp.connect(st.secrets["ftp"]["host"], int(st.secrets["ftp"]["port"]), timeout=10)
+                _ftp.login(st.secrets["ftp"]["username"], st.secrets["ftp"]["password"])
+                _files = _ftp.nlst()
+                st.success(f"✓ Połączenie udane! Zawartość folderu: {_files}")
+                _ftp.quit()
+            except Exception as e:
+                st.error(f"✗ Błąd połączenia: {str(e)}")
+
     # 2. MIGRACJA ZDJĘĆ (widoczne tylko jeśli faktycznie wykryto zdjęcia w pamięci)
     if any(isinstance(st.session_state.get(k), bytes) for k in IMAGE_KEYS):
         st.warning("⚠️ Wykryto zdjęcia w pamięci.")
