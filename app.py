@@ -216,20 +216,34 @@ def wyslij_oferte_online(html_content: str, nazwa_folderu_klienta: str, nazwa_fo
         _ftp = ftplib.FTP()
         _ftp.connect(_host, _port, timeout=15)
         _ftp.login(_user, _pass)
+        st.write(f"DEBUG: zalogowano, pwd={_ftp.pwd()}")
 
         _folder_path = f"/{nazwa_folderu_klienta}/{nazwa_folderu_oferty}"
-        _ftp_ensure_dir(_ftp, _folder_path)
+        st.write(f"DEBUG: próba utworzenia ścieżki: {_folder_path}")
+
+        segments = [s for s in _folder_path.split('/') if s]
+        current = ''
+        for seg in segments:
+            current += f'/{seg}'
+            try:
+                _ftp.mkd(current)
+                st.write(f"DEBUG: utworzono folder: {current}")
+            except Exception as _mkd_err:
+                st.write(f"DEBUG: mkd({current}) zwrócił: {str(_mkd_err)}")
+
         _ftp.cwd(_folder_path)
+        st.write(f"DEBUG: zmieniono katalog na: {_ftp.pwd()}")
 
         import io
         _html_bytes = io.BytesIO(html_content.encode('utf-8'))
         _ftp.storbinary('STOR index.html', _html_bytes)
+        st.write("DEBUG: plik wgrany")
         _ftp.quit()
 
         _link = f"https://activezone.pl/oferty/{nazwa_folderu_klienta}/{nazwa_folderu_oferty}/"
         return True, _link
     except Exception as e:
-        return False, f"Błąd wysyłki: {str(e)}"
+        return False, f"Błąd wysyłki: typ={type(e).__name__}, treść='{str(e)}'"
 def _make_upload_callback(session_key, is_logo=False):
     """Tworzy callback dla file_uploadera, wywoływany on_change.
     
