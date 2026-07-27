@@ -203,8 +203,8 @@ def _ftp_ensure_dir(ftp, path: str):
 def wyslij_oferte_online(html_content: str, nazwa_folderu_klienta: str, nazwa_folderu_oferty: str):
     """
     Wgrywa gotowy plik HTML oferty na serwer Cyberfolks przez FTP, do
-    struktury: oferty/{klient}/{oferta}/index.html. Zwraca (sukces: bool,
-    link_lub_blad: str).
+    struktury: public_html/oferty/{klient}/{oferta}/tresc.html. Zwraca
+    (sukces: bool, link_lub_blad: str).
     """
     import ftplib
     try:
@@ -216,20 +216,16 @@ def wyslij_oferte_online(html_content: str, nazwa_folderu_klienta: str, nazwa_fo
         _ftp = ftplib.FTP()
         _ftp.connect(_host, _port, timeout=15)
         _ftp.login(_user, _pass)
-        st.write(f"DEBUG: zalogowano, pwd={_ftp.pwd()}")
 
         _folder_path = f"/public_html/oferty/{nazwa_folderu_klienta}/{nazwa_folderu_oferty}"
-        st.write(f"DEBUG: próba utworzenia ścieżki: {_folder_path}")
-
         segments = [s for s in _folder_path.split('/') if s]
         current = ''
         for seg in segments:
             current += f'/{seg}'
             try:
                 _ftp.mkd(current)
-                st.write(f"DEBUG: utworzono folder: {current}")
-            except Exception as _mkd_err:
-                st.write(f"DEBUG: mkd({current}) zwrócił: {str(_mkd_err)}")
+            except Exception:
+                pass  # folder już istnieje - to jest oczekiwane
 
         _ftp.cwd(_folder_path)
         import io
@@ -240,7 +236,7 @@ def wyslij_oferte_online(html_content: str, nazwa_folderu_klienta: str, nazwa_fo
         _link = f"https://activezone.pl/oferty/{nazwa_folderu_klienta}/{nazwa_folderu_oferty}/"
         return True, _link
     except Exception as e:
-        return False, f"Błąd wysyłki: typ={type(e).__name__}, treść='{str(e)}'"
+        return False, f"Błąd wysyłki: {str(e)}"
 def _make_upload_callback(session_key, is_logo=False):
     """Tworzy callback dla file_uploadera, wywoływany on_change.
     
