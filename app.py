@@ -1191,17 +1191,18 @@ with st.sidebar:
             f"letter-spacing:1px;margin-bottom:8px;'>WYSYŁKA NA SERWER (TEST)</div>",
             unsafe_allow_html=True,
         )
-        if st.button("Testuj połączenie FTP (zwykłe, port 21)", key="test_ftp_btn", use_container_width=True):
+        if st.button("Testuj połączenie FTPS (szyfrowane, explicit, port 21)", key="test_ftps21_btn", use_container_width=True):
             import ftplib
             try:
-                _ftp = ftplib.FTP()
-                _ftp.connect(st.secrets["ftp"]["host"], 21, timeout=10)
-                _ftp.login(st.secrets["ftp"]["username"], st.secrets["ftp"]["password"])
-                _files = _ftp.nlst()
-                st.success(f"✓ FTP (port 21) udane! Zawartość: {_files}")
-                _ftp.quit()
+                _ftps = ftplib.FTP_TLS()
+                _ftps.connect(st.secrets["ftp"]["host"], 21, timeout=10)
+                _ftps.login(st.secrets["ftp"]["username"], st.secrets["ftp"]["password"])
+                _ftps.prot_p()
+                _files = _ftps.nlst()
+                st.success(f"✓ FTPS explicit (port 21) udane! Zawartość: {_files}")
+                _ftps.quit()
             except Exception as e:
-                st.error(f"✗ Błąd FTP (port 21): typ={type(e).__name__}, treść='{str(e)}', repr={repr(e)}")
+                st.error(f"✗ Błąd FTPS explicit (port 21): typ={type(e).__name__}, treść='{str(e)}'")
 
         if st.button("Testuj połączenie FTPS (szyfrowane, port 990)", key="test_ftps_btn", use_container_width=True):
             import ftplib
