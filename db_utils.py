@@ -33,6 +33,16 @@ def _extract_base_project_code(project_code: str) -> str:
     """
     return _re_counter.sub(r'\s*\(\d+\)$', '', project_code or '').strip()
 
+def extract_rdzen_wersji(project_code: str) -> str:
+    """
+    Usuwa końcowy sufiks '-VN' (numer wersji, Mechanizm 2 wersjonowania)
+    z kodu projektu, dając wspólny "rdzeń" identyczny dla oryginału i
+    wszystkich jego wersji. Np. '27-04-USA-VAI-MIAMI-BAHAMY-V2' ->
+    '27-04-USA-VAI-MIAMI-BAHAMY'. Używane do grupowania ofert online
+    wysłanych z różnych wersji tego samego projektu.
+    """
+    import re as _re_counter
+    return _re_counter.sub(r'-V\d+$', '', project_code or '').strip()
 
 def _get_next_project_code_number(source_project_code: str, supabase_client) -> int:
     """
