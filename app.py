@@ -1185,60 +1185,7 @@ with st.sidebar:
             st.session_state['client_mode'] = True
             st.rerun()
 
-        st.markdown("---")
-        st.markdown(
-            f"<div style='font-size:10px;font-weight:700;color:{_acc_save};text-transform:uppercase;"
-            f"letter-spacing:1px;margin-bottom:8px;'>WYSYŁKA NA SERWER (TEST)</div>",
-            unsafe_allow_html=True,
-        )
-        if st.button("Testuj połączenie FTPS (szyfrowane, explicit, port 21)", key="test_ftps21_btn", use_container_width=True):
-            import ftplib
-            try:
-                st.write("Krok 1: tworzę obiekt FTP_TLS...")
-                _ftps = ftplib.FTP_TLS()
-                st.write("Krok 2: łączę z hostem...")
-                _ftps.connect(st.secrets["ftp"]["host"], 21, timeout=15)
-                st.write(f"Krok 3: połączono! Welcome: {_ftps.getwelcome()}")
-                st.write("Krok 4: loguję się...")
-                _ftps.login(st.secrets["ftp"]["username"], st.secrets["ftp"]["password"])
-                st.write("Krok 5: zalogowano! Włączam PROT P...")
-                _ftps.prot_p()
-                st.write("Krok 6: pobieram listę plików...")
-                _files = _ftps.nlst()
-                st.success(f"✓ FTPS explicit (port 21) udane! Zawartość: {_files}")
-                _ftps.quit()
-            except Exception as e:
-                st.error(f"✗ Błąd na powyższym etapie: typ={type(e).__name__}, treść='{str(e)}'")
-
-        if st.button("Testuj połączenie FTPS (szyfrowane, port 990)", key="test_ftps_btn", use_container_width=True):
-            import ftplib
-            try:
-                _ftps = ftplib.FTP_TLS()
-                _ftps.connect(st.secrets["ftp"]["host"], 990, timeout=10)
-                _ftps.login(st.secrets["ftp"]["username"], st.secrets["ftp"]["password"])
-                _ftps.prot_p()
-                _files = _ftps.nlst()
-                st.success(f"✓ FTPS (port 990) udane! Zawartość: {_files}")
-                _ftps.quit()
-            except Exception as e:
-                st.error(f"✗ Błąd FTPS (port 990): {str(e)}")
-
-        if st.button("Test zwykłego FTP krok po kroku", key="test_ftp_stepbystep_btn", use_container_width=True):
-            import ftplib
-            try:
-                st.write("Krok 1: tworzę obiekt FTP...")
-                _ftp = ftplib.FTP()
-                st.write("Krok 2: łączę z hostem...")
-                _ftp.connect(st.secrets["ftp"]["host"], 21, timeout=15)
-                st.write(f"Krok 3: połączono! Welcome: {_ftp.getwelcome()}")
-                st.write("Krok 4: loguję się (bez szyfrowania)...")
-                _ftp.login(st.secrets["ftp"]["username"], st.secrets["ftp"]["password"])
-                st.write("Krok 5: zalogowano!")
-                _files = _ftp.nlst()
-                st.success(f"✓ Udane! Zawartość: {_files}")
-                _ftp.quit()
-            except Exception as e:
-                st.error(f"✗ Błąd na powyższym etapie: typ={type(e).__name__}, treść='{str(e)}'")
+        
     # 2. MIGRACJA ZDJĘĆ (widoczne tylko jeśli faktycznie wykryto zdjęcia w pamięci)
     if any(isinstance(st.session_state.get(k), bytes) for k in IMAGE_KEYS):
         st.warning("⚠️ Wykryto zdjęcia w pamięci.")
