@@ -1201,7 +1201,7 @@ with st.sidebar:
                 st.success(f"✓ FTP (port 21) udane! Zawartość: {_files}")
                 _ftp.quit()
             except Exception as e:
-                st.error(f"✗ Błąd FTP (port 21): {str(e)}")
+                st.error(f"✗ Błąd FTP (port 21): typ={type(e).__name__}, treść='{str(e)}', repr={repr(e)}")
 
         if st.button("Testuj połączenie FTPS (szyfrowane, port 990)", key="test_ftps_btn", use_container_width=True):
             import ftplib
