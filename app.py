@@ -1228,8 +1228,12 @@ with st.sidebar:
                     f'<title>{t_main}</title>'
                     f'{get_local_css(return_str=True)}'
                     f'<style>body{{background:#f4f5f7;margin:0;}} .presentation-wrapper{{height:100vh;overflow-y:auto;scroll-snap-type:y proximity;}}'
-                    f'@media print{{.presentation-wrapper{{height:auto !important;overflow:visible !important;}}}}'
+                    f'.client-export-btn{{position:fixed;top:20px;left:20px;z-index:9999;background:{acc};color:white;border:none;'
+                    f'padding:15px 25px;border-radius:4px;font-family:sans-serif;font-size:12px;font-weight:700;'
+                    f'text-transform:uppercase;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.3);}}'
+                    f'@media print{{.client-export-btn{{display:none !important;}} .presentation-wrapper{{height:auto !important;overflow:visible !important;}}}}'
                     f'</style></head><body>'
+                    f'<button class="client-export-btn" onclick="window.print()">POBIERZ JAKO PDF</button>'
                     f'<div class="presentation-wrapper">{export_content}</div></body></html>'
                 )
                 _folder_klienta = st.session_state.get('_folder_klienta_input', _default_folder)
