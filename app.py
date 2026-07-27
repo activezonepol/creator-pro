@@ -177,6 +177,59 @@ def _new_project(copy_from_id=None):
 # ---------------------------------------------------------------------------
 # HELPERY INPUTÓW I UPLOADU
 # ---------------------------------------------------------------------------
+def _slugify_folder_name(name: str) -> str:
+    """Oczyszcza nazwę do bezpiecznej nazwy folderu: bez spacji, polskich
+    znaków, wielkich liter - tylko litery, cyfry i myślniki."""
+    import unicodedata
+    name = unicodedata.normalize('NFKD', str(name)).encode('ascii', 'ignore').decode('utf-8')
+    name = re.sub(r'[^\w\s-]', '', name).strip().lower()
+    name = re.sub(r'[-\s]+', '-', name)
+    return name or 'klient'
+
+
+def _ftp_ensure_dir(ftp, path: str):
+    """Tworzy folder na serwerze FTP, jeśli jeszcze nie istnieje (rekurencyjnie,
+    segment po segmencie - FTP nie ma odpowiednika 'mkdir -p')."""
+    segments = [s for s in path.split('/') if s]
+    current = ''
+    for seg in segments:
+        current += f'/{seg}'
+        try:
+            ftp.mkd(current)
+        except Exception:
+            pass  # folder już istnieje - to jest oczekiwane, nie błąd
+
+
+def wyslij_oferte_online(html_content: str, nazwa_folderu_klienta: str, nazwa_folderu_oferty: str):
+    """
+    Wgrywa gotowy plik HTML oferty na serwer Cyberfolks przez FTP, do
+    struktury: oferty/{klient}/{oferta}/index.html. Zwraca (sukces: bool,
+    link_lub_blad: str).
+    """
+    import ftplib
+    try:
+        _host = st.secrets["ftp"]["host"]
+        _user = st.secrets["ftp"]["username"]
+        _pass = st.secrets["ftp"]["password"]
+        _port = int(st.secrets["ftp"]["port"])
+
+        _ftp = ftplib.FTP()
+        _ftp.connect(_host, _port, timeout=15)
+        _ftp.login(_user, _pass)
+
+        _folder_path = f"/{nazwa_folderu_klienta}/{nazwa_folderu_oferty}"
+        _ftp_ensure_dir(_ftp, _folder_path)
+        _ftp.cwd(_folder_path)
+
+        import io
+        _html_bytes = io.BytesIO(html_content.encode('utf-8'))
+        _ftp.storbinary('STOR index.html', _html_bytes)
+        _ftp.quit()
+
+        _link = f"https://activezone.pl/oferty/{nazwa_folderu_klienta}/{nazwa_folderu_oferty}/"
+        return True, _link
+    except Exception as e:
+        return False, f"Błąd wysyłki: {str(e)}"
 def _make_upload_callback(session_key, is_logo=False):
     """Tworzy callback dla file_uploadera, wywoływany on_change.
     
