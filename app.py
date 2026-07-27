@@ -1194,15 +1194,21 @@ with st.sidebar:
         if st.button("Testuj połączenie FTPS (szyfrowane, explicit, port 21)", key="test_ftps21_btn", use_container_width=True):
             import ftplib
             try:
+                st.write("Krok 1: tworzę obiekt FTP_TLS...")
                 _ftps = ftplib.FTP_TLS()
-                _ftps.connect(st.secrets["ftp"]["host"], 21, timeout=10)
+                st.write("Krok 2: łączę z hostem...")
+                _ftps.connect(st.secrets["ftp"]["host"], 21, timeout=15)
+                st.write(f"Krok 3: połączono! Welcome: {_ftps.getwelcome()}")
+                st.write("Krok 4: loguję się...")
                 _ftps.login(st.secrets["ftp"]["username"], st.secrets["ftp"]["password"])
+                st.write("Krok 5: zalogowano! Włączam PROT P...")
                 _ftps.prot_p()
+                st.write("Krok 6: pobieram listę plików...")
                 _files = _ftps.nlst()
                 st.success(f"✓ FTPS explicit (port 21) udane! Zawartość: {_files}")
                 _ftps.quit()
             except Exception as e:
-                st.error(f"✗ Błąd FTPS explicit (port 21): typ={type(e).__name__}, treść='{str(e)}'")
+                st.error(f"✗ Błąd na powyższym etapie: typ={type(e).__name__}, treść='{str(e)}'")
 
         if st.button("Testuj połączenie FTPS (szyfrowane, port 990)", key="test_ftps_btn", use_container_width=True):
             import ftplib
