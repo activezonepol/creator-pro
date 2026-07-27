@@ -1202,6 +1202,54 @@ with st.sidebar:
             f"letter-spacing:1px;margin-bottom:8px;'>EKSPORT DLA KLIENTA</div>",
             unsafe_allow_html=True,
         )
+
+        _default_folder = _slugify_folder_name(st.session_state.get('t_klient', 'klient'))
+        st.text_input(
+            "Nazwa folderu klienta na serwerze:",
+            value=st.session_state.get('_folder_klienta_input', _default_folder),
+            key='_folder_klienta_input',
+            help="Domyślnie z pola 'Klient'. Możesz skrócić/zmienić, np. dla towarzystw ubezpieczeniowych o podobnych nazwach.",
+        )
+
+        if st.button("PRZYGOTUJ OFERTĘ DLA KLIENTA ONLINE", type="primary", use_container_width=True, key="btn_send_offer_online"):
+            with st.spinner("Generowanie i wysyłanie oferty na serwer..."):
+                export_content = build_presentation(export_mode=True)
+                acc = st.session_state.get('color_accent', '#FF6600')
+                t_main = st.session_state.get('t_main', 'Oferta')
+                client_html = (
+                    f'<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8">'
+                    f'<title>{t_main}</title>'
+                    f'{get_local_css(return_str=True)}'
+                    f'<style>body{{background:#f4f5f7;margin:0;}} .presentation-wrapper{{height:100vh;overflow-y:auto;scroll-snap-type:y proximity;}}'
+                    f'@media print{{.presentation-wrapper{{height:auto !important;overflow:visible !important;}}}}'
+                    f'</style></head><body>'
+                    f'<div class="presentation-wrapper">{export_content}</div></body></html>'
+                )
+                _folder_klienta = st.session_state.get('_folder_klienta_input', _default_folder)
+                _folder_oferty = _slugify_folder_name(get_project_filename().replace('.json', ''))
+                _sukces, _wynik = wyslij_oferte_online(client_html, _folder_klienta, _folder_oferty)
+
+                if _sukces:
+                    from datetime import timedelta as _timedelta
+                    _pin = st.secrets["oferty_online"]["pin"]
+                    _data_wygasniecia = (datetime.utcnow() + _timedelta(days=14)).isoformat()
+                    supabase.table('oferty_online').insert({
+                        'project_id': st.session_state.get('active_project_id'),
+                        'nazwa_klienta': _folder_klienta,
+                        'nazwa_oferty': _folder_oferty,
+                        'sciezka_na_serwerze': f"{_folder_klienta}/{_folder_oferty}",
+                        'data_wygasniecia': _data_wygasniecia,
+                        'created_by': st.session_state.get('current_user', ''),
+                    }).execute()
+                    st.session_state['_ostatni_link_oferty'] = _wynik
+                    st.success(f"✓ Oferta wysłana! Link ważny 14 dni.")
+                else:
+                    st.error(_wynik)
+
+        if st.session_state.get('_ostatni_link_oferty'):
+            st.text_input("Link do oferty (skopiuj i wyślij klientowi):", value=st.session_state['_ostatni_link_oferty'])
+            st.caption(f"PIN do podania klientowi: **{st.secrets['oferty_online']['pin']}**")
+
         if st.button("PRZYGOTUJ HTML DO POBRANIA", type="primary", use_container_width=True, key="btn_prep_offer_sidebar"):
             with st.spinner("Generowanie ostatecznego pliku oferty..."):
                 export_content = build_presentation(export_mode=True)
