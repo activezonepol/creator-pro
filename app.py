@@ -218,7 +218,7 @@ def wyslij_oferte_online(html_content: str, nazwa_folderu_klienta: str, nazwa_fo
         _ftp.login(_user, _pass)
         st.write(f"DEBUG: zalogowano, pwd={_ftp.pwd()}")
 
-        _folder_path = f"/{nazwa_folderu_klienta}/{nazwa_folderu_oferty}"
+        _folder_path = f"/public_html/oferty/{nazwa_folderu_klienta}/{nazwa_folderu_oferty}"
         st.write(f"DEBUG: próba utworzenia ścieżki: {_folder_path}")
 
         segments = [s for s in _folder_path.split('/') if s]
