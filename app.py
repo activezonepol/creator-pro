@@ -232,12 +232,9 @@ def wyslij_oferte_online(html_content: str, nazwa_folderu_klienta: str, nazwa_fo
                 st.write(f"DEBUG: mkd({current}) zwrócił: {str(_mkd_err)}")
 
         _ftp.cwd(_folder_path)
-        st.write(f"DEBUG: zmieniono katalog na: {_ftp.pwd()}")
-
         import io
         _html_bytes = io.BytesIO(html_content.encode('utf-8'))
-        _ftp.storbinary('STOR index.html', _html_bytes)
-        st.write("DEBUG: plik wgrany")
+        _ftp.storbinary('STOR tresc.html', _html_bytes)
         _ftp.quit()
 
         _link = f"https://activezone.pl/oferty/{nazwa_folderu_klienta}/{nazwa_folderu_oferty}/"
