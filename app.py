@@ -55,44 +55,6 @@ if "preview_container" not in st.session_state:
 # ---------------------------------------------------------------------------
 # HELPERY ZARZĄDZANIA PROJEKTAMI
 # ---------------------------------------------------------------------------
-def _rozpocznij_lub_kontynuuj_sesje(project_id):
-    """
-    Śledzenie czasu pracy operatora nad projektem. Sprawdza, czy istnieje
-    "świeża" sesja (aktywność w ciągu ostatnich 15 minut) dla tego operatora
-    i projektu - jeśli tak, aktualizuje jej czas_ostatniej_aktywnosci
-    (kontynuacja tej samej sesji pracy). Jeśli nie, tworzy nową sesję
-    (operator wrócił po dłuższej przerwie - liczymy to jako osobny odcinek
-    pracy).
-    """
-    if not project_id:
-        return
-    operator = st.session_state.get('current_user', '')
-    if not operator:
-        return
-    try:
-        _teraz = datetime.utcnow()
-        _prog_15min = (_teraz - timedelta(minutes=15)).isoformat()
-
-        _istniejaca = supabase.table('sesje_edycji').select('id, czas_ostatniej_aktywnosci').eq(
-            'project_id', project_id
-        ).eq('operator', operator).gte(
-            'czas_ostatniej_aktywnosci', _prog_15min
-        ).order('czas_ostatniej_aktywnosci', desc=True).limit(1).execute()
-
-        if _istniejaca.data:
-            _sesja_id = _istniejaca.data[0]['id']
-            supabase.table('sesje_edycji').update({
-                'czas_ostatniej_aktywnosci': _teraz.isoformat()
-            }).eq('id', _sesja_id).execute()
-        else:
-            supabase.table('sesje_edycji').insert({
-                'project_id': project_id,
-                'operator': operator,
-                'czas_rozpoczecia': _teraz.isoformat(),
-                'czas_ostatniej_aktywnosci': _teraz.isoformat(),
-            }).execute()
-    except Exception:
-        pass  # śledzenie czasu nie powinno nigdy zablokować normalnej pracy
 def _switch_project(project_id):
     """Wczytuje projekt o danym ID z bazy i ustawia jako aktywny."""
     from db_utils import fetch_offer_by_id
