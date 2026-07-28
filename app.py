@@ -12,7 +12,7 @@ import json
 import hashlib
 import base64
 import uuid
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import time
 import streamlit as st
 from db_utils import save_to_supabase, fetch_all_offers, extract_rdzen_wersji
