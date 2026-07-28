@@ -1239,13 +1239,25 @@ with st.sidebar:
                 _folder_klienta = st.session_state.get('_folder_klienta_input', _default_folder)
                 _folder_oferty = _slugify_folder_name(get_project_filename().replace('.json', ''))
                 _sukces, _wynik = wyslij_oferte_online(client_html, _folder_klienta, _folder_oferty)
-
                 if _sukces:
                     from datetime import timedelta as _timedelta
                     _pin = st.secrets["oferty_online"]["pin"]
                     _data_wygasniecia = (datetime.utcnow() + _timedelta(days=14)).isoformat()
+
+                    _kod_projektu_aktualny = ''
+                    try:
+                        _proj_lookup = supabase.table('projects').select('project_code').eq(
+                            'id', st.session_state.get('active_project_id')
+                        ).execute()
+                        if _proj_lookup.data:
+                            _kod_projektu_aktualny = _proj_lookup.data[0].get('project_code', '')
+                    except Exception:
+                        pass
+                    _rdzen_kodu = extract_rdzen_wersji(_kod_projektu_aktualny)
+
                     supabase.table('oferty_online').insert({
                         'project_id': st.session_state.get('active_project_id'),
+                        'project_code_rdzen': _rdzen_kodu,
                         'nazwa_klienta': _folder_klienta,
                         'nazwa_oferty': _folder_oferty,
                         'sciezka_na_serwerze': f"{_folder_klienta}/{_folder_oferty}",
