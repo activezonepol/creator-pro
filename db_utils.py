@@ -268,7 +268,11 @@ def save_to_supabase(allow_create: bool = True):
         st.session_state['last_supabase_save'] = time.time()
         st.session_state['current_project_code'] = project_code
         st.session_state['last_save_project_name'] = project_name
-        
+
+        _aktywny_projekt_id = st.session_state.get('active_project_id')
+        _aktywny_operator = st.session_state.get('current_user', '')
+        _rozpocznij_lub_kontynuuj_sesje(supabase_client, _aktywny_projekt_id, _aktywny_operator)
+
     except Exception as e:
         st.session_state['last_save_status'] = "Blad: " + str(e)[:50]
         st.session_state['last_save_status_type'] = 'error'
