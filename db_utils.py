@@ -32,7 +32,41 @@ def _extract_base_project_code(project_code: str) -> str:
     kopiowanie oryginału. Np. '26-10-HUN-X (2)' -> '26-10-HUN-X'.
     """
     return _re_counter.sub(r'\s*\(\d+\)$', '', project_code or '').strip()
+def _rozpocznij_lub_kontynuuj_sesje(supabase_client, project_id, operator):
+    """
+    Śledzenie czasu pracy operatora nad projektem. Sprawdza, czy istnieje
+    "świeża" sesja (aktywność w ciągu ostatnich 15 minut) dla tego operatora
+    i projektu - jeśli tak, aktualizuje jej czas_ostatniej_aktywnosci
+    (kontynuacja tej samej sesji pracy). Jeśli nie, tworzy nową sesję
+    (operator wrócił po dłuższej przerwie - liczymy to jako osobny odcinek
+    pracy).
+    """
+    if not project_id or not operator:
+        return
+    try:
+        _teraz = datetime.utcnow()
+        _prog_15min = (_teraz - timedelta(minutes=15)).isoformat()
 
+        _istniejaca = supabase_client.table('sesje_edycji').select('id, czas_ostatniej_aktywnosci').eq(
+            'project_id', project_id
+        ).eq('operator', operator).gte(
+            'czas_ostatniej_aktywnosci', _prog_15min
+        ).order('czas_ostatniej_aktywnosci', desc=True).limit(1).execute()
+
+        if _istniejaca.data:
+            _sesja_id = _istniejaca.data[0]['id']
+            supabase_client.table('sesje_edycji').update({
+                'czas_ostatniej_aktywnosci': _teraz.isoformat()
+            }).eq('id', _sesja_id).execute()
+        else:
+            supabase_client.table('sesje_edycji').insert({
+                'project_id': project_id,
+                'operator': operator,
+                'czas_rozpoczecia': _teraz.isoformat(),
+                'czas_ostatniej_aktywnosci': _teraz.isoformat(),
+            }).execute()
+    except Exception:
+        pass  # śledzenie czasu nie powinno nigdy zablokować normalnej pracy
 def extract_rdzen_wersji(project_code: str) -> str:
     """
     Usuwa końcowy sufiks '-VN' (numer wersji, Mechanizm 2 wersjonowania)
