@@ -1519,8 +1519,68 @@ with st.sidebar:
     if _current_user_login in _admin_users:
         st.markdown("---")
         with st.expander("STREFA ADMINISTRATORA", expanded=False):
-            st.caption("Trwałe usunięcie projektu z bazy. Tej operacji nie da się cofnąć.")
+            st.markdown("**Wysłane oferty online — kto i ile czasu pracował**")
+            _szukaj_oferta = st.text_input("Szukaj po nazwie klienta lub oferty:", key="admin_szukaj_oferta")
+            try:
+                _query = supabase.table('oferty_online').select(
+                    'id, project_id, nazwa_klienta, nazwa_oferty, data_utworzenia, data_wygasniecia, created_by'
+                )
+                if _szukaj_oferta.strip():
+                    _query = _query.or_(
+                        f"nazwa_klienta.ilike.%{_szukaj_oferta}%,nazwa_oferty.ilike.%{_szukaj_oferta}%"
+                    )
+                _limit = 5 if not _szukaj_oferta.strip() else 50
+                _wszystkie_oferty = _query.order('data_utworzenia', desc=True).limit(_limit).execute().data or []
 
+                if not _wszystkie_oferty:
+                    st.caption("Brak ofert spełniających kryteria.")
+                else:
+                    _teraz_admin = datetime.utcnow()
+                    for _of in _wszystkie_oferty:
+                        _wygasa = datetime.fromisoformat(_of['data_wygasniecia'].replace('Z', '+00:00')).replace(tzinfo=None)
+                        _status = "🟢 Aktywna" if _teraz_admin < _wygasa else "🔴 Wygasła"
+
+                        _otw_count = supabase.table('oferty_otwarcia').select(
+                            'id', count='exact'
+                        ).eq('oferta_id', _of['id']).execute()
+                        _liczba_otwarc = _otw_count.count or 0
+                        _znacznik_otwarcia = "👁️ Otwarta" if _liczba_otwarc > 0 else "○ Nieotwarta"
+
+                        st.markdown(f"**{_of['nazwa_klienta']} / {_of['nazwa_oferty']}** — {_status} · {_znacznik_otwarcia} ({_liczba_otwarc}x)")
+                        st.caption(f"Wysłano: {_of['data_utworzenia'][:16].replace('T', ', ')} · Przez: {_of.get('created_by', 'brak danych')}")
+
+                        _sesje = supabase.table('sesje_edycji').select(
+                            'operator, czas_rozpoczecia, czas_ostatniej_aktywnosci'
+                        ).eq('project_id', _of['project_id']).order('czas_rozpoczecia').execute().data or []
+
+                        if _sesje:
+                            _czas_per_operator = {}
+                            for _s in _sesje:
+                                _start = datetime.fromisoformat(_s['czas_rozpoczecia'].replace('Z', '+00:00')).replace(tzinfo=None)
+                                _koniec = datetime.fromisoformat(_s['czas_ostatniej_aktywnosci'].replace('Z', '+00:00')).replace(tzinfo=None)
+                                _delta = (_koniec - _start).total_seconds() / 60
+                                _op = _s['operator']
+                                _czas_per_operator[_op] = _czas_per_operator.get(_op, 0) + _delta
+
+                            _laczny_czas_min = sum(_czas_per_operator.values())
+                            _h = int(_laczny_czas_min // 60)
+                            _m = int(_laczny_czas_min % 60)
+                            st.caption(f"⏱️ Łączny czas pracy: {_h}h {_m}min")
+                            for _op, _min in sorted(_czas_per_operator.items(), key=lambda x: -x[1]):
+                                _oh = int(_min // 60)
+                                _om = int(_min % 60)
+                                st.caption(f"　　• {_op}: {_oh}h {_om}min")
+                        else:
+                            st.caption("⏱️ Brak zarejestrowanego czasu pracy dla tego projektu.")
+                        st.markdown("---")
+
+                    if not _szukaj_oferta.strip():
+                        st.caption("Pokazano 5 najnowszych. Wpisz frazę powyżej, aby przeszukać wszystkie.")
+            except Exception as e:
+                st.error(f"Błąd pobierania danych: {str(e)}")
+
+            st.markdown("---")
+            st.caption("Trwałe usunięcie projektu z bazy. Tej operacji nie da się cofnąć.")
             _admin_all_offers = fetch_all_offers(supabase)
             if _admin_all_offers:
                 _admin_options = ["-- Wybierz projekt do usunięcia --"] + [
