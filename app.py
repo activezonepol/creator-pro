@@ -1273,6 +1273,43 @@ with st.sidebar:
             st.text_input("Link do oferty (skopiuj i wyślij klientowi):", value=st.session_state['_ostatni_link_oferty'])
             st.caption(f"PIN do podania klientowi: **{st.secrets['oferty_online']['pin']}**")
 
+        with st.expander("PODGLĄD WYSŁANYCH OFERT (ta oferta i jej wersje)", expanded=False):
+            try:
+                _kod_biezacy = ''
+                _biez_lookup = supabase.table('projects').select('project_code').eq(
+                    'id', st.session_state.get('active_project_id')
+                ).execute()
+                if _biez_lookup.data:
+                    _kod_biezacy = _biez_lookup.data[0].get('project_code', '')
+                _rdzen_biezacy = extract_rdzen_wersji(_kod_biezacy)
+
+                _oferty_result = supabase.table('oferty_online').select(
+                    'id, nazwa_klienta, nazwa_oferty, data_utworzenia, data_wygasniecia'
+                ).eq('project_code_rdzen', _rdzen_biezacy).order('data_utworzenia', desc=True).execute()
+                _oferty_lista = _oferty_result.data or []
+
+                if not _oferty_lista:
+                    st.caption("Ta oferta (ani żadna jej wersja) nie była jeszcze wysyłana online.")
+                else:
+                    _teraz = datetime.utcnow()
+                    for _of in _oferty_lista:
+                        _wygasa = datetime.fromisoformat(_of['data_wygasniecia'].replace('Z', '+00:00')).replace(tzinfo=None)
+                        _status = "🟢 Aktywna" if _teraz < _wygasa else "🔴 Wygasła"
+
+                        _otwarcia_result = supabase.table('oferty_otwarcia').select(
+                            'data_otwarcia, adres_ip'
+                        ).eq('oferta_id', _of['id']).order('data_otwarcia', desc=True).execute()
+                        _otwarcia = _otwarcia_result.data or []
+
+                        st.markdown(f"**{_of['nazwa_klienta']} / {_of['nazwa_oferty']}** — {_status}")
+                        st.caption(f"Wysłano: {_of['data_utworzenia'][:16].replace('T', ', ')} · Wygasa: {_of['data_wygasniecia'][:16].replace('T', ', ')} · Otwarć: {len(_otwarcia)}")
+                        if _otwarcia:
+                            _ostatnie = _otwarcia[0]
+                            st.caption(f"Ostatnio otwarto: {_ostatnie['data_otwarcia'][:16].replace('T', ', ')} (IP: {_ostatnie.get('adres_ip', 'brak')})")
+                        st.markdown("---")
+            except Exception as e:
+                st.error(f"Błąd pobierania danych: {str(e)}")
+
         if st.button("PRZYGOTUJ HTML DO POBRANIA", type="primary", use_container_width=True, key="btn_prep_offer_sidebar"):
             with st.spinner("Generowanie ostatecznego pliku oferty..."):
                 export_content = build_presentation(export_mode=True)
