@@ -143,6 +143,7 @@ def _switch_project(project_id):
     st.session_state['t_created_at'] = offer.get('created_at', '')
     st.session_state['version_suffix'] = offer.get('version_suffix', '')
     st.session_state['last_supabase_save'] = time.time()  # opóźnij auto-save
+    _rozpocznij_lub_kontynuuj_sesje(project_id)
     st.rerun()
 
 def _duplicate_current_project():
