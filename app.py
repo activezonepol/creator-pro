@@ -15,7 +15,7 @@ import uuid
 from datetime import date, datetime, timedelta
 import time
 import streamlit as st
-from db_utils import save_to_supabase, fetch_all_offers, extract_rdzen_wersji
+from db_utils import save_to_supabase, fetch_all_offers, extract_rdzen_wersji, _rozpocznij_lub_kontynuuj_sesje
 from supabase import create_client, Client
 from data_utils import _build_proj_dict
 from my_components import safe_text_input, safe_text_area, safe_checkbox, safe_selectbox, safe_number_input
