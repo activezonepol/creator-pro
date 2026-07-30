@@ -1538,14 +1538,13 @@ with st.sidebar:
                     _teraz_admin = datetime.utcnow()
                     for _of in _wszystkie_oferty:
                         _wygasa = datetime.fromisoformat(_of['data_wygasniecia'].replace('Z', '+00:00')).replace(tzinfo=None)
-                        _status = "🟢 Aktywna" if _teraz_admin < _wygasa else "🔴 Wygasła"
+                        _status = f'<i class="fa-solid fa-circle" style="color:{_acc_save};font-size:9px;"></i> Aktywna' if _teraz_admin < _wygasa else f'<i class="fa-solid fa-circle" style="color:#94a3b8;font-size:9px;"></i> Wygasła'
 
                         _otw_count = supabase.table('oferty_otwarcia').select(
                             'id', count='exact'
                         ).eq('oferta_id', _of['id']).execute()
                         _liczba_otwarc = _otw_count.count or 0
-                        _znacznik_otwarcia = "👁️ Otwarta" if _liczba_otwarc > 0 else "○ Nieotwarta"
-
+                        _znacznik_otwarcia = f'<i class="fa-solid fa-eye" style="color:{_acc_save};"></i> Otwarta' if _liczba_otwarc > 0 else f'<i class="fa-solid fa-eye-slash" style="color:#94a3b8;"></i> Nieotwarta'
                         st.markdown(f"**{_of['nazwa_klienta']} / {_of['nazwa_oferty']}** — {_status} · {_znacznik_otwarcia} ({_liczba_otwarc}x)")
                         st.caption(f"Wysłano: {_of['data_utworzenia'][:16].replace('T', ', ')} · Przez: {_of.get('created_by', 'brak danych')}")
 
@@ -1565,13 +1564,13 @@ with st.sidebar:
                             _laczny_czas_min = sum(_czas_per_operator.values())
                             _h = int(_laczny_czas_min // 60)
                             _m = int(_laczny_czas_min % 60)
-                            st.caption(f"⏱️ Łączny czas pracy: {_h}h {_m}min")
+                            st.markdown(f"<span style='font-size:0.8rem;color:#64748b;'><i class='fa-solid fa-clock' style='color:{_acc_save};'></i> Łączny czas pracy: {_h}h {_m}min</span>", unsafe_allow_html=True)
                             for _op, _min in sorted(_czas_per_operator.items(), key=lambda x: -x[1]):
                                 _oh = int(_min // 60)
                                 _om = int(_min % 60)
                                 st.caption(f"　　• {_op}: {_oh}h {_om}min")
                         else:
-                            st.caption("⏱️ Brak zarejestrowanego czasu pracy dla tego projektu.")
+                            st.markdown(f"<span style='font-size:0.8rem;color:#94a3b8;'><i class='fa-regular fa-clock'></i> Brak zarejestrowanego czasu pracy dla tego projektu.</span>", unsafe_allow_html=True)
                         st.markdown("---")
 
                     if not _szukaj_oferta.strip():
