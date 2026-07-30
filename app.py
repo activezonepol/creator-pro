@@ -1545,9 +1545,19 @@ with st.sidebar:
                         ).eq('oferta_id', _of['id']).execute()
                         _liczba_otwarc = _otw_count.count or 0
                         _znacznik_otwarcia = f'<i class="fa-solid fa-eye" style="color:{_acc_save};"></i> Otwarta' if _liczba_otwarc > 0 else f'<i class="fa-solid fa-eye-slash" style="color:#94a3b8;"></i> Nieotwarta'
-                        st.markdown(f"**{_of['nazwa_klienta']} / {_of['nazwa_oferty']}** — {_status} · {_znacznik_otwarcia} ({_liczba_otwarc}x)")
-                        st.caption(f"Wysłano: {_of['data_utworzenia'][:16].replace('T', ', ')} · Przez: {_of.get('created_by', 'brak danych')}")
 
+                        _proj_lookup_1 = supabase.table('projects').select('project_code, project_name').eq(
+                            'id', _of['project_id']
+                        ).execute()
+                        if _proj_lookup_1.data:
+                            _label_kod = _proj_lookup_1.data[0].get('project_code') or _of['nazwa_oferty']
+                            _label_nazwa = _proj_lookup_1.data[0].get('project_name', '')
+                        else:
+                            _label_kod = _of['nazwa_oferty']
+                            _label_nazwa = ''
+
+                        st.markdown(f"**{_label_kod}** — {_label_nazwa} — {_status} &nbsp;·&nbsp; {_znacznik_otwarcia} ({_liczba_otwarc}x)", unsafe_allow_html=True)
+                        st.caption(f"Wysłano: {_of['data_utworzenia'][:16].replace('T', ', ')} · Przez: {_of.get('created_by', 'brak danych')}")
                         _sesje = supabase.table('sesje_edycji').select(
                             'operator, czas_rozpoczecia, czas_ostatniej_aktywnosci'
                         ).eq('project_id', _of['project_id']).order('czas_rozpoczecia').execute().data or []
