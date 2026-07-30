@@ -1519,7 +1519,7 @@ with st.sidebar:
     if _current_user_login in _admin_users:
         st.markdown("---")
         with st.expander("STREFA ADMINISTRATORA", expanded=False):
-            st.markdown("**Wysłane oferty online — kto i ile czasu pracował**")
+            st.markdown("**Wysłane oferty online do klienta**")
             _szukaj_oferta = st.text_input("Szukaj po nazwie klienta lub oferty:", key="admin_szukaj_oferta")
             try:
                 _query = supabase.table('oferty_online').select(
