@@ -1295,7 +1295,7 @@ with st.sidebar:
                     _teraz = datetime.utcnow()
                     for _of in _oferty_lista:
                         _wygasa = datetime.fromisoformat(_of['data_wygasniecia'].replace('Z', '+00:00')).replace(tzinfo=None)
-                        _status = "🟢 Aktywna" if _teraz < _wygasa else "🔴 Wygasła"
+                        _status = f'<i class="fa-solid fa-circle" style="color:{_acc_save};font-size:9px;"></i> Aktywna' if _teraz_admin < _wygasa else f'<i class="fa-solid fa-circle" style="color:#94a3b8;font-size:9px;"></i> Wygasła'
 
                         _otwarcia_result = supabase.table('oferty_otwarcia').select(
                             'data_otwarcia, adres_ip'
