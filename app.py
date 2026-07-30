@@ -1295,14 +1295,12 @@ with st.sidebar:
                     _teraz = datetime.utcnow()
                     for _of in _oferty_lista:
                         _wygasa = datetime.fromisoformat(_of['data_wygasniecia'].replace('Z', '+00:00')).replace(tzinfo=None)
-                        _status = f'<i class="fa-solid fa-circle" style="color:{_acc_save};font-size:9px;"></i> Aktywna' if _teraz_admin < _wygasa else f'<i class="fa-solid fa-circle" style="color:#94a3b8;font-size:9px;"></i> Wygasła'
-
+                        _status = f'<i class="fa-solid fa-circle" style="color:{_acc_save};font-size:9px;"></i> Aktywna' if _teraz < _wygasa else f'<i class="fa-solid fa-circle" style="color:#94a3b8;font-size:9px;"></i> Wygasła'
                         _otwarcia_result = supabase.table('oferty_otwarcia').select(
                             'data_otwarcia, adres_ip'
                         ).eq('oferta_id', _of['id']).order('data_otwarcia', desc=True).execute()
                         _otwarcia = _otwarcia_result.data or []
-
-                        st.markdown(f"**{_of['nazwa_klienta']} / {_of['nazwa_oferty']}** — {_status}")
+                        st.markdown(f"**{_of['nazwa_klienta']} / {_of['nazwa_oferty']}** — {_status}", unsafe_allow_html=True)
                         st.caption(f"Wysłano: {_of['data_utworzenia'][:16].replace('T', ', ')} · Wygasa: {_of['data_wygasniecia'][:16].replace('T', ', ')} · Otwarć: {len(_otwarcia)}")
                         if _otwarcia:
                             _ostatnie = _otwarcia[0]
