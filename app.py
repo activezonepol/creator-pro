@@ -1627,13 +1627,13 @@ with st.sidebar:
                                 _laczny_min = sum(_czas_per_op.values())
                                 _h = int(_laczny_min // 60)
                                 _m = int(_laczny_min % 60)
-                                st.caption(f"⏱️ Łączny czas pracy: {_h}h {_m}min")
+                                st.markdown(f"<span style='font-size:0.8rem;color:#64748b;'><i class='fa-solid fa-clock' style='color:{_acc_save};'></i> Łączny czas pracy: {_h}h {_m}min</span>", unsafe_allow_html=True)
                                 for _op, _min in sorted(_czas_per_op.items(), key=lambda x: -x[1]):
                                     _oh = int(_min // 60)
                                     _om = int(_min % 60)
                                     st.caption(f"　　• {_op}: {_oh}h {_om}min")
                             else:
-                                st.caption("⏱️ Brak zarejestrowanego czasu pracy.")
+                                st.markdown(f"<span style='font-size:0.8rem;color:#94a3b8;'><i class='fa-regular fa-clock'></i> Brak zarejestrowanego czasu pracy.</span>", unsafe_allow_html=True)
                             st.markdown("---")
                 except Exception as e:
                     st.error(f"Błąd wyszukiwania: {str(e)}")
