@@ -1588,56 +1588,48 @@ with st.sidebar:
 
             st.markdown("---")
             st.markdown("**Wszystkie nasze projekty — czas pracy operatorów**")
-            _szukaj_projekt = st.text_input(
-                "Szukaj po kodzie, kraju, kliencie lub nazwie (np. '26-10', '26-10-HUN', 'Węgry'):",
-                key="admin_szukaj_projekt"
-            )
-            if _szukaj_projekt.strip():
-                try:
-                    _wszystkie_projekty = supabase.table('projects').select(
-                        'id, project_name, project_code, country_name, client_short, updated_at'
-                    ).or_(
-                        f"project_code.ilike.%{_szukaj_projekt}%,"
-                        f"country_name.ilike.%{_szukaj_projekt}%,"
-                        f"project_name.ilike.%{_szukaj_projekt}%,"
-                        f"client_short.ilike.%{_szukaj_projekt}%"
-                    ).order('updated_at', desc=True).limit(50).execute().data or []
+            try:
+                _wszystkie_projekty_lista = supabase.table('projects').select(
+                    'id, project_name, project_code, country_name, client_short, updated_at'
+                ).order('updated_at', desc=True).execute().data or []
 
-                    if not _wszystkie_projekty:
-                        st.caption("Brak projektów spełniających kryteria.")
+                _opcje_projektow = ["-- Wybierz projekt --"] + [
+                    f"{_p['project_code']} — {_p.get('project_name', 'bez nazwy')}"
+                    for _p in _wszystkie_projekty_lista
+                ]
+                _wybrany_projekt_label = st.selectbox(
+                    "Wybierz projekt (zacznij pisać, aby wyszukać):",
+                    _opcje_projektow,
+                    key="admin_wybor_projektu"
+                )
+                _idx_wybranego = _opcje_projektow.index(_wybrany_projekt_label)
+
+                if _idx_wybranego > 0:
+                    _proj = _wszystkie_projekty_lista[_idx_wybranego - 1]
+                    st.markdown(f"**{_proj['project_code']}** — {_proj.get('project_name', 'bez nazwy')}")
+                    _sesje_proj = supabase.table('sesje_edycji').select(
+                        'operator, czas_rozpoczecia, czas_ostatniej_aktywnosci'
+                    ).eq('project_id', _proj['id']).order('czas_rozpoczecia').execute().data or []
+                    if _sesje_proj:
+                        _czas_per_op = {}
+                        for _s in _sesje_proj:
+                            _start = datetime.fromisoformat(_s['czas_rozpoczecia'].replace('Z', '+00:00')).replace(tzinfo=None)
+                            _koniec = datetime.fromisoformat(_s['czas_ostatniej_aktywnosci'].replace('Z', '+00:00')).replace(tzinfo=None)
+                            _delta = (_koniec - _start).total_seconds() / 60
+                            _op = _s['operator']
+                            _czas_per_op[_op] = _czas_per_op.get(_op, 0) + _delta
+                        _laczny_min = sum(_czas_per_op.values())
+                        _h = int(_laczny_min // 60)
+                        _m = int(_laczny_min % 60)
+                        st.markdown(f"<span style='font-size:0.8rem;color:#64748b;'><i class='fa-solid fa-clock' style='color:{_acc_save};'></i> Łączny czas pracy: {_h}h {_m}min</span>", unsafe_allow_html=True)
+                        for _op, _min in sorted(_czas_per_op.items(), key=lambda x: -x[1]):
+                            _oh = int(_min // 60)
+                            _om = int(_min % 60)
+                            st.caption(f"　　• {_op}: {_oh}h {_om}min")
                     else:
-                        for _proj in _wszystkie_projekty:
-                            st.markdown(f"**{_proj['project_code']}** — {_proj.get('project_name', 'bez nazwy')}")
-
-                            _sesje_proj = supabase.table('sesje_edycji').select(
-                                'operator, czas_rozpoczecia, czas_ostatniej_aktywnosci'
-                            ).eq('project_id', _proj['id']).order('czas_rozpoczecia').execute().data or []
-
-                            if _sesje_proj:
-                                _czas_per_op = {}
-                                for _s in _sesje_proj:
-                                    _start = datetime.fromisoformat(_s['czas_rozpoczecia'].replace('Z', '+00:00')).replace(tzinfo=None)
-                                    _koniec = datetime.fromisoformat(_s['czas_ostatniej_aktywnosci'].replace('Z', '+00:00')).replace(tzinfo=None)
-                                    _delta = (_koniec - _start).total_seconds() / 60
-                                    _op = _s['operator']
-                                    _czas_per_op[_op] = _czas_per_op.get(_op, 0) + _delta
-
-                                _laczny_min = sum(_czas_per_op.values())
-                                _h = int(_laczny_min // 60)
-                                _m = int(_laczny_min % 60)
-                                st.markdown(f"<span style='font-size:0.8rem;color:#64748b;'><i class='fa-solid fa-clock' style='color:{_acc_save};'></i> Łączny czas pracy: {_h}h {_m}min</span>", unsafe_allow_html=True)
-                                for _op, _min in sorted(_czas_per_op.items(), key=lambda x: -x[1]):
-                                    _oh = int(_min // 60)
-                                    _om = int(_min % 60)
-                                    st.caption(f"　　• {_op}: {_oh}h {_om}min")
-                            else:
-                                st.markdown(f"<span style='font-size:0.8rem;color:#94a3b8;'><i class='fa-regular fa-clock'></i> Brak zarejestrowanego czasu pracy.</span>", unsafe_allow_html=True)
-                            st.markdown("---")
-                except Exception as e:
-                    st.error(f"Błąd wyszukiwania: {str(e)}")
-            else:
-                st.caption("Wpisz frazę powyżej, aby wyszukać projekty.")
-
+                        st.markdown(f"<span style='font-size:0.8rem;color:#94a3b8;'><i class='fa-regular fa-clock'></i> Brak zarejestrowanego czasu pracy.</span>", unsafe_allow_html=True)
+            except Exception as e:
+                st.error(f"Błąd wyszukiwania: {str(e)}")
             st.markdown("---")
             st.caption("Trwałe usunięcie projektu z bazy. Tej operacji nie da się cofnąć.")
             _admin_all_offers = fetch_all_offers(supabase)
