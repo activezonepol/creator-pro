@@ -2137,11 +2137,12 @@ with col_form:
             ]:
                 if dk not in st.session_state:
                     st.session_state[dk] = dv
-            with st.expander(f"Para {di+1}: {st.session_state.get(f'dist_a_{di}','')} → {st.session_state.get(f'dist_b_{di}','')}",
-                             expanded=True):
+            with st.expander(f"Para {di+1}", expanded=True):
                 ca, cb = st.columns(2)
-                ca.text_input("Miejsce A:", key=f"dist_a_{di}")
-                cb.text_input("Miejsce B:", key=f"dist_b_{di}")
+                with ca:
+                    safe_text_input("Miejsce A:", key=f"dist_a_{di}")
+                with cb:
+                    safe_text_input("Miejsce B:", key=f"dist_b_{di}")
                 if st.button("POBIERZ ODLEGŁOŚĆ", key=f"btn_dist_{di}",
                              use_container_width=True):
                     ors_key = (st.secrets.get("ORS_API_KEY", "") if hasattr(st, 'secrets') else "") \
