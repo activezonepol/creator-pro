@@ -2223,18 +2223,20 @@ with col_form:
                 safe_text_input("Data", key=f"f{n}_data", placeholder="np. 06OCT")
             safe_text_input("Trasa (skróty lotnisk)", key=f"f{n}_trasa", placeholder="np. WAW-BUD")
             c3, c4 = st.columns(2)
-            c3.text_input(
-                "Godzina wylotu (format 00:00)", key=f"f{n}_wylot",
-                on_change=_make_time_callback(f"f{n}_wylot"),
-                placeholder="np. 10:40",
-            )
+            with c3:
+                safe_text_input(
+                    "Godzina wylotu (format 00:00)", key=f"f{n}_wylot",
+                    on_change=_make_time_callback(f"f{n}_wylot"),
+                    placeholder="np. 10:40",
+                )
             if st.session_state.get(f'_f{n}_wylot_valid') is False:
                 c3.warning("Nierozpoznany format godziny - popraw ręcznie (wzór: 00:00).")
-            c4.text_input(
-                "Godzina przylotu (format 00:00)", key=f"f{n}_przylot",
-                on_change=_make_time_callback(f"f{n}_przylot"),
-                placeholder="np. 12:00",
-            )
+            with c4:
+                safe_text_input(
+                    "Godzina przylotu (format 00:00)", key=f"f{n}_przylot",
+                    on_change=_make_time_callback(f"f{n}_przylot"),
+                    placeholder="np. 12:00",
+                )
             if st.session_state.get(f'_f{n}_przylot_valid') is False:
                 c4.warning("Nierozpoznany format godziny - popraw ręcznie (wzór: 00:00).")
 
