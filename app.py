@@ -2132,8 +2132,9 @@ with col_form:
             )
             safe_text_input("Klucz ORS API:", key="ors_api_key", type="password",
                           help="Zarejestruj się na openrouteservice.org → Dashboard → API Key")
-        st.number_input("Liczba par miejscowości:", 0, 10, step=1, key="num_dist_pairs")
-        for di in range(st.session_state.get('num_dist_pairs', 0)):
+        with st.expander("Punkty na trasie odległości transferów", expanded=False):
+            st.number_input("Liczba par miejscowości:", 0, 10, step=1, key="num_dist_pairs")
+            for di in range(st.session_state.get('num_dist_pairs', 0)):
             for dk, dv in [
                 (f'dist_a_{di}', ''), (f'dist_b_{di}', ''),
                 (f'dist_km_{di}', '—'), (f'dist_time_{di}', '—'),
