@@ -2160,16 +2160,19 @@ with col_form:
                         if km is not None:
                             st.session_state[f'dist_km_{di}'] = f'{km}'
                             st.session_state[f'dist_time_{di}'] = format_duration(mins)
+                            st.session_state[f'buffer_dist_km_{di}'] = f'{km}'
+                            st.session_state[f'buffer_dist_time_{di}'] = format_duration(mins)
                             if err:
                                 st.warning(f"✓ Zapisano: {km} km, {format_duration(mins)}\n\n⚠️ {err}")
                             else:
                                 st.success(f"✓ Trasa drogowa: {km} km, {format_duration(mins)}")
-                            st.rerun()
                         else:
                             st.error(f"Nie udało się pobrać trasy.\n\n{err}")
                 cd1, cd2 = st.columns(2)
-                cd1.text_input("Odległość (km) — edytowalna:", key=f"dist_km_{di}")
-                cd2.text_input("Czas dojazdu — edytowalny:", key=f"dist_time_{di}")
+                with cd1:
+                    safe_text_input("Odległość (km) — edytowalna:", key=f"dist_km_{di}")
+                with cd2:
+                    safe_text_input("Czas dojazdu — edytowalny:", key=f"dist_time_{di}")
 
     # -----------------------------------------------------------------------
     # 4. JAK LECIMY?
