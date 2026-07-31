@@ -2191,7 +2191,7 @@ with col_form:
     elif page == "Jak lecimy?":
         _guard(["l_hide", "l_przesiadka", "l_port", "l_czas", "l_overline",  
                 "l_main", "l_sub", "m_route", "m_luggage",                   
-                "f1", "f2", "f3", "f4", "l_desc", "l_extra"])                
+                "l_desc", "l_extra"])                
         l_keys = [
             'l_hide', 'l_przesiadka', 'l_port', 'l_czas', 'l_overline', 'l_main',
             'l_sub', 'm_route', 'm_luggage', 'f1', 'f2', 'f3', 'f4',
