@@ -37,7 +37,7 @@ from storage_utils import (
     cleanup_session_bytes_to_storage,
     run_migration_flow,
 )
-
+st.write(f"TEST: is_offer_data_key('f1_wylot') = {is_offer_data_key('f1_wylot')}")
 # ---------------------------------------------------------------------------
 # KONFIGURACJA STRONY — MUSI być pierwszym wywołaniem Streamlit w całym
 # skrypcie. Przeniesione tutaj (z dotychczasowego miejsca dużo niżej), bo
