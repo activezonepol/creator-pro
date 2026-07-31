@@ -2216,6 +2216,7 @@ with col_form:
             with c2:
                 safe_text_input("Data", key=f"f{n}_data", placeholder="np. 06OCT")
             safe_text_input("Trasa (skróty lotnisk)", key=f"f{n}_trasa", placeholder="np. WAW-BUD")
+            )
             c3, c4 = st.columns(2)
             with c3:
                 st.text_input(
