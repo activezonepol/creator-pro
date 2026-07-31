@@ -2095,7 +2095,7 @@ with col_form:
         st.slider("Dodatkowe przybliżenie:", 0, 3, key="map_zoom_adjust")
         st.caption("Po przybliżeniu ponownie wygeneruj mapę.")
 
-        with st.expander("Punkty trasy na mapę", expanded=False):
+        with st.expander("Wybierz punkty trasy na mapę", expanded=False):
             st.number_input("Liczba punktów na trasie:", 1, 10, step=1, key="num_map_points")
             for i in range(st.session_state['num_map_points']):
                 with st.expander(f"Punkt {i+1}", expanded=True):
