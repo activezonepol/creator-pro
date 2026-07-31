@@ -2161,6 +2161,29 @@ with col_form:
             "Dodaj pary miejscowości, aby wyliczyć odległość i czas dojazdu ℹ️",
             help="Po wpisaniu par punktów na slajdzie pojawi się tabela z odległościami i czasem dojazdu.",
         )
+
+        _section_header("KLUCZ API (ODLEGŁOŚCI)")
+        _ors_from_secrets = st.secrets.get("ORS_API_KEY", "") if hasattr(st, 'secrets') else ""
+        if _ors_from_secrets and not st.session_state.get('ors_api_key'):
+            st.session_state['ors_api_key'] = _ors_from_secrets
+        if _ors_from_secrets:
+            st.markdown(
+                "<div style='font-size:11px; color:#16a34a; margin-bottom:8px; "
+                "padding:6px 10px; background:#f0fdf4; border-radius:4px; "
+                "border-left:3px solid #16a34a;'>"
+                "✓ Klucz API wczytany z konfiguracji aplikacji.</div>",
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                "<div style='font-size:11px; color:#64748b; margin-bottom:8px;'>"
+                "Klucz API OpenRouteService — wpisz ręcznie lub skonfiguruj "
+                "w Streamlit Secrets jako <code>ORS_API_KEY</code>.</div>",
+                unsafe_allow_html=True,
+            )
+            safe_text_input("Klucz ORS API:", key="ors_api_key", type="password",
+                          help="Zarejestruj się na openrouteservice.org → Dashboard → API Key")
+
     # -----------------------------------------------------------------------
     # 4. JAK LECIMY?
     # -----------------------------------------------------------------------
