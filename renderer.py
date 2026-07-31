@@ -1522,7 +1522,7 @@ def format_duration(minutes: int) -> str:
         return f'{h} h'
     return f'{m} min'
 @st.cache_data(max_entries=20, show_spinner=False)
-def generate_map_data(points, _depth=0):
+def generate_map_data(points, zoom_adjust=0, _depth=0):
     zoom = 6  # wartość domyślna; nadpisywana niżej z bbox kraju lub punktów
     if not points:
         return None, []
