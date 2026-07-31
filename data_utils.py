@@ -13,8 +13,6 @@ def _build_proj_dict():
     Pythona czy jak długi jest ich tekst.
     """
     proj = {}
-    if 'f1_wylot' in st.session_state:
-        st.write(f"DEBUG: f1_wylot w session_state = {st.session_state['f1_wylot']!r}, is_offer_data_key = {is_offer_data_key('f1_wylot')}")
     for k, v in st.session_state.items():
         if not is_offer_data_key(k):
             continue
