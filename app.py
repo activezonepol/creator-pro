@@ -2110,6 +2110,12 @@ with col_form:
                     
         # --- Sekcja odległości ---
         safe_text_input("Tytuł sekcji na slajdzie:", key="map_dist_title")
+        st.markdown(
+            'Dodaj pary miejscowości, aby wyliczyć odległość i czas dojazdu '
+            '<span title="Po wpisaniu par punktów na slajdzie pojawi się tabela z odległościami i czasem dojazdu." '
+            'style="cursor:help;">ℹ️</span>',
+            unsafe_allow_html=True,
+        )
 
         with st.expander("Wybierz punkty na trasie transferów", expanded=False):
             st.number_input("Liczba par miejscowości:", 0, 10, step=1, key="num_dist_pairs")
