@@ -1590,6 +1590,13 @@ def generate_map_data(points, zoom_adjust=0, _depth=0):
             zoom = 5
         else:
             zoom = 4
+
+    # Dodatkowe przybliżenie ustawione ręcznie przez operatora (suwak
+    # "Dodatkowe przybliżenie" w formularzu) - dodawane do automatycznie
+    # wyliczonego zoomu z bbox kraju/punktów. Ograniczone do max 18
+    # (typowy limit dostępnych kafelków OSM na tym poziomie szczegółowości).
+    zoom = min(18, zoom + zoom_adjust)
+
     # Wyznaczamy zakres kafelków:
     # - gdy używamy bbox kraju: obejmujemy cały bbox (cały kraj + sąsiedzi)
     # - gdy używamy punktów: obejmujemy wszystkie punkty z marginesem
