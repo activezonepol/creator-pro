@@ -2039,8 +2039,10 @@ with col_form:
         safe_text_input("Mały nadtytuł:", key="map_overline")
         safe_text_area("Główny tytuł H1:", key="map_title")
         safe_text_input("Podtytuł:", key="map_subtitle")
-        safe_text_area("Opis pod mapą:", height=100, key="map_desc")
-        
+        safe_text_area("Opis (obok mapy):", height=100, key="map_desc")
+
+        safe_text_input("Tytuł sekcji na slajdzie - mapa:", key="map_points_title")
+
         _section_header("WYBIERZ PUNKTY TRASY NA MAPĘ I WYGENERUJ MAPĘ")
 
         points_data = []
