@@ -1624,10 +1624,20 @@ def generate_map_data(points, zoom_adjust=0, _depth=0):
         max_tx = int(max(t[0] for t in tiles)) + 1
         min_ty = int(min(t[1] for t in tiles)) - 1
         max_ty = int(max(t[1] for t in tiles)) + 1
-    # Ogranicz do max 9x9 kafelków żeby nie pobierać za dużo
+    # Ogranicz do max 9x9 kafelków żeby nie pobierać za dużo. KLUCZOWE:
+    # środek do przycięcia liczymy na podstawie RZECZYWISTYCH PUNKTÓW
+    # (geo_pts), nie na podstawie pierwotnie wyliczonego zakresu kafelków
+    # kraju/bboxa - inaczej przy wysokim zoomie, gdy punkty są rozstrzelone
+    # (np. Miami blisko + Nassau daleko), przycięty obszar 9x9 mógł wypaść
+    # w zupełnie innym miejscu niż faktyczne punkty, gubiąc je z kadru.
     if (max_tx - min_tx + 1) * (max_ty - min_ty + 1) > 81:
-        cx = (min_tx + max_tx) // 2
-        cy = (min_ty + max_ty) // 2
+        n_center = 2.0 ** zoom
+        pts_center_lons = [p['lon'] for p in geo_pts]
+        pts_center_lats = [p['lat'] for p in geo_pts]
+        avg_lon = sum(pts_center_lons) / len(pts_center_lons)
+        avg_lat = sum(pts_center_lats) / len(pts_center_lats)
+        cx = int((avg_lon + 180.0) / 360.0 * n_center)
+        cy = int((1.0 - math.asinh(math.tan(math.radians(avg_lat))) / math.pi) / 2.0 * n_center)
         min_tx, max_tx = cx - 4, cx + 4
         min_ty, max_ty = cy - 4, cy + 4
     w = (max_tx - min_tx + 1) * 256
