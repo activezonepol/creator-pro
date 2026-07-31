@@ -2142,42 +2142,41 @@ with col_form:
                     if dk not in st.session_state:
                         st.session_state[dk] = dv
                 with st.expander(f"Para {di+1}", expanded=True):
-                ca, cb = st.columns(2)
-                with ca:
-                    safe_text_input("Miejsce A:", key=f"dist_a_{di}")
-                with cb:
-                    safe_text_input("Miejsce B:", key=f"dist_b_{di}")
-                if st.button("POBIERZ ODLEGŁOŚĆ", key=f"btn_dist_{di}",
-                             use_container_width=True):
-                    ors_key = (st.secrets.get("ORS_API_KEY", "") if hasattr(st, 'secrets') else "") \
-                              or st.session_state.get('ors_api_key', '').strip()
-                    a = st.session_state.get(f'dist_a_{di}', '').strip()
-                    b = st.session_state.get(f'dist_b_{di}', '').strip()
-                    if not a or not b:
-                        st.warning("Wpisz obie nazwy miejscowości.")
-                    else:
-                        with st.spinner(f"Szukam trasy {a} → {b}..."):
-                            km, mins, err = get_road_distance(
-                                a, b, ors_key,
-                                st.session_state.get('country_name', ''),
-                            )
-                        if km is not None:
-                            st.session_state[f'dist_km_{di}'] = f'{km}'
-                            st.session_state[f'dist_time_{di}'] = format_duration(mins)
-                            st.session_state[f'buffer_dist_km_{di}'] = f'{km}'
-                            st.session_state[f'buffer_dist_time_{di}'] = format_duration(mins)
-                            if err:
-                                st.warning(f"✓ Zapisano: {km} km, {format_duration(mins)}\n\n⚠️ {err}")
-                            else:
-                                st.success(f"✓ Trasa drogowa: {km} km, {format_duration(mins)}")
+                    ca, cb = st.columns(2)
+                    with ca:
+                        safe_text_input("Miejsce A:", key=f"dist_a_{di}")
+                    with cb:
+                        safe_text_input("Miejsce B:", key=f"dist_b_{di}")
+                    if st.button("POBIERZ ODLEGŁOŚĆ", key=f"btn_dist_{di}",
+                                 use_container_width=True):
+                        ors_key = (st.secrets.get("ORS_API_KEY", "") if hasattr(st, 'secrets') else "") \
+                                  or st.session_state.get('ors_api_key', '').strip()
+                        a = st.session_state.get(f'dist_a_{di}', '').strip()
+                        b = st.session_state.get(f'dist_b_{di}', '').strip()
+                        if not a or not b:
+                            st.warning("Wpisz obie nazwy miejscowości.")
                         else:
-                            st.error(f"Nie udało się pobrać trasy.\n\n{err}")
-                cd1, cd2 = st.columns(2)
-                with cd1:
-                    safe_text_input("Odległość (km) — edytowalna:", key=f"dist_km_{di}")
-                with cd2:
-                    safe_text_input("Czas dojazdu — edytowalny:", key=f"dist_time_{di}")
-
+                            with st.spinner(f"Szukam trasy {a} → {b}..."):
+                                km, mins, err = get_road_distance(
+                                    a, b, ors_key,
+                                    st.session_state.get('country_name', ''),
+                                )
+                            if km is not None:
+                                st.session_state[f'dist_km_{di}'] = f'{km}'
+                                st.session_state[f'dist_time_{di}'] = format_duration(mins)
+                                st.session_state[f'buffer_dist_km_{di}'] = f'{km}'
+                                st.session_state[f'buffer_dist_time_{di}'] = format_duration(mins)
+                                if err:
+                                    st.warning(f"✓ Zapisano: {km} km, {format_duration(mins)}\n\n⚠️ {err}")
+                                else:
+                                    st.success(f"✓ Trasa drogowa: {km} km, {format_duration(mins)}")
+                            else:
+                                st.error(f"Nie udało się pobrać trasy.\n\n{err}")
+                    cd1, cd2 = st.columns(2)
+                    with cd1:
+                        safe_text_input("Odległość (km) — edytowalna:", key=f"dist_km_{di}")
+                    with cd2:
+                        safe_text_input("Czas dojazdu — edytowalny:", key=f"dist_time_{di}")
     # -----------------------------------------------------------------------
     # 4. JAK LECIMY?
     # -----------------------------------------------------------------------
