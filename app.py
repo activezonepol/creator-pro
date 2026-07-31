@@ -2135,13 +2135,13 @@ with col_form:
         with st.expander("Punkty na trasie odległości transferów", expanded=False):
             st.number_input("Liczba par miejscowości:", 0, 10, step=1, key="num_dist_pairs")
             for di in range(st.session_state.get('num_dist_pairs', 0)):
-            for dk, dv in [
-                (f'dist_a_{di}', ''), (f'dist_b_{di}', ''),
-                (f'dist_km_{di}', '—'), (f'dist_time_{di}', '—'),
-            ]:
-                if dk not in st.session_state:
-                    st.session_state[dk] = dv
-            with st.expander(f"Para {di+1}", expanded=True):
+                for dk, dv in [
+                    (f'dist_a_{di}', ''), (f'dist_b_{di}', ''),
+                    (f'dist_km_{di}', '—'), (f'dist_time_{di}', '—'),
+                ]:
+                    if dk not in st.session_state:
+                        st.session_state[dk] = dv
+                with st.expander(f"Para {di+1}", expanded=True):
                 ca, cb = st.columns(2)
                 with ca:
                     safe_text_input("Miejsce A:", key=f"dist_a_{di}")
