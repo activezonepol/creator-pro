@@ -2544,7 +2544,7 @@ with col_form:
                 st.session_state.get(f"amain_{_i}") or f"Atrakcja_{_pos+1}",
                 f"atr_{_i}", index=_i)
             safe_checkbox("Ukryj ten slajd w PDF", key=f"ahide_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
-            safe_text_input("Nazwa:", key=f"amain_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
+            safe_text_area("Nazwa:", key=f"amain_{_i}", height=80, on_change=set_focus, args=(f"attr_{_i}",))
             safe_text_input("Podtytuł:", key=f"asub_{_i}", on_change=set_focus, args=(f"attr_{_i}",))
             safe_text_input("Wpisz gdy atrakcja opcjonalna lub alternatywna:", 
                           key=f"aopt_label_{_i}", max_chars=25,
