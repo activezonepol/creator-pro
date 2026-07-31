@@ -2222,12 +2222,12 @@ with col_form:
             safe_text_input("Trasa (skróty lotnisk)", key=f"f{n}_trasa", placeholder="np. WAW-BUD")
             c3, c4 = st.columns(2)
             with c3:
-                st.text_input(
+                safe_text_input(
                     "Godzina wylotu (format 00:00)", key=f"f{n}_wylot",
                     placeholder="np. 10:40",
                 )
             with c4:
-                st.text_input(
+                safe_text_input(
                     "Godzina przylotu (format 00:00)", key=f"f{n}_przylot",
                     placeholder="np. 12:00",
                 )
