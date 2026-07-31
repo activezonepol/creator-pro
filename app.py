@@ -1431,7 +1431,12 @@ with st.sidebar:
     # więc budujemy etykietę ręcznie z czarnym _HIDE_SUFFIX_PLAIN, zamiast
     # przez _label_with_hide() (ta zostaje z czerwonym, dla zwykłych stron).
     for _hp in range(_n_hotels):
-        _hotel_name = f"    ❯ Hotel {_hp+1}"
+        _h_title_check = str(st.session_state.get(f"h_title_{_hp}", "") or "").strip()
+        _h_display = _h_title_check.split('\n')[0][:25].strip() if _h_title_check else ""
+        if _h_display:
+            _hotel_name = f"    ❯ Hotel {_hp+1} — {_h_display}"
+        else:
+            _hotel_name = f"    ❯ Hotel {_hp+1}"
         if st.session_state.get(f"h_hide_{_hp}", False):
             _hotel_name += _HIDE_SUFFIX_PLAIN
         _hopt_text_check = str(st.session_state.get(f"hopt_label_{_hp}", "") or "").strip()
