@@ -2041,30 +2041,22 @@ with col_form:
         safe_text_input("Podtytuł:", key="map_subtitle")
         safe_text_area("Opis pod mapą:", height=100, key="map_desc")
         
-        _section_header("AUTOMATYCZNY KREATOR MAPY")
-        st.number_input("Liczba punktów na trasie:", 1, 10, step=1, key="num_map_points")
+        _section_header("WYBIERZ PUNKTY TRASY NA MAPĘ I WYGENERUJ MAPĘ")
+
         points_data = []
-        for i in range(st.session_state['num_map_points']):
+        for i in range(st.session_state.get('num_map_points', 3)):
             for dk, dv in [(f'map_pt_name_{i}', f'Punkt {i+1}'), (f'map_conn_{i}', 'Brak'),
                            (f'map_pt_sym_{i}', False), (f'map_pt_x_{i}', 15), (f'map_pt_y_{i}', 10)]:
                 if dk not in st.session_state:
                     st.session_state[dk] = dv
-            with st.expander(f"Punkt {i+1}", expanded=True):
-                safe_text_input("Nazwa (np. Rzym, Hiszpania):", key=f"map_pt_name_{i}")
-                conn_opts = ["Brak", "Przejazd (Linia ciągła)", "Przelot (Linia przerywana + Samolot)"]
-                safe_selectbox("Połączenie z NASTĘPNYM punktem:", conn_opts, key=f"map_conn_{i}")
-                pt_sym = st.checkbox("Punkt oddalony (symboliczny)", key=f"map_pt_sym_{i}")
-                if pt_sym:
-                    c1, c2 = st.columns(2)
-                    c1.slider("Pozycja X %:", 0, 100, key=f"map_pt_x_{i}")
-                    c2.slider("Pozycja Y %:", 0, 100, key=f"map_pt_y_{i}")
-                points_data.append({
-                    'name': st.session_state[f"map_pt_name_{i}"],
-                    'conn': st.session_state[f"map_conn_{i}"],
-                    'symbolic': st.session_state[f"map_pt_sym_{i}"],
-                    'x': st.session_state[f"map_pt_x_{i}"],
-                    'y': st.session_state[f"map_pt_y_{i}"],
-                })
+            points_data.append({
+                'name': st.session_state[f"map_pt_name_{i}"],
+                'conn': st.session_state[f"map_conn_{i}"],
+                'symbolic': st.session_state[f"map_pt_sym_{i}"],
+                'x': st.session_state[f"map_pt_x_{i}"],
+                'y': st.session_state[f"map_pt_y_{i}"],
+            })
+
         if st.button("GENERUJ MAPĘ AUTOMATYCZNIE", type="primary", use_container_width=True):
             with st.spinner("Pobieranie i renderowanie danych..."):
                 country = st.session_state.get('country_name', '')
@@ -2085,9 +2077,8 @@ with col_form:
                                               'lat': lat, 'lon': lon})
                 if valid_pts:
                     try:
-                        # Zoom jest liczony automatycznie wewnątrz generate_map_data
-                        # (z bbox kraju lub z rozpiętości punktów - fallback)
-                        bg_b64, final_pts = generate_map_data(valid_pts)
+                        _zoom_adjust = st.session_state.get('map_zoom_adjust', 0)
+                        bg_b64, final_pts = generate_map_data(valid_pts, zoom_adjust=_zoom_adjust)
                         if bg_b64 is not None or final_pts:
                             if bg_b64:
                                 st.session_state['img_map_bg_auto'] = bg_b64
@@ -2098,6 +2089,22 @@ with col_form:
                         st.error("Błąd podczas generowania mapy.")
                 else:
                     st.warning("Nie udało się zgeokodować żadnego punktu.")
+
+        st.slider("Dodatkowe przybliżenie:", 0, 3, key="map_zoom_adjust")
+        st.caption("Po przybliżeniu ponownie wygeneruj mapę.")
+
+        with st.expander("Punkty trasy na mapę", expanded=False):
+            st.number_input("Liczba punktów na trasie:", 1, 10, step=1, key="num_map_points")
+            for i in range(st.session_state['num_map_points']):
+                with st.expander(f"Punkt {i+1}", expanded=True):
+                    safe_text_input("Nazwa (np. Rzym, Hiszpania):", key=f"map_pt_name_{i}")
+                    conn_opts = ["Brak", "Przejazd (Linia ciągła)", "Przelot (Linia przerywana + Samolot)"]
+                    safe_selectbox("Połączenie z NASTĘPNYM punktem:", conn_opts, key=f"map_conn_{i}")
+                    pt_sym = st.checkbox("Punkt oddalony (symboliczny)", key=f"map_pt_sym_{i}")
+                    if pt_sym:
+                        c1, c2 = st.columns(2)
+                        c1.slider("Pozycja X %:", 0, 100, key=f"map_pt_x_{i}")
+                        c2.slider("Pozycja Y %:", 0, 100, key=f"map_pt_y_{i}")
                     
         # --- Sekcja odległości ---
         _section_header("ODLEGŁOŚCI I CZAS DOJAZDU")
