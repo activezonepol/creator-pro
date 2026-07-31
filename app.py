@@ -2157,11 +2157,6 @@ with col_form:
                     with cd2:
                         safe_text_input("Czas dojazdu — edytowalny:", key=f"dist_time_{di}")
 
-        st.markdown(
-            "Dodaj pary miejscowości, aby wyliczyć odległość i czas dojazdu ℹ️",
-            help="Po wpisaniu par punktów na slajdzie pojawi się tabela z odległościami i czasem dojazdu.",
-        )
-
         _section_header("KLUCZ API (ODLEGŁOŚCI)")
         _ors_from_secrets = st.secrets.get("ORS_API_KEY", "") if hasattr(st, 'secrets') else ""
         if _ors_from_secrets and not st.session_state.get('ors_api_key'):
