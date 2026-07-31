@@ -2220,19 +2220,13 @@ with col_form:
             with c3:
                 safe_text_input(
                     "Godzina wylotu (format 00:00)", key=f"f{n}_wylot",
-                    on_change=_make_time_callback(f"f{n}_wylot"),
                     placeholder="np. 10:40",
                 )
-            if st.session_state.get(f'_f{n}_wylot_valid') is False:
-                c3.warning("Nierozpoznany format godziny - popraw ręcznie (wzór: 00:00).")
             with c4:
                 safe_text_input(
                     "Godzina przylotu (format 00:00)", key=f"f{n}_przylot",
-                    on_change=_make_time_callback(f"f{n}_przylot"),
                     placeholder="np. 12:00",
                 )
-            if st.session_state.get(f'_f{n}_przylot_valid') is False:
-                c4.warning("Nierozpoznany format godziny - popraw ręcznie (wzór: 00:00).")
 
         _render_flight_leg(1, "LOT TAM")
         _render_flight_leg(2, "LOT POWRÓT")
