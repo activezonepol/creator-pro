@@ -2194,9 +2194,13 @@ with col_form:
                 "l_desc", "l_extra"])                
         l_keys = [
             'l_hide', 'l_przesiadka', 'l_port', 'l_czas', 'l_overline', 'l_main',
-            'l_sub', 'm_route', 'm_luggage', 'f1', 'f2', 'f3', 'f4',
-            'l_desc', 'l_extra', 'img_hero_l',
+            'l_sub', 'm_route', 'm_luggage', 'l_desc', 'l_extra', 'img_hero_l',
         ]
+        for _leg_n in (1, 2, 3, 4):
+            l_keys.extend([
+                f'f{_leg_n}_nr', f'f{_leg_n}_data', f'f{_leg_n}_trasa',
+                f'f{_leg_n}_wylot', f'f{_leg_n}_przylot',
+            ])
         section_template_manager(l_keys, "LOT", "jak-lecimy", "lot")
         safe_checkbox("Ukryj ten slajd w PDF", key="l_hide")
         safe_text_input("Mały nadtytuł:", key="l_overline")
