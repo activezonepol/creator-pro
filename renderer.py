@@ -2069,13 +2069,15 @@ def _should_render(slide_id, current_page, export_mode):
             return slide_id == f"slide-hotel-{hotel_pos}"
         return False
 
-    # 3d. "Zarządzanie atrakcjami" -> wszystkie atrakcje (lista)
+    # 3d. "Zarządzanie atrakcjami" -> to jest strona-kontener (lista
+    # zarządzająca, bez własnej treści) - podgląd po prawej pozostaje pusty,
+    # żeby nie sugerować mylnie, że jest tu coś do edycji.
     if current_page == "Zarządzanie atrakcjami":
-        return slide_id.startswith("attr_")
-
-    # 3e. "Opis hoteli" / "Zakwaterowanie" -> wszystkie hotele (lista)
+        return False
+    # 3e. "Opis hoteli" / "Zakwaterowanie" -> jw., strona-kontener bez
+    # własnej treści, podgląd pozostaje pusty.
     if current_page in ("Opis hoteli", "Zakwaterowanie"):
-        return slide_id.startswith("slide-hotel-")
+        return False
 
     # 3f. Standardowe strony -> tylko jej slajd (dokladne dopasowanie)
     expected = _PAGE_TO_SLIDE.get(current_page, "")
