@@ -2156,6 +2156,11 @@ with col_form:
                         safe_text_input("Odległość (km) — edytowalna:", key=f"dist_km_{di}")
                     with cd2:
                         safe_text_input("Czas dojazdu — edytowalny:", key=f"dist_time_{di}")
+
+        st.markdown(
+            "Dodaj pary miejscowości, aby wyliczyć odległość i czas dojazdu ℹ️",
+            help="Po wpisaniu par punktów na slajdzie pojawi się tabela z odległościami i czasem dojazdu.",
+        )
     # -----------------------------------------------------------------------
     # 4. JAK LECIMY?
     # -----------------------------------------------------------------------
