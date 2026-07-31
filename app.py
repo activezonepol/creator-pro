@@ -2092,7 +2092,7 @@ with col_form:
                 else:
                     st.warning("Nie udało się zgeokodować żadnego punktu.")
 
-        st.slider("Dodatkowe przybliżenie:", 0, 3, key="map_zoom_adjust")
+        st.slider("Dodatkowe przybliżenie:", 0, 5, key="map_zoom_adjust")
         st.caption("Po przybliżeniu ponownie wygeneruj mapę.")
 
         with st.expander("Wybierz punkty trasy na mapę", expanded=False):
