@@ -2107,7 +2107,10 @@ with col_form:
                         c2.slider("Pozycja Y %:", 0, 100, key=f"map_pt_y_{i}")
                     
         # --- Sekcja odległości ---
-        _section_header("ODLEGŁOŚCI I CZAS DOJAZDU")
+        st.markdown(
+            "Dodaj pary miejscowości, aby wyliczyć odległość i czas dojazdu ℹ️",
+            help="Po wpisaniu par punktów na slajdzie pojawi się tabela z odległościami i czasem dojazdu.",
+        )
         safe_text_input("Tytuł sekcji na slajdzie:", key="map_dist_title")
         _ors_from_secrets = st.secrets.get("ORS_API_KEY", "") if hasattr(st, 'secrets') else ""
         if _ors_from_secrets and not st.session_state.get('ors_api_key'):
