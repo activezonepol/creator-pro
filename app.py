@@ -2218,16 +2218,16 @@ with col_form:
             with c1:
                 safe_text_input("Nr lotu", key=f"f{n}_nr", placeholder="np. LO 535")
             with c2:
-        if f"f{n}_data" not in st.session_state:
-            st.session_state[f"f{n}_data"] = date.today()
-        st.date_input("Data wylotu", key=f"f{n}_data", format="DD.MM.YYYY")
-    safe_text_input("Trasa (skróty lotnisk)", key=f"f{n}_trasa", placeholder="np. WAW-BUD")
-    c3, c4 = st.columns(2)
-    with c3:
-        safe_text_input(
-            "Godzina wylotu (format 00:00)", key=f"f{n}_wylot",
-            placeholder="np. 10:40",
-        )
+                if f"f{n}_data" not in st.session_state:
+                    st.session_state[f"f{n}_data"] = date.today()
+                st.date_input("Data wylotu", key=f"f{n}_data", format="DD.MM.YYYY")
+            safe_text_input("Trasa (skróty lotnisk)", key=f"f{n}_trasa", placeholder="np. WAW-BUD")
+            c3, c4 = st.columns(2)
+            with c3:
+                safe_text_input(
+                    "Godzina wylotu (format 00:00)", key=f"f{n}_wylot",
+                    placeholder="np. 10:40",
+                )
             with c4:
                 safe_text_input(
                     "Godzina przylotu (format 00:00)", key=f"f{n}_przylot",
