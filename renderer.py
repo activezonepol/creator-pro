@@ -1784,8 +1784,8 @@ def get_local_css(return_str=False):
         .metric-value {{ font-size: {max(14, fs_sub - 8)}px; font-weight: 700; color: {c_t}; font-family: '{f_sub}'; display: block; margin-bottom: 8px; }}
         .flight-val {{ font-size: {fs_t}px; font-weight: 600; color: {c_t}; font-family: '{f_txt}'; display: block; margin-bottom: 8px; }}
         .flight-table {{ width: 100%; border-collapse: collapse; margin-top: 15px; }}
-        .flight-table th {{ text-align: left; padding: 6px 10px; border-bottom: 2px solid {acc}; font-family: '{f_h2}'; font-weight: 700; font-size: {fs_t}px; color: {c_h2}; }}
-        .flight-table td {{ padding: 6px 10px; border-bottom: 1px solid #eee; font-size: {fs_t}px; }}
+        .flight-table th {{ text-align: left; padding: 10px 10px; border-bottom: 2px solid {acc}; font-family: '{f_h2}'; font-weight: 700; font-size: {fs_t}px; color: {c_h2}; }}
+        .flight-table td {{ padding: 10px 10px; border-bottom: 1px solid #eee; font-size: {fs_t}px; font-weight: 600; }}
         .premium-layout {{ display: flex; gap: 40px; flex-grow: 1; min-height: 0; width: 100%; margin-bottom: 20px; overflow: hidden; }}
         .photo-col {{ flex: 45; position: relative; height: 100%; border-radius: 8px; overflow: hidden; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; background-color: #fcfcfc; }}
         .photo-col img {{ width: 100%; height: 100%; object-fit: cover; }}
