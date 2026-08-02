@@ -2233,6 +2233,14 @@ with col_form:
                     "Godzina przylotu (format 00:00)", key=f"f{n}_przylot",
                     placeholder="np. 12:00",
                 )
+            _ladowanie_dalej = safe_checkbox("Lądowanie następnego dnia", key=f"f{n}_nastepny_dzien")
+            if _ladowanie_dalej:
+                _data_wylotu_n = st.session_state.get(f"f{n}_data", date.today())
+                if f"f{n}_data_ladowania" not in st.session_state:
+                    st.session_state[f"f{n}_data_ladowania"] = _data_wylotu_n + timedelta(days=1)
+                st.date_input(
+                    "Data lądowania:", key=f"f{n}_data_ladowania", format="DD.MM.YYYY"
+                )
 
         _render_flight_leg(1, "LOT TAM")
         _render_flight_leg(2, "LOT POWRÓT")
