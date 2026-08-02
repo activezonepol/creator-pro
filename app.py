@@ -871,10 +871,14 @@ def _attr_order():
     return order
 
 def _attr_add():
-    """Dodaje nową atrakcję i ustawia ją jako aktywną."""
-    n = st.session_state.get('num_attr', 0)
-    st.session_state['num_attr'] = n + 1
+    """Dodaje nową atrakcję i ustawia ją jako aktywną. Nowy indeks jest
+    zawsze WIĘKSZY niż jakikolwiek indeks już użyty w attr_order - inaczej,
+    po usunięciu atrakcji ze środka listy, num_attr maleje i kolejne
+    dodanie mogłoby przydzielić indeks już zajęty przez inną, aktywną
+    atrakcję, nadpisując jej dane (dokładnie ten błąd naprawiamy)."""
     order = _attr_order()
+    n = max(order) + 1 if order else 0
+    st.session_state['num_attr'] = st.session_state.get('num_attr', 0) + 1
     order.append(n)
     st.session_state['attr_order'] = order
     # Zapamiętujemy STABILNY indeks atrakcji (n), nie jej nazwę - nazwa
