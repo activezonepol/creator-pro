@@ -2595,10 +2595,16 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             _trasa = str(get_data(f'f{_n}_trasa', '')).strip()
             _wylot = str(get_data(f'f{_n}_wylot', '')).strip()
             _przylot = str(get_data(f'f{_n}_przylot', '')).strip()
+            _nastepny_dzien = get_data(f'f{_n}_nastepny_dzien', False)
             if not (_nr or _data_lot or _trasa or _wylot or _przylot):
                 continue
-            _godziny = f"{_wylot} - {_przylot}" if (_wylot or _przylot) else ""
+            _przylot_display = f"{_przylot} (+1)" if (_nastepny_dzien and _przylot) else _przylot
+            _godziny = f"{_wylot} - {_przylot_display}" if (_wylot or _przylot) else ""
             rows += f"<tr><td>{_nr}</td><td>{_data_lot}</td><td>{_trasa}</td><td>{_godziny}</td></tr>"
+            if _nastepny_dzien:
+                _data_ladowania_raw = get_data(f'f{_n}_data_ladowania', '')
+                _data_ladowania = _data_ladowania_raw.strftime('%d.%m.%Y') if hasattr(_data_ladowania_raw, 'strftime') else str(_data_ladowania_raw).strip()
+                rows += f"<tr><td colspan='4' style='font-size:{max(9,fs_t-3)}px; color:{c_t}; opacity:0.8; padding-top:0;'>Lądowanie następnego dnia: {_data_ladowania}</td></tr>"
                 
         przesiadka_html = ""
         if get_data('l_przesiadka', False):
