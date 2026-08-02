@@ -2709,12 +2709,13 @@ with col_form:
                         label_visibility="collapsed" if _gallery_urls else "visible",
                     )
                 else:
-                    _gcols = st.columns(3)
+                    _gcols = st.columns(2)
                     for _gi, _gurl in enumerate(_gallery_urls):
-                        with _gcols[_gi % 3]:
+                        with _gcols[_gi % 2]:
                             st.image(_gurl, use_container_width=True)
                             if st.button("Użyj", key=f"gal_{widget_suffix}_{_gi}", use_container_width=True):
                                 st.session_state[target_key] = _gurl
+                                st.session_state[f"src_{widget_suffix}"] = "Z dysku"
                                 st.rerun()
 
             _render_image_field("Foto Główne", f"ah_{_i}", f"up_ah_{_i}", f"ah_{_i}")
