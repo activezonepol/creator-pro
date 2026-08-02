@@ -2591,7 +2591,10 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
         for _n in _leg_numbers:
             _nr = str(get_data(f'f{_n}_nr', '')).strip()
             _data_lot_raw = get_data(f'f{_n}_data', '')
-            _data_lot = _data_lot_raw.strftime('%d.%m.%Y') if hasattr(_data_lot_raw, 'strftime') else str(_data_lot_raw).strip()
+            if hasattr(_data_lot_raw, 'strftime'):
+                _data_lot = f"{_data_lot_raw.strftime('%d.%m.%Y')} ({pl_days_map[_data_lot_raw.weekday()]})"
+            else:
+                _data_lot = str(_data_lot_raw).strip()
             _trasa = str(get_data(f'f{_n}_trasa', '')).strip()
             _wylot = str(get_data(f'f{_n}_wylot', '')).strip()
             _przylot = str(get_data(f'f{_n}_przylot', '')).strip()
@@ -2603,7 +2606,10 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             rows += f"<tr><td>{_nr}</td><td>{_data_lot}</td><td>{_trasa}</td><td>{_godziny}</td></tr>"
             if _nastepny_dzien:
                 _data_ladowania_raw = get_data(f'f{_n}_data_ladowania', '')
-                _data_ladowania = _data_ladowania_raw.strftime('%d.%m.%Y') if hasattr(_data_ladowania_raw, 'strftime') else str(_data_ladowania_raw).strip()
+                if hasattr(_data_ladowania_raw, 'strftime'):
+                    _data_ladowania = f"{_data_ladowania_raw.strftime('%d.%m.%Y')} ({pl_days_map[_data_ladowania_raw.weekday()]})"
+                else:
+                    _data_ladowania = str(_data_ladowania_raw).strip()
                 rows += f"<tr><td colspan='4' style='font-size:{fs_t}px; color:{c_t}; padding-top:0;'>Lądowanie następnego dnia: {_data_ladowania}</td></tr>"
                 
         przesiadka_html = ""
