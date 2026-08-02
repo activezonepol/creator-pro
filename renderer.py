@@ -2604,7 +2604,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False):
             if _nastepny_dzien:
                 _data_ladowania_raw = get_data(f'f{_n}_data_ladowania', '')
                 _data_ladowania = _data_ladowania_raw.strftime('%d.%m.%Y') if hasattr(_data_ladowania_raw, 'strftime') else str(_data_ladowania_raw).strip()
-                rows += f"<tr><td colspan='4' style='font-size:{max(9,fs_t-3)}px; color:{c_t}; opacity:0.8; padding-top:0;'>Lądowanie następnego dnia: {_data_ladowania}</td></tr>"
+                rows += f"<tr><td colspan='4' style='font-size:{fs_t}px; color:{c_t}; padding-top:0;'>Lądowanie następnego dnia: {_data_ladowania}</td></tr>"
                 
         przesiadka_html = ""
         if get_data('l_przesiadka', False):
