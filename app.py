@@ -848,17 +848,20 @@ def set_focus(target_id):
     st.session_state['scroll_target'] = target_id
     st.session_state['_user_edited'] = True  # Użytkownik coś zmienił
 def _get_hotel_order():
-    """Zwraca kolejność hoteli — lista indeksów [0,1,2,...]."""
+    """Zwraca kolejność hoteli — lista indeksów. NIE regeneruje listy na
+    podstawie range(num_hotels) - to powodowało błąd: po usunięciu hotelu
+    ze środka listy, num_hotels malało, a ta funkcja mechanicznie ucinała
+    z listy wszystkie indeksy WYŻSZE niż nowe num_hotels (gubiąc nietknięte
+    hotele), jednocześnie "wskrzeszając" na końcu listy indeks właśnie
+    usuniętego hotelu (bo mieścił się w nowym, węższym zakresie). hotel_order
+    jest teraz jedynym źródłem prawdy - liczba jego elementów, nie
+    num_hotels, decyduje ile hoteli jest widocznych."""
     s = st.session_state
-    n = s.get('num_hotels', 1)
     order = s.get('hotel_order', [])
-    # Upewnij się że lista jest kompletna i aktualna
-    valid = list(range(n))
-    order = [i for i in order if i in valid]
-    for i in valid:
-        if i not in order:
-            order.append(i)
-    s['hotel_order'] = order
+    n = s.get('num_hotels', 1)
+    if not order:
+        order = list(range(n))
+        s['hotel_order'] = order
     return order
 def _move_hotel(idx, direction):
     """Przesuwa hotel w górę (-1) lub w dół (+1)."""
