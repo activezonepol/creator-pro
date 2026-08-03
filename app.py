@@ -2122,7 +2122,7 @@ with col_form:
         )
 
         with st.expander("Wybierz punkty na trasie transferów", expanded=False):
-            st.number_input("Liczba par miejscowości:", 0, 10, step=1, key="num_dist_pairs")
+            safe_number_input("Liczba par miejscowości:", key="num_dist_pairs", default=0, min_value=0, max_value=10, step=1)
             for di in range(st.session_state.get('num_dist_pairs', 0)):
                 for dk, dv in [
                     (f'dist_a_{di}', ''), (f'dist_b_{di}', ''),
