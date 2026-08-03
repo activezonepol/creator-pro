@@ -876,11 +876,16 @@ def _hotel_count():
     return st.session_state.get('num_hotels', 0)
 
 def _hotel_add():
-    """Dodaje nowy hotel. Zostajemy na 'Opis hoteli' (synchronizacja z radio)."""
-    n = st.session_state.get('num_hotels', 0)
-    st.session_state['num_hotels'] = n + 1
-    # _get_hotel_order() automatycznie doda nowy indeks (bo num_hotels wzrosło)
-    _get_hotel_order()
+    """Dodaje nowy hotel z ZAWSZE świeżym, nigdy wcześniej niewykorzystanym
+    indeksem (max dotychczasowych + 1) - analogicznie do poprawionego
+    mechanizmu atrakcji. Gwarantuje to, że nowy hotel nigdy nie nadpisze
+    danych innego, wciąż istniejącego (lub choćby fizycznie obecnego w
+    bazie, osieroconego) hotelu."""
+    order = _get_hotel_order()
+    n = max(order) + 1 if order else 0
+    order.append(n)
+    st.session_state['hotel_order'] = order
+    st.session_state['num_hotels'] = len(order)
     # Zostajemy na 'Opis hoteli' aby uniknąć konfliktu z main_nav_radio
     st.session_state['last_page'] = "Opis hoteli"
 
