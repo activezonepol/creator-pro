@@ -890,12 +890,15 @@ def _hotel_add():
     st.session_state['last_page'] = "Opis hoteli"
 
 def _hotel_delete(pos):
-    """Usuwa hotel i wraca na stronę 'Opis hoteli'."""
+    """Usuwa hotel i wraca na stronę 'Opis hoteli'. num_hotels ustawiane
+    BEZPOŚREDNIO jako długość listy po usunięciu (nie przez odejmowanie),
+    żeby zagwarantować, że zawsze dokładnie odpowiada rzeczywistej liczbie
+    elementów w hotel_order, bez ryzyka rozjazdu tych dwóch wartości."""
     order = _get_hotel_order()
     if pos < len(order):
         order.pop(pos)
-        st.session_state['num_hotels'] = max(0, st.session_state.get('num_hotels', 1) - 1)
         st.session_state['hotel_order'] = order
+        st.session_state['num_hotels'] = len(order)
         st.session_state['last_page'] = "Opis hoteli"
 # -----------------------------------------------------------------------
 # PROSTY SYSTEM ATRAKCJI — jedna lista attr_order = [0, 1, 2, ...]
