@@ -49,6 +49,48 @@ from storage_utils import (
 st.set_page_config(layout="wide", page_title="Activezone Oferta",
                    initial_sidebar_state="expanded")
 
+# ---------------------------------------------------------------------------
+# GLOBALNE ZACHOWANIE POZYCJI PRZEWIJANIA GŁÓWNEJ STRONY
+# ---------------------------------------------------------------------------
+# Streamlit przy każdym rerunie (np. po wpisaniu tekstu w dowolnym polu)
+# odtwarza DOM od nowa, przez co przeglądarka gubi pozycję przewijania
+# głównego okna - operator wpisujący dane w polu położonym nisko na stronie
+# (np. metryki, dalsze pary miejscowości) widzi, jak strona "skacze" na
+# samą górę. To NIE jest ten sam mechanizm co scrollIntoView w renderer.py
+# (ten działa wyłącznie WEWNĄTRZ osobnego iframe'u podglądu slajdu, po
+# prawej stronie) - działają w dwóch fizycznie odseparowanych kontekstach
+# przeglądarki i nie mogą ze sobą kolidować.
+#
+# Rozwiązanie: mały, niewidoczny komponent JS, wykonywany przy KAŻDYM
+# rerunie, który (1) zapisuje bieżącą pozycję przewijania GŁÓWNEGO okna
+# (window.parent, bo ten komponent sam też jest w iframie) w sessionStorage
+# przeglądarki - to przetrwa rerun Pythona, bo jest po stronie przeglądarki,
+# nie sesji Streamlit - oraz (2) przywraca tę pozycję zaraz po odtworzeniu
+# strony.
+import streamlit.components.v1 as _components_scroll
+_components_scroll.html(
+    """
+    <script>
+    (function() {
+        var win = window.parent;
+        if (!win.__nexaScrollListenerAttached) {
+            win.__nexaScrollListenerAttached = true;
+            win.addEventListener('scroll', function() {
+                win.sessionStorage.setItem('nexa_scroll_y', win.scrollY);
+            });
+        }
+        var savedY = win.sessionStorage.getItem('nexa_scroll_y');
+        if (savedY !== null) {
+            setTimeout(function() {
+                win.scrollTo(0, parseInt(savedY, 10));
+            }, 10);
+        }
+    })();
+    </script>
+    """,
+    height=0,
+)
+
 # --- INICJALIZACJA UI ---
 if "preview_container" not in st.session_state:
     st.session_state.preview_container = st.empty()
