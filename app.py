@@ -847,6 +847,19 @@ def _guard(keys):
 def set_focus(target_id):
     st.session_state['scroll_target'] = target_id
     st.session_state['_user_edited'] = True  # Użytkownik coś zmienił
+def _fmt_local(iso_str):
+    """Konwertuje znacznik czasu ISO (UTC, zapisany w bazie przez
+    datetime.utcnow()) na czytelny czas polski (UTC+2), do wyświetlenia
+    operatorowi w interfejsie. Baza celowo przechowuje UTC (bezpieczna
+    praktyka, niezależna od strefy czasowej/czasu letniego) - to tylko
+    warstwa wyświetlania."""
+    if not iso_str:
+        return ''
+    try:
+        _dt = datetime.fromisoformat(str(iso_str).replace('Z', '+00:00')).replace(tzinfo=None)
+        return (_dt + timedelta(hours=2)).strftime('%Y-%m-%d, %H:%M')
+    except Exception:
+        return str(iso_str)[:16].replace('T', ', ')
 def _get_hotel_order():
     """Zwraca kolejność hoteli — lista indeksów. NIE regeneruje listy na
     podstawie range(num_hotels) - to powodowało błąd: po usunięciu hotelu
