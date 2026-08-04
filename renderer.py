@@ -2859,7 +2859,10 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
             _m = re.search(r'Dzień\s+(\d+)', _pday)
             _tmp_p.append(('place', _pi, int(_m.group(1)) if _m else 999))
         _tmp_a = []
-        for _ai in range(get_data('num_attr', 0)):
+        _attr_order_realny = get_data('attr_order', [])
+        if not _attr_order_realny:
+            _attr_order_realny = list(range(get_data('num_attr', 0)))
+        for _ai in _attr_order_realny:
             _aday = str(get_data(f"aday_{_ai}") or "")
             _m = re.search(r'Dzień\s+(\d+)', _aday)
             _tmp_a.append(('attr', _ai, int(_m.group(1)) if _m else 999))
