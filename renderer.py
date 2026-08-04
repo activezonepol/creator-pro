@@ -2066,9 +2066,17 @@ def _should_render(slide_id, current_page, export_mode, active_attr_idx=None):
     if current_page in _PRZERYWNIK_MAP:
         return slide_id == _PRZERYWNIK_MAP[current_page]
 
-    # 3b. Konkretna atrakcja (★ NazwaAtrakcji) -> tylko ten attr_X
+    # 3b. Konkretna atrakcja (★ NazwaAtrakcji) -> tylko ten attr_X.
+    # PRIORYTET: stabilny indeks (active_attr_idx), przekazany bezpośrednio
+    # z app.py - odporny na edycję nazwy atrakcji w trakcie pisania (w
+    # odróżnieniu od poprzedniego dopasowania po TEKŚCIE nazwy, które
+    # gubiło dopasowanie i pokazywało pusty podgląd, gdy operator edytował
+    # nazwę już wybranej atrakcji - bo "zamrożony" w current_page tekst
+    # przestawał zgadzać się z nowo przeliczoną nazwą).
     if "★" in current_page:
-        # Wyciągnij nazwe atrakcji i znajdz jej indeks
+        if active_attr_idx is not None:
+            return slide_id == f"attr_{active_attr_idx}"
+        # Fallback (gdy indeks niedostępny) - stare dopasowanie po nazwie.
         attr_name = current_page.replace("★", "").strip()
         attr_order = get_data('attr_order', [])
         if not attr_order:
