@@ -1392,7 +1392,7 @@ with st.sidebar:
                         ).eq('oferta_id', _of['id']).order('data_otwarcia', desc=True).execute()
                         _otwarcia = _otwarcia_result.data or []
                         st.markdown(f"**{_of['nazwa_klienta']} / {_of['nazwa_oferty']}** — {_status}", unsafe_allow_html=True)
-                        st.caption(f"Wysłano: {_of['data_utworzenia'][:16].replace('T', ', ')} · Wygasa: {_of['data_wygasniecia'][:16].replace('T', ', ')} · Otwarć: {len(_otwarcia)}")
+                        st.caption(f"Wysłano: {_fmt_local(_of['data_utworzenia'])} · Wygasa: {_fmt_local(_of['data_wygasniecia'])} · Otwarć: {len(_otwarcia)}")
                         _data_akt_1 = str(_of.get('data_aktualizacji') or '')[:16].replace('T', ', ')
                         st.markdown(
                             f'<span style="font-size:0.8rem;color:#64748b;">Data aktualizacji: {_data_akt_1} '
@@ -1401,7 +1401,7 @@ with st.sidebar:
                         )
                         if _otwarcia:
                             _ostatnie = _otwarcia[0]
-                            st.caption(f"Ostatnio otwarto: {_ostatnie['data_otwarcia'][:16].replace('T', ', ')} (IP: {_ostatnie.get('adres_ip', 'brak')})")
+                            st.caption(f"Ostatnio otwarto: {_fmt_local(_ostatnie['data_otwarcia'])} (IP: {_ostatnie.get('adres_ip', 'brak')})")
                         st.markdown("---")
             except Exception as e:
                 st.error(f"Błąd pobierania danych: {str(e)}")
