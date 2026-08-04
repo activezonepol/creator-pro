@@ -1393,7 +1393,7 @@ with st.sidebar:
                         _otwarcia = _otwarcia_result.data or []
                         st.markdown(f"**{_of['nazwa_klienta']} / {_of['nazwa_oferty']}** — {_status}", unsafe_allow_html=True)
                         st.caption(f"Wysłano: {_fmt_local(_of['data_utworzenia'])} · Wygasa: {_fmt_local(_of['data_wygasniecia'])} · Otwarć: {len(_otwarcia)}")
-                        _data_akt_1 = str(_of.get('data_aktualizacji') or '')[:16].replace('T', ', ')
+                        _data_akt_1 = _fmt_local(_of.get('data_aktualizacji'))
                         st.markdown(
                             f'<span style="font-size:0.8rem;color:#64748b;">Data aktualizacji: {_data_akt_1} '
                             f'<span title="Data ostatniego generowania linku" style="cursor:help;">ℹ️</span></span>',
