@@ -1363,7 +1363,7 @@ with st.sidebar:
                 _rdzen_biezacy = extract_rdzen_wersji(_kod_biezacy)
 
                 _oferty_result = supabase.table('oferty_online').select(
-                    'id, nazwa_klienta, nazwa_oferty, data_utworzenia, data_wygasniecia'
+                    'id, nazwa_klienta, nazwa_oferty, data_utworzenia, data_wygasniecia, data_aktualizacji'
                 ).eq('project_code_rdzen', _rdzen_biezacy).order('data_utworzenia', desc=True).execute()
                 _oferty_lista = _oferty_result.data or []
 
