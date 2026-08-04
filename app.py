@@ -1610,7 +1610,7 @@ with st.sidebar:
             _szukaj_oferta = st.text_input("Szukaj po nazwie klienta lub oferty:", key="admin_szukaj_oferta")
             try:
                 _query = supabase.table('oferty_online').select(
-                    'id, project_id, nazwa_klienta, nazwa_oferty, data_utworzenia, data_wygasniecia, created_by'
+                    'id, project_id, nazwa_klienta, nazwa_oferty, data_utworzenia, data_wygasniecia, data_aktualizacji, created_by'
                 )
                 if _szukaj_oferta.strip():
                     _query = _query.or_(
