@@ -1313,15 +1313,32 @@ with st.sidebar:
                         pass
                     _rdzen_kodu = extract_rdzen_wersji(_kod_projektu_aktualny)
 
-                    supabase.table('oferty_online').insert({
-                        'project_id': st.session_state.get('active_project_id'),
-                        'project_code_rdzen': _rdzen_kodu,
-                        'nazwa_klienta': _folder_klienta,
-                        'nazwa_oferty': _folder_oferty,
-                        'sciezka_na_serwerze': f"{_folder_klienta}/{_folder_oferty}",
-                        'data_wygasniecia': _data_wygasniecia,
-                        'created_by': st.session_state.get('current_user', ''),
-                    }).execute()
+                    _sciezka_pelna = f"{_folder_klienta}/{_folder_oferty}"
+                    _istniejacy_wpis = supabase.table('oferty_online').select('id').eq(
+                        'sciezka_na_serwerze', _sciezka_pelna
+                    ).execute()
+
+                    if _istniejacy_wpis.data:
+                        # Ta sama ścieżka na serwerze (identyczny link dla klienta)
+                        # była już wcześniej wysłana - AKTUALIZUJEMY istniejący
+                        # wpis (nowa data wygaśnięcia), zamiast tworzyć duplikat.
+                        # Link i historia otwarć (oferty_otwarcia, powiązana
+                        # przez ten sam id) pozostają nienaruszone.
+                        supabase.table('oferty_online').update({
+                            'data_wygasniecia': _data_wygasniecia,
+                            'created_by': st.session_state.get('current_user', ''),
+                        }).eq('id', _istniejacy_wpis.data[0]['id']).execute()
+                    else:
+                        supabase.table('oferty_online').insert({
+                            'project_id': st.session_state.get('active_project_id'),
+                            'project_code_rdzen': _rdzen_kodu,
+                            'nazwa_klienta': _folder_klienta,
+                            'nazwa_oferty': _folder_oferty,
+                            'sciezka_na_serwerze': _sciezka_pelna,
+                            'data_wygasniecia': _data_wygasniecia,
+                            'created_by': st.session_state.get('current_user', ''),
+                        }).execute()
+
                     st.session_state['_ostatni_link_oferty'] = _wynik
                     st.success(f"✓ Oferta wysłana! Link ważny 14 dni.")
                 else:
