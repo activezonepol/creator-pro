@@ -1318,14 +1318,17 @@ with st.sidebar:
                         'sciezka_na_serwerze', _sciezka_pelna
                     ).execute()
 
+                    _teraz_iso = datetime.utcnow().isoformat()
                     if _istniejacy_wpis.data:
                         # Ta sama ścieżka na serwerze (identyczny link dla klienta)
                         # była już wcześniej wysłana - AKTUALIZUJEMY istniejący
-                        # wpis (nowa data wygaśnięcia), zamiast tworzyć duplikat.
-                        # Link i historia otwarć (oferty_otwarcia, powiązana
-                        # przez ten sam id) pozostają nienaruszone.
+                        # wpis (nowa data wygaśnięcia + data_aktualizacji), zamiast
+                        # tworzyć duplikat. Link i historia otwarć (oferty_otwarcia,
+                        # powiązana przez ten sam id) pozostają nienaruszone.
+                        # data_utworzenia (pierwsza wysyłka) NIGDY się nie zmienia.
                         supabase.table('oferty_online').update({
                             'data_wygasniecia': _data_wygasniecia,
+                            'data_aktualizacji': _teraz_iso,
                             'created_by': st.session_state.get('current_user', ''),
                         }).eq('id', _istniejacy_wpis.data[0]['id']).execute()
                     else:
@@ -1336,6 +1339,7 @@ with st.sidebar:
                             'nazwa_oferty': _folder_oferty,
                             'sciezka_na_serwerze': _sciezka_pelna,
                             'data_wygasniecia': _data_wygasniecia,
+                            'data_aktualizacji': _teraz_iso,
                             'created_by': st.session_state.get('current_user', ''),
                         }).execute()
 
