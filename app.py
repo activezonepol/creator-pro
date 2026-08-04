@@ -1966,7 +1966,7 @@ with col_form:
             if _v_match:
                 _v_number = int(_v_match.group(1))
         _created_raw = st.session_state.get('t_created_at', '')
-        _created_display = _created_raw[:16].replace('T', ', ') if _created_raw else '(brak danych)'
+        _created_display = _fmt_local(_created_raw) if _created_raw else '(brak danych)'
         st.caption(f"V{_v_number} (wersja {_v_number})  ·  Przygotowano: {_created_display}")
 
         _vc1, _vc2, _vc3 = st.columns(3)
