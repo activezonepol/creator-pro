@@ -3685,6 +3685,7 @@ with col_preview:
         # _should_render() w renderer.py.
         _current_p = st.session_state.get('last_page', "Strona tytułowa")
         _current_attr_idx = st.session_state.get('_last_attr_idx')
+        st.caption(f"DEBUG: current_p={_current_p!r}, attr_idx={_current_attr_idx!r}")
         build_presentation(_current_p, active_attr_idx=_current_attr_idx)
                 
     _preview()
