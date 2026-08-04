@@ -1645,6 +1645,12 @@ with st.sidebar:
 
                         st.markdown(f"**{_label_kod}** — {_label_nazwa} — {_status} &nbsp;·&nbsp; {_znacznik_otwarcia} ({_liczba_otwarc}x)", unsafe_allow_html=True)
                         st.caption(f"Wysłano: {_of['data_utworzenia'][:16].replace('T', ', ')} · Przez: {_of.get('created_by', 'brak danych')}")
+                        _data_akt_2 = str(_of.get('data_aktualizacji') or '')[:16].replace('T', ', ')
+                        st.markdown(
+                            f'<span style="font-size:0.8rem;color:#64748b;">Data aktualizacji: {_data_akt_2} '
+                            f'<span title="Data ostatniego generowania linku" style="cursor:help;">ℹ️</span></span>',
+                            unsafe_allow_html=True,
+                        )
                         _sesje = supabase.table('sesje_edycji').select(
                             'operator, czas_rozpoczecia, czas_ostatniej_aktywnosci'
                         ).eq('project_id', _of['project_id']).order('czas_rozpoczecia').execute().data or []
