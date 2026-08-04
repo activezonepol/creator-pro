@@ -1993,7 +1993,7 @@ def get_logo_b64(raw):
 # GŁÓWNA FUNKCJA BUDOWANIA PREZENTACJI
 # ---------------------------------------------------------------------------
 
-def _should_render(slide_id, current_page, export_mode):
+def _should_render(slide_id, current_page, export_mode, active_attr_idx=None):
     """
     Centralna logika decydująca czy renderować slajd.
     
