@@ -921,19 +921,20 @@ def _attr_count():
     return st.session_state.get('num_attr', 0)
 
 def _attr_order():
-    """Kolejność atrakcji — lista indeksów."""
+    """Kolejność atrakcji — lista indeksów. NIE regeneruje listy na
+    podstawie range(num_attr) - to powodowało dokładnie ten sam błąd, który
+    naprawiliśmy w hotelach (_get_hotel_order): po usunięciu atrakcji ze
+    środka listy, num_attr malało, a ta funkcja mechanicznie ucinała z
+    listy wszystkie indeksy WYŻSZE niż nowe num_attr (gubiąc nietknięte
+    atrakcje), jednocześnie "wskrzeszając" na końcu listy indeks właśnie
+    usuniętej atrakcji. attr_order jest teraz jedynym źródłem prawdy -
+    liczba jego elementów, nie num_attr, decyduje ile atrakcji jest
+    widocznych."""
+    order = st.session_state.get('attr_order', [])
     n = _attr_count()
-    raw = st.session_state.get('attr_order', [])
-    seen = set()
-    order = []
-    for i in raw:
-        if i not in seen and i < n:
-            seen.add(i)
-            order.append(i)
-    for i in range(n):
-        if i not in seen:
-            order.append(i)
-    st.session_state['attr_order'] = order
+    if not order:
+        order = list(range(n))
+        st.session_state['attr_order'] = order
     return order
 
 def _attr_add():
