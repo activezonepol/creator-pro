@@ -2961,7 +2961,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                 continue
             
             # ✅ POPRAWNA BLOKADA (ZGODNA Z MENU):
-            if not export_mode and not _should_render(f"attr_{i}", current_page, export_mode):
+            if not export_mode and not _should_render(f"attr_{i}", current_page, export_mode, active_attr_idx):
                 continue
                         
             iah = get_b64(f'ah_{i}', (4, 5))
