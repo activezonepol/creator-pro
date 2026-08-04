@@ -2114,7 +2114,7 @@ def _should_render(slide_id, current_page, export_mode, active_attr_idx=None):
     # 3g. Nieznana strona -> nic nie renderuj
     return False
 
-def build_presentation(current_page="Strona Tytułowa", export_mode=False):
+def build_presentation(current_page="Strona Tytułowa", export_mode=False, active_attr_idx=None):
     """
     Renderuje prezentację używając get_data() - jedynego źródła prawdy.
     Dane pochodzą z session_state z fallback do Supabase.
