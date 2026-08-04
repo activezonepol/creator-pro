@@ -2603,7 +2603,7 @@ with col_form:
             _section_header(f"LISTA ATRAKCJI ({_n_attr_curr})")
             _acc_color = st.session_state.get('color_accent', '#FF6600')
             for pos, ai in enumerate(_attr_order_list):
-                name = str(st.session_state.get(f'amain_{ai}', '')).split('\n')[0][:35] or f'Atrakcja {ai+1}'
+                name = str(st.session_state.get(f'amain_{ai}', '')).split('\n')[0][:35] or f'Atrakcja {pos+1}'
                 col_lbl, col_up, col_dn, col_del = st.columns([6, 1, 1, 1])
                 col_lbl.markdown(
                     f"<div style='padding:6px 10px; background:#fef3ec; border-radius:4px; "
