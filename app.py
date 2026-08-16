@@ -996,31 +996,54 @@ def _rebuild_slide_order():
 # TRYB KLIENTA
 # ---------------------------------------------------------------------------
 if st.session_state['client_mode']:
+    # Obsługa wyjścia z trybu klienta przez query param.
+    # Przycisk HTML poniżej używa URL zamiast st.button
+    # (st.empty() w session_state powodował że st.button nie renderował się w DOM).
+    if st.query_params.get('exit_preview') == '1':
+        st.session_state['client_mode'] = False
+        st.query_params.clear()
+        st.rerun()
+    
+    # Przycisk zamknięcia jako pure HTML - niezależny od Streamlit renderowania.
+    # Skrót Escape jako backup dla operatora z klawiaturą.
     st.markdown("""
-    <style>
-    .stButton {
+    <script>
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' || e.key === 'Esc') {
+            window.location.href = window.location.pathname + '?exit_preview=1';
+        }
+    });
+    </script>
+    <a href="?exit_preview=1" style="
         position: fixed;
         top: 15px;
         right: 15px;
-        z-index: 9999;
-    }
-    </style>
+        z-index: 999999;
+        background: #ff4444;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-family: 'Inter', -apple-system, sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-decoration: none;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        cursor: pointer;
+        display: inline-block;
+    ">✕ ZAKOŃCZ PODGLĄD</a>
     """, unsafe_allow_html=True)
-    if st.button("ZAKOŃCZ PODGLĄD", type="primary"):
-        st.session_state['client_mode'] = False
-        st.rerun()
-    if "client_preview" not in st.session_state:
-        st.session_state.client_preview = st.empty()
     
-    with st.session_state.client_preview.container():
-        _slides_html = build_presentation(export_mode=True)
-        _css_html = get_local_css(return_str=True)
-        import streamlit.components.v1 as components
-        components.html(
-            f"""{_css_html}<div class="presentation-wrapper" style="height:100vh; overflow-y:auto;">{_slides_html}</div>""",
-            height=900, scrolling=True,
-        )
-        
+    # Podgląd prezentacji - bez st.empty() w session_state
+    _slides_html = build_presentation(export_mode=True)
+    _css_html = get_local_css(return_str=True)
+    import streamlit.components.v1 as components
+    components.html(
+        f"""{_css_html}<div class="presentation-wrapper" style="height:100vh; overflow-y:auto;">{_slides_html}</div>""",
+        height=900, scrolling=True,
+    )
+    
     st.stop()
 # ---------------------------------------------------------------------------
 # AUTO-SAVE DO SUPABASE
