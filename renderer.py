@@ -2819,7 +2819,10 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                                 mh += f"<div><div style='display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600; color:{c_t}; margin-bottom:5px;'><span style='font-size:18px; color:{acc};'><i class='fa-solid fa-map-location-dot'></i></span> <span>{nm}</span></div></div>"
                             else:
                                 mh += f"<div><a href='#place_{pi}' style='text-decoration:none; color:{acc}; display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600; margin-bottom:5px;'><span style='font-size:18px;'><i class='fa-solid fa-map-location-dot'></i></span> <span>{nm} <span style='font-size:12px; font-weight:400; opacity:0.8;'>(zobacz)</span></span></a></div>"
-                    for ai in range(get_data('num_attr', 0)):
+                    _attr_order_prg = get_data('attr_order', [])
+                    if not _attr_order_prg:
+                        _attr_order_prg = list(range(get_data('num_attr', 0)))
+                    for ai in _attr_order_prg:
                         a_day = str(get_data(f"aday_{ai}") or "")
                         d_match = re.search(r'Dzień\s+(\d+)', a_day)
                         if d_match and int(d_match.group(1)) == di + 1:
