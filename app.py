@@ -998,7 +998,6 @@ def _rebuild_slide_order():
 if st.session_state['client_mode']:
     accent_color = st.session_state.get('color_accent', '#FF6600')
 
-    # Przycisk wyjścia — fixed, nad iframe components.html
     st.markdown(f"""
         <style>
             [data-testid='stSidebar'] {{ display: none !important; }}
@@ -1007,48 +1006,30 @@ if st.session_state['client_mode']:
                 padding: 0 !important;
                 max-width: 100% !important;
             }}
-            /* schowaj domyślny stButton żeby nie dublował */
-            #exit-streamlit-btn {{ display: none; }}
+            #exit-streamlit-btn {{ display: none !important; }}
+            div.stButton {{ position: fixed !important; top: 18px !important;
+                left: 18px !important; z-index: 2147483647 !important;
+                width: auto !important; }}
+            div.stButton > button {{
+                background-color: {accent_color} !important;
+                color: white !important;
+                border: none !important;
+                border-radius: 30px !important;
+                padding: 11px 22px !important;
+                font-family: 'Montserrat', sans-serif !important;
+                font-size: 13px !important;
+                font-weight: 700 !important;
+                letter-spacing: 0.05em !important;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.25) !important;
+            }}
         </style>
-        <div style="position:fixed;top:18px;left:18px;z-index:2147483647;">
-            <button
-                onclick="document.getElementById('exit-streamlit-btn').click();"
-                style="
-                    background:{accent_color};
-                    color:white;
-                    border:none;
-                    padding:11px 22px;
-                    border-radius:30px;
-                    font-family:'Montserrat',sans-serif;
-                    font-size:13px;
-                    font-weight:700;
-                    letter-spacing:0.05em;
-                    cursor:pointer;
-                    box-shadow:0 4px 15px rgba(0,0,0,0.25);
-                    display:flex;align-items:center;gap:8px;">
-                ← ZAKOŃCZ PODGLĄD
-            </button>
-        </div>
     """, unsafe_allow_html=True)
 
-    # Niewidoczny przycisk Streamlit — obsługuje faktyczny rerun
-    if st.button("ZAKOŃCZ", key="exit-streamlit-btn"):
+    if st.button("← ZAKOŃCZ PODGLĄD", key="exit-streamlit-btn"):
         st.session_state['client_mode'] = False
         st.rerun()
 
-    # Prezentacja w iframe
-    _slides_html = build_presentation(export_mode=True)
-    _css_html = get_local_css()
-    components.html(
-        f"""{_css_html}
-        <div class="presentation-wrapper"
-             style="height:100vh;overflow-y:auto;scroll-snap-type:y proximity;">
-            {_slides_html}
-        </div>""",
-        height=900,
-        scrolling=True,
-    )
-
+    build_presentation()
     st.stop()
 # ---------------------------------------------------------------------------
 # AUTO-SAVE DO SUPABASE
