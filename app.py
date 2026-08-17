@@ -1099,11 +1099,27 @@ if st.session_state['client_mode']:
     """, unsafe_allow_html=True)
     
     # Podgląd prezentacji - bez st.empty() w session_state
-    _slides_html = build_presentation(export_mode=True)
+        _slides_html = build_presentation(export_mode=True)
     _css_html = get_local_css(return_str=True)
+    _acc_print = st.session_state.get('color_accent', '#FF6600')
     import streamlit.components.v1 as components
     components.html(
-        f"""{_css_html}<div class="presentation-wrapper" style="height:100vh; overflow-y:auto;">{_slides_html}</div>""",
+        f"""{_css_html}
+        <style>
+        .client-export-btn {{
+            position: fixed; top: 20px; left: 20px; z-index: 9999;
+            background: {_acc_print}; color: white; border: none;
+            padding: 15px 25px; border-radius: 4px; font-family: sans-serif;
+            font-size: 12px; font-weight: 700; text-transform: uppercase;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }}
+        @media print {{
+            .client-export-btn {{ display: none !important; }}
+            .presentation-wrapper {{ height: auto !important; overflow: visible !important; }}
+        }}
+        </style>
+        <button class="client-export-btn" onclick="window.print()">POBIERZ JAKO PDF</button>
+        <div class="presentation-wrapper" style="height:100vh; overflow-y:auto;">{_slides_html}</div>""",
         height=900, scrolling=True,
     )
     
