@@ -3748,7 +3748,7 @@ def get_slide_nav_html(acc='#FF6600'):
         overflow-y:auto; max-height:64vh; padding:2px 0; }
     .nexa-dots::-webkit-scrollbar { width:0; height:0; }
     .nexa-dot { width:8px; height:8px; border-radius:50%; cursor:pointer; padding:0;
-        background:rgba(255,255,255,0.9); border:1px solid rgba(0,0,0,0.28);
+        background:transparent; border:1.5px solid __ACC__;
         transition:all .18s ease; }
     .nexa-dot.active { width:11px; height:11px; background:__ACC__; border-color:__ACC__; }
     .nexa-count { font-size:11px; font-weight:700; color:__ACC__; font-family:sans-serif;
