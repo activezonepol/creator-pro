@@ -2267,6 +2267,7 @@ with col_form:
                             if bg_b64:
                                 st.session_state['img_map_bg_auto'] = bg_b64
                             st.session_state['auto_map_points'] = final_pts
+                            save_to_supabase()
                             st.success("Mapa wygenerowana pomyślnie.")
                             st.rerun()
                     except Exception:
