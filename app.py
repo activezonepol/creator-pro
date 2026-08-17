@@ -3777,6 +3777,10 @@ def _render_edit_form():
                     st.error(f"❌ Błąd ładowania danych: {str(e)[:100]}")
     # Sekcja "Zarządzanie ofertą" (zapis/wczytanie/eksport) przeniesiona
     # do sidebara, zaraz pod "Aktualnie edytujesz" — widoczna zawsze.
+
+with col_form:
+    _render_edit_form()
+
 # ---------------------------------------------------------------------------
 # GŁÓWNA ZAWARTOŚĆ — PODGLĄD PREZENTACJI
 # ---------------------------------------------------------------------------
