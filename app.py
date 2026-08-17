@@ -1069,7 +1069,7 @@ if st.session_state['client_mode']:
     
     # Wyjście z podglądu natywnym przyciskiem - zwykły rerun Streamlita
     # (WebSocket), bez przeładowania strony i bez gubienia sesji/logowania.
-    if st.button("✕ ZAKOŃCZ PODGLĄD", type="primary", use_container_width=True, key="btn_exit_preview"):
+        if st.button("✕ ZAKOŃCZ PODGLĄD", type="primary", key="btn_exit_preview"):
         st.session_state['client_mode'] = False
         st.rerun()
     
