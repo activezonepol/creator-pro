@@ -73,17 +73,23 @@ _components_scroll.html(
     """
     <script>
     (function() {
-        var win = window.parent;
+                var win = window.parent;
         if (!win.__nexaGotoListenerAttached) {
             win.__nexaGotoListenerAttached = true;
             win.addEventListener('message', function(ev) {
                 var d = ev.data;
                 if (!d || !d.nexaGoto) return;
-                var url = win.location.pathname + '?nexa_goto=' + d.nexaGoto;
+                var url = win.location.pathname + '?nexa_goto=' + encodeURIComponent(d.nexaGoto);
                 if (d.idx !== undefined && d.idx !== null) {
-                    url += '&nexa_idx=' + d.idx;
+                    url += '&nexa_idx=' + encodeURIComponent(d.idx);
                 }
-                win.location.href = url;
+                // NIE przeładowujemy strony (win.location.href) - to zrywa sesję
+                // Streamlit i zeruje st.session_state (w tym stan logowania).
+                // Zamiast tego zmieniamy URL bez reloadu i wywołujemy popstate,
+                // żeby Streamlit zsynchronizował nowe query params przez
+                // istniejące połączenie WebSocket.
+                win.history.pushState({}, '', url);
+                win.dispatchEvent(new PopStateEvent('popstate'));
             });
         }
         if (!win.__nexaScrollListenerAttached) {
