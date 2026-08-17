@@ -1099,7 +1099,7 @@ if st.session_state['client_mode']:
     """, unsafe_allow_html=True)
     
     # Podgląd prezentacji - bez st.empty() w session_state
-        _slides_html = build_presentation(export_mode=True)
+    _slides_html = build_presentation(export_mode=True)
     _css_html = get_local_css(return_str=True)
     _acc_print = st.session_state.get('color_accent', '#FF6600')
     import streamlit.components.v1 as components
