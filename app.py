@@ -1945,7 +1945,20 @@ with st.container():
 # LAYOUT 2 KOLUMNY: Formularz edycji | Podgląd slajdu
 # ---------------------------------------------------------------------------
 col_form, col_preview = st.columns([0.3, 0.7], gap="medium")
-with col_form:
+
+@st.fragment
+def _render_edit_form():
+    # Auto-save w tle działał dotąd tylko przy PEŁNYM rerunie strony.
+    # Skoro formularz jest teraz fragmentem - wpisywanie pola NIE odświeża
+    # już całej strony, więc nie ma też skoku przewijania na górę - trzeba
+    # tu powtórzyć tę samą kontrolę czasu, żeby auto-zapis nadal działał
+    # również podczas samego pisania, a nie tylko przy akcjach które i tak
+    # wywołują pełny rerun (np. zmiana slajdu).
+    if not st.session_state.get('client_mode', False):
+        if 'last_supabase_save' not in st.session_state:
+            st.session_state['last_supabase_save'] = 0
+        if time.time() - st.session_state['last_supabase_save'] > 20:
+            save_to_supabase(allow_create=False)
     _acc = st.session_state.get('color_accent', '#FF6600')
     st.markdown(f"<h3 style='color:{_acc};font-size:16px;margin-bottom:20px;'>EDYCJA SLAJDU</h3>", unsafe_allow_html=True)
   
