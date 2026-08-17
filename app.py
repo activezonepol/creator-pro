@@ -390,13 +390,6 @@ def _upload_image(file_bytes, session_key, is_logo=False):
             st.session_state['_upload_counter'] = st.session_state.get('_upload_counter', 0) + 1
             # WAŻNE: wymuszamy natychmiastowy zapis do Supabase (bez czekania na auto-save)
             save_to_supabase()
-            # Formularz edycji działa teraz jako @st.fragment (naprawa
-            # przewijania na górę przy pisaniu) - a podgląd po prawej to
-            # OSOBNY, niezależny fragment. Zmiana wewnątrz jednego fragmentu
-            # nie odświeża drugiego automatycznie, więc bez wymuszenia
-            # rerunu CAŁEJ aplikacji (scope="app") podgląd nie zobaczy
-            # nowego zdjęcia, dopóki coś innego nie wywoła pełnego rerunu.
-            st.rerun(scope="app")
         else:
             st.error("Nie udało się uzyskać adresu URL po uploadzie.")
     except Exception as e:
