@@ -1067,36 +1067,11 @@ if st.session_state['client_mode']:
         st.query_params.clear()
         st.rerun()
     
-    # Przycisk zamknięcia jako pure HTML - niezależny od Streamlit renderowania.
-    # Skrót Escape jako backup dla operatora z klawiaturą.
-    st.markdown("""
-    <script>
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' || e.key === 'Esc') {
-            window.location.href = window.location.pathname + '?exit_preview=1';
-        }
-    });
-    </script>
-    <a href="?exit_preview=1" style="
-        position: fixed;
-        top: 15px;
-        right: 15px;
-        z-index: 999999;
-        background: #ff4444;
-        color: white;
-        padding: 12px 24px;
-        border-radius: 6px;
-        font-family: 'Inter', -apple-system, sans-serif;
-        font-size: 14px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        text-decoration: none;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-        cursor: pointer;
-        display: inline-block;
-    ">✕ ZAKOŃCZ PODGLĄD</a>
-    """, unsafe_allow_html=True)
+    # Wyjście z podglądu natywnym przyciskiem - zwykły rerun Streamlita
+    # (WebSocket), bez przeładowania strony i bez gubienia sesji/logowania.
+    if st.button("✕ ZAKOŃCZ PODGLĄD", type="primary", use_container_width=True, key="btn_exit_preview"):
+        st.session_state['client_mode'] = False
+        st.rerun()
     
     # Podgląd prezentacji - bez st.empty() w session_state
     _slides_html = build_presentation(export_mode=True)
