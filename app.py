@@ -2278,7 +2278,8 @@ with col_form:
         st.caption("Po przybliżeniu ponownie wygeneruj mapę.")
 
         with st.expander("Wybierz punkty trasy na mapę", expanded=False):
-            st.number_input("Liczba punktów na trasie:", 1, 10, step=1, key="num_map_points")
+            safe_number_input("Liczba punktów na trasie:", key="num_map_points",
+                               default=3, min_value=1, max_value=10, step=1)
             for i in range(st.session_state['num_map_points']):
                 with st.expander(f"Punkt {i+1}", expanded=True):
                     safe_text_input("Nazwa (np. Rzym, Hiszpania):", key=f"map_pt_name_{i}")
