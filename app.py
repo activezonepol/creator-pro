@@ -74,6 +74,18 @@ _components_scroll.html(
     <script>
     (function() {
         var win = window.parent;
+        if (!win.__nexaGotoListenerAttached) {
+            win.__nexaGotoListenerAttached = true;
+            win.addEventListener('message', function(ev) {
+                var d = ev.data;
+                if (!d || !d.nexaGoto) return;
+                var url = win.location.pathname + '?nexa_goto=' + d.nexaGoto;
+                if (d.idx !== undefined && d.idx !== null) {
+                    url += '&nexa_idx=' + d.idx;
+                }
+                win.location.href = url;
+            });
+        }
         if (!win.__nexaScrollListenerAttached) {
             win.__nexaScrollListenerAttached = true;
             win.addEventListener('scroll', function() {
