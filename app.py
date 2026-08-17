@@ -100,20 +100,32 @@ _components_scroll.html(
         }
         var savedY = win.sessionStorage.getItem('nexa_scroll_y');
         if (savedY !== null) {
-            var _active = win.document.activeElement;
-            var _isTyping = _active && (
-                _active.tagName === 'INPUT' ||
-                _active.tagName === 'TEXTAREA' ||
-                _active.tagName === 'SELECT'
-            );
-            // Nie przywracamy pozycji, jeśli operator w tej chwili coś
-            // aktywnie edytuje - wymuszone przewinięcie w trakcie pisania
-            // było przyczyną "nie mogę pisać, strona ciągle przewija".
-            if (!_isTyping) {
-                setTimeout(function() {
-                    win.scrollTo(0, parseInt(savedY, 10));
-                }, 10);
-            }
+            var _y = parseInt(savedY, 10);
+            var _restore = function() {
+                var _active = win.document.activeElement;
+                var _isTyping = _active && (
+                    _active.tagName === 'INPUT' ||
+                    _active.tagName === 'TEXTAREA' ||
+                    _active.tagName === 'SELECT'
+                );
+                if (!_isTyping) {
+                    win.scrollTo(0, _y);
+                }
+            };
+            // KLUCZOWA ZMIANA: przywracamy NATYCHMIAST, przy pierwszej
+            // wykrytej zmianie w stronie - bez opóźnienia. Nawet 10ms
+            // opóźnienia wystarczało, by przeglądarka zdążyła narysować
+            // stan pośredni (przewinięte na górę), co widać jako "błysk"
+            // i myli klik operatora mierzący w pole niżej na stronie.
+            // Poprawka w tej samej klatce, zanim cokolwiek się wyrenderuje.
+            _restore();
+            var _mo = new win.MutationObserver(function() {
+                _restore();
+            });
+            _mo.observe(win.document.body, { childList: true, subtree: true });
+            // Bezpiecznik: przestajemy obserwować po 2s (starczy na
+            // wolniejsze rerendery, np. mapę), żeby nie działać w nieskończoność.
+            win.setTimeout(function() { _mo.disconnect(); }, 2000);
         }
     })();
     </script>
