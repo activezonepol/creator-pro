@@ -3731,3 +3731,91 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
     components.html(_marker + full_html, height=800, scrolling=False)
     
     return ""
+    def get_slide_nav_html(acc='#FF6600'):
+    """Wąski pionowy pasek nawigacji przy prawej krawędzi (w marginesie
+    obok slajdu): kółka = strony, aktywna w kolorze akcentu, strzałki
+    góra/dół, licznik 'N / total'. Buduje się sam z listy slajdów.
+    Czysty JS w obrębie dokumentu - nie rusza URL-a ani sesji."""
+    _html = """
+    <style>
+    .nexa-rail { position:fixed; right:16px; top:50%; transform:translateY(-50%);
+        z-index:99999; display:flex; flex-direction:column; align-items:center; gap:8px; }
+    .nexa-rail button { background:none; border:none; padding:0; cursor:pointer;
+        color:__ACC__; line-height:0; display:flex; }
+    .nexa-rail svg { width:16px; height:16px; }
+    .nexa-dots { display:flex; flex-direction:column; align-items:center; gap:8px;
+        overflow-y:auto; max-height:64vh; padding:2px 0; }
+    .nexa-dots::-webkit-scrollbar { width:0; height:0; }
+    .nexa-dot { width:8px; height:8px; border-radius:50%; cursor:pointer; padding:0;
+        background:rgba(255,255,255,0.9); border:1px solid rgba(0,0,0,0.28);
+        transition:all .18s ease; }
+    .nexa-dot.active { width:11px; height:11px; background:__ACC__; border-color:__ACC__; }
+    .nexa-count { font-size:11px; font-weight:700; color:__ACC__; font-family:sans-serif;
+        background:rgba(255,102,0,0.12); padding:3px 7px; border-radius:6px; white-space:nowrap; }
+    @media print { .nexa-rail { display:none !important; } }
+    </style>
+    <div class="nexa-rail" role="navigation" aria-label="Nawigacja po slajdach">
+        <button type="button" onclick="nexaPrev()" aria-label="Poprzedni slajd">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+        </button>
+        <div class="nexa-dots" id="nexa-dots"></div>
+        <button type="button" onclick="nexaNext()" aria-label="Następny slajd">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+        <span class="nexa-count" id="nexa-count">1 / 1</span>
+    </div>
+    <script>
+    (function() {
+        function slides() { return Array.prototype.slice.call(document.querySelectorAll('.slide-scaler')); }
+        var wrap = document.querySelector('.presentation-wrapper') || document.scrollingElement || document.body;
+        var dotsBox = document.getElementById('nexa-dots');
+        var dots = [];
+        function build() {
+            dotsBox.innerHTML = ''; dots = [];
+            slides().forEach(function(sl, i) {
+                var d = document.createElement('button');
+                d.type = 'button'; d.className = 'nexa-dot';
+                d.setAttribute('aria-label', 'Slajd ' + (i+1));
+                d.addEventListener('click', function() { go(i); });
+                dotsBox.appendChild(d); dots.push(d);
+            });
+        }
+        function current() {
+            var s = slides(); if (!s.length) return 0;
+            var wr = wrap.getBoundingClientRect ? wrap.getBoundingClientRect() : {top:0, height:window.innerHeight};
+            var mid = (wr.top || 0) + (wr.height || window.innerHeight) / 2;
+            var best = 0, bd = Infinity;
+            for (var i = 0; i < s.length; i++) {
+                var r = s[i].getBoundingClientRect();
+                var d = Math.abs((r.top + r.height/2) - mid);
+                if (d < bd) { bd = d; best = i; }
+            }
+            return best;
+        }
+        function refresh() {
+            var a = current();
+            for (var i = 0; i < dots.length; i++) { dots[i].classList.toggle('active', i === a); }
+            var c = document.getElementById('nexa-count');
+            if (c) c.textContent = (a+1) + ' / ' + slides().length;
+        }
+        function go(i) {
+            var s = slides(); if (!s.length) return;
+            i = Math.max(0, Math.min(s.length-1, i));
+            s[i].scrollIntoView({behavior:'smooth', block:'center'});
+            setTimeout(refresh, 300);
+        }
+        window.nexaNext = function() { go(current()+1); };
+        window.nexaPrev = function() { go(current()-1); };
+        document.addEventListener('keydown', function(e) {
+            if (['ArrowDown','ArrowRight','PageDown',' '].indexOf(e.key) >= 0) { e.preventDefault(); nexaNext(); }
+            else if (['ArrowUp','ArrowLeft','PageUp'].indexOf(e.key) >= 0) { e.preventDefault(); nexaPrev(); }
+            else if (e.key === 'Home') { e.preventDefault(); go(0); }
+            else if (e.key === 'End') { e.preventDefault(); go(slides().length-1); }
+        });
+        (wrap.addEventListener ? wrap : window).addEventListener('scroll', refresh);
+        build();
+        setTimeout(refresh, 150);
+    })();
+    </script>
+    """
+    return _html.replace('__ACC__', acc)
