@@ -2335,6 +2335,7 @@ with col_form:
                                 st.session_state[f'dist_time_{di}'] = format_duration(mins)
                                 st.session_state[f'buffer_dist_km_{di}'] = f'{km}'
                                 st.session_state[f'buffer_dist_time_{di}'] = format_duration(mins)
+                                save_to_supabase()
                                 if err:
                                     st.warning(f"✓ Zapisano: {km} km, {format_duration(mins)}\n\n⚠️ {err}")
                                 else:
