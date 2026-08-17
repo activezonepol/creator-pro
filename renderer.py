@@ -2847,7 +2847,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                                 else:
                                     _link_attrs = (
                                         f"href='javascript:void(0)' "
-                                        f"onclick='window.parent.location.search=\"?goto_attr={ai}\"'"
+                                        f"onclick='window.parent.postMessage("
+                                        f"{{nexaGoto:\"attr\",idx:{ai}}}, \"*\")'"
                                     )
                                 mh += f"<div><a {_link_attrs} style='text-decoration:none; color:{acc}; display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600;'><span style='font-size:18px;'>{ic}</span> <span>{nm}{opt_suffix} <span style='font-size:12px; font-weight:400; opacity:0.8;'>(zobacz)</span></span></a>{sub_html}</div>"
                     ch += f"""<div style="flex:1;display:flex;flex-direction:column;" id="program_day_{di}">
