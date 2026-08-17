@@ -3733,29 +3733,24 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
     return ""
     
 def get_slide_nav_html(acc='#FF6600'):
-    """Wąski pionowy pasek nawigacji przy prawej krawędzi (w marginesie
-    obok slajdu): kółka = strony, aktywna w kolorze akcentu, strzałki
-    góra/dół, licznik 'N / total'. Buduje się sam z listy slajdów.
-    Czysty JS w obrębie dokumentu - nie rusza URL-a ani sesji."""
     _html = """
     <style>
-    .nexa-rail { position:fixed; right:16px; top:50%; transform:translateY(-50%);
-        z-index:99999; display:flex; flex-direction:column; align-items:center; gap:8px; }
+    .nexa-rail { position:fixed; z-index:99999; display:flex; flex-direction:column;
+        align-items:center; gap:9px; padding:2px 0; }
     .nexa-rail button { background:none; border:none; padding:0; cursor:pointer;
-        color:__ACC__; line-height:0; display:flex; }
-    .nexa-rail svg { width:16px; height:16px; }
-    .nexa-dots { display:flex; flex-direction:column; align-items:center; gap:8px;
-        overflow-y:auto; max-height:64vh; padding:2px 0; }
+        color:__ACC__; line-height:0; display:flex; flex:none; }
+    .nexa-rail svg { width:18px; height:18px; }
+    .nexa-dots { display:flex; flex-direction:column; align-items:center; gap:9px;
+        overflow-y:auto; flex:1 1 auto; padding:2px 0; }
     .nexa-dots::-webkit-scrollbar { width:0; height:0; }
-    .nexa-dot { width:8px; height:8px; border-radius:50%; cursor:pointer; padding:0;
-        background:transparent; border:1.5px solid __ACC__;
-        transition:all .18s ease; }
-    .nexa-dot.active { width:11px; height:11px; background:__ACC__; border-color:__ACC__; }
-    .nexa-count { font-size:11px; font-weight:700; color:__ACC__; font-family:sans-serif;
-        background:rgba(255,102,0,0.12); padding:3px 7px; border-radius:6px; white-space:nowrap; }
+    .nexa-dot { width:10px; height:10px; border-radius:50%; cursor:pointer; padding:0;
+        background:transparent; border:2px solid __ACC__; flex:none; transition:all .18s ease; }
+    .nexa-dot.active { width:13px; height:13px; background:__ACC__; border-color:__ACC__; }
+    .nexa-count { font-size:12px; font-weight:700; color:#ffffff; font-family:sans-serif;
+        background:#7A7D80; padding:3px 8px; border-radius:6px; white-space:nowrap; flex:none; }
     @media print { .nexa-rail { display:none !important; } }
     </style>
-    <div class="nexa-rail" role="navigation" aria-label="Nawigacja po slajdach">
+    <div class="nexa-rail" id="nexa-rail" role="navigation" aria-label="Nawigacja po slajdach">
         <button type="button" onclick="nexaPrev()" aria-label="Poprzedni slajd">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
         </button>
@@ -3767,6 +3762,7 @@ def get_slide_nav_html(acc='#FF6600'):
     </div>
     <script>
     (function() {
+        var rail = document.getElementById('nexa-rail');
         function slides() { return Array.prototype.slice.call(document.querySelectorAll('.slide-scaler')); }
         var wrap = document.querySelector('.presentation-wrapper') || document.scrollingElement || document.body;
         var dotsBox = document.getElementById('nexa-dots');
@@ -3793,11 +3789,30 @@ def get_slide_nav_html(acc='#FF6600'):
             }
             return best;
         }
+        function place() {
+            var s = slides(); if (!s.length) return;
+            var page = s[current()].querySelector('.slide-page') || s[current()];
+            var pr = page.getBoundingClientRect();
+            var left = pr.right + 10;
+            if (left > window.innerWidth - 32) left = window.innerWidth - 32;
+            rail.style.left = left + 'px';
+            var top = (window.innerHeight - pr.height) / 2;
+            if (top < 8) top = 8;
+            rail.style.top = top + 'px';
+            rail.style.height = Math.min(pr.height, window.innerHeight - 16) + 'px';
+        }
         function refresh() {
             var a = current();
             for (var i = 0; i < dots.length; i++) { dots[i].classList.toggle('active', i === a); }
             var c = document.getElementById('nexa-count');
             if (c) c.textContent = (a+1) + ' / ' + slides().length;
+            place();
+            var d = dots[a];
+            if (d) {
+                if (d.offsetTop < dotsBox.scrollTop) dotsBox.scrollTop = d.offsetTop - 8;
+                else if (d.offsetTop + d.offsetHeight > dotsBox.scrollTop + dotsBox.clientHeight)
+                    dotsBox.scrollTop = d.offsetTop + d.offsetHeight - dotsBox.clientHeight + 8;
+            }
         }
         function go(i) {
             var s = slides(); if (!s.length) return;
@@ -3814,8 +3829,10 @@ def get_slide_nav_html(acc='#FF6600'):
             else if (e.key === 'End') { e.preventDefault(); go(slides().length-1); }
         });
         (wrap.addEventListener ? wrap : window).addEventListener('scroll', refresh);
+        window.addEventListener('resize', place);
         build();
         setTimeout(refresh, 150);
+        setTimeout(place, 400);
     })();
     </script>
     """
