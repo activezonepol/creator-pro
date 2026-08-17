@@ -2849,7 +2849,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                                         f"href='javascript:void(0)' "
                                         f"onclick='window.parent.location.search=\"?goto_attr={ai}\"'"
                                     )
-                                mh += f"<div><a {_link_attrs} style='text-decoration:none; color:{acc}; display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600;'><span style='font-size:18px;'>{ic}</span> <span>{nm}{opt_suffix} <span style='font-size:12px; font-weight:400; opacity:0.8;'>(zobacz)</span></span>{_dbg}</a>{sub_html}</div>"
+                                mh += f"<div><a {_link_attrs} style='text-decoration:none; color:{acc}; display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600;'><span style='font-size:18px;'>{ic}</span> <span>{nm}{opt_suffix} <span style='font-size:12px; font-weight:400; opacity:0.8;'>(zobacz)</span></span></a>{sub_html}</div>"
                     ch += f"""<div style="flex:1;display:flex;flex-direction:column;" id="program_day_{di}">
                         <div class="day-header">DZIEŃ {di+1}</div>
                         <div class="day-date">{cdt.strftime('%d.%m.%Y')} - {pl_days_map[cdt.weekday()]}</div>
