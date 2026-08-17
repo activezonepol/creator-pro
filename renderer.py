@@ -3731,6 +3731,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
     components.html(_marker + full_html, height=800, scrolling=False)
     
     return ""
+    
     def get_slide_nav_html(acc='#FF6600'):
     """Wąski pionowy pasek nawigacji przy prawej krawędzi (w marginesie
     obok slajdu): kółka = strony, aktywna w kolorze akcentu, strzałki
