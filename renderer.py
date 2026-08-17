@@ -434,6 +434,7 @@ defaults = {
     ),
     'brand_footer': 'Wszystkie materiały logistyczne i upominki zostaną opatrzone Państwa logotypem w standardzie spójnym z identyfikacją wizualną wyjazdu.',
     'va_hide': False, 'va_overline': 'SPRAWNA ORGANIZACJA',
+    'va_title': 'WIRTUALNY\nASYSTENT',
     'va_subtitle': 'Sprawna organizacja i wygoda',
     'va_text': ('Nowatorski system do zarządzania grupami. Składa się z aplikacji, identyfikatorów '
                 'z chipem, naklejek z chipem lub kodem z danymi uczestników (np. do naklejenia na walizkę). '
