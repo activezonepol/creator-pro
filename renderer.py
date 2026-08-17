@@ -2837,7 +2837,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                                 mh += f"<div><div style='display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600; color:{c_t};'><span style='font-size:18px; color:{acc};'>{ic}</span> <span>{nm}{opt_suffix}</span></div>{sub_html}</div>"
                             else:
                                 _sid = f"attr_{ai}"
-                                print(f"DEBUG LINK: export_mode={export_mode}, ai={ai}")
+                                _dbg = f"<span style='color:red;font-weight:700;'>[export_mode={export_mode}]</span>"
                                 if export_mode:
                                     _link_attrs = (
                                         f"href='javascript:void(0)' "
