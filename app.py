@@ -390,11 +390,13 @@ def _upload_image(file_bytes, session_key, is_logo=False):
             st.session_state['_upload_counter'] = st.session_state.get('_upload_counter', 0) + 1
             # WAŻNE: wymuszamy natychmiastowy zapis do Supabase (bez czekania na auto-save)
             save_to_supabase()
-            # UWAGA: st.rerun() USUNIĘTE - wywołane wewnątrz on_change callbacku
-            # file_uploadera było przez Streamlit ignorowane ("no-op", ostrzeżenie
-            # w logach), zostawiając aplikację w częściowo nieodświeżonym stanie
-            # do najbliższego, kolejnego, prawdziwego rerunu. Inkrementacja
-            # _upload_counter powyżej wystarcza do wymuszenia odświeżenia podglądu.
+            # Formularz edycji działa teraz jako @st.fragment (naprawa
+            # przewijania na górę przy pisaniu) - a podgląd po prawej to
+            # OSOBNY, niezależny fragment. Zmiana wewnątrz jednego fragmentu
+            # nie odświeża drugiego automatycznie, więc bez wymuszenia
+            # rerunu CAŁEJ aplikacji (scope="app") podgląd nie zobaczy
+            # nowego zdjęcia, dopóki coś innego nie wywoła pełnego rerunu.
+            st.rerun(scope="app")
         else:
             st.error("Nie udało się uzyskać adresu URL po uploadzie.")
     except Exception as e:
