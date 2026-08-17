@@ -2997,12 +2997,11 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
             if md_a:
                 # W trybie edycji przycisk wizualny bez działania (klient w HTML eksporcie ma działający href)
                 if export_mode:
-                    bb_a = f"<a href='#program_day_{int(md_a.group(1)) - 1}' class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
-                else:
+                    _prog_day_id = f"program_day_{int(md_a.group(1)) - 1}"
                     bb_a = (
                         f"<a href='javascript:void(0)' "
-                        f"onclick='window.parent.postMessage("
-                        f"{{nexaGoto:\"program\"}}, \"*\")' "
+                        f"onclick='document.getElementById(\"{_prog_day_id}\")"
+                        f".scrollIntoView({{behavior:\"smooth\",block:\"center\"}})' "
                         f"class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
                     )
             # Pas ikon opisu atrakcji (Model 2)
