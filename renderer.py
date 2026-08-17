@@ -2837,7 +2837,18 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                                 mh += f"<div><div style='display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600; color:{c_t};'><span style='font-size:18px; color:{acc};'>{ic}</span> <span>{nm}{opt_suffix}</span></div>{sub_html}</div>"
                             else:
                                 _sid = f"attr_{ai}"
-                                mh += f"<div><a href='javascript:void(0)' onclick='document.getElementById(\"{_sid}\").scrollIntoView({{behavior:\"smooth\",block:\"center\"}})' style='text-decoration:none; color:{acc}; display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600;'><span style='font-size:18px;'>{ic}</span> <span>{nm}{opt_suffix} <span style='font-size:12px; font-weight:400; opacity:0.8;'>(zobacz)</span></span></a>{sub_html}</div>"
+                                if export_mode:
+                                    _link_attrs = (
+                                        f"href='javascript:void(0)' "
+                                        f"onclick='document.getElementById(\"{_sid}\")"
+                                        f".scrollIntoView({{behavior:\"smooth\",block:\"center\"}})'"
+                                    )
+                                else:
+                                    _link_attrs = (
+                                        f"href='javascript:void(0)' "
+                                        f"onclick='window.parent.location.search=\"?goto_attr={ai}\"'"
+                                    )
+                                mh += f"<div><a {_link_attrs} style='text-decoration:none; color:{acc}; display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600;'><span style='font-size:18px;'>{ic}</span> <span>{nm}{opt_suffix} <span style='font-size:12px; font-weight:400; opacity:0.8;'>(zobacz)</span></span></a>{sub_html}</div>"
                     ch += f"""<div style="flex:1;display:flex;flex-direction:column;" id="program_day_{di}">
                         <div class="day-header">DZIEŃ {di+1}</div>
                         <div class="day-date">{cdt.strftime('%d.%m.%Y')} - {pl_days_map[cdt.weekday()]}</div>
