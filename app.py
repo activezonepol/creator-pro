@@ -1094,7 +1094,7 @@ if st.session_state['client_mode']:
         }}
         </style>
         <button class="client-export-btn" onclick="window.print()">POBIERZ JAKO PDF</button>
-        <div class="presentation-wrapper" style="height:100vh; overflow-y:auto;">{_slides_html}</div>""",
+        <div class="presentation-wrapper" style="height:100vh; overflow-y:auto;">{_slides_html}</div>{get_slide_nav_html(_acc_print)}""",
         height=900, scrolling=True,
     )
     
