@@ -69,8 +69,10 @@ st.set_page_config(layout="wide", page_title="Activezone Oferta",
 # nie sesji Streamlit - oraz (2) przywraca tę pozycję zaraz po odtworzeniu
 # strony.
 import streamlit.components.v1 as _components_scroll
+st.session_state['_scroll_rerun_counter'] = st.session_state.get('_scroll_rerun_counter', 0) + 1
+_scroll_marker = f"<!-- r{st.session_state['_scroll_rerun_counter']} -->"
 _components_scroll.html(
-    """
+    _scroll_marker + """
     <script>
     (function() {
                 var win = window.parent;
