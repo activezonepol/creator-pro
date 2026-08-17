@@ -700,19 +700,25 @@ st.session_state.setdefault('project_selected', False)
 # Link w iframe podglądu ustawia ?goto_attr=N w URL rodzica. Odczytujemy go
 # tutaj, przełączamy aktywną stronę na tę atrakcję i czyścimy parametr.
 # ---------------------------------------------------------------------------
-_goto_attr = st.query_params.get('goto_attr')
-if _goto_attr is not None:
-    try:
-        _goto_idx = int(_goto_attr)
-        _attr_name_goto = str(
-            st.session_state.get(f'amain_{_goto_idx}', '')
-        ).split('\n')[0][:25].strip() or f"Atrakcja {_goto_idx + 1}"
-        st.session_state['last_page'] = f"    ★ {_attr_name_goto}"
-        st.session_state['_last_attr_idx'] = _goto_idx
+_nexa_goto = st.query_params.get('nexa_goto')
+if _nexa_goto:
+    if _nexa_goto == 'attr':
+        try:
+            _goto_idx = int(st.query_params.get('nexa_idx'))
+            _attr_name_goto = str(
+                st.session_state.get(f'amain_{_goto_idx}', '')
+            ).split('\n')[0][:25].strip() or f"Atrakcja {_goto_idx + 1}"
+            st.session_state['last_page'] = f"    ★ {_attr_name_goto}"
+            st.session_state['_last_attr_idx'] = _goto_idx
+            st.session_state['_attr_focused'] = None
+            st.session_state.pop('main_nav_radio', None)
+        except (ValueError, TypeError):
+            pass
+    elif _nexa_goto == 'program':
+        st.session_state['last_page'] = "Program wyjazdu"
+        st.session_state['_last_attr_idx'] = None
         st.session_state['_attr_focused'] = None
         st.session_state.pop('main_nav_radio', None)
-    except (ValueError, TypeError):
-        pass
     st.query_params.clear()
     st.rerun()
 if not st.session_state['project_selected']:
