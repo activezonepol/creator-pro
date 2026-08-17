@@ -2847,8 +2847,10 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                                 else:
                                     _link_attrs = (
                                         f"href='javascript:void(0)' "
-                                        f"onclick='window.parent.postMessage("
-                                        f"{{nexaGoto:\"attr\",idx:{ai}}}, \"*\")'"
+                                        f"onclick='var _a=window.parent.document.createElement(\"a\");"
+                                        f"_a.href=\"?nexa_goto=attr&nexa_idx={ai}\";"
+                                        f"window.parent.document.body.appendChild(_a);"
+                                        f"_a.click();_a.remove();'"
                                     )
                                 mh += f"<div><a {_link_attrs} style='text-decoration:none; color:{acc}; display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600;'><span style='font-size:18px;'>{ic}</span> <span>{nm}{opt_suffix} <span style='font-size:12px; font-weight:400; opacity:0.8;'>(zobacz)</span></span></a>{sub_html}</div>"
                     ch += f"""<div style="flex:1;display:flex;flex-direction:column;" id="program_day_{di}">
