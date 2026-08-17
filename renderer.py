@@ -2995,7 +2995,12 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                 if export_mode:
                     bb_a = f"<a href='#program_day_{int(md_a.group(1)) - 1}' class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
                 else:
-                    bb_a = f"<span class='floating-btn' style='cursor:default;'>WRÓĆ DO PROGRAMU</span>"
+                    bb_a = (
+                        f"<a href='javascript:void(0)' "
+                        f"onclick='window.parent.postMessage("
+                        f"{{nexaGoto:\"program\"}}, \"*\")' "
+                        f"class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
+                    )
             # Pas ikon opisu atrakcji (Model 2)
             _attr_icons = get_data(f'aicons_{i}', []) or []
             _attr_icons_items = []
