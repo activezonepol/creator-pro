@@ -100,9 +100,20 @@ _components_scroll.html(
         }
         var savedY = win.sessionStorage.getItem('nexa_scroll_y');
         if (savedY !== null) {
-            setTimeout(function() {
-                win.scrollTo(0, parseInt(savedY, 10));
-            }, 10);
+            var _active = win.document.activeElement;
+            var _isTyping = _active && (
+                _active.tagName === 'INPUT' ||
+                _active.tagName === 'TEXTAREA' ||
+                _active.tagName === 'SELECT'
+            );
+            // Nie przywracamy pozycji, jeśli operator w tej chwili coś
+            // aktywnie edytuje - wymuszone przewinięcie w trakcie pisania
+            // było przyczyną "nie mogę pisać, strona ciągle przewija".
+            if (!_isTyping) {
+                setTimeout(function() {
+                    win.scrollTo(0, parseInt(savedY, 10));
+                }, 10);
+            }
         }
     })();
     </script>
