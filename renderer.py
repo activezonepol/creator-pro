@@ -3732,7 +3732,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
     
     return ""
     
-    def get_slide_nav_html(acc='#FF6600'):
+def get_slide_nav_html(acc='#FF6600'):
     """Wąski pionowy pasek nawigacji przy prawej krawędzi (w marginesie
     obok slajdu): kółka = strony, aktywna w kolorze akcentu, strzałki
     góra/dół, licznik 'N / total'. Buduje się sam z listy slajdów.
