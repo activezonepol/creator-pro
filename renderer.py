@@ -808,6 +808,7 @@ _ADMIN_DATA_KEYS = {
     'country_code', 'country_name', 'storage_folder', 'p_start_dt',
     'ors_api_key', 'testim_count', 'prg_start_override',
     't_date_from', 't_date_to',
+    'auto_map_points',
     # UWAGA: 'active_project_id' CELOWO nie jest tutaj. To czysto techniczny
     # identyfikator BIEŻĄCEJ SESJI ROBOCZEJ (który wiersz w bazie aktualizować),
     # nie dana oferty. Zapisanie go do JSON/eksportu i odtworzenie przy
