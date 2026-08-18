@@ -3738,19 +3738,20 @@ def get_slide_nav_html(acc='#FF6600'):
     .nexa-wrap { position:fixed; right:12px; top:50%; transform:translateY(-50%); z-index:99999;
         display:flex; flex-direction:row; align-items:center; }
     .nexa-panel { display:flex; flex-direction:column; gap:11px; box-sizing:border-box;
-        background:rgba(255,255,255,0.97); border-radius:12px; box-shadow:0 4px 18px rgba(0,0,0,0.16);
+        font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue','Segoe UI',Roboto,sans-serif;
+        background:rgba(255,255,255,0.97); border-radius:14px; box-shadow:0 6px 22px rgba(0,0,0,0.14);
         max-width:0; opacity:0; overflow:hidden; padding:0; margin-right:0;
         transition:max-width .26s ease, opacity .2s ease, padding .26s ease, margin-right .26s ease; }
-    .nexa-wrap.open .nexa-panel { max-width:210px; opacity:1; padding:12px 14px; margin-right:8px; }
+    .nexa-wrap.open .nexa-panel { max-width:220px; opacity:1; padding:14px 16px; margin-right:8px; }
     .nexa-bar { flex:none; display:flex; flex-direction:column; align-items:center; gap:7px;
         background:rgba(0,0,0,0.42); border-radius:22px; padding:9px 6px; }
     .nexa-bar button { background:none; border:none; padding:2px; cursor:pointer; color:#ffffff; line-height:0; display:flex; }
     .nexa-bar svg { width:18px; height:18px; }
-    .nexa-head { font-size:10px; letter-spacing:2px; color:#9aa0a6; text-transform:uppercase; }
-    .nexa-body { display:flex; flex-direction:column; gap:11px; overflow-y:auto; max-height:56vh; }
+    .nexa-head { font-size:10px; letter-spacing:1.5px; color:#a1a1a6; text-transform:uppercase; font-weight:500; }
+    .nexa-body { display:flex; flex-direction:column; gap:12px; overflow-y:auto; max-height:56vh; }
     .nexa-body::-webkit-scrollbar { width:0; height:0; }
-    .nexa-sec-name { font-size:13px; color:#555555; cursor:pointer; margin-bottom:6px; white-space:nowrap; }
-    .nexa-sec-name.active { color:__ACC__; font-weight:700; }
+    .nexa-sec-name { font-size:14px; font-weight:400; letter-spacing:0.2px; color:#4b4b4f; cursor:pointer; margin-bottom:7px; white-space:nowrap; }
+    .nexa-sec-name.active { color:__ACC__; font-weight:600; }
     .nexa-sec-dots { display:flex; gap:6px; flex-wrap:wrap; }
     .nexa-dot { width:8px; height:8px; border-radius:50%; cursor:pointer; box-sizing:border-box;
         background:transparent; border:1.5px solid #c2c2c2; transition:all .15s ease; }
