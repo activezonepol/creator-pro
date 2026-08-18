@@ -3780,17 +3780,17 @@ def get_slide_nav_html(acc='#FF6600'):
         var wrapEl = document.getElementById('nexa-wrap');
         var body = document.getElementById('nexa-body');
         var scroller = document.querySelector('.presentation-wrapper') || document.scrollingElement || document.body;
-        var SECTIONS = [
-            {name:'Start',      test:function(id){return id==='slide-title';}},
-            {name:'Kierunek',   test:function(id){return id==='slide-kierunek';}},
-            {name:'Trasa',      test:function(id){return id==='slide-mapa';}},
-            {name:'Dojazd',     test:function(id){return id==='slide-loty'||id==='slide-jak-jedziemy';}},
-            {name:'Program',    test:function(id){return id==='slide-program'||id==='slide-sek_3';}},{name:'Atrakcje i miejsca',test:function(id){return id==='slide-sek_1'||/^attr_[0-9]+$/.test(id)||/^place_[0-9]+$/.test(id);}},
-            {name:'Hotele',     test:function(id){return id==='slide-sek_0'||/^slide-hotel-[0-9]+$/.test(id);}},
-            {name:'Serwisy',    test:function(id){return id==='slide-sek_4'||['slide-app','slide-branding','slide-pillow-gifts','slide-virtual-assistant'].indexOf(id)>=0;}},
-            {name:'Kosztorys',  test:function(id){return id==='slide-kosztorys-1'||id==='slide-kosztorys-2';}},
-            {name:'O nas',      test:function(id){return id==='slide-sek_2'||id==='slide-esg'||id==='slide-about';}},
-            {name:'Referencje', test:function(id){return id==='slide-testimonials';}}
+                var SECTIONS = [
+            {name:'Start',              test:function(id){return id==='slide-title';}},
+            {name:'Kierunek',           test:function(id){return id==='slide-kierunek';}},
+            {name:'Trasa',              test:function(id){return id==='slide-mapa';}},
+            {name:'Dojazd',             test:function(id){return id==='slide-loty'||id==='slide-jak-jedziemy';}},
+            {name:'Hotele',             test:function(id){return id==='slide-sek_0'||/^slide-hotel-[0-9]+$/.test(id);}},
+            {name:'Program',            test:function(id){return id==='slide-program'||id==='slide-sek_3';}},
+            {name:'Atrakcje i miejsca', test:function(id){return id==='slide-sek_1'||/^attr_[0-9]+$/.test(id)||/^place_[0-9]+$/.test(id);}},
+            {name:'Serwisy',            test:function(id){return id==='slide-sek_4'||['slide-app','slide-branding','slide-pillow-gifts','slide-virtual-assistant'].indexOf(id)>=0;}},
+            {name:'Kosztorys',          test:function(id){return id==='slide-kosztorys-1'||id==='slide-kosztorys-2';}},
+            {name:'Rekomendacje',       test:function(id){return id==='slide-sek_2'||id==='slide-esg'||id==='slide-about'||id==='slide-testimonials';}}
         ];
         function slides(){ return Array.prototype.slice.call(document.querySelectorAll('.slide-scaler')); }
         var groups=[], secForSlide=[], dotForSlide=[];
