@@ -3797,20 +3797,23 @@ def get_slide_nav_html(acc='#FF6600'):
         function nameFor(id, cur){ for (var i=0;i<SECTIONS.length;i++){ if (SECTIONS[i].test(id)) return SECTIONS[i].name; } return cur; }
         function build(){
             body.innerHTML=''; groups=[]; secForSlide=[]; dotForSlide=[];
+            var all=slides();
             var cur='Start', g=null;
-            slides().forEach(function(sl, i){
+            all.forEach(function(sl, i){
                 var nm=nameFor(sl.id||'', cur);
                 if (!g || nm!==g.name){ cur=nm; g={name:nm, items:[], dotEls:[], nameEl:null}; groups.push(g); }
                 g.items.push(i); secForSlide[i]=g;
             });
             groups.forEach(function(g){
+                var landing=g.items[0];
                 var sec=document.createElement('div');
                 var nm=document.createElement('div'); nm.className='nexa-sec-name'; nm.textContent=g.name;
-                nm.addEventListener('click', function(){ go(g.items[0]); });
+                (function(t){ nm.addEventListener('click', function(){ go(t); }); })(landing);
                 var dd=document.createElement('div'); dd.className='nexa-sec-dots';
                 g.items.forEach(function(si){
+                    if (/^slide-sek_/.test(all[si].id||'')) return;
                     var d=document.createElement('span'); d.className='nexa-dot';
-                    d.addEventListener('click', function(){ go(si); });
+                    (function(idx){ d.addEventListener('click', function(){ go(idx); }); })(si);
                     dd.appendChild(d); g.dotEls.push(d); dotForSlide[si]=d;
                 });
                 g.nameEl=nm; sec.appendChild(nm); sec.appendChild(dd); body.appendChild(sec);
