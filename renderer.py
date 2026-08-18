@@ -3851,7 +3851,7 @@ def get_slide_nav_html(acc='#FF6600'):
             else if (e.key==='End'){ e.preventDefault(); go(slides().length-1); }
         });
         (scroller.addEventListener ? scroller : window).addEventListener('scroll', refresh);
-        build(); setTimeout(refresh,150);
+        wrapEl.classList.add('open'); wrapEl.addEventListener('mouseenter', function(){ wrapEl.classList.add('open'); }); build(); setTimeout(refresh,150);
     })();
     </script>
     """
