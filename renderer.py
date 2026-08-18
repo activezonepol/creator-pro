@@ -3787,7 +3787,7 @@ def get_slide_nav_html(acc='#FF6600'):
             {name:'Dojazd',     test:function(id){return id==='slide-loty'||id==='slide-jak-jedziemy';}},
             {name:'Program',    test:function(id){return id==='slide-program'||id==='slide-sek_1'||id==='slide-sek_3'||/^attr_[0-9]+$/.test(id)}},
             {name:'Hotele',     test:function(id){return id==='slide-sek_0'||/^slide-hotel-[0-9]+$/.test(id);}},
-            {name:'Serwisy',    test:function(id){return ['slide-app','slide-branding','slide-pillow-gifts','slide-virtual-assistant'].indexOf(id)>=0;}},
+            {name:'Serwisy',    test:function(id){return id==='slide-sek_4'||['slide-app','slide-branding','slide-pillow-gifts','slide-virtual-assistant'].indexOf(id)>=0;}},
             {name:'Kosztorys',  test:function(id){return id==='slide-kosztorys-1'||id==='slide-kosztorys-2';}},
             {name:'O nas',      test:function(id){return id==='slide-esg'||id==='slide-about';}},
             {name:'Referencje', test:function(id){return id==='slide-testimonials';}}
