@@ -3785,7 +3785,7 @@ def get_slide_nav_html(acc='#FF6600'):
             {name:'Kierunek',   test:function(id){return id==='slide-kierunek';}},
             {name:'Trasa',      test:function(id){return id==='slide-mapa';}},
             {name:'Dojazd',     test:function(id){return id==='slide-loty'||id==='slide-jak-jedziemy';}},
-            {name:'Program',    test:function(id){return id==='slide-program'||id==='slide-sek_1'||id==='slide-sek_3'||/^attr_[0-9]+$/.test(id)}},
+            {name:'Program',    test:function(id){return id==='slide-program'||id==='slide-sek_3';}},{name:'Atrakcje i miejsca',test:function(id){return id==='slide-sek_1'||/^attr_[0-9]+$/.test(id)||/^place_[0-9]+$/.test(id);}},
             {name:'Hotele',     test:function(id){return id==='slide-sek_0'||/^slide-hotel-[0-9]+$/.test(id);}},
             {name:'Serwisy',    test:function(id){return id==='slide-sek_4'||['slide-app','slide-branding','slide-pillow-gifts','slide-virtual-assistant'].indexOf(id)>=0;}},
             {name:'Kosztorys',  test:function(id){return id==='slide-kosztorys-1'||id==='slide-kosztorys-2';}},
