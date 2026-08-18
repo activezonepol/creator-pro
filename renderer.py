@@ -3750,7 +3750,7 @@ def get_slide_nav_html(acc='#FF6600'):
     .nexa-head { font-size:12px; letter-spacing:1.5px; color:#1d1d1f; text-transform:uppercase; font-weight:600; }
     .nexa-body { display:flex; flex-direction:column; gap:12px; overflow-y:auto; max-height:56vh; }
     .nexa-body::-webkit-scrollbar { width:0; height:0; }
-    .nexa-sec-name { font-size:14px; font-weight:400; letter-spacing:0.2px; color:#4b4b4f; cursor:pointer; margin-bottom:7px; white-space:nowrap; }
+    .nexa-sec-name { font-size:14px; font-weight:400; letter-spacing:0.2px; color:#1d1d1f; cursor:pointer; margin-bottom:7px; white-space:nowrap; }
     .nexa-sec-name.active { color:__ACC__; font-weight:600; }
     .nexa-sec-dots { display:flex; gap:6px; flex-wrap:wrap; }
     .nexa-dot { width:8px; height:8px; border-radius:50%; cursor:pointer; box-sizing:border-box;
