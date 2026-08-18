@@ -3738,7 +3738,7 @@ def get_slide_nav_html(acc='#FF6600'):
     .nexa-wrap { position:fixed; right:12px; top:50%; transform:translateY(-50%); z-index:99999;
         display:flex; flex-direction:row; align-items:center; }
     .nexa-panel { display:flex; flex-direction:column; gap:11px; box-sizing:border-box;
-        font-family:'Montserrat',sans-serif;
+        font-family:'__NAVFONT__',sans-serif;
         background:rgba(255,255,255,0.97); border-radius:14px; box-shadow:0 6px 22px rgba(0,0,0,0.14);
         max-width:0; opacity:0; overflow:hidden; padding:0; margin-right:0;
         transition:max-width .26s ease, opacity .2s ease, padding .26s ease, margin-right .26s ease; }
