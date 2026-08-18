@@ -3735,39 +3735,51 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
 def get_slide_nav_html(acc='#FF6600'):
     _html = """
     <style>
-    .nexa-rail { position:fixed; z-index:99999; display:flex; flex-direction:column; align-items:stretch;
-        gap:6px; padding:10px 13px; background:rgba(255,255,255,0.95); border-radius:12px;
-        box-shadow:0 4px 18px rgba(0,0,0,0.15); box-sizing:border-box; min-width:118px; }
-    .nexa-rail button { background:none; border:none; padding:2px; cursor:pointer; color:__ACC__;
-        line-height:0; display:flex; justify-content:center; flex:none; }
-    .nexa-rail svg { width:18px; height:18px; }
-    .nexa-head { font-size:10px; letter-spacing:2px; color:#9aa0a6; text-transform:uppercase; text-align:center; }
-    .nexa-body { display:flex; flex-direction:column; gap:11px; overflow-y:auto; max-height:56vh; padding:2px 0; }
+    .nexa-wrap { position:fixed; right:12px; top:50%; transform:translateY(-50%); z-index:99999;
+        display:flex; flex-direction:row; align-items:center; }
+    .nexa-panel { display:flex; flex-direction:column; gap:11px; box-sizing:border-box;
+        background:rgba(255,255,255,0.97); border-radius:12px; box-shadow:0 4px 18px rgba(0,0,0,0.16);
+        max-width:0; opacity:0; overflow:hidden; padding:0; margin-right:0;
+        transition:max-width .26s ease, opacity .2s ease, padding .26s ease, margin-right .26s ease; }
+    .nexa-wrap.open .nexa-panel { max-width:210px; opacity:1; padding:12px 14px; margin-right:8px; }
+    .nexa-bar { flex:none; display:flex; flex-direction:column; align-items:center; gap:7px;
+        background:rgba(0,0,0,0.42); border-radius:22px; padding:9px 6px; }
+    .nexa-bar button { background:none; border:none; padding:2px; cursor:pointer; color:#ffffff; line-height:0; display:flex; }
+    .nexa-bar svg { width:18px; height:18px; }
+    .nexa-head { font-size:10px; letter-spacing:2px; color:#9aa0a6; text-transform:uppercase; }
+    .nexa-body { display:flex; flex-direction:column; gap:11px; overflow-y:auto; max-height:56vh; }
     .nexa-body::-webkit-scrollbar { width:0; height:0; }
     .nexa-sec-name { font-size:13px; color:#555555; cursor:pointer; margin-bottom:6px; white-space:nowrap; }
     .nexa-sec-name.active { color:__ACC__; font-weight:700; }
     .nexa-sec-dots { display:flex; gap:6px; flex-wrap:wrap; }
-    .nexa-dot { width:7px; height:7px; border-radius:50%; cursor:pointer; box-sizing:border-box;
+    .nexa-dot { width:8px; height:8px; border-radius:50%; cursor:pointer; box-sizing:border-box;
         background:transparent; border:1.5px solid #c2c2c2; transition:all .15s ease; }
     .nexa-dot.in-active-sec { border-color:__ACC__; }
-    .nexa-dot.active { background:__ACC__; border-color:__ACC__; width:9px; height:9px; }
-    @media print { .nexa-rail { display:none !important; } }
+    .nexa-dot.active { background:__ACC__; border-color:__ACC__; width:10px; height:10px; }
+    @media print { .nexa-wrap { display:none !important; } }
     </style>
-    <div class="nexa-rail" id="nexa-rail" role="navigation" aria-label="Spis oferty">
-        <button type="button" onclick="nexaPrev()" aria-label="Poprzedni slajd">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
-        </button>
-        <div class="nexa-head">Spis</div>
-        <div class="nexa-body" id="nexa-body"></div>
-        <button type="button" onclick="nexaNext()" aria-label="Następny slajd">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-        </button>
+    <div class="nexa-wrap" id="nexa-wrap">
+        <div class="nexa-panel" id="nexa-panel">
+            <div class="nexa-head">Spis oferty</div>
+            <div class="nexa-body" id="nexa-body"></div>
+        </div>
+        <div class="nexa-bar">
+            <button type="button" onclick="nexaPrev()" aria-label="Poprzedni slajd">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+            </button>
+            <button type="button" onclick="nexaToggle()" aria-label="Pokaż spis oferty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
+            </button>
+            <button type="button" onclick="nexaNext()" aria-label="Następny slajd">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+        </div>
     </div>
     <script>
     (function() {
-        var rail = document.getElementById('nexa-rail');
+        var wrapEl = document.getElementById('nexa-wrap');
         var body = document.getElementById('nexa-body');
-        var wrap = document.querySelector('.presentation-wrapper') || document.scrollingElement || document.body;
+        var scroller = document.querySelector('.presentation-wrapper') || document.scrollingElement || document.body;
         var SECTIONS = [
             {name:'Start',      test:function(id){return id==='slide-title';}},
             {name:'Kierunek',   test:function(id){return id==='slide-kierunek';}},
@@ -3787,7 +3799,7 @@ def get_slide_nav_html(acc='#FF6600'):
             body.innerHTML=''; groups=[]; secForSlide=[]; dotForSlide=[];
             var cur='Start', g=null;
             slides().forEach(function(sl, i){
-                var nm = nameFor(sl.id||'', cur);
+                var nm=nameFor(sl.id||'', cur);
                 if (!g || nm!==g.name){ cur=nm; g={name:nm, items:[], dotEls:[], nameEl:null}; groups.push(g); }
                 g.items.push(i); secForSlide[i]=g;
             });
@@ -3806,19 +3818,10 @@ def get_slide_nav_html(acc='#FF6600'):
         }
         function current(){
             var s=slides(); if(!s.length) return 0;
-            var wr = wrap.getBoundingClientRect ? wrap.getBoundingClientRect() : {top:0, height:window.innerHeight};
+            var wr = scroller.getBoundingClientRect ? scroller.getBoundingClientRect() : {top:0, height:window.innerHeight};
             var mid=(wr.top||0)+(wr.height||window.innerHeight)/2, best=0, bd=Infinity;
             for (var i=0;i<s.length;i++){ var r=s[i].getBoundingClientRect(); var d=Math.abs((r.top+r.height/2)-mid); if(d<bd){bd=d;best=i;} }
             return best;
-        }
-        function place(){
-            var s=slides(); if(!s.length) return;
-            var page=s[current()].querySelector('.slide-page')||s[current()];
-            var pr=page.getBoundingClientRect(); var rw=rail.offsetWidth||130;
-            var left=pr.right+8;
-            if (left+rw > window.innerWidth-6) left=window.innerWidth-rw-6;
-            if (left<6) left=6;
-            rail.style.left=left+'px'; rail.style.top='50%'; rail.style.transform='translateY(-50%)';
         }
         function refresh(){
             var a=current(); var cg=secForSlide[a];
@@ -3827,7 +3830,6 @@ def get_slide_nav_html(acc='#FF6600'):
                 g.dotEls.forEach(function(d){ d.classList.remove('active'); d.classList.toggle('in-active-sec', g===cg); });
             });
             if (dotForSlide[a]) dotForSlide[a].classList.add('active');
-            place();
             if (cg && cg.nameEl){
                 var n=cg.nameEl;
                 if (n.offsetTop < body.scrollTop) body.scrollTop=n.offsetTop-8;
@@ -3837,15 +3839,15 @@ def get_slide_nav_html(acc='#FF6600'):
         function go(i){ var s=slides(); if(!s.length) return; i=Math.max(0,Math.min(s.length-1,i)); s[i].scrollIntoView({behavior:'smooth', block:'center'}); setTimeout(refresh,300); }
         window.nexaNext=function(){ go(current()+1); };
         window.nexaPrev=function(){ go(current()-1); };
+        window.nexaToggle=function(){ wrapEl.classList.toggle('open'); };
         document.addEventListener('keydown', function(e){
             if (['ArrowDown','ArrowRight','PageDown',' '].indexOf(e.key)>=0){ e.preventDefault(); nexaNext(); }
             else if (['ArrowUp','ArrowLeft','PageUp'].indexOf(e.key)>=0){ e.preventDefault(); nexaPrev(); }
             else if (e.key==='Home'){ e.preventDefault(); go(0); }
             else if (e.key==='End'){ e.preventDefault(); go(slides().length-1); }
         });
-        (wrap.addEventListener ? wrap : window).addEventListener('scroll', refresh);
-        window.addEventListener('resize', place);
-        build(); setTimeout(refresh,150); setTimeout(place,400);
+        (scroller.addEventListener ? scroller : window).addEventListener('scroll', refresh);
+        build(); setTimeout(refresh,150);
     })();
     </script>
     """
