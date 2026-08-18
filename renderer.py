@@ -3747,7 +3747,7 @@ def get_slide_nav_html(acc='#FF6600'):
         background:__ACC__; border-radius:22px; padding:10px 7px; box-shadow:0 4px 14px rgba(0,0,0,0.25); }
     .nexa-bar button { background:none; border:none; padding:2px; cursor:pointer; color:#ffffff; line-height:0; display:flex; }
     .nexa-bar svg { width:18px; height:18px; }
-    .nexa-head { font-size:12px; letter-spacing:1.5px; color:#a1a1a6; text-transform:uppercase; font-weight:600; }
+    .nexa-head { font-size:12px; letter-spacing:1.5px; color:#1d1d1f; text-transform:uppercase; font-weight:600; }
     .nexa-body { display:flex; flex-direction:column; gap:12px; overflow-y:auto; max-height:56vh; }
     .nexa-body::-webkit-scrollbar { width:0; height:0; }
     .nexa-sec-name { font-size:14px; font-weight:400; letter-spacing:0.2px; color:#4b4b4f; cursor:pointer; margin-bottom:7px; white-space:nowrap; }
