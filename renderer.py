@@ -3855,4 +3855,4 @@ def get_slide_nav_html(acc='#FF6600'):
     })();
     </script>
     """
-    return _html.replace('__ACC__', acc)
+    return _html.replace('__ACC__', acc).replace('__NAVFONT__', get_data('font_h2', 'Montserrat'))
