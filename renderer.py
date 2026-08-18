@@ -3735,104 +3735,117 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
 def get_slide_nav_html(acc='#FF6600'):
     _html = """
     <style>
-    .nexa-rail { position:fixed; z-index:99999; display:flex; flex-direction:column;
-        align-items:center; gap:9px; padding:2px 0; }
-    .nexa-rail button { background:none; border:none; padding:0; cursor:pointer;
-        color:__ACC__; line-height:0; display:flex; flex:none; }
+    .nexa-rail { position:fixed; z-index:99999; display:flex; flex-direction:column; align-items:stretch;
+        gap:6px; padding:10px 13px; background:rgba(255,255,255,0.95); border-radius:12px;
+        box-shadow:0 4px 18px rgba(0,0,0,0.15); box-sizing:border-box; min-width:118px; }
+    .nexa-rail button { background:none; border:none; padding:2px; cursor:pointer; color:__ACC__;
+        line-height:0; display:flex; justify-content:center; flex:none; }
     .nexa-rail svg { width:18px; height:18px; }
-    .nexa-dots { display:flex; flex-direction:column; align-items:center; gap:9px;
-        overflow-y:auto; flex:1 1 auto; padding:2px 0; }
-    .nexa-dots::-webkit-scrollbar { width:0; height:0; }
-    .nexa-dot { width:12px; height:12px; border-radius:50%; cursor:pointer; padding:0;
-        background:transparent; border:2px solid __ACC__; flex:none; transition:all .18s ease; }
-    .nexa-dot.active { width:14px; height:14px; background:__ACC__; border-color:__ACC__; }
-    .nexa-count { font-size:14px; font-weight:700; color:#ffffff; font-family:sans-serif;
-        background:#7A7D80; padding:3px 8px; border-radius:6px; white-space:nowrap; flex:none; }
+    .nexa-head { font-size:10px; letter-spacing:2px; color:#9aa0a6; text-transform:uppercase; text-align:center; }
+    .nexa-body { display:flex; flex-direction:column; gap:11px; overflow-y:auto; max-height:56vh; padding:2px 0; }
+    .nexa-body::-webkit-scrollbar { width:0; height:0; }
+    .nexa-sec-name { font-size:13px; color:#555555; cursor:pointer; margin-bottom:6px; white-space:nowrap; }
+    .nexa-sec-name.active { color:__ACC__; font-weight:700; }
+    .nexa-sec-dots { display:flex; gap:6px; flex-wrap:wrap; }
+    .nexa-dot { width:7px; height:7px; border-radius:50%; cursor:pointer; box-sizing:border-box;
+        background:transparent; border:1.5px solid #c2c2c2; transition:all .15s ease; }
+    .nexa-dot.in-active-sec { border-color:__ACC__; }
+    .nexa-dot.active { background:__ACC__; border-color:__ACC__; width:9px; height:9px; }
     @media print { .nexa-rail { display:none !important; } }
     </style>
-    <div class="nexa-rail" id="nexa-rail" role="navigation" aria-label="Nawigacja po slajdach">
+    <div class="nexa-rail" id="nexa-rail" role="navigation" aria-label="Spis oferty">
         <button type="button" onclick="nexaPrev()" aria-label="Poprzedni slajd">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
         </button>
-        <div class="nexa-dots" id="nexa-dots"></div>
+        <div class="nexa-head">Spis</div>
+        <div class="nexa-body" id="nexa-body"></div>
         <button type="button" onclick="nexaNext()" aria-label="Następny slajd">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </button>
-        <span class="nexa-count" id="nexa-count">1 / 1</span>
     </div>
     <script>
     (function() {
         var rail = document.getElementById('nexa-rail');
-        function slides() { return Array.prototype.slice.call(document.querySelectorAll('.slide-scaler')); }
+        var body = document.getElementById('nexa-body');
         var wrap = document.querySelector('.presentation-wrapper') || document.scrollingElement || document.body;
-        var dotsBox = document.getElementById('nexa-dots');
-        var dots = [];
-        function build() {
-            dotsBox.innerHTML = ''; dots = [];
-            slides().forEach(function(sl, i) {
-                var d = document.createElement('button');
-                d.type = 'button'; d.className = 'nexa-dot';
-                d.setAttribute('aria-label', 'Slajd ' + (i+1));
-                d.addEventListener('click', function() { go(i); });
-                dotsBox.appendChild(d); dots.push(d);
+        var SECTIONS = [
+            {name:'Start',      test:function(id){return id==='slide-title';}},
+            {name:'Kierunek',   test:function(id){return id==='slide-kierunek';}},
+            {name:'Trasa',      test:function(id){return id==='slide-mapa';}},
+            {name:'Dojazd',     test:function(id){return id==='slide-loty'||id==='slide-jak-jedziemy';}},
+            {name:'Program',    test:function(id){return id==='slide-program'||/^attr_[0-9]+$/.test(id)||/^place_[0-9]+$/.test(id);}},
+            {name:'Hotele',     test:function(id){return /^slide-hotel-[0-9]+$/.test(id);}},
+            {name:'Serwisy',    test:function(id){return ['slide-app','slide-branding','slide-pillow-gifts','slide-virtual-assistant'].indexOf(id)>=0;}},
+            {name:'Kosztorys',  test:function(id){return id==='slide-kosztorys-1'||id==='slide-kosztorys-2';}},
+            {name:'O nas',      test:function(id){return id==='slide-esg'||id==='slide-about';}},
+            {name:'Referencje', test:function(id){return id==='slide-testimonials';}}
+        ];
+        function slides(){ return Array.prototype.slice.call(document.querySelectorAll('.slide-scaler')); }
+        var groups=[], secForSlide=[], dotForSlide=[];
+        function nameFor(id, cur){ for (var i=0;i<SECTIONS.length;i++){ if (SECTIONS[i].test(id)) return SECTIONS[i].name; } return cur; }
+        function build(){
+            body.innerHTML=''; groups=[]; secForSlide=[]; dotForSlide=[];
+            var cur='Start', g=null;
+            slides().forEach(function(sl, i){
+                var nm = nameFor(sl.id||'', cur);
+                if (!g || nm!==g.name){ cur=nm; g={name:nm, items:[], dotEls:[], nameEl:null}; groups.push(g); }
+                g.items.push(i); secForSlide[i]=g;
+            });
+            groups.forEach(function(g){
+                var sec=document.createElement('div');
+                var nm=document.createElement('div'); nm.className='nexa-sec-name'; nm.textContent=g.name;
+                nm.addEventListener('click', function(){ go(g.items[0]); });
+                var dd=document.createElement('div'); dd.className='nexa-sec-dots';
+                g.items.forEach(function(si){
+                    var d=document.createElement('span'); d.className='nexa-dot';
+                    d.addEventListener('click', function(){ go(si); });
+                    dd.appendChild(d); g.dotEls.push(d); dotForSlide[si]=d;
+                });
+                g.nameEl=nm; sec.appendChild(nm); sec.appendChild(dd); body.appendChild(sec);
             });
         }
-        function current() {
-            var s = slides(); if (!s.length) return 0;
+        function current(){
+            var s=slides(); if(!s.length) return 0;
             var wr = wrap.getBoundingClientRect ? wrap.getBoundingClientRect() : {top:0, height:window.innerHeight};
-            var mid = (wr.top || 0) + (wr.height || window.innerHeight) / 2;
-            var best = 0, bd = Infinity;
-            for (var i = 0; i < s.length; i++) {
-                var r = s[i].getBoundingClientRect();
-                var d = Math.abs((r.top + r.height/2) - mid);
-                if (d < bd) { bd = d; best = i; }
-            }
+            var mid=(wr.top||0)+(wr.height||window.innerHeight)/2, best=0, bd=Infinity;
+            for (var i=0;i<s.length;i++){ var r=s[i].getBoundingClientRect(); var d=Math.abs((r.top+r.height/2)-mid); if(d<bd){bd=d;best=i;} }
             return best;
         }
-        function place() {
-            var s = slides(); if (!s.length) return;
-            var page = s[current()].querySelector('.slide-page') || s[current()];
-            var pr = page.getBoundingClientRect();
-            var left = pr.right + 10;
-            if (left > window.innerWidth - 32) left = window.innerWidth - 32;
-            rail.style.left = left + 'px';
-            var top = (window.innerHeight - pr.height) / 2;
-            if (top < 8) top = 8;
-            rail.style.top = top + 'px';
-            rail.style.height = Math.min(pr.height, window.innerHeight - 16) + 'px';
+        function place(){
+            var s=slides(); if(!s.length) return;
+            var page=s[current()].querySelector('.slide-page')||s[current()];
+            var pr=page.getBoundingClientRect(); var rw=rail.offsetWidth||130;
+            var left=pr.right+8;
+            if (left+rw > window.innerWidth-6) left=window.innerWidth-rw-6;
+            if (left<6) left=6;
+            rail.style.left=left+'px'; rail.style.top='50%'; rail.style.transform='translateY(-50%)';
         }
-        function refresh() {
-            var a = current();
-            for (var i = 0; i < dots.length; i++) { dots[i].classList.toggle('active', i === a); }
-            var c = document.getElementById('nexa-count');
-            if (c) c.textContent = (a+1) + ' / ' + slides().length;
+        function refresh(){
+            var a=current(); var cg=secForSlide[a];
+            groups.forEach(function(g){
+                if (g.nameEl) g.nameEl.classList.toggle('active', g===cg);
+                g.dotEls.forEach(function(d){ d.classList.remove('active'); d.classList.toggle('in-active-sec', g===cg); });
+            });
+            if (dotForSlide[a]) dotForSlide[a].classList.add('active');
             place();
-            var d = dots[a];
-            if (d) {
-                if (d.offsetTop < dotsBox.scrollTop) dotsBox.scrollTop = d.offsetTop - 8;
-                else if (d.offsetTop + d.offsetHeight > dotsBox.scrollTop + dotsBox.clientHeight)
-                    dotsBox.scrollTop = d.offsetTop + d.offsetHeight - dotsBox.clientHeight + 8;
+            if (cg && cg.nameEl){
+                var n=cg.nameEl;
+                if (n.offsetTop < body.scrollTop) body.scrollTop=n.offsetTop-8;
+                else if (n.offsetTop+46 > body.scrollTop+body.clientHeight) body.scrollTop=n.offsetTop+46-body.clientHeight+8;
             }
         }
-        function go(i) {
-            var s = slides(); if (!s.length) return;
-            i = Math.max(0, Math.min(s.length-1, i));
-            s[i].scrollIntoView({behavior:'smooth', block:'center'});
-            setTimeout(refresh, 300);
-        }
-        window.nexaNext = function() { go(current()+1); };
-        window.nexaPrev = function() { go(current()-1); };
-        document.addEventListener('keydown', function(e) {
-            if (['ArrowDown','ArrowRight','PageDown',' '].indexOf(e.key) >= 0) { e.preventDefault(); nexaNext(); }
-            else if (['ArrowUp','ArrowLeft','PageUp'].indexOf(e.key) >= 0) { e.preventDefault(); nexaPrev(); }
-            else if (e.key === 'Home') { e.preventDefault(); go(0); }
-            else if (e.key === 'End') { e.preventDefault(); go(slides().length-1); }
+        function go(i){ var s=slides(); if(!s.length) return; i=Math.max(0,Math.min(s.length-1,i)); s[i].scrollIntoView({behavior:'smooth', block:'center'}); setTimeout(refresh,300); }
+        window.nexaNext=function(){ go(current()+1); };
+        window.nexaPrev=function(){ go(current()-1); };
+        document.addEventListener('keydown', function(e){
+            if (['ArrowDown','ArrowRight','PageDown',' '].indexOf(e.key)>=0){ e.preventDefault(); nexaNext(); }
+            else if (['ArrowUp','ArrowLeft','PageUp'].indexOf(e.key)>=0){ e.preventDefault(); nexaPrev(); }
+            else if (e.key==='Home'){ e.preventDefault(); go(0); }
+            else if (e.key==='End'){ e.preventDefault(); go(slides().length-1); }
         });
         (wrap.addEventListener ? wrap : window).addEventListener('scroll', refresh);
         window.addEventListener('resize', place);
-        build();
-        setTimeout(refresh, 150);
-        setTimeout(place, 400);
+        build(); setTimeout(refresh,150); setTimeout(place,400);
     })();
     </script>
     """
