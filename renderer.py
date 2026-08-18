@@ -3743,10 +3743,10 @@ def get_slide_nav_html(acc='#FF6600'):
     .nexa-dots { display:flex; flex-direction:column; align-items:center; gap:9px;
         overflow-y:auto; flex:1 1 auto; padding:2px 0; }
     .nexa-dots::-webkit-scrollbar { width:0; height:0; }
-    .nexa-dot { width:10px; height:10px; border-radius:50%; cursor:pointer; padding:0;
+    .nexa-dot { width:12px; height:12px; border-radius:50%; cursor:pointer; padding:0;
         background:transparent; border:2px solid __ACC__; flex:none; transition:all .18s ease; }
-    .nexa-dot.active { width:13px; height:13px; background:__ACC__; border-color:__ACC__; }
-    .nexa-count { font-size:12px; font-weight:700; color:#ffffff; font-family:sans-serif;
+    .nexa-dot.active { width:14px; height:14px; background:__ACC__; border-color:__ACC__; }
+    .nexa-count { font-size:14px; font-weight:700; color:#ffffff; font-family:sans-serif;
         background:#7A7D80; padding:3px 8px; border-radius:6px; white-space:nowrap; flex:none; }
     @media print { .nexa-rail { display:none !important; } }
     </style>
