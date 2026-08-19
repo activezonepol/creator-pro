@@ -2427,7 +2427,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
         _kth2 = get_b64('img_k_th2', (1, 1))
         _kth1_html = _img_tag(_kth1, 'ZDJĘCIE 2', style='width:100%; height:100%; object-fit:cover;')
         _kth2_html = _img_tag(_kth2, 'ZDJĘCIE 3', style='width:100%; height:100%; object-fit:cover;')
-        _kvid_btn = _vid_btn_html(get_data('kvideo_url',''), get_data('kvideo_text',''), get_data('kvideo_start',''), get_data('kvideo_end',''), acc, f_h2) if export_mode else ""
+        _kvid_btn = _vid_btn_html(get_data('kvideo_url',''), get_data('kvideo_text',''), get_data('kvideo_start',''), get_data('kvideo_end',''), acc, f_h2)
         
         hp.append(_shtml(f"""{lh}
         <div class="premium-layout" id="slide-kierunek" style="gap:30px; align-items:stretch;">
