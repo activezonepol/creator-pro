@@ -3100,6 +3100,10 @@ with col_form:
                 safe_text_input("Mały nadtytuł:", key=f"h_overline_{i}")
                 safe_text_area("Nazwa hotelu (H1):", key=f"h_title_{i}")
                 safe_text_input("Podtytuł:", key=f"h_subtitle_{i}")
+                _h_day_options = build_day_options(st.session_state.get('p_start_dt', date.today()), int(st.session_state.get('num_days', 5)))
+                if f"h_day_{i}" not in st.session_state:
+                    st.session_state[f"h_day_{i}"] = "Brak przypisania"
+                safe_selectbox("Przypisz do dnia (pokaże hotel w programie):", _h_day_options, key=f"h_day_{i}")
                 
                 c1, c2 = st.columns(2)
                 # safe wrapper dla text_input i multiselect - chroni przed kasowaniem stanu
