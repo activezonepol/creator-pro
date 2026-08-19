@@ -832,6 +832,7 @@ _DYNAMIC_DATA_PATTERNS = [
     # --- Atrakcje ---
     r'^amain_\d+$', r'^asub_\d+$', r'^aday_\d+$', r'^atype_\d+$', r'^aopis_\d+$',
     r'^ahide_\d+$', r'^aopt_label_\d+$', r'^aicons_\d+$',
+    r'^avideo_url_\d+$', r'^avideo_text_\d+$', r'^avideo_start_\d+$', r'^avideo_end_\d+$',
     r'^ah_\d+$', r'^at1_\d+$', r'^at2_\d+$', r'^at3_\d+$',
     # --- Miejsca (starszy mechanizm, zachowany dla kompatybilności) ---
     r'^pmain_\d+$', r'^psub_\d+$', r'^popis_\d+$', r'^pover_\d+$',
