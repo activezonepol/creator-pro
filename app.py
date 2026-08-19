@@ -1614,7 +1614,7 @@ with st.sidebar:
     # Hotele dynamiczne - kafelki NIE renderują składni markdown (:red[...]),
     # więc budujemy etykietę ręcznie z czarnym _HIDE_SUFFIX_PLAIN, zamiast
     # przez _label_with_hide() (ta zostaje z czerwonym, dla zwykłych stron).
-    for _hp in range(_n_hotels):
+    for _hp in _get_hotel_order():
         _h_title_check = str(st.session_state.get(f"h_title_{_hp}", "") or "").strip()
         _h_display = _h_title_check.split('\n')[0][:25].strip() if _h_title_check else ""
         if _h_display:
