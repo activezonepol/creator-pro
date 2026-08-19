@@ -3929,3 +3929,19 @@ def get_video_player_html():
     })();
     </script>
     """    
+def _vid_btn_html(url, text, start, end, acc='#FF6600', font='Montserrat'):
+    url = str(url or '').strip()
+    if not url:
+        return ""
+    text = str(text or '').strip() or 'Zobacz film'
+    start = str(start or ''); end = str(end or '')
+    return (
+        f"<a href='javascript:void(0)' "
+        f"onclick='nexaPlayVideo(&quot;{url}&quot;,&quot;{start}&quot;,&quot;{end}&quot;)' "
+        f"style='position:absolute; bottom:14px; right:14px; background:{acc}; color:#fff; "
+        f"padding:9px 16px; border-radius:40px; text-decoration:none; font-family:&quot;{font}&quot;; "
+        f"font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:1px; "
+        f"box-shadow:0 4px 15px rgba(0,0,0,0.3); z-index:11; display:inline-flex; "
+        f"align-items:center; gap:7px;'>"
+        f"<i class='fa-solid fa-circle-play' style='font-size:15px;'></i> {text}</a>"
+    )
