@@ -745,6 +745,14 @@ if _nexa_goto:
         st.session_state['_last_attr_idx'] = None
         st.session_state['_attr_focused'] = None
         st.session_state.pop('main_nav_radio', None)
+    elif _nexa_goto == 'hotel':
+        try:
+            _goto_hidx = int(st.query_params.get('nexa_idx'))
+            st.session_state['last_page'] = f"    ❯ Hotel {_goto_hidx + 1}"
+            st.session_state['_last_attr_idx'] = None
+            st.session_state.pop('main_nav_radio', None)
+        except (ValueError, TypeError):
+            pass
     st.query_params.clear()
     st.rerun()
 if not st.session_state['project_selected']:
