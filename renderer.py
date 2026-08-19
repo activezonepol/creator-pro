@@ -2435,8 +2435,9 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                     {_img_tag(kimg, 'ZDJĘCIE GŁÓWNE', style='width:100%; height:100%; object-fit:cover; object-position:center;')}
                 </div>
                 <div style="flex:2; display:flex; gap:12px;">
-                    <div style="flex:1; border-radius:8px; overflow:hidden; background:#fcfcfc; border:1px solid #eee;">
+                    <div style="flex:1; position:relative; border-radius:8px; overflow:hidden; background:#fcfcfc; border:1px solid #eee;">
                         {_kth1_html}
+                        {_kvid_btn}
                     </div>
                     <div style="flex:1; border-radius:8px; overflow:hidden; background:#fcfcfc; border:1px solid #eee;">
                         {_kth2_html}
