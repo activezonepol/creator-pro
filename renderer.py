@@ -3888,7 +3888,7 @@ def get_video_player_html():
         background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center;
         padding:20px; box-sizing:border-box; }
     .nexa-vid-ov.open { display:flex; }
-    .nexa-vid-box { position:relative; width:100%; max-width:1100px; aspect-ratio:16/9; }
+    .nexa-vid-box { position:relative; width:min(90vw,1100px); height:min(50.625vw,619px); }
     .nexa-vid-box iframe { width:100%; height:100%; border:0; border-radius:8px; background:#000; }
     .nexa-vid-x { position:absolute; top:-40px; right:0; background:none; border:none; color:#fff;
         font-size:30px; line-height:1; cursor:pointer; }
