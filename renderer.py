@@ -3974,7 +3974,7 @@ def _vid_btn_html(url, text, start, end, acc='#FF6600', font='Montserrat'):
     start = str(start or ''); end = str(end or '')
     return (
         f"<a href='javascript:void(0)' "
-        f"onclick='nexaPlayVideo(&quot;{url}&quot;,&quot;{start}&quot;,&quot;{end}&quot;)' "
+        f"onclick='if(window.nexaPlayVideo)window.nexaPlayVideo(&quot;{url}&quot;,&quot;{start}&quot;,&quot;{end}&quot;)' "
         f"style='position:absolute; bottom:14px; right:14px; background:{acc}; color:#fff; "
         f"padding:9px 16px; border-radius:40px; text-decoration:none; font-family:&quot;{font}&quot;; "
         f"font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:1px; "
