@@ -3857,7 +3857,7 @@ def get_slide_nav_html(acc='#FF6600'):
     """
     return _html.replace('__ACC__', acc).replace('__NAVFONT__', get_data('font_h2', 'Montserrat'))
 
-    def get_video_player_html():
+def get_video_player_html():
     return """
     <style>
     .nexa-vid-ov { position:fixed; top:0; left:0; width:100%; height:100%; z-index:100000;
