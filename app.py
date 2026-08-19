@@ -3104,6 +3104,11 @@ with col_form:
                 if f"h_day_{i}" not in st.session_state:
                     st.session_state[f"h_day_{i}"] = "Brak przypisania"
                 safe_selectbox("Przypisz do dnia (pokaże hotel w programie):", _h_day_options, key=f"h_day_{i}")
+                _h_assigned = st.session_state.get(f"h_day_{i}", "Brak przypisania")
+                if _h_assigned and _h_assigned != "Brak przypisania":
+                    if st.button(f"⬅️ Wróć do Programu ({_h_assigned})", key=f"h_back_to_program_{i}", use_container_width=True, type="secondary"):
+                        st.session_state['last_page'] = "Program wyjazdu"
+                        st.rerun()
                 
                 c1, c2 = st.columns(2)
                 # safe wrapper dla text_input i multiselect - chroni przed kasowaniem stanu
