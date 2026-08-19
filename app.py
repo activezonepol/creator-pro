@@ -1528,10 +1528,7 @@ with st.sidebar:
                 use_container_width=True,
                 key="dl_ready_html_sidebar",
             )
-        if st.button("PODGLĄD PEŁNOEKRANOWY", type="primary", use_container_width=True, key="btn_fullscreen_sidebar"):
-            st.session_state['client_mode'] = True
-            st.rerun()
-
+        
         
     # 2. MIGRACJA ZDJĘĆ (widoczne tylko jeśli faktycznie wykryto zdjęcia w pamięci)
     if any(isinstance(st.session_state.get(k), bytes) for k in IMAGE_KEYS):
