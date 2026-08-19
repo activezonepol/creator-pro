@@ -3057,7 +3057,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                 _vid_end = str(get_data(f'avideo_end_{i}', '') or '')
                 _vid_btn = (
                     f"<a href='javascript:void(0)' "
-                    f"onclick='nexaPlayVideo(&quot;{_vid_url}&quot;,&quot;{_vid_start}&quot;,&quot;{_vid_end}&quot;)' "
+                    f"onclick='if(window.nexaPlayVideo)window.nexaPlayVideo(&quot;{_vid_url}&quot;,&quot;{_vid_start}&quot;,&quot;{_vid_end}&quot;)' "
                     f"style='position:absolute; bottom:25px; right:25px; background:{acc}; color:#fff; "
                     f"padding:10px 18px; border-radius:40px; text-decoration:none; font-family:&quot;{f_h2}&quot;; "
                     f"font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:1px; "
