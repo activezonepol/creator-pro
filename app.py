@@ -1384,7 +1384,7 @@ with st.sidebar:
                     f'@media print{{.client-export-btn{{display:none !important;}} .presentation-wrapper{{height:auto !important;overflow:visible !important;}}}}'
                     f'</style></head><body>'
                     f'<button class="client-export-btn" onclick="window.print()">POBIERZ JAKO PDF</button>'
-                    f'<div class="presentation-wrapper">{export_content}</div>' + get_slide_nav_html(acc) + '</body></html>'
+                    f'<div class="presentation-wrapper">{export_content}</div>' + get_slide_nav_html(acc) + get_video_player_html() + '</body></html>'
                 )
                 _folder_klienta = st.session_state.get('_folder_klienta_input', _default_folder)
                 _folder_oferty = _slugify_folder_name(get_project_filename().replace('.json', ''))
