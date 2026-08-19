@@ -3126,6 +3126,15 @@ with col_form:
                                default=_ham_main, key=_ham_buffer, on_change=_sync_ham)
                 safe_text_area("Opis hotelu:", height=200, key=f"h_text_{i}")
                 safe_text_area("Atuty hotelu:", height=100, key=f"h_advantages_{i}")
+                _section_header("FILM (opcjonalnie)")
+                st.caption("Link do YouTube/Vimeo (zagra w nakładce) lub Instagram/TikTok (nowa karta). Start i koniec działają dla YouTube i Vimeo.")
+                safe_text_input("Link do filmu:", key=f"hvideo_url_{i}")
+                safe_text_input("Tekst przycisku:", key=f"hvideo_text_{i}", placeholder="Zobacz film")
+                _hvc1, _hvc2 = st.columns(2)
+                with _hvc1:
+                    safe_text_input("Start (np. 0:13):", key=f"hvideo_start_{i}")
+                with _hvc2:
+                    safe_text_input("Koniec (np. 3:00):", key=f"hvideo_end_{i}")
                 
                 # ZDJĘCIA
                 cl1, cl2 = st.columns(2)
