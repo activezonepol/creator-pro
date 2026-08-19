@@ -1303,6 +1303,9 @@ with st.sidebar:
     if st.button("ZAPISZ W BAZIE", use_container_width=True, type="primary", key="manual_save_btn"):
         save_to_supabase()
         st.rerun()
+    if st.button("PODGLĄD PEŁNOEKRANOWY", use_container_width=True, type="primary", key="btn_fullscreen_top"):
+        st.session_state['client_mode'] = True
+        st.rerun()
 
     st.markdown("<div style='margin-bottom:10px;'></div>", unsafe_allow_html=True)
 
