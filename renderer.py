@@ -3005,6 +3005,22 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                         f".scrollIntoView({{behavior:\"smooth\",block:\"center\"}})' "
                         f"class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
                     )
+                        _vid_btn = ""
+            _vid_url = str(get_data(f'avideo_url_{i}', '') or '').strip()
+            if _vid_url and export_mode:
+                _vid_text = str(get_data(f'avideo_text_{i}', '') or '').strip() or 'Zobacz film'
+                _vid_start = str(get_data(f'avideo_start_{i}', '') or '')
+                _vid_end = str(get_data(f'avideo_end_{i}', '') or '')
+                _vid_btn = (
+                    f"<a href='javascript:void(0)' "
+                    f"onclick='nexaPlayVideo(&quot;{_vid_url}&quot;,&quot;{_vid_start}&quot;,&quot;{_vid_end}&quot;)' "
+                    f"style='position:absolute; bottom:25px; right:25px; background:{acc}; color:#fff; "
+                    f"padding:10px 18px; border-radius:40px; text-decoration:none; font-family:&quot;{f_h2}&quot;; "
+                    f"font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:1px; "
+                    f"box-shadow:0 4px 15px rgba(0,0,0,0.3); z-index:11; display:inline-flex; "
+                    f"align-items:center; gap:7px;'>"
+                    f"<i class='fa-solid fa-circle-play' style='font-size:15px;'></i> {_vid_text}</a>"
+                )
             # Pas ikon opisu atrakcji (Model 2)
             _attr_icons = get_data(f'aicons_{i}', []) or []
             _attr_icons_items = []
