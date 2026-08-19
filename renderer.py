@@ -3005,7 +3005,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                         f".scrollIntoView({{behavior:\"smooth\",block:\"center\"}})' "
                         f"class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
                     )
-                        _vid_btn = ""
+            _vid_btn = ""
             _vid_url = str(get_data(f'avideo_url_{i}', '') or '').strip()
             if _vid_url and export_mode:
                 _vid_text = str(get_data(f'avideo_text_{i}', '') or '').strip() or 'Zobacz film'
