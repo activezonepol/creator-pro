@@ -3856,3 +3856,51 @@ def get_slide_nav_html(acc='#FF6600'):
     </script>
     """
     return _html.replace('__ACC__', acc).replace('__NAVFONT__', get_data('font_h2', 'Montserrat'))
+
+    def get_video_player_html():
+    return """
+    <style>
+    .nexa-vid-ov { position:fixed; top:0; left:0; width:100%; height:100%; z-index:100000;
+        background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center;
+        padding:20px; box-sizing:border-box; }
+    .nexa-vid-ov.open { display:flex; }
+    .nexa-vid-box { position:relative; width:100%; max-width:1100px; aspect-ratio:16/9; }
+    .nexa-vid-box iframe { width:100%; height:100%; border:0; border-radius:8px; background:#000; }
+    .nexa-vid-x { position:absolute; top:-40px; right:0; background:none; border:none; color:#fff;
+        font-size:30px; line-height:1; cursor:pointer; }
+    @media print { .nexa-vid-ov { display:none !important; } }
+    </style>
+    <div class="nexa-vid-ov" id="nexa-vid-ov" onclick="if(event.target===this)nexaCloseVideo()">
+      <div class="nexa-vid-box">
+        <button class="nexa-vid-x" onclick="nexaCloseVideo()" aria-label="Zamknij film">&times;</button>
+        <div id="nexa-vid-slot"></div>
+      </div>
+    </div>
+    <script>
+    (function(){
+      function secs(t){ if(!t) return 0; t=(''+t).trim();
+        if(t.indexOf(':')>=0){ var p=t.split(':'); if(p.length===3) return (+p[0])*3600+(+p[1])*60+(+p[2]); return (+p[0])*60+(+p[1]); }
+        return parseInt(t,10)||0; }
+      function ytId(u){ var m=null;
+        if(u.indexOf('youtu.be/')>=0) m=u.split('youtu.be/')[1];
+        else if(u.indexOf('watch?v=')>=0) m=u.split('watch?v=')[1];
+        else if(u.indexOf('/embed/')>=0) m=u.split('/embed/')[1];
+        else if(u.indexOf('/shorts/')>=0) m=u.split('/shorts/')[1];
+        if(!m) return null; m=m.split('&')[0].split('?')[0].split('/')[0];
+        return m.length>=10?m:null; }
+      function vmId(u){ if(u.indexOf('vimeo.com/')<0) return null;
+        var a=u.split('vimeo.com/')[1].split('?')[0].split('/'); var id=a[a.length-1]||a[0];
+        return (id && (''+parseInt(id,10))===id)?id:null; }
+      window.nexaPlayVideo=function(url,start,end){
+        var s=secs(start), e=secs(end), src=null, y=ytId(url), v=vmId(url);
+        if(y){ src='https://www.youtube.com/embed/'+y+'?autoplay=1&rel=0'; if(s)src+='&start='+s; if(e)src+='&end='+e; }
+        else if(v){ src='https://player.vimeo.com/video/'+v+'?autoplay=1'; if(s)src+='#t='+s+'s'; }
+        if(src){ document.getElementById('nexa-vid-slot').innerHTML='<iframe src="'+src+'" allow="autoplay; fullscreen" allowfullscreen></iframe>';
+          document.getElementById('nexa-vid-ov').classList.add('open'); }
+        else { window.open(url,'_blank'); } };
+      window.nexaCloseVideo=function(){ document.getElementById('nexa-vid-ov').classList.remove('open');
+        document.getElementById('nexa-vid-slot').innerHTML=''; };
+      document.addEventListener('keydown',function(ev){ if(ev.key==='Escape')nexaCloseVideo(); });
+    })();
+    </script>
+    """
