@@ -1796,7 +1796,7 @@ def get_local_css(return_str=False):
         .photo-col img {{ width: 100%; height: 100%; object-fit: cover; }}
         .info-col {{ flex: 55; display: flex; flex-direction: column; height: 100%; }}
         .info-col p {{ font-size: {fs_t}px; line-height: 1.5; }}
-        .floating-btn {{ position: absolute; bottom: 25px; left: 25px; background: {acc}; color: white !important; padding: 12px 24px; border-radius: 40px; text-decoration: none !important; font-family: '{f_h2}'; font-weight: 700; font-size: 10px; text-transform: uppercase; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 10; transition: opacity 0.2s; opacity: 0.9; }}
+        .floating-btn {{ position: absolute; bottom: 25px; left: 25px; background: {acc}; color: white !important; padding: 10px 18px; border-radius: 40px; text-decoration: none !important; font-family: '{f_h2}'; font-weight: 700; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 10; opacity: 1; }}
         .floating-btn:hover {{ opacity: 1; }}
         .gallery-row {{ display: flex; justify-content: space-between; gap: 15px; margin-top: auto; padding-top: 15px; }}
         .gallery-thumb {{ flex: 1; aspect-ratio: 1/1; border: 1px solid #eee; border-radius: 6px; overflow: hidden; background-color: #fcfcfc; }}
