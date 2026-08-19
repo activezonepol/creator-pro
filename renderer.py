@@ -2861,6 +2861,20 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                                         f"_a.click();_a.remove();'"
                                     )
                                 mh += f"<div><a {_link_attrs} style='text-decoration:none; color:{acc}; display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600;'><span style='font-size:18px;'>{ic}</span> <span>{nm}{opt_suffix} <span style='font-size:12px; font-weight:400; opacity:0.8;'>(zobacz)</span></span></a>{sub_html}</div>"
+                    _hotel_order_prg = get_data('hotel_order', [])
+                    if not _hotel_order_prg:
+                        _hotel_order_prg = list(range(get_data('num_hotels', 0)))
+                    for hi in _hotel_order_prg:
+                        _h_day = str(get_data(f"h_day_{hi}") or "")
+                        _hd_match = re.search(r'Dzień\s+(\d+)', _h_day)
+                        if _hd_match and int(_hd_match.group(1)) == di + 1 and not get_data(f"h_hide_{hi}"):
+                            _hnm = str(get_data(f"h_title_{hi}", "") or "").split('\n')[0][:40] or f"Hotel {hi+1}"
+                            _hsid = f"slide-hotel-{hi}"
+                            if export_mode:
+                                _hlink = f"href='javascript:void(0)' onclick='document.getElementById(\"{_hsid}\").scrollIntoView({{behavior:\"smooth\",block:\"center\"}})'"
+                            else:
+                                _hlink = f"href='javascript:void(0)' onclick='var _a=window.parent.document.createElement(\"a\");_a.href=\"?nexa_goto=hotel&nexa_idx={hi}\";window.parent.document.body.appendChild(_a);_a.click();_a.remove();'"
+                            mh += f"<div><a {_hlink} style='text-decoration:none; color:{acc}; display:flex; align-items:center; gap:8px; font-size:15px; font-weight:600; margin-bottom:5px;'><span style='font-size:18px;'><i class='fa-solid fa-bed'></i></span> <span>{_hnm} <span style='font-size:12px; font-weight:400; opacity:0.8;'>(zobacz)</span></span></a></div>"
                     ch += f"""<div style="flex:1;display:flex;flex-direction:column;" id="program_day_{di}">
                         <div class="day-header">DZIEŃ {di+1}</div>
                         <div class="day-date">{cdt.strftime('%d.%m.%Y')} - {pl_days_map[cdt.weekday()]}</div>
