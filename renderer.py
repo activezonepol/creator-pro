@@ -2792,14 +2792,14 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                         f"<a href='javascript:void(0)' "
                         f"onclick='document.getElementById(\"{_h_prog_id}\")"
                         f".scrollIntoView({{behavior:\"smooth\",block:\"center\"}})' "
-                        f"class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
+                        f"class='floating-btn' style='bottom:14px; left:14px;'>WRÓĆ DO PROGRAMU</a>"
                     )
                 else:
                     bb_h = (
                         f"<a href='javascript:void(0)' "
                         f"onclick='window.parent.postMessage("
                         f"{{nexaGoto:\"program\"}}, \"*\")' "
-                        f"class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
+                        f"class='floating-btn' style='bottom:14px; left:14px;'>WRÓĆ DO PROGRAMU</a>"
                     )
             hp.append(_shtml(f"""{lh}<div class="premium-layout" id="slide-hotel-{i}" style="align-items:stretch;">
                 <div style="flex:40; display:flex; flex-direction:column; gap:12px;">
