@@ -3005,6 +3005,13 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                         f".scrollIntoView({{behavior:\"smooth\",block:\"center\"}})' "
                         f"class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
                     )
+                else:
+                    bb_a = (
+                        f"<a href='javascript:void(0)' "
+                        f"onclick='window.parent.postMessage("
+                        f"{{nexaGoto:\"program\"}}, \"*\")' "
+                        f"class='floating-btn'>WRÓĆ DO PROGRAMU</a>"
+                    )
             _vid_btn = ""
             _vid_url = str(get_data(f'avideo_url_{i}', '') or '').strip()
             if _vid_url and export_mode:
