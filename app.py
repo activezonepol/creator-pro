@@ -2870,6 +2870,16 @@ with col_form:
             # === WYBÓR ŹRÓDŁA ZDJĘCIA: przełącznik "Z dysku" / "Z galerii kraju"
             # nad każdym polem. Dopiero wybór "Z galerii" pokazuje miniatury -
             # domyślnie widoczny jest tylko zwykły uploader z dysku. ===
+            _section_header("FILM (opcjonalnie)")
+            st.caption("Link do YouTube/Vimeo (zagra w nakładce) lub Instagram/TikTok (otworzy się w nowej karcie). Start i koniec działają dla YouTube i Vimeo.")
+            safe_text_input("Link do filmu:", key=f"avideo_url_{_i}")
+            safe_text_input("Tekst przycisku:", key=f"avideo_text_{_i}", placeholder="Zobacz film")
+            _vcol1, _vcol2 = st.columns(2)
+            with _vcol1:
+                safe_text_input("Start (np. 0:13):", key=f"avideo_start_{_i}")
+            with _vcol2:
+                safe_text_input("Koniec (np. 3:00):", key=f"avideo_end_{_i}")
+
             from storage_utils import list_country_gallery
             _gallery_country = st.session_state.get('country_code', '') or 'XXX'
             _gallery_urls = list_country_gallery(supabase, _gallery_country, name_prefix="attr_")
