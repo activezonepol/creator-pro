@@ -2782,7 +2782,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                 '</div>'
                 if advs else ''
             )
-            _hvid_btn = _vid_btn_html(get_data(f'hvideo_url_{i}',''), get_data(f'hvideo_text_{i}',''), get_data(f'hvideo_start_{i}',''), get_data(f'hvideo_end_{i}',''), acc, f_h2) if export_mode else ""
+            _hvid_btn = _vid_btn_html(get_data(f'hvideo_url_{i}',''), get_data(f'hvideo_text_{i}',''), get_data(f'hvideo_start_{i}',''), get_data(f'hvideo_end_{i}',''), acc, f_h2)
             bb_h = ""
             _hmd = re.search(r'Dzień (\d+)', str(get_data(f"h_day_{i}") or ""))
             if _hmd:
