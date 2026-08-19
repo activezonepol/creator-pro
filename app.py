@@ -2740,6 +2740,8 @@ with col_form:
                 (f"aday_{_i}", "Brak przypisania"), (f"atype_{_i}", "Wybierz ikonę"),
                 (f"aopis_{_i}", ""), (f"ahide_{_i}", False),
                 (f"aopt_label_{_i}", ""),
+                (f"avideo_url_{_i}", ""), (f"avideo_text_{_i}", ""),
+                (f"avideo_start_{_i}", ""), (f"avideo_end_{_i}", ""),
             ]:
                 if _dk not in st.session_state:
                     st.session_state[_dk] = _dv
