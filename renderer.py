@@ -2782,7 +2782,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
             _hvid_btn = _vid_btn_html(get_data(f'hvideo_url_{i}',''), get_data(f'hvideo_text_{i}',''), get_data(f'hvideo_start_{i}',''), get_data(f'hvideo_end_{i}',''), acc, f_h2) if export_mode else ""
             hp.append(_shtml(f"""{lh}<div class="premium-layout" id="slide-hotel-{i}" style="align-items:stretch;">
                 <div style="flex:40; display:flex; flex-direction:column; gap:12px;">
-                    <div style="flex:3; position:relative; border-radius:8px; overflow:hidden; border:1px solid #eee; background-color:#fcfcfc;">{h1_html}{_hopt_chip}</div>
+                    <div style="flex:3; position:relative; border-radius:8px; overflow:hidden; border:1px solid #eee; background-color:#fcfcfc;">{h1_html}{_hopt_chip}{_hvid_btn}</div>
                     <div style="flex:2; border-radius:8px; overflow:hidden; border:1px solid #eee; background-color:#fcfcfc;">{h1b_html}</div>
                 </div>
                 <div style="flex:60; padding-left:15px; padding-top:15px; display:flex; flex-direction:column; min-height:0;">
