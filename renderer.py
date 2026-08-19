@@ -3063,7 +3063,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
             )
             
             hp.append(_shtml(f"""{lh}<div class="premium-layout" id="attr_{i}">
-                <div class="photo-col" style="position:relative;">{_img_tag(iah, 'FOTO GŁÓWNE')}{bb_a}{_aopt_chip}</div>
+                <div class="photo-col" style="position:relative;">{_img_tag(iah, 'FOTO GŁÓWNE')}{bb_a}{_aopt_chip}{_vid_btn}</div>
                 <div class="info-col" style="display:flex; flex-direction:column; height:100%; min-height:0;">
                     {f'<div class="type-icon-box" style="flex-shrink:0;">{icon_map.get(get_data(f"atype_{i}",""),"")}</div>' if get_data(f"atype_{i}") and get_data(f"atype_{i}") not in ("Brak", "Wybierz ikonę") else ''}
                     <div class="title-h2" style="flex-shrink:0;">{str(get_data(f'amain_{i}','')).replace(chr(10),'<br>')}</div>
