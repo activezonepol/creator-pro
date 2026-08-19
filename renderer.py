@@ -3051,7 +3051,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                     )
             _vid_btn = ""
             _vid_url = str(get_data(f'avideo_url_{i}', '') or '').strip()
-            if _vid_url and export_mode:
+            if _vid_url:
                 _vid_text = str(get_data(f'avideo_text_{i}', '') or '').strip() or 'Zobacz film'
                 _vid_start = str(get_data(f'avideo_start_{i}', '') or '')
                 _vid_end = str(get_data(f'avideo_end_{i}', '') or '')
