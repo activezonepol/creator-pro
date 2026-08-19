@@ -3054,6 +3054,8 @@ with col_form:
                     (f'h_text_{i}', 'Zapewniamy zakwaterowanie w starannie wyselekcjonowanym hotelu.'),
                     (f'h_advantages_{i}', 'Położenie tuż przy prywatnej plaży'),
                     (f'hopt_label_{i}', ''),
+                    (f'hvideo_url_{i}', ''), (f'hvideo_text_{i}', ''),
+                    (f'hvideo_start_{i}', ''), (f'hvideo_end_{i}', ''),
                 ]
                 for dk, dv in _h_defaults:
                     # Buforujemy do _buffer_KEY przed pierwszym widgetem żeby Streamlit nie wyrzucił
