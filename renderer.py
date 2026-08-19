@@ -3731,7 +3731,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
     components.html(_marker + full_html, height=800, scrolling=False)
     
     return ""
-    
+
 def get_slide_nav_html(acc='#FF6600'):
     _html = """
     <style>
@@ -3903,4 +3903,4 @@ def get_slide_nav_html(acc='#FF6600'):
       document.addEventListener('keydown',function(ev){ if(ev.key==='Escape')nexaCloseVideo(); });
     })();
     </script>
-    """
+    """    
