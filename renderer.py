@@ -2094,7 +2094,12 @@ def _should_render(slide_id, current_page, export_mode, active_attr_idx=None, ac
 
     # 3c. Konkretny hotel (❯ Hotel N) -> tylko ten slide-hotel-X
     if "❯" in current_page:
-        # "    ❯ Hotel 1" -> wyciagnij numer
+        # PRIORYTET: stabilny indeks hotelu (active_hotel_idx) przekazany z
+        # app.py - odporny na to, że w spisie jest teraz "Hotel: nazwa" (bez
+        # numeru) oraz na edycję nazwy hotelu w trakcie pisania.
+        if active_hotel_idx is not None:
+            return slide_id == f"slide-hotel-{active_hotel_idx}"
+        # Fallback (stary format "❯ Hotel N") - wyciagnij numer z nazwy.
         m = re.search(r'Hotel\s+(\d+)', current_page)
         if m:
             hotel_pos = int(m.group(1)) - 1  # 1-based -> 0-based
