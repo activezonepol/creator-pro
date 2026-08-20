@@ -1614,18 +1614,20 @@ with st.sidebar:
     # Hotele dynamiczne - kafelki NIE renderują składni markdown (:red[...]),
     # więc budujemy etykietę ręcznie z czarnym _HIDE_SUFFIX_PLAIN, zamiast
     # przez _label_with_hide() (ta zostaje z czerwonym, dla zwykłych stron).
+    _hotel_page_indices = {}  # mapowanie: indeks w _all_pages -> indeks hotelu (_hp)
     for _hp in _get_hotel_order():
         _h_title_check = str(st.session_state.get(f"h_title_{_hp}", "") or "").strip()
         _h_display = _h_title_check.split('\n')[0][:25].strip() if _h_title_check else ""
         if _h_display:
-            _hotel_name = f"    ❯ Hotel {_hp+1} — {_h_display}"
+            _hotel_name = f"    ❯ Hotel: {_h_display}"
         else:
-            _hotel_name = f"    ❯ Hotel {_hp+1}"
+            _hotel_name = f"    ❯ Hotel (nowy {_hp+1})"
         if st.session_state.get(f"h_hide_{_hp}", False):
             _hotel_name += _HIDE_SUFFIX_PLAIN
         _hopt_text_check = str(st.session_state.get(f"hopt_label_{_hp}", "") or "").strip()
         if _hopt_text_check:
             _hotel_name += _OPT_SUFFIX
+        _hotel_page_indices[len(_all_pages)] = _hp
         _all_pages.append(_hotel_name)
     
     _all_pages.extend([
