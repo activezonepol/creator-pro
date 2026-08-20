@@ -2731,7 +2731,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
     if not _hotel_order:
         _hotel_order = list(range(get_data('num_hotels', 1)))
     for i in _hotel_order:
-        if _should_render(f'slide-hotel-{i}', current_page, export_mode) and not get_data(f'h_hide_{i}', False):
+        if _should_render(f'slide-hotel-{i}', current_page, export_mode, active_hotel_idx=active_hotel_idx) and not get_data(f'h_hide_{i}', False):
             h1 = get_b64(f'img_hotel_1_{i}', (16, 9))
             h1b = get_b64(f'img_hotel_1b_{i}', (16, 9))
             h2 = get_b64(f'img_hotel_2_{i}', (16, 9))
