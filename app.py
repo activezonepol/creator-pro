@@ -3828,7 +3828,8 @@ with col_preview:
         # _should_render() w renderer.py.
         _current_p = st.session_state.get('last_page', "Strona tytułowa")
         _current_attr_idx = st.session_state.get('_last_attr_idx')
-        build_presentation(_current_p, active_attr_idx=_current_attr_idx)
+        _current_hotel_idx = st.session_state.get('_last_hotel_idx')
+        build_presentation(_current_p, active_attr_idx=_current_attr_idx, active_hotel_idx=_current_hotel_idx)
                 
     _preview()
     
