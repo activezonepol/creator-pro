@@ -1687,6 +1687,14 @@ with st.sidebar:
                 _found_ai = _ai_candidate
                 break
         st.session_state['_last_attr_idx'] = _found_ai
+        # To samo dla hoteli - zapamiętujemy stabilny indeks wybranego hotelu
+        # (None, jeśli wybrano coś innego niż hotel).
+        _found_hi = None
+        for _page_pos, _hi_candidate in _hotel_page_indices.items():
+            if _all_pages[_page_pos] == _chosen:
+                _found_hi = _hi_candidate
+                break
+        st.session_state['_last_hotel_idx'] = _found_hi
         if 'scroll_target' in st.session_state:
             del st.session_state['scroll_target']
     page = st.radio("Nawigacja", _all_pages, index=_idx, key="main_nav_radio", 
