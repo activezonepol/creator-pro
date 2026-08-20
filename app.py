@@ -3057,8 +3057,7 @@ with col_form:
                     st.rerun()
             
             st.markdown("---")
-            st.caption("💡 Kliknij '❯ Hotel N' w menu nawigacji aby edytować szczegóły konkretnego hotelu.")
-
+            st.caption("💡 Kliknij '❯ Hotel: nazwa' w menu nawigacji aby edytować szczegóły konkretnego hotelu.")
     # -----------------------------------------------------------------------
     # 10b. EDYCJA KONKRETNEGO HOTELU (po kliknięciu "❯ Hotel N" w menu)
     # -----------------------------------------------------------------------
