@@ -748,7 +748,14 @@ if _nexa_goto:
     elif _nexa_goto == 'hotel':
         try:
             _goto_hidx = int(st.query_params.get('nexa_idx'))
-            st.session_state['last_page'] = f"    ❯ Hotel {_goto_hidx + 1}"
+            _h_name_goto = str(
+                st.session_state.get(f'h_title_{_goto_hidx}', '')
+            ).split('\n')[0][:25].strip()
+            st.session_state['last_page'] = (
+                f"    ❯ Hotel: {_h_name_goto}" if _h_name_goto
+                else f"    ❯ Hotel (nowy {_goto_hidx + 1})"
+            )
+            st.session_state['_last_hotel_idx'] = _goto_hidx
             st.session_state['_last_attr_idx'] = None
             st.session_state.pop('main_nav_radio', None)
         except (ValueError, TypeError):
