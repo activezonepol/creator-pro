@@ -2944,7 +2944,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                 continue
                 
             # ✅ KRYTYCZNA OPTYMALIZACJA: Leniwe renderowanie (odcina lagi)
-            if not export_mode and not _should_render(f"slide-hotel-{i}", current_page, export_mode):
+            if not export_mode and not _should_render(f"slide-hotel-{i}", current_page, export_mode, active_hotel_idx=active_hotel_idx):
                 continue
                 
             h1 = get_b64(f'img_hotel_1_{i}', (16, 9))
