@@ -2216,6 +2216,15 @@ with col_form:
             help="Każda linia tekstu zostanie wyświetlona jako osobny pomarańczowy chip. Zalecane krótkie hasła.",
         )
         
+        _section_header("FILM (opcjonalnie)")
+        st.caption("Link do YouTube/Vimeo (zagra w nakładce) lub Instagram/TikTok (otworzy się w nowej karcie). Start i koniec działają dla YouTube i Vimeo. Przycisk pojawi się na prawym dolnym zdjęciu.")
+        safe_text_input("Link do filmu:", key="kvideo_url")
+        safe_text_input("Tekst przycisku:", key="kvideo_text", placeholder="Zobacz film")
+        _kvcol1, _kvcol2 = st.columns(2)
+        with _kvcol1:
+            safe_text_input("Start (np. 0:13):", key="kvideo_start")
+        with _kvcol2:
+            safe_text_input("Koniec (np. 3:00):", key="kvideo_end")
         _section_header("ZDJĘCIA KIERUNKU (jedno duże u góry + dwa mniejsze pod spodem)")
         st.file_uploader(
             "Zdjęcie główne (duże, góra):",
