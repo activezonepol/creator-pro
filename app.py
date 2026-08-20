@@ -3041,7 +3041,7 @@ with col_form:
                     f"<div style='padding:6px 10px; background:#f1f5f9; border-radius:4px; "
                     f"border-left:3px solid #003366; font-size:12px; color:#1e293b;'>"
                     f"<strong style='color:#003366; font-size:10px; text-transform:uppercase; "
-                    f"letter-spacing:1px;'>Hotel {hi+1}</strong><br>{name}</div>",
+                    f"letter-spacing:1px;'>Hotel</strong><br>{name}</div>",
                     unsafe_allow_html=True,
                 )
                 if pos > 0:
