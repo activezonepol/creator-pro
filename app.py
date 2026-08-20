@@ -1647,7 +1647,7 @@ with st.sidebar:
     # 4. GŁÓWNE MENU RADIO
     _last_p = st.session_state.get('last_page', "Strona tytułowa")
     _last_attr_idx = st.session_state.get('_last_attr_idx')
-
+    _last_hotel_idx = st.session_state.get('_last_hotel_idx')
     _idx = 0
     if _last_attr_idx is not None:
         # NAJPIERW próbujemy dopasować po STABILNYM indeksie atrakcji (_ai),
