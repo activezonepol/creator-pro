@@ -3035,7 +3035,7 @@ with col_form:
         else:
             _section_header(f"LISTA HOTELI ({_n_hotels_curr})")
             for pos, hi in enumerate(_hotel_order_list):
-                name = str(st.session_state.get(f'h_title_{hi}', f'Hotel {hi+1}')).split('\n')[0][:35] or f'Hotel {hi+1}'
+                name = str(st.session_state.get(f'h_title_{hi}', '(hotel bez nazwy)')).split('\n')[0][:35] or '(hotel bez nazwy)'
                 col_lbl, col_up, col_dn, col_del = st.columns([6, 1, 1, 1])
                 col_lbl.markdown(
                     f"<div style='padding:6px 10px; background:#f1f5f9; border-radius:4px; "
