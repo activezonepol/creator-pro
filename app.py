@@ -1659,6 +1659,13 @@ with st.sidebar:
             if _ai_candidate == _last_attr_idx:
                 _idx = _page_pos
                 break
+    elif _last_hotel_idx is not None and "❯" in str(_last_p):
+        # To samo dla hoteli - w spisie jest "Hotel: nazwa" (bez numeru),
+        # więc zaznaczenie odnajdujemy po STABILNYM indeksie hotelu.
+        for _page_pos, _hi_candidate in _hotel_page_indices.items():
+            if _hi_candidate == _last_hotel_idx:
+                _idx = _page_pos
+                break
     else:
         # Dopasowanie po treści etykiety - dla wszystkich stron NIE będących
         # atrakcją (te mają stałe, nie zmieniające się w locie nazwy).
