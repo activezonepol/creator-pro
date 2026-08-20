@@ -3063,16 +3063,15 @@ with col_form:
     # 10b. EDYCJA KONKRETNEGO HOTELU (po kliknięciu "❯ Hotel N" w menu)
     # -----------------------------------------------------------------------
     elif "❯" in page:
-        # Wyciągnij numer hotelu z nazwy strony "    ❯ Hotel N"
-        _hm = re.search(r'Hotel\s+(\d+)', page)
-        if not _hm:
-            st.warning("Nie udało się rozpoznać numeru hotelu z nazwy strony.")
+        # Który hotel edytujemy - indeks zapamiętany przy wyborze w menu
+        # (nie parsujemy już numeru z nazwy, bo w spisie jest "Hotel: nazwa").
+        i = st.session_state.get('_last_hotel_idx')
+        if i is None:
+            st.warning("Wybierz hotel z menu nawigacji (❯ Hotel: ...), aby edytować jego szczegóły.")
         else:
-            i = int(_hm.group(1)) - 1  # 1-based -> 0-based
-            
-            # Sprawdź czy hotel istnieje
-            if i >= st.session_state.get('num_hotels', 0):
-                st.warning(f"Hotel {i+1} nie istnieje. Wróć na 'Opis hoteli' aby dodać hotele.")
+            # Sprawdź czy hotel wciąż istnieje (indeks musi być na aktualnej liście)
+            if i not in _get_hotel_order():
+                st.warning("Ten hotel już nie istnieje. Wróć na 'Opis hoteli'.")
             else:
                 # Inicjalizuj klucze tylko jeśli BRAK ich w session_state.
                 # WAŻNE: 'st.session_state.get(dk) is None' usunięte — bo np. multiselect
