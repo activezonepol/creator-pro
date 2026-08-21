@@ -1413,19 +1413,50 @@ def get_tile_bytes(z, x, y):
         return None
 @st.cache_data(max_entries=200, show_spinner=False)
 def geocode_place(name, country=None):
+    """Zamienia nazwę miejsca na (lat, lon). Próbuje kolejno kilku darmowych
+    usług - Nominatim (OSM) często BLOKUJE zapytania z serwerów chmurowych
+    (Streamlit Cloud), przez co pojawiał się komunikat 'Nie udało się
+    zgeokodować żadnego punktu'. Kolejność: Nominatim -> Photon -> Open-Meteo.
+    Pierwsza usługa, która odpowie, wygrywa."""
     if not name or not str(name).strip():
         return None, None
+    q = str(name).strip()
+    q_full = f"{q}, {country}" if country else q
+    # 1. Nominatim (OSM) - najlepsza dokładność; krótki timeout, bo z chmury
+    #    bywa blokowany i nie chcemy długo czekać przed fallbackiem.
     try:
-        query = str(name).strip()
-        if country:
-            query = f"{query}, {country}"
-        params = urllib.parse.urlencode({'q': query, 'format': 'json', 'limit': 1})
+        params = urllib.parse.urlencode({'q': q_full, 'format': 'json', 'limit': 1})
         url = f"https://nominatim.openstreetmap.org/search?{params}"
-        req = urllib.request.Request(url, headers={'User-Agent': 'ActivezoneOfferBuilder/1.0'})
-        with urllib.request.urlopen(req, timeout=8) as resp:
+        req = urllib.request.Request(url, headers={'User-Agent': 'ActivezoneOfferBuilder/1.0 (info@activezone.pl)'})
+        with urllib.request.urlopen(req, timeout=6) as resp:
             data = json.loads(resp.read().decode('utf-8'))
             if data:
                 return float(data[0]['lat']), float(data[0]['lon'])
+    except Exception:
+        pass
+    # 2. Photon (komoot, dane OSM) - przyjazny chmurze, przyjmuje "miejsce, kraj"
+    try:
+        params = urllib.parse.urlencode({'q': q_full, 'limit': 1})
+        url = f"https://photon.komoot.io/api/?{params}"
+        req = urllib.request.Request(url, headers={'User-Agent': 'ActivezoneOfferBuilder/1.0'})
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            feats = data.get('features') or []
+            if feats:
+                lon, lat = feats[0]['geometry']['coordinates'][:2]
+                return float(lat), float(lon)
+    except Exception:
+        pass
+    # 3. Open-Meteo Geocoding - darmowe, bez klucza, bardzo stabilne z chmury
+    try:
+        params = urllib.parse.urlencode({'name': q, 'count': 1, 'language': 'pl', 'format': 'json'})
+        url = f"https://geocoding-api.open-meteo.com/v1/search?{params}"
+        req = urllib.request.Request(url, headers={'User-Agent': 'ActivezoneOfferBuilder/1.0'})
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            results = data.get('results') or []
+            if results:
+                return float(results[0]['latitude']), float(results[0]['longitude'])
     except Exception:
         pass
     return None, None
