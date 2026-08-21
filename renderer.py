@@ -2612,11 +2612,10 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                 label = f'{pa} → {pb}' if pa and pb else (pa or pb)
                 rows_html += f"""
                 <tr>
-                    <td style="font-family:'{f_t}'; font-size:{fs_t}px; color:white;
-                               font-weight:400; line-height:1.3; padding:7px 10px 7px 0;
+                    <td style="font-family:'{f_t}'; font-size:{fs_t+1}px; color:white;
+                               font-weight:400; line-height:1.3; padding:8px 10px 8px 0;
                                border-bottom:1px solid rgba(255,255,255,0.12);
-                               width:50%; max-width:0; overflow:hidden;
-                               text-overflow:ellipsis; white-space:nowrap;">
+                               width:52%; white-space:normal; word-break:break-word;">
                         {label}
                     </td>
                     <td style="width:25%; padding:7px 8px; text-align:right;
