@@ -1958,10 +1958,23 @@ def _get_ph(t):
     return f'<div class="photo-placeholder">{t}</div>'
 
 def _img_tag(b64_or_url, placeholder_text='ZDJĘCIE', style='width:100%;height:100%;object-fit:cover;', extra_class=''):
-    """Generuje tag <img>. Automatycznie rozpoznaje czy dostał URL czy Base64."""
+    """Generuje tag <img>. Automatycznie rozpoznaje czy dostał URL, gotowy
+    data-URI, surowy Base64 czy surowe bajty. Wykrywa też typ (JPEG/PNG) i
+    ustawia poprawny MIME - inaczej np. mapa (JPEG zapisany pod etykietą PNG)
+    potrafiła zniknąć po przeładowaniu z bazy lub rozpaść się w PDF."""
     if not b64_or_url:
         return _get_ph(placeholder_text)
-    src = b64_or_url if str(b64_or_url).startswith(('http', 'data:image')) else f'data:image/png;base64,{b64_or_url}'
+    val = b64_or_url
+    # Surowe bajty (np. obraz zdekodowany z bazy przy wczytaniu) -> Base64
+    if isinstance(val, (bytes, bytearray)):
+        val = base64.b64encode(val).decode()
+    val = str(val)
+    if val.startswith(('http', 'data:image')):
+        src = val
+    else:
+        # Surowy Base64 - wykryj JPEG (/9j/) vs PNG (iVBOR); domyślnie PNG.
+        _mime = 'jpeg' if val.startswith('/9j/') else 'png'
+        src = f'data:image/{_mime};base64,{val}'
     cls = f' class="{extra_class}"' if extra_class else ''
     return f'<img{cls} src="{src}" style="{style}">'
            
