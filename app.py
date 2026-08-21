@@ -2471,8 +2471,19 @@ with col_form:
             with c1:
                 safe_text_input("Nr lotu", key=f"f{n}_nr", placeholder="np. LO 535")
             with c2:
+                # Domyślna data wylotu = data imprezy TYLKO dla lotu głównego:
+                # LOT TAM (odcinek 1) -> początek, LOT POWRÓT (odcinek 2) ->
+                # koniec. Odcinki po przesiadce (3, 4) operator wpisuje ręcznie.
+                # Ustawiane tylko gdy pole jeszcze nie istnieje - operator może
+                # potem dowolnie zmienić, a zmiana zostaje (nie jest nadpisywana).
                 if f"f{n}_data" not in st.session_state:
-                    st.session_state[f"f{n}_data"] = date.today()
+                    if n == 1:
+                        _evt_default = st.session_state.get('t_date_from')
+                    elif n == 2:
+                        _evt_default = st.session_state.get('t_date_to')
+                    else:
+                        _evt_default = None
+                    st.session_state[f"f{n}_data"] = _evt_default or date.today()
                 st.date_input("Data wylotu", key=f"f{n}_data", format="DD.MM.YYYY")
             safe_text_input("Trasa (skróty lotnisk)", key=f"f{n}_trasa", placeholder="np. WAW-BUD")
             c3, c4 = st.columns(2)
