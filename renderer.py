@@ -810,6 +810,7 @@ _ADMIN_DATA_KEYS = {
     'ors_api_key', 'testim_count', 'prg_start_override',
     't_date_from', 't_date_to',
     'kvideo_url', 'kvideo_text', 'kvideo_start', 'kvideo_end',
+    'auto_map_points', 'map_zoom_adjust',
     
     # UWAGA: 'active_project_id' CELOWO nie jest tutaj. To czysto techniczny
     # identyfikator BIEŻĄCEJ SESJI ROBOCZEJ (który wiersz w bazie aktualizować),
