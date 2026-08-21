@@ -2649,8 +2649,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                 </tr>"""
             if rows_html:
                 dist_rows_html = f"""
-                <div style="background-color:{c_h2}; border-radius:8px; padding:12px 14px;
-                            margin-top:10px; box-shadow:0 4px 12px rgba(0,0,0,0.12);">
+                <div style="background-color:{c_h2}; border-radius:8px; padding:14px 16px;
+                            margin-top:10px; margin-right:-22px; box-shadow:0 4px 12px rgba(0,0,0,0.12);">
                     <div style="font-family:'{f_h2}'; font-weight:800; font-size:{fs_t}px;
                                 color:white; text-transform:uppercase; letter-spacing:1px;
                                 margin-bottom:8px; opacity:0.85;">
