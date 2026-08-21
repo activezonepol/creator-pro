@@ -316,7 +316,7 @@ for _i in range(50):
     })
 EXCLUDE_EXPORT_KEYS = {
     'client_mode', 'scroll_target', 'last_page',
-    'show_link_info', 'ready_export_html', 'auto_map_points',
+    'show_link_info', 'ready_export_html',
     # Klucze przycisków i widgetów Streamlit które nigdy nie trafiają do JSON
     'pa_add_place_btn', 'pa_add_attr_btn',
     'main_nav_radio', 'btn_add_hotel_main', 'manual_save_btn',
