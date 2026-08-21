@@ -2615,7 +2615,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                     <td style="font-family:'{f_t}'; font-size:{fs_t+1}px; color:white;
                                font-weight:400; line-height:1.3; padding:8px 10px 8px 0;
                                border-bottom:1px solid rgba(255,255,255,0.12);
-                               width:52%; white-space:normal; word-break:break-word;">
+                               width:52%; white-space:normal; overflow-wrap:break-word;">
                         {label}
                     </td>
                     <td style="width:25%; padding:7px 8px; text-align:right;
