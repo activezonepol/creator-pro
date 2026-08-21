@@ -1411,19 +1411,60 @@ def get_tile_bytes(z, x, y):
             return response.read()
     except Exception:
         return None
+def _secret_key(*path):
+    """Bezpiecznie czyta (zagnieżdżony) klucz z st.secrets; '' gdy brak."""
+    try:
+        cur = st.secrets
+        for _p in path:
+            cur = cur[_p]
+        return str(cur or '').strip()
+    except Exception:
+        return ''
 @st.cache_data(max_entries=200, show_spinner=False)
-def geocode_place(name, country=None):
-    """Zamienia nazwę miejsca na (lat, lon). Próbuje kolejno kilku darmowych
-    usług - Nominatim (OSM) często BLOKUJE zapytania z serwerów chmurowych
-    (Streamlit Cloud), przez co pojawiał się komunikat 'Nie udało się
-    zgeokodować żadnego punktu'. Kolejność: Nominatim -> Photon -> Open-Meteo.
-    Pierwsza usługa, która odpowie, wygrywa."""
+def geocode_place(name, country=None, ors_key=''):
+    """Zamienia nazwę miejsca na (lat, lon).
+    Kolejność źródeł (pierwsze, które odpowie, wygrywa):
+      1. Google Geocoding  - najdokładniejsze dla obiektów/adresów, klucz z
+         st.secrets['google']['maps_api_key'],
+      2. OpenRouteService (Pelias) - dokładne, chmuroodporne, klucz ORS,
+      3-5. darmowe zapasy: Nominatim -> Photon -> Open-Meteo.
+    Usługi z kluczem (Google, ORS) rozwiązują ŹRÓDŁO problemu: działają z
+    serwera chmurowego i geokodują też lotniska/dzielnice, w odróżnieniu od
+    Nominatim (blokowany z chmury) i Open-Meteo (tylko miasta)."""
     if not name or not str(name).strip():
         return None, None
     q = str(name).strip()
     q_full = f"{q}, {country}" if country else q
-    # 1. Nominatim (OSM) - najlepsza dokładność; krótki timeout, bo z chmury
-    #    bywa blokowany i nie chcemy długo czekać przed fallbackiem.
+    # 1. Google Geocoding - najdokładniejsze (klucz w secrets).
+    _gkey = _secret_key('google', 'maps_api_key')
+    if _gkey:
+        try:
+            _p = {'address': q_full, 'key': _gkey}
+            url = f"https://maps.googleapis.com/maps/api/geocode/json?{urllib.parse.urlencode(_p)}"
+            with urllib.request.urlopen(url, timeout=8) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                if data.get('status') == 'OK' and data.get('results'):
+                    loc = data['results'][0]['geometry']['location']
+                    return float(loc['lat']), float(loc['lng'])
+        except Exception:
+            pass
+    # 2. OpenRouteService Geocoding (Pelias) - dokładne, chmuroodporne.
+    _ors = ors_key or _secret_key('ORS_API_KEY')
+    if _ors:
+        try:
+            _p = {'api_key': _ors, 'text': q_full, 'size': 1}
+            url = f"https://api.openrouteservice.org/geocode/search?{urllib.parse.urlencode(_p)}"
+            req = urllib.request.Request(url, headers={'User-Agent': 'ActivezoneOfferBuilder/1.0'})
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                feats = data.get('features') or []
+                if feats:
+                    lon, lat = feats[0]['geometry']['coordinates'][:2]
+                    return float(lat), float(lon)
+        except Exception:
+            pass
+    # 3. Nominatim (OSM) - darmowy zapas; krótki timeout, bo z chmury bywa
+    #    blokowany i nie chcemy długo czekać przed kolejnym fallbackiem.
     try:
         params = urllib.parse.urlencode({'q': q_full, 'format': 'json', 'limit': 1})
         url = f"https://nominatim.openstreetmap.org/search?{params}"
