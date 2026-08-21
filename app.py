@@ -1979,6 +1979,33 @@ with col_form:
             'img_hero_t', 'logo_az', 'logo_cli', 'hide_logo_cli',
         ]
         section_template_manager(tit_keys, "TYT", "strona-tytulowa", "tit")
+        # Backfill kalendarzy dla ofert zapisanych ZANIM istniały pola
+        # t_date_from/t_date_to (mają tylko tekstowy termin t_date). Bez tego
+        # kalendarze pokazywały dzisiejszą datę zamiast zapisanego terminu.
+        # Działa tylko gdy którejś z dat brakuje; ofert z zapisanymi
+        # kalendarzami nie rusza (setdefault nie nadpisuje).
+        if not st.session_state.get('t_date_from') or not st.session_state.get('t_date_to'):
+            _term = str(st.session_state.get('t_date', '') or '').strip()
+            _m2 = re.search(r'^(\d{1,2})\.(\d{1,2})\s*-\s*(\d{1,2})\.(\d{1,2})\.(\d{4})$', _term)
+            _m1 = re.search(r'^(\d{1,2})\s*-\s*(\d{1,2})\.(\d{1,2})\.(\d{4})$', _term)
+            _m3 = re.search(r'^(\d{1,2})\.(\d{1,2})\.(\d{4})$', _term)
+            try:
+                if _m2:
+                    _bf_from = date(int(_m2.group(5)), int(_m2.group(2)), int(_m2.group(1)))
+                    _bf_to = date(int(_m2.group(5)), int(_m2.group(4)), int(_m2.group(3)))
+                elif _m1:
+                    _bf_from = date(int(_m1.group(4)), int(_m1.group(3)), int(_m1.group(1)))
+                    _bf_to = date(int(_m1.group(4)), int(_m1.group(3)), int(_m1.group(2)))
+                elif _m3:
+                    _bf_from = date(int(_m3.group(3)), int(_m3.group(2)), int(_m3.group(1)))
+                    _bf_to = _bf_from
+                else:
+                    _bf_from = _bf_to = None
+                if _bf_from and _bf_to:
+                    st.session_state.setdefault('t_date_from', _bf_from)
+                    st.session_state.setdefault('t_date_to', _bf_to)
+            except (ValueError, TypeError):
+                pass
         _tc1, _tc2 = st.columns(2)
         with _tc1:
             st.date_input(
