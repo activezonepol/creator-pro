@@ -847,6 +847,7 @@ _DYNAMIC_DATA_PATTERNS = [
     # --- Loty: osobne pola per odcinek (1-4) ---
     r'^f[1-4]_nr$', r'^f[1-4]_data$', r'^f[1-4]_trasa$',
     r'^f[1-4]_wylot$', r'^f[1-4]_przylot$',
+    r'^f[1-4]_nastepny_dzien$', r'^f[1-4]_data_ladowania$',
     # --- Przerywniki sekcji (sek_0 .. sek_4) ---
     r'^sek_\d+_title$', r'^sek_\d+_sub$', r'^sek_hide_\d+$',
     r'^sek_\d+_bg$', r'^sek_\d+_txt$', r'^sek_\d+_sub_color$', r'^sek_\d+_img$',
