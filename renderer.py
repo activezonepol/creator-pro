@@ -925,6 +925,7 @@ def load_project_data(project_data: dict):
                 except Exception:
                     st.session_state[k] = v
         elif k in ('p_start_dt', 'f1_data', 'f2_data', 'f3_data', 'f4_data',
+                   'f1_data_ladowania', 'f2_data_ladowania', 'f3_data_ladowania', 'f4_data_ladowania',
                    't_date_from', 't_date_to') and isinstance(v, str):
             try:
                 st.session_state[k] = date.fromisoformat(v)
@@ -957,6 +958,7 @@ def force_load_project_data(project_data: dict):
                 except Exception:
                     st.session_state[k] = v
         elif k in ('p_start_dt', 'f1_data', 'f2_data', 'f3_data', 'f4_data',
+                   'f1_data_ladowania', 'f2_data_ladowania', 'f3_data_ladowania', 'f4_data_ladowania',
                    't_date_from', 't_date_to') and isinstance(v, str):
             try:
                 st.session_state[k] = date.fromisoformat(v)
