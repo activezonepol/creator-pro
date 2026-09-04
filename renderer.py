@@ -36,6 +36,59 @@ def get_data(key, default=None):
         return supabase_data[key]
         
     return default
+
+
+def compute_layover_str(arr_date, arr_time, dep_date, dep_time):
+    """Czas przesiadki 'Xh YY min' z godziny lądowania odc.1 i wylotu odc.2.
+    Uwzględnia daty (obsługuje przesiadkę przez noc). '' gdy nie da się policzyć."""
+    from datetime import datetime as _dt, date as _date, timedelta as _td
+
+    def _parse(t):
+        t = str(t or '').strip().replace('.', ':').replace(' ', '')
+        if ':' not in t:
+            return None
+        p = t.split(':')
+        if len(p) != 2:
+            return None
+        try:
+            h, m = int(p[0]), int(p[1])
+        except ValueError:
+            return None
+        return (h, m) if (0 <= h <= 23 and 0 <= m <= 59) else None
+
+    def _to_date(d):
+        if d is None or d == '':
+            return None
+        if hasattr(d, 'year') and not isinstance(d, str):
+            return d
+        try:
+            return _date.fromisoformat(str(d)[:10])
+        except Exception:
+            return None
+
+    pa, pd = _parse(arr_time), _parse(dep_time)
+    if not pa or not pd:
+        return ''
+    da, dd = _to_date(arr_date), _to_date(dep_date)
+    if da is None and dd is not None:
+        da = dd
+    if dd is None and da is not None:
+        dd = da
+    if da is None and dd is None:
+        da = dd = _date(2000, 1, 1)
+    arr = _dt(da.year, da.month, da.day, pa[0], pa[1])
+    dep = _dt(dd.year, dd.month, dd.day, pd[0], pd[1])
+    if dep < arr and (arr_date in (None, '') or dep_date in (None, '')):
+        dep += _td(days=1)
+    total = int((dep - arr).total_seconds() // 60)
+    if total <= 0:
+        return ''
+    h, m = divmod(total, 60)
+    if h and m:
+        return f"{h}h {m:02d} min"
+    if h:
+        return f"{h}h"
+    return f"{m} min"
 # ---------------------------------------------------------------------------
 # STAŁE I DANE
 # ---------------------------------------------------------------------------
