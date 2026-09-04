@@ -2469,27 +2469,19 @@ with col_form:
             def _cb():
                 pass  # formatowanie wyłączone - operator wpisuje format ręcznie
             return _cb
-        def _render_flight_leg(n, label):
+
+        def _render_flight_leg(n, label, default_date=None):
             _section_header(label)
+            safe_text_input("Trasa (skróty lotnisk)", key=f"f{n}_trasa", placeholder="np. WAW-BUD")
             c1, c2 = st.columns(2)
             with c1:
-                safe_text_input("Nr lotu", key=f"f{n}_nr", placeholder="np. LO 535")
-            with c2:
-                # Domyślna data wylotu = data imprezy TYLKO dla lotu głównego:
-                # LOT TAM (odcinek 1) -> początek, LOT POWRÓT (odcinek 2) ->
-                # koniec. Odcinki po przesiadce (3, 4) operator wpisuje ręcznie.
-                # Ustawiane tylko gdy pole jeszcze nie istnieje - operator może
-                # potem dowolnie zmienić, a zmiana zostaje (nie jest nadpisywana).
+                # Podpowiedź daty wylotu (edytowalna). Ustawiana tylko gdy pole
+                # jeszcze nie istnieje - zmiana operatora zostaje.
                 if f"f{n}_data" not in st.session_state:
-                    if n == 1:
-                        _evt_default = st.session_state.get('t_date_from')
-                    elif n == 2:
-                        _evt_default = st.session_state.get('t_date_to')
-                    else:
-                        _evt_default = None
-                    st.session_state[f"f{n}_data"] = _evt_default or date.today()
+                    st.session_state[f"f{n}_data"] = default_date or date.today()
                 st.date_input("Data wylotu", key=f"f{n}_data", format="DD.MM.YYYY")
-            safe_text_input("Trasa (skróty lotnisk)", key=f"f{n}_trasa", placeholder="np. WAW-BUD")
+            with c2:
+                safe_text_input("Numer rejsu", key=f"f{n}_nr", placeholder="np. LO 535")
             c3, c4 = st.columns(2)
             with c3:
                 safe_text_input(
@@ -2498,7 +2490,7 @@ with col_form:
                 )
             with c4:
                 safe_text_input(
-                    "Godzina przylotu (format 00:00)", key=f"f{n}_przylot",
+                    "Godzina lądowania (format 00:00)", key=f"f{n}_przylot",
                     placeholder="np. 12:00",
                 )
             _ladowanie_dalej = safe_checkbox("Lądowanie następnego dnia", key=f"f{n}_nastepny_dzien")
@@ -2510,16 +2502,36 @@ with col_form:
                     "Data lądowania:", key=f"f{n}_data_ladowania", format="DD.MM.YYYY"
                 )
 
-        _render_flight_leg(1, "LOT TAM")
-        _render_flight_leg(2, "LOT POWRÓT")
+        def _render_przesiadka(prz_key, port_key, czas_key, odc1, odc2, default_date):
+            if safe_checkbox("Lot z przesiadką", key=prz_key):
+                _section_header("Dane przesiadki")
+                c1, c2 = st.columns(2)
+                c1.text_input("Miasto przesiadkowe:", key=port_key)
+                _a_date = (st.session_state.get(f"f{odc1}_data_ladowania")
+                           if st.session_state.get(f"f{odc1}_nastepny_dzien")
+                           else st.session_state.get(f"f{odc1}_data"))
+                _auto_czas = compute_layover_str(
+                    _a_date, st.session_state.get(f"f{odc1}_przylot", ''),
+                    st.session_state.get(f"f{odc2}_data"), st.session_state.get(f"f{odc2}_wylot", ''),
+                )
+                c2.text_input(
+                    "Czas przesiadki (auto - możesz nadpisać):", key=czas_key,
+                    placeholder=_auto_czas or "np. 1h 05 min",
+                )
+                if _auto_czas:
+                    c2.caption(f"Wyliczony z godzin: {_auto_czas}. Zostaw pole puste, aby użyć wyliczonego.")
+                _render_flight_leg(odc2, "Odcinek 2 (po przesiadce)", default_date)
 
-        if safe_checkbox("Lot z przesiadką", key="l_przesiadka"):
-            _section_header("DANE PRZESIADKI")
-            c1, c2 = st.columns(2)
-            c1.text_input("Port przesiadkowy:", key="l_port")
-            c2.text_input("Długość przesiadki:", key="l_czas")
-            _render_flight_leg(3, "LOT TAM - odcinek 2 (po przesiadce)")
-            _render_flight_leg(4, "LOT POWRÓT - odcinek 2 (po przesiadce)")
+        _d_start = st.session_state.get('t_date_from') or date.today()
+        _d_end = st.session_state.get('t_date_to') or date.today()
+
+        _section_header("LOT NA WYJAZD")
+        _render_flight_leg(1, "Odcinek 1", _d_start)
+        _render_przesiadka("l_przesiadka", "l_port", "l_czas", 1, 3, _d_start)
+
+        _section_header("LOT Z POWROTEM")
+        _render_flight_leg(2, "Odcinek 1", _d_end)
+        _render_przesiadka("l_przesiadka_pow", "l_port_pow", "l_czas_pow", 2, 4, _d_end)
         for k, l in [('l_desc', 'Opis'), ('l_extra', 'Dodatkowe info')]:
             safe_text_area(l, key=k)
         st.file_uploader(
