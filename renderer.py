@@ -292,7 +292,7 @@ ATTR_ICONS_AVAILABLE = {
     'fire':               {'label': 'Ognisko / grill',  'icon': 'fa-fire'},
     'music':              {'label': 'Koncert',          'icon': 'fa-music'},
 }
-pl_days_map = ["Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota", "Niedziela"]
+pl_days_map = ["poniedziałek", "wtorek", "środa", "czwartek", "piątek", "sobota", "niedziela"]
 # Klucze obrazów — używane przy zapisie/wczytaniu projektu JSON
 IMAGE_KEYS = {
     'img_hero_t', 'img_hero_k', 'img_hero_l', 'img_map_bg', 'img_map_bg_auto',
