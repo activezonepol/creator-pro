@@ -2746,41 +2746,56 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
         il = get_b64('img_hero_l', (4, 5))
         iml = _img_tag(il, 'FOTO SAMOLOTU')
         
-        _leg_numbers = [1, 2]
-        if get_data('l_przesiadka', False):
-            _leg_numbers.extend([3, 4])
+        def _fmt_date_pl(_raw):
+            if hasattr(_raw, 'strftime'):
+                return f"{_raw.strftime('%d.%m.%Y')} ({pl_days_map[_raw.weekday()]})"
+            return str(_raw).strip()
 
-        rows = ""
-        for _n in _leg_numbers:
+        def _flight_leg_row(_n):
             _nr = str(get_data(f'f{_n}_nr', '')).strip()
-            _data_lot_raw = get_data(f'f{_n}_data', '')
-            if hasattr(_data_lot_raw, 'strftime'):
-                _data_lot = f"{_data_lot_raw.strftime('%d.%m.%Y')} ({pl_days_map[_data_lot_raw.weekday()]})"
-            else:
-                _data_lot = str(_data_lot_raw).strip()
             _trasa = str(get_data(f'f{_n}_trasa', '')).strip()
             _wylot = str(get_data(f'f{_n}_wylot', '')).strip()
             _przylot = str(get_data(f'f{_n}_przylot', '')).strip()
-            _nastepny_dzien = get_data(f'f{_n}_nastepny_dzien', False)
-            if not (_nr or _data_lot or _trasa or _wylot or _przylot):
-                continue
-            _przylot_display = f"{_przylot} (+1)" if (_nastepny_dzien and _przylot) else _przylot
-            _godziny = f"{_wylot} - {_przylot_display}" if (_wylot or _przylot) else ""
-            rows += f"<tr><td>{_nr}</td><td>{_data_lot}</td><td>{_trasa}</td><td>{_godziny}</td></tr>"
-            if _nastepny_dzien:
-                _data_ladowania_raw = get_data(f'f{_n}_data_ladowania', '')
-                if hasattr(_data_ladowania_raw, 'strftime'):
-                    _data_ladowania = f"{_data_ladowania_raw.strftime('%d.%m.%Y')} ({pl_days_map[_data_ladowania_raw.weekday()]})"
-                else:
-                    _data_ladowania = str(_data_ladowania_raw).strip()
-                rows += f"<tr><td colspan='4' style='font-size:{fs_t}px; color:{c_t}; padding-top:0;'>Lądowanie następnego dnia: {_data_ladowania}</td></tr>"
-                
+            if not (_nr or _trasa or _wylot or _przylot):
+                return ""
+            _data_lot = _fmt_date_pl(get_data(f'f{_n}_data', ''))
+            _nastepny = get_data(f'f{_n}_nastepny_dzien', False)
+            _przylot_disp = f"{_przylot} (+1)" if (_nastepny and _przylot) else _przylot
+            _godziny = f"{_wylot} - {_przylot_disp}" if (_wylot or _przylot) else ""
+            _r = f"<tr><td>{_nr}</td><td>{_data_lot}</td><td>{_trasa}</td><td>{_godziny}</td></tr>"
+            if _nastepny:
+                _lad = _fmt_date_pl(get_data(f'f{_n}_data_ladowania', ''))
+                _r += f"<tr><td colspan='4' style='border-bottom:none; padding-top:0; font-size:{fs_t}px; color:{c_t};'>Lądowanie następnego dnia: {_lad}</td></tr>"
+            return _r
+
+        def _transfer_row(_port_key, _czas_key, _odc1, _odc2):
+            _port = str(get_data(_port_key, '') or '').strip()
+            _czas = str(get_data(_czas_key, '') or '').strip()
+            if not _czas:
+                _a_date = (get_data(f'f{_odc1}_data_ladowania') if get_data(f'f{_odc1}_nastepny_dzien', False)
+                           else get_data(f'f{_odc1}_data'))
+                _czas = compute_layover_str(_a_date, get_data(f'f{_odc1}_przylot', ''),
+                                            get_data(f'f{_odc2}_data'), get_data(f'f{_odc2}_wylot', ''))
+            if not (_port or _czas):
+                return ""
+            _mid = _port + (f" · {_czas}" if (_port and _czas) else _czas)
+            return (f"<tr><td colspan='4' style='border-bottom:none; padding-top:0; font-size:{fs_t}px; color:{c_t};'>"
+                    f"<i class='fa-solid fa-plane' style='color:{acc}; margin-right:6px;'></i>Przesiadka: {_mid}</td></tr>")
+
+        rows = ""
+        _directions = [
+            ('l_przesiadka', 'l_port', 'l_czas', 1, 3),
+            ('l_przesiadka_pow', 'l_port_pow', 'l_czas_pow', 2, 4),
+        ]
+        for _prz_k, _port_k, _czas_k, _odc1, _odc2 in _directions:
+            _r1 = _flight_leg_row(_odc1)
+            rows += _r1
+            if get_data(_prz_k, False):
+                if _r1:
+                    rows += _transfer_row(_port_k, _czas_k, _odc1, _odc2)
+                rows += _flight_leg_row(_odc2)
+
         przesiadka_html = ""
-        if get_data('l_przesiadka', False):
-            przesiadka_html = f"""<div style="background-color: #f8f9fa; border-left: 4px solid {acc}; padding: 15px 20px; margin-top: 15px; margin-bottom: 15px; border-radius: 4px; display: flex; gap: 40px; align-items: center;">
-                <div><div style="font-size: 11px; font-weight: 700; color: {c_h2}; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Port przesiadkowy</div><div style="font-size: {fs_t+2}px; font-weight: 600; color: {c_t};"><i class="fa-solid fa-location-dot" style="color:{acc}; margin-right:6px;"></i>{get_data('l_port','')}</div></div>
-                <div><div style="font-size: 11px; font-weight: 700; color: {c_h2}; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px;">Czas przesiadki</div><div style="font-size: {fs_t+2}px; font-weight: 600; color: {c_t};"><i class="fa-solid fa-clock" style="color:{acc}; margin-right:6px;"></i>{get_data('l_czas','')}</div></div>
-            </div>"""
             
         h_d = f"<p>{str(get_data('l_desc') or '').replace(chr(10),'<br>')}</p>" if str(get_data('l_desc','')).strip() else ""
         h_e = f"<p style='font-size:10px;margin-top:15px;'>{str(get_data('l_extra') or '').replace(chr(10),'<br>')}</p>" if str(get_data('l_extra','')).strip() else ""
