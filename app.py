@@ -2442,17 +2442,21 @@ with col_form:
     # 4. JAK LECIMY?
     # -----------------------------------------------------------------------
     elif page == "Jak lecimy?":
-        _guard(["l_hide", "l_przesiadka", "l_port", "l_czas", "l_overline",  
-                "l_main", "l_sub", "m_route", "m_luggage",                   
-                "l_desc", "l_extra"])                
+        _guard(["l_hide", "l_przesiadka", "l_port", "l_czas",
+                "l_przesiadka_pow", "l_port_pow", "l_czas_pow", "l_overline",
+                "l_main", "l_sub", "m_route", "m_luggage",
+                "l_desc", "l_extra"])
         l_keys = [
-            'l_hide', 'l_przesiadka', 'l_port', 'l_czas', 'l_overline', 'l_main',
+            'l_hide', 'l_przesiadka', 'l_port', 'l_czas',
+            'l_przesiadka_pow', 'l_port_pow', 'l_czas_pow',
+            'l_overline', 'l_main',
             'l_sub', 'm_route', 'm_luggage', 'l_desc', 'l_extra', 'img_hero_l',
         ]
         for _leg_n in (1, 2, 3, 4):
             l_keys.extend([
                 f'f{_leg_n}_nr', f'f{_leg_n}_data', f'f{_leg_n}_trasa',
                 f'f{_leg_n}_wylot', f'f{_leg_n}_przylot',
+                f'f{_leg_n}_nastepny_dzien', f'f{_leg_n}_data_ladowania',
             ])
         section_template_manager(l_keys, "LOT", "jak-lecimy", "lot")
         safe_checkbox("Ukryj ten slajd w PDF", key="l_hide")
