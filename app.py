@@ -28,7 +28,7 @@ from renderer import (
     optimize_img, optimize_logo, geocode_place, generate_map_data,
     get_road_distance, format_duration,
     get_local_css, build_presentation, generate_kierunek_opis_ai, fetch_country_facts, get_slide_nav_html, get_video_player_html,
-    format_flight_time,
+    format_flight_time, compute_layover_str,
 )
 from storage_utils import (
     upload_image, 
