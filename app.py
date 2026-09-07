@@ -2529,12 +2529,23 @@ with col_form:
                     _a_date, st.session_state.get(f"f{odc1}_przylot", ''),
                     st.session_state.get(f"f{odc2}_data"), st.session_state.get(f"f{odc2}_wylot", ''),
                 )
-                c2.text_input(
-                    "Czas przesiadki (auto - możesz nadpisać):", key=czas_key,
-                    placeholder=_auto_czas or "np. 1h 05 min",
-                )
-                if _auto_czas:
-                    c2.caption(f"Wyliczony z godzin: {_auto_czas}. Zostaw pole puste, aby użyć wyliczonego.")
+                # Wpisujemy wyliczony czas wprost do pola, dopóki operator sam go
+                # nie zmieni (wtedy ustawiamy znacznik i przestajemy nadpisywać).
+                _cm = f"{czas_key}_manual"
+                if _auto_czas and not st.session_state.get(_cm, False):
+                    st.session_state[czas_key] = _auto_czas
+                def _mark_czas_manual(_k=_cm):
+                    st.session_state[_k] = True
+                with c2:
+                    st.text_input(
+                        "Czas przesiadki (auto - możesz nadpisać):", key=czas_key,
+                        placeholder="np. 1h 05 min", on_change=_mark_czas_manual,
+                    )
+                    st.markdown(
+                        "<div style='font-size:11px; font-weight:600; color:#334155; margin-top:-6px;'>"
+                        "Liczony automatycznie z godzin — możesz nadpisać ręcznie.</div>",
+                        unsafe_allow_html=True,
+                    )
                 _render_flight_leg(odc2, "Odcinek 2 (po przesiadce)", default_date)
 
         _d_start = st.session_state.get('t_date_from') or date.today()
