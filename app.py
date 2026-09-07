@@ -2551,11 +2551,11 @@ with col_form:
         _d_start = st.session_state.get('t_date_from') or date.today()
         _d_end = st.session_state.get('t_date_to') or date.today()
 
-        _section_header("LOT NA WYJAZD")
+        _group_header("LOT NA WYJAZD")
         _render_flight_leg(1, "Odcinek 1", _d_start)
         _render_przesiadka("l_przesiadka", "l_port", "l_czas", 1, 3, _d_start)
 
-        _section_header("LOT Z POWROTEM")
+        _group_header("LOT Z POWROTEM")
         _render_flight_leg(2, "Odcinek 1", _d_end)
         _render_przesiadka("l_przesiadka_pow", "l_port_pow", "l_czas_pow", 2, 4, _d_end)
         for k, l in [('l_desc', 'Opis'), ('l_extra', 'Dodatkowe info')]:
