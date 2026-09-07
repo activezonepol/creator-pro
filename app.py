@@ -652,6 +652,14 @@ def _section_header(label):
         unsafe_allow_html=True,
     )
 
+def _group_header(label):
+    _acc = st.session_state.get('color_accent', '#FF6600')
+    st.markdown(
+        f"<div style='font-size: 20px; font-weight: 800; color: {_acc}; text-transform: uppercase; "
+        f"margin-top: 24px; margin-bottom: 10px; letter-spacing: 1px;'>{label}</div>",
+        unsafe_allow_html=True,
+    )
+
 # ---------------------------------------------------------------------------
 # STYLE SIDEBARA (set_page_config przeniesiony na sam początek pliku)
 # ---------------------------------------------------------------------------
