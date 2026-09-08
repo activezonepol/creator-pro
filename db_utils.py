@@ -314,8 +314,31 @@ def fetch_offer_by_id(supabase_client, offer_id):
 
 
 def delete_offer(supabase_client, offer_id):
-    """Usuwa oferte po ID z tabeli projects."""
+    """Usuwa oferte po ID z tabeli projects WRAZ z powiazanymi wierszami.
+    Baza blokuje usuniecie projektu, dopoki wskazuja na niego wiersze w innych
+    tabelach (klucze obce): otwarcia ofert online, oferty online, sesje edycji.
+    Kasujemy je w kolejnosci od 'dzieci' do 'rodzica'."""
     try:
+        # 1. Otwarcia ofert online (wskazuja na oferty_online.id).
+        try:
+            _oferty = supabase_client.table('oferty_online').select('id').eq(
+                'project_id', offer_id
+            ).execute().data or []
+            for _of in _oferty:
+                supabase_client.table('oferty_otwarcia').delete().eq('oferta_id', _of['id']).execute()
+        except Exception:
+            pass
+        # 2. Oferty online tego projektu.
+        try:
+            supabase_client.table('oferty_online').delete().eq('project_id', offer_id).execute()
+        except Exception:
+            pass
+        # 3. Sesje edycji (czas pracy) tego projektu.
+        try:
+            supabase_client.table('sesje_edycji').delete().eq('project_id', offer_id).execute()
+        except Exception:
+            pass
+        # 4. Sam projekt.
         supabase_client.table('projects').delete().eq("id", offer_id).execute()
         return True
     except Exception as e:
