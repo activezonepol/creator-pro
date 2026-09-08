@@ -1630,7 +1630,34 @@ with st.sidebar:
 
         if st.session_state.get('_ostatni_link_oferty'):
             st.text_input("Link do oferty (skopiuj i wyślij klientowi):", value=st.session_state['_ostatni_link_oferty'])
-            st.caption(f"PIN do podania klientowi: **{st.secrets['oferty_online']['pin']}**")
+            _acc_pin = st.session_state.get('color_accent', '#FF6600')
+            st.markdown(
+                f"<div style='font-size:1.05rem; font-weight:700; color:#0f172a; margin:8px 0 2px;'>"
+                f"PIN do podania klientowi: <span style='color:{_acc_pin};'>{st.secrets['oferty_online']['pin']}</span></div>",
+                unsafe_allow_html=True,
+            )
+
+            def _zapisz_notatke_wersji():
+                _oid = st.session_state.get('_ostatnia_oferta_id')
+                _num = st.session_state.get('_ostatni_numer')
+                _txt = str(st.session_state.get('_notatka_zmiany', '') or '').strip()[:40]
+                if not _oid or _num is None:
+                    return
+                try:
+                    _r = supabase.table('oferty_online').select('wersje').eq('id', _oid).execute()
+                    _w = (_r.data[0].get('wersje') if _r.data else None) or []
+                    for _v in _w:
+                        if _v.get('numer') == _num:
+                            _v['notatka'] = _txt
+                    supabase.table('oferty_online').update({'wersje': _w}).eq('id', _oid).execute()
+                except Exception:
+                    pass
+
+            safe_text_input(
+                "Co zmieniono w tej wersji (max 40 znaków):", key="_notatka_zmiany",
+                max_chars=40, placeholder="np. poprawiona cena / zmiana przelotu",
+                on_change=_zapisz_notatke_wersji,
+            )
 
         with st.expander("PODGLĄD WYSŁANYCH OFERT (ta oferta i jej wersje)", expanded=False):
             try:
