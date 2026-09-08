@@ -3118,10 +3118,11 @@ with col_form:
                     for _gi, _gurl in enumerate(_gallery_urls):
                         with _gcols[_gi % 2]:
                             st.image(_gurl, use_container_width=True)
-                            if st.button("Użyj", key=f"gal_{widget_suffix}_{_gi}", use_container_width=True):
-                                st.session_state[target_key] = _gurl
-                                st.session_state[f"src_{widget_suffix}"] = "Z dysku"
-                                st.rerun()
+                            def _pick_gallery(_tk=target_key, _sk=f"src_{widget_suffix}", _url=_gurl):
+                                st.session_state[_tk] = _url
+                                st.session_state[_sk] = "Z dysku"
+                            st.button("Użyj", key=f"gal_{widget_suffix}_{_gi}",
+                                      use_container_width=True, on_click=_pick_gallery)
 
             _render_image_field("Foto Główne", f"ah_{_i}", f"up_ah_{_i}", f"ah_{_i}")
 
