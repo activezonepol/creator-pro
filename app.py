@@ -1659,7 +1659,7 @@ with st.sidebar:
                 on_change=_zapisz_notatke_wersji,
             )
 
-        with st.expander("PODGLĄD WYSŁANYCH OFERT (ta oferta i jej wersje)", expanded=False):
+        with st.expander("LINKI WYSŁANYCH OFERT", expanded=False):
             try:
                 _kod_biezacy = ''
                 _biez_lookup = supabase.table('projects').select('project_code').eq(
