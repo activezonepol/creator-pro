@@ -2581,18 +2581,12 @@ with col_form:
             safe_text_input("Trasa (skróty lotnisk)", key=f"f{n}_trasa", placeholder="np. WAW-BUD")
             c1, c2 = st.columns(2)
             with c1:
-                # Data wylotu podąża za terminem oferty, dopóki operator sam jej
-                # nie zmieni. Po ręcznej zmianie ustawiamy znacznik i przestajemy
-                # nadpisywać (wybór operatora jest nadrzędny).
-                _dm = f"f{n}_data_manual"
-                if default_date and not st.session_state.get(_dm, False):
-                    st.session_state[f"f{n}_data"] = default_date
-                elif f"f{n}_data" not in st.session_state:
+                # Podpowiedź daty wylotu z terminu oferty - USTAWIANA TYLKO RAZ,
+                # gdy pole jest jeszcze puste. Potem obowiązuje wartość operatora
+                # i jest identyczna wszędzie (panel, podgląd, pełny ekran, PDF).
+                if f"f{n}_data" not in st.session_state:
                     st.session_state[f"f{n}_data"] = default_date or date.today()
-                def _mark_data_manual(_k=_dm):
-                    st.session_state[_k] = True
-                st.date_input("Data wylotu", key=f"f{n}_data", format="DD.MM.YYYY",
-                              on_change=_mark_data_manual)
+                st.date_input("Data wylotu", key=f"f{n}_data", format="DD.MM.YYYY")
             with c2:
                 safe_text_input("Numer rejsu", key=f"f{n}_nr", placeholder="np. LO 535")
             c3, c4 = st.columns(2)
