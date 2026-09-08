@@ -356,6 +356,27 @@ def wyslij_migawke_oferty(html_content: str, nazwa_folderu_klienta: str, nazwa_f
     except Exception as e:
         return False, f"Błąd migawki: {str(e)}"
 
+def usun_migawke_oferty(nazwa_folderu_klienta: str, nazwa_folderu_oferty: str, numer):
+    """Usuwa plik migawki v{numer}.html z serwera (best-effort)."""
+    import ftplib
+    try:
+        _host = st.secrets["ftp"]["host"]
+        _user = st.secrets["ftp"]["username"]
+        _pass = st.secrets["ftp"]["password"]
+        _port = int(st.secrets["ftp"]["port"])
+        _ftp = ftplib.FTP()
+        _ftp.connect(_host, _port, timeout=15)
+        _ftp.login(_user, _pass)
+        _ftp.cwd(f"/public_html/oferty/{nazwa_folderu_klienta}/{nazwa_folderu_oferty}/wersje")
+        try:
+            _ftp.delete(f"v{numer}.html")
+        except Exception:
+            pass
+        _ftp.quit()
+        return True
+    except Exception:
+        return False
+
 def _make_upload_callback(session_key, is_logo=False):
     """Tworzy callback dla file_uploadera, wywoływany on_change.
     
