@@ -347,6 +347,7 @@ ATTR_ICONS_AVAILABLE = {
     'tree':               {'label': 'Natura / park',    'icon': 'fa-tree'},
     'fire':               {'label': 'Ognisko / grill',  'icon': 'fa-fire'},
     'music':              {'label': 'Koncert',          'icon': 'fa-music'},
+    'masks-theater':      {'label': 'Spektakl / widowisko', 'icon': 'fa-masks-theater'},
 }
 pl_days_map = ["poniedziałek", "wtorek", "środa", "czwartek", "piątek", "sobota", "niedziela"]
 # Klucze obrazów — używane przy zapisie/wczytaniu projektu JSON
