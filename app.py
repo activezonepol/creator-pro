@@ -1731,13 +1731,14 @@ with st.sidebar:
                         _naj = _wersje[_last_i]
                         _naj_notatka = str(_naj.get('notatka') or '').strip()
                         _naj_zm = f'<br><b>Co zmieniono:</b> {_naj_notatka}' if _naj_notatka else ''
+                        _status_naj = '' if _aktywna else f' &nbsp; {_status}'
                         st.markdown(
                             f'<div style="border-left:3px solid {_acc_save}; background:#f8fafc; border-radius:4px; padding:10px 12px; margin-bottom:8px;">'
-                            f'<div style="font-size:0.8rem; margin-bottom:6px;"><b>Aktualny link — wersja nr {_naj.get("numer")}</b> &nbsp; {_status}</div>'
+                            f'<div style="font-size:0.8rem; margin-bottom:6px;"><b>Aktualny link — wersja nr {_naj.get("numer")}</b>{_status_naj}</div>'
                             f'<a href="{_link_base}" target="_blank" style="font-size:0.8rem; word-break:break-all;">{_link_base}</a>'
                             f'<div style="font-size:0.8rem; color:#334155; line-height:1.9; margin-top:8px;">'
                             f'<b>Wygenerowano:</b> {_fmt_local(_naj.get("data"))} · {_naj.get("operator","")}<br>'
-                            f'<b>Otwarć tej wersji:</b> {_otw_wersji(_last_i)}<br>'
+                            f'<b>Otwarć wersji nr {_naj.get("numer")}:</b> {_otw_wersji(_last_i)}<br>'
                             f'<b>Ważny do:</b> {_fmt_local(_of["data_wygasniecia"])}{_naj_zm}'
                             f'</div></div>',
                             unsafe_allow_html=True,
