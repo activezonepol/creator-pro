@@ -1304,12 +1304,12 @@ with st.sidebar:
         except Exception:
             _editing_code = ''
     st.markdown(
-        f"<div style='background:#7A7D80;border-left:3px solid {_acc_top};padding:12px 14px;"
+        f"<div style='background:#ffffff;border:2px solid {_acc_top};padding:12px 14px;"
         f"margin-bottom:15px;border-radius:4px;'>"
-        f"<div style='font-size:14px;font-weight:700;color:#ffffff;text-transform:uppercase;"
+        f"<div style='font-size:14px;font-weight:700;color:{_acc_top};text-transform:uppercase;"
         f"letter-spacing:1px;margin-bottom:6px;'>Aktualnie edytujesz:</div>"
-        f"<div style='font-size:25px;font-weight:700;color:#ffffff;line-height:1.25;'>{_editing_name}</div>"
-        f"<div style='font-size:14px;font-weight:700;color:#ffffff;margin-top:4px;font-family:monospace;'>{_editing_code}</div>"
+        f"<div style='font-size:25px;font-weight:700;color:{_acc_top};line-height:1.25;'>{_editing_name}</div>"
+        f"<div style='font-size:14px;font-weight:700;color:{_acc_top};margin-top:4px;font-family:monospace;'>{_editing_code}</div>"
         f"</div>",
         unsafe_allow_html=True
     )
