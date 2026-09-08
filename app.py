@@ -1587,7 +1587,14 @@ with st.sidebar:
                         ).eq('oferta_id', _of['id']).order('data_otwarcia', desc=True).execute()
                         _otwarcia = _otwarcia_result.data or []
                         st.markdown(f"**{_of['nazwa_klienta']} / {_of['nazwa_oferty']}** — {_status}", unsafe_allow_html=True)
-                        st.caption(f"Wysłano: {_fmt_local(_of['data_utworzenia'])} · Wygasa: {_fmt_local(_of['data_wygasniecia'])} · Otwarć: {len(_otwarcia)}")
+                        _link_of = f"https://activezone.pl/oferty/{_of['nazwa_klienta']}/{_of['nazwa_oferty']}/"
+                        st.markdown(
+                            f'<a href="{_link_of}" target="_blank" style="font-size:0.85rem;word-break:break-all;">{_link_of}</a>',
+                            unsafe_allow_html=True,
+                        )
+                        _przez = str(_of.get('created_by') or '').strip()
+                        _przez_txt = f" · Ostatnio wygenerował: {_przez}" if _przez else ""
+                        st.caption(f"Wysłano: {_fmt_local(_of['data_utworzenia'])} · Wygasa: {_fmt_local(_of['data_wygasniecia'])} · Otwarć: {len(_otwarcia)}{_przez_txt}")
                         _data_akt_1 = _fmt_local(_of.get('data_aktualizacji'))
                         st.markdown(
                             f'<span style="font-size:0.8rem;color:#64748b;">Data aktualizacji: {_data_akt_1} '
