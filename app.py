@@ -2639,8 +2639,10 @@ with col_form:
                         "Liczony automatycznie z godzin — możesz nadpisać ręcznie.</div>",
                         unsafe_allow_html=True,
                     )
-                _render_flight_leg(odc2, "Odcinek 2 (po przesiadce)", default_date)
-
+                _odc2_default = (st.session_state.get(f"f{odc1}_data_ladowania")
+                                 if st.session_state.get(f"f{odc1}_nastepny_dzien")
+                                 else st.session_state.get(f"f{odc1}_data")) or default_date
+                _render_flight_leg(odc2, "Odcinek 2 (po przesiadce)", _odc2_default)
         _d_start = st.session_state.get('t_date_from') or date.today()
         _d_end = st.session_state.get('t_date_to') or date.today()
 
