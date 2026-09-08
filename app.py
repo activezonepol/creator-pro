@@ -1781,6 +1781,28 @@ with st.sidebar:
                                         f'</div>',
                                         unsafe_allow_html=True,
                                     )
+                            _potw_arch = st.checkbox(
+                                "Potwierdzam — usuń starsze wersje (najnowsza zostaje)",
+                                key=f"potw_arch_{_of['id']}",
+                            )
+                            if st.button("Wyczyść archiwum (zostaw najnowszą)",
+                                         key=f"clear_arch_{_of['id']}", use_container_width=True):
+                                if _potw_arch:
+                                    for _w in _stare:
+                                        try:
+                                            usun_migawke_oferty(_of['nazwa_klienta'], _of['nazwa_oferty'], _w.get('numer'))
+                                        except Exception:
+                                            pass
+                                    try:
+                                        supabase.table('oferty_online').update(
+                                            {'wersje': [_naj]}
+                                        ).eq('id', _of['id']).execute()
+                                    except Exception:
+                                        pass
+                                    st.session_state.pop(f"potw_arch_{_of['id']}", None)
+                                    st.rerun()
+                                else:
+                                    st.warning("Zaznacz najpierw potwierdzenie.")
                         st.markdown("---")
             except Exception as e:
                 st.error(f"Błąd pobierania danych: {str(e)}")
