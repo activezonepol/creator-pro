@@ -414,9 +414,80 @@ st.session_state['supabase'] = supabase
 # Nie dzieli danych na prywatne konta - wszyscy widzą wszystkie oferty,
 # login służy do identyfikacji (kto edytuje co) i blokad edycji.
 # ---------------------------------------------------------------------------
+# --- Trwałe logowanie w ciasteczku (okno przesuwne 2h od aktywności) ---
+_COOKIE_NAME = "nexa_auth"
+_COOKIE_TTL = 2 * 60 * 60  # 2 godziny (w sekundach)
+
+def _auth_secret():
+    try:
+        return st.secrets["auth"]["cookie_secret"]
+    except Exception:
+        return ""
+
+def _make_auth_token(user):
+    _secret = _auth_secret()
+    if not _secret:
+        return ""
+    _exp = int(time.time()) + _COOKIE_TTL
+    _payload = f"{user}|{_exp}"
+    _sig = hmac.new(_secret.encode(), _payload.encode(), hashlib.sha256).hexdigest()
+    return base64.urlsafe_b64encode(f"{_payload}|{_sig}".encode()).decode()
+
+def _verify_auth_token(token):
+    _secret = _auth_secret()
+    if not token or not _secret:
+        return None
+    try:
+        _raw = base64.urlsafe_b64decode(token.encode()).decode()
+        _user, _exp, _sig = _raw.rsplit("|", 2)
+        _expected = hmac.new(_secret.encode(), f"{_user}|{_exp}".encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(_sig, _expected):
+            return None
+        if int(_exp) < int(time.time()):
+            return None
+        if _user not in dict(st.secrets.get("users", {})):
+            return None
+        return _user
+    except Exception:
+        return None
+
+def _read_auth_cookie():
+    try:
+        return st.context.cookies.get(_COOKIE_NAME)
+    except Exception:
+        return None
+
+def _write_auth_cookie(user):
+    _token = _make_auth_token(user)
+    if not _token:
+        return
+    components.html(
+        f"""<script>try {{ window.parent.document.cookie =
+        "{_COOKIE_NAME}={_token}; path=/; max-age={_COOKIE_TTL}; SameSite=Lax"; }} catch(e) {{}}</script>""",
+        height=0,
+    )
+
+def _clear_auth_cookie():
+    components.html(
+        f"""<script>try {{ window.parent.document.cookie =
+        "{_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax"; }} catch(e) {{}}</script>""",
+        height=0,
+    )
+
 def _check_login():
+    # Zalogowany w tej sesji -> odśwież ciasteczko (przesuń okno o 2h).
     if st.session_state.get('current_user'):
+        _write_auth_cookie(st.session_state['current_user'])
         return True
+
+    # Auto-logowanie z ciasteczka (przetrwa odświeżenie/rozłączenie/reboot,
+    # dopóki mieścisz się w oknie 2h). Pomijane tuż po ręcznym wylogowaniu.
+    if not st.session_state.get('_force_logout'):
+        _cookie_user = _verify_auth_token(_read_auth_cookie())
+        if _cookie_user:
+            st.session_state['current_user'] = _cookie_user
+            _write_auth_cookie(_cookie_user)
+            return True
 
     st.markdown(
         """
@@ -463,6 +534,8 @@ def _check_login():
             _users = dict(st.secrets.get("users", {}))
             if _login in _users and _users[_login] == _pass:
                 st.session_state['current_user'] = _login
+                st.session_state.pop('_force_logout', None)
+                _write_auth_cookie(_login)
                 st.rerun()
             else:
                 st.error("Nieprawidłowy login lub hasło.")
