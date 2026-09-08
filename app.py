@@ -1966,7 +1966,14 @@ with st.sidebar:
                 if _admin_idx > 0:
                     _target_id = _admin_ids[_admin_idx]
                     _target_label = _admin_options[_admin_idx]
-                    st.warning(f"Zamierzasz trwale usunąć: **{_target_label}**")
+                    _acc_del = st.session_state.get('color_accent', '#FF6600')
+                    st.markdown(
+                        f"<div style='background:{_acc_del};color:#ffffff;padding:12px 14px;"
+                        f"border-radius:4px;font-weight:600;margin-bottom:8px;'>"
+                        f"Zamierzasz trwale usunąć: <b>{_target_label}</b><br>"
+                        f"Tej operacji nie da się cofnąć.</div>",
+                        unsafe_allow_html=True,
+                    )
                     _confirm_delete = st.checkbox(
                         "Rozumiem, że tej operacji nie da się cofnąć.",
                         key="admin_delete_confirm",
