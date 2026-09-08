@@ -1563,19 +1563,14 @@ with st.sidebar:
 
                     _teraz_iso = datetime.utcnow().isoformat()
                     if _istniejacy_wpis.data:
-                        # Ta sama ścieżka na serwerze (identyczny link dla klienta)
-                        # była już wcześniej wysłana - AKTUALIZUJEMY istniejący
-                        # wpis (nowa data wygaśnięcia + data_aktualizacji), zamiast
-                        # tworzyć duplikat. Link i historia otwarć (oferty_otwarcia,
-                        # powiązana przez ten sam id) pozostają nienaruszone.
-                        # data_utworzenia (pierwsza wysyłka) NIGDY się nie zmienia.
+                        _oferta_id = _istniejacy_wpis.data[0]['id']
                         supabase.table('oferty_online').update({
                             'data_wygasniecia': _data_wygasniecia,
                             'data_aktualizacji': _teraz_iso,
                             'created_by': st.session_state.get('current_user', ''),
-                        }).eq('id', _istniejacy_wpis.data[0]['id']).execute()
+                        }).eq('id', _oferta_id).execute()
                     else:
-                        supabase.table('oferty_online').insert({
+                        _ins_res = supabase.table('oferty_online').insert({
                             'project_id': st.session_state.get('active_project_id'),
                             'project_code_rdzen': _rdzen_kodu,
                             'nazwa_klienta': _folder_klienta,
@@ -1585,6 +1580,49 @@ with st.sidebar:
                             'data_aktualizacji': _teraz_iso,
                             'created_by': st.session_state.get('current_user', ''),
                         }).execute()
+                        _oferta_id = _ins_res.data[0]['id'] if _ins_res.data else None
+
+                    # --- DZIENNIK WERSJI (migawki) ---
+                    try:
+                        import hashlib as _hashlib
+                        _odcisk = _hashlib.md5(client_html.encode('utf-8')).hexdigest()
+                        _notatka_zm = str(st.session_state.get('_notatka_zmiany', '') or '').strip()[:40]
+                        _row_w = supabase.table('oferty_online').select('wersje').eq('id', _oferta_id).execute()
+                        _wersje = (_row_w.data[0].get('wersje') if _row_w.data else None) or []
+                        _ost = _wersje[-1] if _wersje else None
+                        if not (_ost and _ost.get('odcisk') == _odcisk):
+                            _otw_ost = 0
+                            if _ost:
+                                try:
+                                    _o_res = supabase.table('oferty_otwarcia').select('id').eq(
+                                        'oferta_id', _oferta_id
+                                    ).gte('data_otwarcia', _ost.get('data')).execute()
+                                    _otw_ost = len(_o_res.data or [])
+                                except Exception:
+                                    _otw_ost = 0
+                            if _ost and _otw_ost == 0:
+                                _numer_w = _ost.get('numer', 1)
+                                _wersje = _wersje[:-1]
+                            else:
+                                _numer_w = (_ost.get('numer', 0) + 1) if _ost else 1
+                            _url_mig = ''
+                            try:
+                                _ok_m, _res_m = wyslij_migawke_oferty(client_html, _folder_klienta, _folder_oferty, _numer_w)
+                                if _ok_m:
+                                    _url_mig = _res_m
+                            except Exception:
+                                pass
+                            _wersje.append({
+                                'numer': _numer_w,
+                                'data': _teraz_iso,
+                                'operator': st.session_state.get('current_user', ''),
+                                'odcisk': _odcisk,
+                                'url': _url_mig,
+                                'notatka': _notatka_zm,
+                            })
+                            supabase.table('oferty_online').update({'wersje': _wersje}).eq('id', _oferta_id).execute()
+                    except Exception:
+                        pass
 
                     st.session_state['_ostatni_link_oferty'] = _wynik
                     st.success(f"✓ Oferta wysłana! Link ważny 14 dni.")
