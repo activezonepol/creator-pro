@@ -2630,7 +2630,7 @@ with col_form:
                 def _mark_czas_manual(_k=_cm):
                     st.session_state[_k] = True
                 with c2:
-                    st.text_input(
+                    safe_text_input(
                         "Czas przesiadki (auto - możesz nadpisać):", key=czas_key,
                         placeholder="np. 1h 05 min", on_change=_mark_czas_manual,
                     )
