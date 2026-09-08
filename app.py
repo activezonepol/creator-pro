@@ -1614,9 +1614,12 @@ with st.sidebar:
                                 'operator': st.session_state.get('current_user', ''),
                                 'odcisk': _odcisk,
                                 'url': _url_mig,
-                                'notatka': _notatka_zm,
+                                'notatka': '',
                             })
                             supabase.table('oferty_online').update({'wersje': _wersje}).eq('id', _oferta_id).execute()
+                        st.session_state['_ostatnia_oferta_id'] = _oferta_id
+                        st.session_state['_ostatni_numer'] = _wersje[-1].get('numer') if _wersje else None
+                        st.session_state['_notatka_zmiany'] = ''
                     except Exception:
                         pass
 
