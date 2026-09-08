@@ -1586,25 +1586,26 @@ with st.sidebar:
                             'data_otwarcia, adres_ip'
                         ).eq('oferta_id', _of['id']).order('data_otwarcia', desc=True).execute()
                         _otwarcia = _otwarcia_result.data or []
-                        st.markdown(f"**{_of['nazwa_klienta']} / {_of['nazwa_oferty']}** — {_status}", unsafe_allow_html=True)
                         _link_of = f"https://activezone.pl/oferty/{_of['nazwa_klienta']}/{_of['nazwa_oferty']}/"
-                        st.markdown(
-                            f'<a href="{_link_of}" target="_blank" style="font-size:0.85rem;word-break:break-all;">{_link_of}</a>',
-                            unsafe_allow_html=True,
-                        )
                         _przez = str(_of.get('created_by') or '').strip()
-                        _przez_txt = f" · Ostatnio wygenerował: {_przez}" if _przez else ""
-                        st.caption(f"Wysłano: {_fmt_local(_of['data_utworzenia'])} · Wygasa: {_fmt_local(_of['data_wygasniecia'])} · Otwarć: {len(_otwarcia)}{_przez_txt}")
-                        _data_akt_1 = _fmt_local(_of.get('data_aktualizacji'))
-                        st.markdown(
-                            f'<span style="font-size:0.8rem;color:#64748b;">Data aktualizacji: {_data_akt_1} '
-                            f'<span title="Data ostatniego generowania linku" style="cursor:help;">ℹ️</span></span>',
-                            unsafe_allow_html=True,
-                        )
+                        _otw_txt = f"{len(_otwarcia)}"
                         if _otwarcia:
                             _ostatnie = _otwarcia[0]
-                            st.caption(f"Ostatnio otwarto: {_fmt_local(_ostatnie['data_otwarcia'])} (IP: {_ostatnie.get('adres_ip', 'brak')})")
-                        st.markdown("---")
+                            _otw_txt += f" · ostatnio {_fmt_local(_ostatnie['data_otwarcia'])} (IP {_ostatnie.get('adres_ip', 'brak')})"
+                        st.markdown(
+                            f'<div style="border-left:3px solid {_acc_save}; background:#f8fafc; '
+                            f'border-radius:4px; padding:10px 12px; margin-bottom:12px;">'
+                            f'<div style="font-weight:700; font-size:0.95rem;">{_of["nazwa_oferty"]} &nbsp;{_status}</div>'
+                            f'<div style="font-size:0.78rem; color:#64748b; margin-bottom:8px;">Klient: {_of["nazwa_klienta"]}</div>'
+                            f'<a href="{_link_of}" target="_blank" style="font-size:0.8rem; word-break:break-all;">{_link_of}</a>'
+                            f'<div style="font-size:0.8rem; color:#334155; line-height:1.9; margin-top:8px;">'
+                            f'<b>Wysłano:</b> {_fmt_local(_of["data_utworzenia"])}<br>'
+                            f'<b>Ostatnia aktualizacja:</b> {_fmt_local(_of.get("data_aktualizacji"))}{" · wygenerował: " + _przez if _przez else ""}<br>'
+                            f'<b>Ważny do:</b> {_fmt_local(_of["data_wygasniecia"])}<br>'
+                            f'<b>Otwarć:</b> {_otw_txt}'
+                            f'</div></div>',
+                            unsafe_allow_html=True,
+                        )
             except Exception as e:
                 st.error(f"Błąd pobierania danych: {str(e)}")
 
