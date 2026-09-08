@@ -2613,7 +2613,8 @@ with col_form:
             if safe_checkbox("Lot z przesiadką", key=prz_key):
                 _section_header("Dane przesiadki")
                 c1, c2 = st.columns(2)
-                c1.text_input("Miasto przesiadkowe:", key=port_key)
+                with c1:
+                    safe_text_input("Miasto przesiadkowe:", key=port_key)
                 _a_date = (st.session_state.get(f"f{odc1}_data_ladowania")
                            if st.session_state.get(f"f{odc1}_nastepny_dzien")
                            else st.session_state.get(f"f{odc1}_data"))
