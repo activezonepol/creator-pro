@@ -69,18 +69,12 @@ def compute_layover_str(arr_date, arr_time, dep_date, dep_time):
     pa, pd = _parse(arr_time), _parse(dep_time)
     if not pa or not pd:
         return ''
-    da, dd = _to_date(arr_date), _to_date(dep_date)
-    if da is None and dd is not None:
-        da = dd
-    if dd is None and da is not None:
-        dd = da
-    if da is None and dd is None:
-        da = dd = _date(2000, 1, 1)
-    arr = _dt(da.year, da.month, da.day, pa[0], pa[1])
-    dep = _dt(dd.year, dd.month, dd.day, pd[0], pd[1])
-    if dep < arr and (arr_date in (None, '') or dep_date in (None, '')):
-        dep += _td(days=1)
-    total = int((dep - arr).total_seconds() // 60)
+    # Liczymy z SAMYCH GODZIN (przesiadka <24h). Jeśli wylot jest wcześniejszy
+    # niż lądowanie, przesiadka jest przez noc -> dodajemy 24h. Daty odcinków
+    # nie są tu potrzebne, więc stara/niespójna data nie psuje wyliczenia.
+    total = (pd[0] * 60 + pd[1]) - (pa[0] * 60 + pa[1])
+    if total < 0:
+        total += 24 * 60
     if total <= 0:
         return ''
     h, m = divmod(total, 60)
