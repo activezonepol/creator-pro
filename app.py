@@ -2042,9 +2042,27 @@ with st.container():
         st.markdown("<div style='font-size:13px;color:#64748b;margin-bottom:15px;font-family:Open Sans,sans-serif;'>Wprowadź dane dla tej sekcji poniżej:</div>", unsafe_allow_html=True)
         
 # ---------------------------------------------------------------------------
+# PASEK NA GÓRZE: kto zalogowany + wylogowanie
+# ---------------------------------------------------------------------------
+_lg_left, _lg_right = st.columns([0.8, 0.2])
+with _lg_left:
+    st.markdown(
+        f"<div style='font-size:12px;color:#64748b;padding-top:10px;'>"
+        f"Zalogowano jako: <b>{st.session_state.get('current_user','')}</b></div>",
+        unsafe_allow_html=True,
+    )
+with _lg_right:
+    if st.button("Wyloguj", key="btn_logout", use_container_width=True):
+        _clear_auth_cookie()
+        st.session_state['_force_logout'] = True
+        st.session_state.pop('current_user', None)
+        st.rerun()
+
+# ---------------------------------------------------------------------------
 # LAYOUT 2 KOLUMNY: Formularz edycji | Podgląd slajdu
 # ---------------------------------------------------------------------------
 col_form, col_preview = st.columns([0.3, 0.7], gap="medium")
+
 with col_form:
     _acc = st.session_state.get('color_accent', '#FF6600')
     st.markdown(f"<h3 style='color:{_acc};font-size:16px;margin-bottom:20px;'>EDYCJA SLAJDU</h3>", unsafe_allow_html=True)
