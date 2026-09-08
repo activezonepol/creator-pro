@@ -631,18 +631,18 @@ defaults = {
     'esg_g_sub': 'Ład korporacyjny',
     'esg_g_items': (
         'Licencja organizatora turystyki nr 724\n'
-        'Gwarancja Compensa >1 000 000 PLN + polisa OC 500 000 PLN\n'
+        'Gwarancja Compensa >1 000 000 PLN + polisa OC 3 000 000 PLN\n'
         'Etyczny łańcuch dostaw i pełna transparentność budżetów'
     ),
     # KEY METRICS - 8 pól (4x2). Pola puste = nie renderują się.
     # Każde pole: number (liczba/symbol, opcjonalne), value (główna wartość), label (etykieta)
     # ESG - 6 pól (po 2 na każdy obszar E/S/G)
-    'esg_m1_number': '',           'esg_m1_value': 'Green Key', 'esg_m1_label': 'CERTYFIKAT BAZY NOCLEGOWEJ',
-    'esg_m2_number': '',           'esg_m2_value': 'BREEAM',    'esg_m2_label': 'CERTYFIKAT BAZY NOCLEGOWEJ',
+    'esg_m1_number': 'GREEN KEY',           'esg_m1_value': '', 'esg_m1_label': 'CERTYFIKAT BAZY NOCLEGOWEJ',
+    'esg_m2_number': 'BREEM',           'esg_m2_value': '',    'esg_m2_label': 'CERTYFIKAT BAZY NOCLEGOWEJ',
     'esg_m3_number': '100%',       'esg_m3_value': '',          'esg_m3_label': 'LOKALNI DOSTAWCY I PRZEWODNICY',
-    'esg_m4_number': '',           'esg_m4_value': 'Programy CSR', 'esg_m4_label': 'DLA FUNDACJI I EKOSYSTEMÓW',
-    'esg_m5_number': '1 000 000', 'esg_m5_value': 'PLN',       'esg_m5_label': 'GWARANCJA UBEZPIECZENIOWA',
-    'esg_m6_number': '500 000',   'esg_m6_value': 'PLN',       'esg_m6_label': 'POLISA OC',
+    'esg_m4_number': 'PROGRAMY CSR',           'esg_m4_value': '', 'esg_m4_label': 'DLA FUNDACJI I EKOSYSTEMÓW',
+    'esg_m5_number': 'PRACODAWCA WRAŻLIWY', 'esg_m5_value': 'SPOŁECZNIE',       'esg_m5_label': '',
+    'esg_m6_number': 'KURS ESG',   'esg_m6_value': '',       'esg_m6_label': '',
     # === CYTAT ESG z Think MICE ===
     'esg_quote': (
         'Agencje zrzeszone w SOIT potrafią przygotować oferty wyjazdów motywacyjnych '
