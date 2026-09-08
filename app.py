@@ -1536,7 +1536,7 @@ with st.sidebar:
             help="Domyślnie z pola 'Klient'. Możesz skrócić/zmienić, np. dla towarzystw ubezpieczeniowych o podobnych nazwach.",
         )
 
-        if st.button("PRZYGOTUJ LINK OFERTY DLA KLIENTA ONLINE", type="primary", use_container_width=True, key="btn_send_offer_online"):
+        if st.button("PRZYGOTUJ LINK DLA KLIENTA", type="primary", use_container_width=True, key="btn_send_offer_online"):
             with st.spinner("Generowanie i wysyłanie oferty na serwer..."):
                 export_content = build_presentation(export_mode=True)
                 acc = st.session_state.get('color_accent', '#FF6600')
