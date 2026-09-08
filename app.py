@@ -1680,30 +1680,86 @@ with st.sidebar:
                     _teraz = datetime.utcnow()
                     for _of in _oferty_lista:
                         _wygasa = datetime.fromisoformat(_of['data_wygasniecia'].replace('Z', '+00:00')).replace(tzinfo=None)
-                        _status = f'<i class="fa-solid fa-circle" style="color:{_acc_save};font-size:9px;"></i> Aktywna' if _teraz < _wygasa else f'<i class="fa-solid fa-circle" style="color:#94a3b8;font-size:9px;"></i> Wygasła'
-                        _otwarcia_result = supabase.table('oferty_otwarcia').select(
+                        _aktywna = _teraz < _wygasa
+                        _status = (f'<i class="fa-solid fa-circle" style="color:{_acc_save};font-size:9px;"></i> Aktywna'
+                                   if _aktywna else
+                                   f'<i class="fa-solid fa-circle" style="color:#94a3b8;font-size:9px;"></i> Wygasła')
+                        _link_base = f"https://activezone.pl/oferty/{_of['nazwa_klienta']}/{_of['nazwa_oferty']}/"
+                        _otw_all = supabase.table('oferty_otwarcia').select(
                             'data_otwarcia, adres_ip'
-                        ).eq('oferta_id', _of['id']).order('data_otwarcia', desc=True).execute()
-                        _otwarcia = _otwarcia_result.data or []
-                        _link_of = f"https://activezone.pl/oferty/{_of['nazwa_klienta']}/{_of['nazwa_oferty']}/"
-                        _przez = str(_of.get('created_by') or '').strip()
-                        _otw_txt = f"{len(_otwarcia)}"
-                        if _otwarcia:
-                            _ostatnie = _otwarcia[0]
-                            _otw_txt += f" · ostatnio {_fmt_local(_ostatnie['data_otwarcia'])} (IP {_ostatnie.get('adres_ip', 'brak')})"
+                        ).eq('oferta_id', _of['id']).order('data_otwarcia', desc=False).execute().data or []
+
+                        def _pdt(_s):
+                            try:
+                                return datetime.fromisoformat(str(_s).replace('Z', '+00:00')).replace(tzinfo=None)
+                            except Exception:
+                                return None
+
+                        _wersje = _of.get('wersje') or []
+
+                        if not _wersje:
+                            st.markdown(
+                                f'<div style="border-left:3px solid {_acc_save}; background:#f8fafc; border-radius:4px; padding:10px 12px; margin-bottom:12px;">'
+                                f'<div style="font-size:0.8rem; margin-bottom:6px;">{_status}</div>'
+                                f'<a href="{_link_base}" target="_blank" style="font-size:0.8rem; word-break:break-all;">{_link_base}</a>'
+                                f'<div style="font-size:0.8rem; color:#334155; line-height:1.9; margin-top:8px;">'
+                                f'<b>Wysłano:</b> {_fmt_local(_of["data_utworzenia"])}<br>'
+                                f'<b>Ważny do:</b> {_fmt_local(_of["data_wygasniecia"])}<br>'
+                                f'<b>Otwarć:</b> {len(_otw_all)}'
+                                f'</div></div>',
+                                unsafe_allow_html=True,
+                            )
+                            continue
+
+                        _dgran = [_pdt(_w.get('data')) for _w in _wersje]
+
+                        def _otw_wersji(_i, _gran=_dgran, _opens=_otw_all):
+                            _start = _gran[_i]
+                            _end = _gran[_i + 1] if _i + 1 < len(_gran) else None
+                            if _start is None:
+                                return 0
+                            _c = 0
+                            for _o in _opens:
+                                _d = _pdt(_o.get('data_otwarcia'))
+                                if _d is None:
+                                    continue
+                                if _d >= _start and (_end is None or _d < _end):
+                                    _c += 1
+                            return _c
+
+                        _last_i = len(_wersje) - 1
+                        _naj = _wersje[_last_i]
+                        _naj_notatka = str(_naj.get('notatka') or '').strip()
+                        _naj_zm = f'<br><b>Co zmieniono:</b> {_naj_notatka}' if _naj_notatka else ''
                         st.markdown(
-                            f'<div style="border-left:3px solid {_acc_save}; background:#f8fafc; '
-                            f'border-radius:4px; padding:10px 12px; margin-bottom:12px;">'
-                            f'<div style="font-size:0.8rem; margin-bottom:6px;">{_status}</div>'
-                            f'<a href="{_link_of}" target="_blank" style="font-size:0.8rem; word-break:break-all;">{_link_of}</a>'
+                            f'<div style="border-left:3px solid {_acc_save}; background:#f8fafc; border-radius:4px; padding:10px 12px; margin-bottom:8px;">'
+                            f'<div style="font-size:0.8rem; margin-bottom:6px;"><b>Aktualny link — wersja nr {_naj.get("numer")}</b> &nbsp; {_status}</div>'
+                            f'<a href="{_link_base}" target="_blank" style="font-size:0.8rem; word-break:break-all;">{_link_base}</a>'
                             f'<div style="font-size:0.8rem; color:#334155; line-height:1.9; margin-top:8px;">'
-                            f'<b>Wysłano:</b> {_fmt_local(_of["data_utworzenia"])}<br>'
-                            f'<b>Ostatnia aktualizacja:</b> {_fmt_local(_of.get("data_aktualizacji"))}{" · wygenerował: " + _przez if _przez else ""}<br>'
-                            f'<b>Ważny do:</b> {_fmt_local(_of["data_wygasniecia"])}<br>'
-                            f'<b>Otwarć:</b> {_otw_txt}'
+                            f'<b>Wygenerowano:</b> {_fmt_local(_naj.get("data"))} · {_naj.get("operator","")}<br>'
+                            f'<b>Otwarć tej wersji:</b> {_otw_wersji(_last_i)}<br>'
+                            f'<b>Ważny do:</b> {_fmt_local(_of["data_wygasniecia"])}{_naj_zm}'
                             f'</div></div>',
                             unsafe_allow_html=True,
                         )
+
+                        _stare = _wersje[:_last_i]
+                        if _stare:
+                            with st.expander(f"Poprzednie wersje ({len(_stare)})", expanded=False):
+                                for _i in range(len(_stare) - 1, -1, -1):
+                                    _w = _stare[_i]
+                                    _wn = str(_w.get('notatka') or '').strip()
+                                    _url_w = _w.get('url') or ''
+                                    _link_html = f'<a href="{_url_w}" target="_blank">otwórz / PDF</a>' if _url_w else '(brak migawki)'
+                                    _wn_html = f'<br>Co zmieniono: {_wn}' if _wn else ''
+                                    st.markdown(
+                                        f'<div style="border-left:2px solid #cbd5e1; padding:6px 10px; margin-bottom:8px; font-size:0.8rem; color:#334155; line-height:1.7;">'
+                                        f'<b>Wersja nr {_w.get("numer")}</b> — {_link_html}<br>'
+                                        f'{_fmt_local(_w.get("data"))} · {_w.get("operator","")} · otwarć: {_otw_wersji(_i)}{_wn_html}'
+                                        f'</div>',
+                                        unsafe_allow_html=True,
+                                    )
+                        st.markdown("---")
             except Exception as e:
                 st.error(f"Błąd pobierania danych: {str(e)}")
 
