@@ -325,6 +325,37 @@ def wyslij_oferte_online(html_content: str, nazwa_folderu_klienta: str, nazwa_fo
         return True, _link
     except Exception as e:
         return False, f"Błąd wysyłki: {str(e)}"
+
+def wyslij_migawke_oferty(html_content: str, nazwa_folderu_klienta: str, nazwa_folderu_oferty: str, numer: int):
+    """Wgrywa migawkę konkretnej wersji oferty na serwer:
+    /public_html/oferty/{klient}/{oferta}/wersje/v{numer}.html
+    Zwraca (sukces: bool, url_lub_blad: str)."""
+    import ftplib
+    try:
+        _host = st.secrets["ftp"]["host"]
+        _user = st.secrets["ftp"]["username"]
+        _pass = st.secrets["ftp"]["password"]
+        _port = int(st.secrets["ftp"]["port"])
+        _ftp = ftplib.FTP()
+        _ftp.connect(_host, _port, timeout=15)
+        _ftp.login(_user, _pass)
+        _folder_path = f"/public_html/oferty/{nazwa_folderu_klienta}/{nazwa_folderu_oferty}/wersje"
+        current = ''
+        for seg in [s for s in _folder_path.split('/') if s]:
+            current += f'/{seg}'
+            try:
+                _ftp.mkd(current)
+            except Exception:
+                pass
+        _ftp.cwd(_folder_path)
+        import io
+        _b = io.BytesIO(html_content.encode('utf-8'))
+        _ftp.storbinary(f'STOR v{numer}.html', _b)
+        _ftp.quit()
+        return True, f"https://activezone.pl/oferty/{nazwa_folderu_klienta}/{nazwa_folderu_oferty}/wersje/v{numer}.html"
+    except Exception as e:
+        return False, f"Błąd migawki: {str(e)}"
+
 def _make_upload_callback(session_key, is_logo=False):
     """Tworzy callback dla file_uploadera, wywoływany on_change.
     
