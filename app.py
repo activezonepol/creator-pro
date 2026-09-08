@@ -1595,8 +1595,7 @@ with st.sidebar:
                         st.markdown(
                             f'<div style="border-left:3px solid {_acc_save}; background:#f8fafc; '
                             f'border-radius:4px; padding:10px 12px; margin-bottom:12px;">'
-                            f'<div style="font-weight:700; font-size:0.95rem;">{_of["nazwa_oferty"]} &nbsp;{_status}</div>'
-                            f'<div style="font-size:0.78rem; color:#64748b; margin-bottom:8px;">Klient: {_of["nazwa_klienta"]}</div>'
+                            f'<div style="font-size:0.8rem; margin-bottom:6px;">{_status}</div>'
                             f'<a href="{_link_of}" target="_blank" style="font-size:0.8rem; word-break:break-all;">{_link_of}</a>'
                             f'<div style="font-size:0.8rem; color:#334155; line-height:1.9; margin-top:8px;">'
                             f'<b>Wysłano:</b> {_fmt_local(_of["data_utworzenia"])}<br>'
