@@ -2826,7 +2826,7 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                 </div>
 
                 <div class="title-h1" style="margin-bottom:5px; font-size:{fs_h1_val-6}px;">{str(get_data('l_main','JAK LECIMY?')).replace(chr(10),'<br>')}</div>
-                <div class="title-sub" style="margin-bottom:15px;">{str(get_data('l_sub','')).replace(chr(10),'<br>')}</div>
+                <div class="title-sub" style="margin-bottom:10px;">{str(get_data('l_sub','')).replace(chr(10),'<br>')}</div>
                 {h_d}
                 
                 <div class="metric-grid" style="grid-template-columns: 2.5fr 1fr; gap: 24px;">
