@@ -1273,6 +1273,18 @@ with st.sidebar:
         unsafe_allow_html=True
     )
     
+    # ZALOGOWANY UŻYTKOWNIK + WYLOGUJ
+    st.markdown(
+        f"<div style='font-size:12px;color:#FF6600;margin-bottom:6px;'>"
+        f"Zalogowano jako: <b>{st.session_state.get('current_user','')}</b></div>",
+        unsafe_allow_html=True,
+    )
+    if st.button("Wyloguj", key="btn_logout", use_container_width=True):
+        _clear_auth_cookie()
+        st.session_state['_force_logout'] = True
+        st.session_state.pop('current_user', None)
+        st.rerun()
+
     # AKTUALNIE EDYTUJESZ
     _acc_top = st.session_state.get('color_accent', '#FF6600')
     _editing_name = st.session_state.get('t_main', '').strip() or '(bez nazwy)'
