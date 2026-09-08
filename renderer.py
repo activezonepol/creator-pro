@@ -2793,13 +2793,23 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
             ('l_przesiadka', 'l_port', 'l_czas', 1, 3),
             ('l_przesiadka_pow', 'l_port_pow', 'l_czas_pow', 2, 4),
         ]
-        for _prz_k, _port_k, _czas_k, _odc1, _odc2 in _directions:
+        def _dir_rows(_prz_k, _port_k, _czas_k, _odc1, _odc2):
             _r1 = _flight_leg_row(_odc1)
-            rows += _r1
+            _out = _r1
             if get_data(_prz_k, False):
                 if _r1:
-                    rows += _transfer_row(_port_k, _czas_k, _odc1, _odc2)
-                rows += _flight_leg_row(_odc2)
+                    _out += _transfer_row(_port_k, _czas_k, _odc1, _odc2)
+                _out += _flight_leg_row(_odc2)
+            return _out
+
+        _header_cells = "<tr><th>NR LOTU</th><th>DATA</th><th>TRASA</th><th>GODZINY</th></tr>"
+        _rows_tam = _dir_rows('l_przesiadka', 'l_port', 'l_czas', 1, 3)
+        _rows_pow = _dir_rows('l_przesiadka_pow', 'l_port_pow', 'l_czas_pow', 2, 4)
+        rows = _rows_tam
+        if _rows_pow.strip():
+            rows += "<tr><td colspan='4' style='border-bottom:none; padding-top:26px;'></td></tr>"
+            rows += _header_cells
+            rows += _rows_pow
 
         przesiadka_html = ""
             
