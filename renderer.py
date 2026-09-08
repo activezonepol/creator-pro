@@ -302,6 +302,8 @@ icon_map = {
     "Transfer autokarem": '<i class="fa-solid fa-bus"></i>',
     "Przelot samolotem": '<i class="fa-solid fa-plane"></i>',
     "Zabawa": '<i class="fa-solid fa-champagne-glasses"></i>',
+    "Wycieczka rowerowa": '<i class="fa-solid fa-bicycle"></i>',
+    "Foto safari": '<i class="fa-solid fa-camera"></i>',
 }
 # ===========================================================================
 # IKONY OPISU ATRAKCJI (pas ikon na dole slajdu atrakcji - Model 2)
