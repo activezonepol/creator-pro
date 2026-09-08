@@ -540,7 +540,7 @@ defaults = {
     't_img_0': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/LOGO/JoannaJablonska.png',
     't_img_1': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/LOGO/MarcinLukaszewicz.png',
     'about_overline': 'NASZ ZESPÓŁ',
-    'about_title': 'PARTNERZY\nZARZĄDZAJĄCY',
+    'about_title': 'PARTNERZY ZARZĄDZAJĄCY',
     'about_sub': 'ZESPÓŁ ACTIVEZONE',
     'about_desc': (
         'Activezone to agencja MICE z ponad 20-letnim doświadczeniem na 5 kontynentach. '
@@ -598,7 +598,7 @@ defaults = {
     ),
     'about_p2_quote_source': 'OOH Magazine',
     # === POLE METRYK O NAS (8 pól) ===
-    'about_m1_number': '724',         'about_m1_value': '',
+    'about_m1_number': '724 LICENCJA ORGANIZATORA',         'about_m1_value': '',
     # === SLAJD ESG ===
     'esg_hide': False,
     'esg_overline': 'ODPOWIEDZIALNOŚĆ',
