@@ -283,6 +283,7 @@ hotel_icons = {
     "Night club": "fa-champagne-glasses", "Konferencje": "fa-people-roof",
     "Widok na morze": "fa-water",
     "Top lokalizacja": "fa-location-dot",
+    "Nad wodą": "fa-water",
 }
 icon_map = {
     "Atrakcja": '<i class="fa-solid fa-camera-retro"></i>',
