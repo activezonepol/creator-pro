@@ -1279,7 +1279,11 @@ with st.sidebar:
         f"Zalogowano jako: <b>{st.session_state.get('current_user','')}</b></div>",
         unsafe_allow_html=True,
     )
-    if st.button("Wyloguj", key="btn_logout", use_container_width=True):
+    st.markdown(
+        f"<style>.st-key-btn_logout button {{ background-color: {st.session_state.get('color_accent','#FF6600')} !important; border: none !important; color: white !important; }}</style>",
+        unsafe_allow_html=True,
+    )
+    if st.button("Wyloguj", key="btn_logout", use_container_width=True, type="primary"):
         _clear_auth_cookie()
         st.session_state['_force_logout'] = True
         st.session_state.pop('current_user', None)
