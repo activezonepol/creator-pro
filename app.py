@@ -1515,6 +1515,10 @@ with st.sidebar:
             help="Domyślnie z pola 'Klient'. Możesz skrócić/zmienić, np. dla towarzystw ubezpieczeniowych o podobnych nazwach.",
         )
 
+        safe_text_input(
+            "Co zmieniono (opcjonalnie, max 40 znaków):", key="_notatka_zmiany",
+            max_chars=40, placeholder="np. poprawiona cena / zmiana przelotu",
+        )
         if st.button("PRZYGOTUJ LINK OFERTY DLA KLIENTA ONLINE", type="primary", use_container_width=True, key="btn_send_offer_online"):
             with st.spinner("Generowanie i wysyłanie oferty na serwer..."):
                 export_content = build_presentation(export_mode=True)
