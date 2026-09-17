@@ -60,7 +60,12 @@ def upload_image(supabase_client, key: str, raw_bytes: bytes, max_dim: int = 140
         if not _country_prefix or len(_country_prefix) != 3:
             _country_prefix = "XXX"
 
-        if _is_attraction_image_key(key):
+        if key == 'logo_cli':
+            # Logo klienta gromadzi się w osobnym folderze (galeria logotypów) -
+            # każdy upload dostaje unikalną nazwę, nic nie nadpisujemy.
+            _unique_name = f"logo_{uuid.uuid4().hex[:12]}"
+            storage_path = f"{STORAGE_USER}/loga_klientow/{_unique_name}.{file_ext}"
+        elif _is_attraction_image_key(key):
             # Nazwa unikalna - nic nie nadpisujemy, zdjęcie zostaje w galerii
             # kraju do ponownego wyboru w innych atrakcjach/ofertach.
             _unique_name = f"attr_{uuid.uuid4().hex[:12]}"
