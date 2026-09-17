@@ -1554,8 +1554,35 @@ with st.sidebar:
                     f'<button class="client-export-btn" onclick="window.print()">POBIERZ JAKO PDF</button>'
                     f'<div class="presentation-wrapper">{export_content}</div>' + get_slide_nav_html(acc) + get_video_player_html() + '</body></html>'
                 )
-                _folder_klienta = st.session_state.get('_folder_klienta_input', _default_folder)
-                _folder_oferty = _slugify_folder_name(get_project_filename().replace('.json', ''))
+                # PRZYWIĄZANIE DO PROJEKTU: jeśli ta oferta była już wysyłana,
+                # używamy JEJ zapisanego folderu - niezależnie od tego, co akurat
+                # pokazuje pole "Nazwa folderu klienta". Dzięki temu powtórne
+                # generowanie zawsze trafia w ten sam folder i kontynuuje wersje
+                # (koniec z duplikatami typu "nazwa-klienta").
+                _active_pid = st.session_state.get('active_project_id')
+                _rec_istn = None
+                if _active_pid:
+                    try:
+                        _r_istn = supabase.table('oferty_online').select(
+                            'id, nazwa_klienta, nazwa_oferty'
+                        ).eq('project_id', _active_pid).order('data_utworzenia', desc=False).execute()
+                        if _r_istn.data:
+                            _rec_istn = _r_istn.data[0]
+                    except Exception:
+                        _rec_istn = None
+
+                if _rec_istn:
+                    _folder_klienta = _rec_istn['nazwa_klienta']
+                    _folder_oferty = _rec_istn['nazwa_oferty']
+                    _oferta_id_pre = _rec_istn['id']
+                else:
+                    _folder_klienta = st.session_state.get('_folder_klienta_input', _default_folder)
+                    _folder_oferty = _slugify_folder_name(get_project_filename().replace('.json', ''))
+                    _oferta_id_pre = None
+                    if str(_folder_klienta).strip().lower() in ('nazwa-klienta', 'nazwa_klienta', 'klient', ''):
+                        st.error("Uzupełnij nazwę klienta (pole „Nazwa folderu klienta na serwerze") przed wysłaniem oferty online.")
+                        st.stop()
+
                 _sukces, _wynik = wyslij_oferte_online(client_html, _folder_klienta, _folder_oferty)
                 if _sukces:
                     from datetime import timedelta as _timedelta
@@ -1565,7 +1592,7 @@ with st.sidebar:
                     _kod_projektu_aktualny = ''
                     try:
                         _proj_lookup = supabase.table('projects').select('project_code').eq(
-                            'id', st.session_state.get('active_project_id')
+                            'id', _active_pid
                         ).execute()
                         if _proj_lookup.data:
                             _kod_projektu_aktualny = _proj_lookup.data[0].get('project_code', '')
@@ -1574,13 +1601,9 @@ with st.sidebar:
                     _rdzen_kodu = extract_rdzen_wersji(_kod_projektu_aktualny)
 
                     _sciezka_pelna = f"{_folder_klienta}/{_folder_oferty}"
-                    _istniejacy_wpis = supabase.table('oferty_online').select('id').eq(
-                        'sciezka_na_serwerze', _sciezka_pelna
-                    ).execute()
-
                     _teraz_iso = datetime.utcnow().isoformat()
-                    if _istniejacy_wpis.data:
-                        _oferta_id = _istniejacy_wpis.data[0]['id']
+                    if _oferta_id_pre:
+                        _oferta_id = _oferta_id_pre
                         supabase.table('oferty_online').update({
                             'data_wygasniecia': _data_wygasniecia,
                             'data_aktualizacji': _teraz_iso,
@@ -1588,7 +1611,7 @@ with st.sidebar:
                         }).eq('id', _oferta_id).execute()
                     else:
                         _ins_res = supabase.table('oferty_online').insert({
-                            'project_id': st.session_state.get('active_project_id'),
+                            'project_id': _active_pid,
                             'project_code_rdzen': _rdzen_kodu,
                             'nazwa_klienta': _folder_klienta,
                             'nazwa_oferty': _folder_oferty,
