@@ -3808,9 +3808,9 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
         _person1_html = _about_person(1)
         _person2_html = _about_person(2)
         
-        # Pasek metryk (8 pól, układ 4x2) - warunkowy render
+        # Pasek metryk (4 pola, układ 4x1) - warunkowy render
         _about_metrics_parts = []
-        for _i in range(1, 9):
+        for _i in range(1, 5):
             _m = _about_metric(
                 get_data(f'about_m{_i}_number', ''),
                 get_data(f'about_m{_i}_value', ''),
