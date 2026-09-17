@@ -1410,44 +1410,15 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-    # 1. NOWY PROJEKT
-    if st.button("+ NOWY PROJEKT", use_container_width=True, type="primary", key="btn_new_project_top"):
-        _new_project()
-
-    # 2. WCZYTAJ PROJEKT Z BAZY
-    _all_offers_top = fetch_all_offers(supabase)
-    _current_proj_id_top = st.session_state.get('active_project_id')
-    if _all_offers_top:
-        def _build_project_label(o):
-            _p_name = str(o.get('project_name', ''))
-            _v_suffix = str(o.get('version_suffix', '') or '')
-            if _v_suffix:
-                _prefix = f"{_v_suffix.lstrip('-')} | "
-            elif _p_name.startswith('KOPIA - '):
-                _prefix = "KOPIA | "
-            else:
-                _prefix = ""
-            return f"{_prefix}{o.get('project_code', '???')}"
-
-        _proj_options_top = ["-- Wybierz projekt --"] + [
-            _build_project_label(o) for o in _all_offers_top
-        ]
-        _proj_ids_top = [None] + [o['id'] for o in _all_offers_top]
-        _curr_idx_top = 0
-        if _current_proj_id_top and _current_proj_id_top in _proj_ids_top:
-            _curr_idx_top = _proj_ids_top.index(_current_proj_id_top)
-        _selected_proj_top = st.selectbox(
-            "Wybierz projekt z bazy, a następnie wczytaj przyciskiem:",
-            _proj_options_top,
-            index=_curr_idx_top,
-            key=f"proj_select_top_{_current_proj_id_top}",
-        )
-        _sel_idx_top = _proj_options_top.index(_selected_proj_top)
-        if _sel_idx_top > 0:
-            if st.button("WCZYTAJ WYBRANY", use_container_width=True, key="btn_load_proj_top", type="primary"):
-                _switch_project(_proj_ids_top[_sel_idx_top])
-    else:
-        st.caption("Brak projektów w bazie.")
+    # 1. EKRAN STARTOWY — nowy projekt / wczytanie oferty robi się tam,
+    #    w jednym miejscu i "na czysto" (to eliminuje rozjeżdżanie folderu klienta).
+    if st.button("Ekran startowy", use_container_width=True, type="primary", key="btn_home_screen"):
+        try:
+            save_to_supabase()
+        except Exception:
+            pass
+        st.session_state['project_selected'] = False
+        st.rerun()
 
     # 3. ZAPISZ JAKO NOWY
     if st.button("ZAPISZ WCZYTANY JAKO NOWY", use_container_width=True, type="primary", key="btn_dup_current_top"):
