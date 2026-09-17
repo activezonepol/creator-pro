@@ -65,6 +65,11 @@ def upload_image(supabase_client, key: str, raw_bytes: bytes, max_dim: int = 140
             # każdy upload dostaje unikalną nazwę, nic nie nadpisujemy.
             _unique_name = f"logo_{uuid.uuid4().hex[:12]}"
             storage_path = f"{STORAGE_USER}/loga_klientow/{_unique_name}.{file_ext}"
+        elif key.startswith('img_pg_'):
+            # Pillow gifts gromadzą się w osobnym folderze (galeria prezentów) -
+            # te same prezenty w różnych ofertach, bez wgrywania od nowa.
+            _unique_name = f"pg_{uuid.uuid4().hex[:12]}"
+            storage_path = f"{STORAGE_USER}/prezenty/{_unique_name}.{file_ext}"
         elif _is_attraction_image_key(key):
             # Nazwa unikalna - nic nie nadpisujemy, zdjęcie zostaje w galerii
             # kraju do ponownego wyboru w innych atrakcjach/ofertach.
