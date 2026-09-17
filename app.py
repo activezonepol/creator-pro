@@ -457,7 +457,7 @@ def _galeria_dialog():
                 st.session_state.pop('_gal_slot', None)
                 st.rerun()
 
-def _render_img_slot(container, label, session_key, gallery_urls):
+def _render_img_slot(container, label, session_key, gallery_urls, is_logo=False):
     """Jednolity wybór zdjęcia: podgląd + upload z dysku + „Wybierz z galerii" (okno)."""
     with container:
         st.markdown(f"**{label}**")
