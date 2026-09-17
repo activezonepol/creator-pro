@@ -2490,25 +2490,7 @@ with col_form:
         _render_uploader_with_delete(c1, "Logo Firmy", "logo_az", is_logo=True)
         # Logo Klienta - z dysku ALBO z galerii zebranych logotypów.
         _logo_gallery = list_logo_gallery(supabase)
-        c2.markdown("**Logo Klienta**")
-        _logo_src = "Z dysku"
-        if _logo_gallery:
-            _logo_src = c2.radio(
-                "Źródło logo klienta", ["Z dysku", "Z galerii logotypów"],
-                key="src_logo_cli", horizontal=True, label_visibility="collapsed",
-            )
-        if _logo_src == "Z dysku":
-            _render_uploader_with_delete(c2, "Wgraj logo z dysku", "logo_cli", is_logo=True)
-        else:
-            with c2:
-                _lg_cols = st.columns(3)
-                for _li, _lurl in enumerate(_logo_gallery):
-                    with _lg_cols[_li % 3]:
-                        st.image(_lurl, use_container_width=True)
-                        def _pick_logo(_u=_lurl):
-                            st.session_state['logo_cli'] = _u
-                            st.session_state['src_logo_cli'] = "Z dysku"
-                        st.button("Użyj", key=f"gal_logo_{_li}", use_container_width=True, on_click=_pick_logo)
+        _render_img_slot(c2, "Logo Klienta", "logo_cli", _logo_gallery, is_logo=True)
             
         c2.checkbox("Ukryj logo klienta na stronie tytułowej", key="hide_logo_cli")
 
