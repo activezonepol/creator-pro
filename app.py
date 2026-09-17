@@ -428,6 +428,10 @@ def _render_uploader_with_delete(container, label, session_key, is_logo=False):
         if container.button(f"✕ Usuń {label}", key=f"del_{session_key}", use_container_width=True):
             _delete_image(session_key)
 
+# --- Ustawienia wygladu miniatur we WSZYSTKICH galeriach (zmien w jednym miejscu) ---
+GALERIA_WYSOKOSC_MINIATURY = 150   # wysokosc miniatury w px
+GALERIA_KOLUMNY = 3                # ile zdjec w rzedzie
+
 @st.dialog("Wybierz zdjęcie z galerii", width="large")
 def _galeria_dialog():
     """Wspólne okno wyboru zdjęcia z galerii - duże, czytelne miniatury.
@@ -438,11 +442,11 @@ def _galeria_dialog():
         st.info("Galeria jest pusta.")
         return
     st.caption("Kliknij przycisk Wybierz pod zdjeciem - zdjecie wstawi sie w dane miejsce, a okno zamknie sie samo.")
-    _cols = st.columns(3)
+    _cols = st.columns(GALERIA_KOLUMNY)
     for _i, _url in enumerate(_urls):
-        with _cols[_i % 3]:
+        with _cols[_i % GALERIA_KOLUMNY]:
             st.markdown(
-                f'<img src="{_url}" style="width:100%;height:150px;object-fit:cover;'
+                f'<img src="{_url}" style="width:100%;height:{GALERIA_WYSOKOSC_MINIATURY}px;object-fit:cover;'
                 f'border-radius:8px;display:block;margin-bottom:6px;">',
                 unsafe_allow_html=True,
             )
