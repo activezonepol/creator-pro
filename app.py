@@ -427,6 +427,48 @@ def _render_uploader_with_delete(container, label, session_key, is_logo=False):
     if st.session_state.get(session_key):
         if container.button(f"✕ Usuń {label}", key=f"del_{session_key}", use_container_width=True):
             _delete_image(session_key)
+
+@st.dialog("Wybierz zdjęcie z galerii", width="large")
+def _galeria_dialog():
+    """Wspólne okno wyboru zdjęcia z galerii - duże, czytelne miniatury.
+    Slot docelowy i lista URL-i przekazywane przez session_state."""
+    _slot = st.session_state.get('_gal_slot')
+    _urls = st.session_state.get('_gal_urls') or []
+    if not _urls:
+        st.info("Galeria jest pusta.")
+        return
+    st.caption("Kliknij „Wybierz" pod zdjęciem — wstawi się w dane miejsce, a okno się zamknie.")
+    _cols = st.columns(3)
+    for _i, _url in enumerate(_urls):
+        with _cols[_i % 3]:
+            st.image(_url, use_container_width=True)
+            if st.button("Wybierz", key=f"dlg_pick_{_i}", use_container_width=True, type="primary"):
+                if _slot:
+                    st.session_state[_slot] = _url
+                    st.session_state['_upload_counter'] = st.session_state.get('_upload_counter', 0) + 1
+                st.session_state.pop('_gal_slot', None)
+                st.rerun()
+
+def _render_img_slot(container, label, session_key, gallery_urls):
+    """Jednolity wybór zdjęcia: podgląd + upload z dysku + „Wybierz z galerii" (okno)."""
+    with container:
+        st.markdown(f"**{label}**")
+        _cur = st.session_state.get(session_key)
+        if isinstance(_cur, str) and _cur.startswith('http'):
+            st.image(_cur, use_container_width=True)
+        st.file_uploader(
+            "Wgraj z dysku", key=f"up_{session_key}",
+            on_change=_make_upload_callback(session_key), label_visibility="collapsed",
+        )
+        if st.session_state.get(session_key):
+            if st.button("✕ Usuń zdjęcie", key=f"del_{session_key}", use_container_width=True):
+                _delete_image(session_key)
+        if gallery_urls:
+            if st.button("🖼 Wybierz z galerii", key=f"opengal_{session_key}", use_container_width=True):
+                st.session_state['_gal_slot'] = session_key
+                st.session_state['_gal_urls'] = gallery_urls
+                _galeria_dialog()
+
 def _upload_image(file_bytes, session_key, is_logo=False):
     """Przesyła obraz do Supabase i zapisuje URL w sesji."""
     if not file_bytes:
