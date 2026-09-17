@@ -164,3 +164,24 @@ def list_country_gallery(_supabase_client, country_code: str, name_prefix: str =
         except Exception:
             continue
     return urls
+
+def list_logo_gallery(_supabase_client):
+    """Zwraca listę publicznych URL-i logotypów klientów zebranych w folderze
+    loga_klientow/ (każde wgrane logo klienta ląduje tu z unikalną nazwą)."""
+    folder_path = f"{STORAGE_USER}/loga_klientow"
+    try:
+        files = _supabase_client.storage.from_(STORAGE_BUCKET).list(folder_path)
+    except Exception:
+        return []
+    if not files:
+        return []
+    urls = []
+    for f in files:
+        _name = f.get('name', '')
+        if not _name or _name.startswith('.'):
+            continue
+        try:
+            urls.append(_supabase_client.storage.from_(STORAGE_BUCKET).get_public_url(f"{folder_path}/{_name}"))
+        except Exception:
+            continue
+    return urls
