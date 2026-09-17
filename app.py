@@ -38,6 +38,7 @@ from storage_utils import (
     get_logo_html,
     cleanup_session_bytes_to_storage,
     run_migration_flow,
+    list_logo_gallery,
 )
 
 # ---------------------------------------------------------------------------
