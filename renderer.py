@@ -597,7 +597,10 @@ defaults = {
     ),
     'about_p2_quote_source': 'OOH Magazine',
     # === POLE METRYK O NAS (8 pól) ===
-    'about_m1_number': '724 LICENCJA ORGANIZATORA',         'about_m1_value': '',
+    'about_m1_number': '724', 'about_m1_value': '', 'about_m1_label': 'LICENCJA ORGANIZATORA',
+    'about_m2_number': '1.000.000 PLN', 'about_m2_value': '', 'about_m2_label': 'GWARANCJA UBEZPIECZENIOWA',
+    'about_m3_number': '3.000.000 PLN', 'about_m3_value': '', 'about_m3_label': 'POLISA OC',
+    'about_m4_number': '20 LAT', 'about_m4_value': '', 'about_m4_label': 'DOŚWIADCZENIA MICE',
     # === SLAJD ESG ===
     'esg_hide': False,
     'esg_overline': 'ODPOWIEDZIALNOŚĆ',
