@@ -39,6 +39,7 @@ from storage_utils import (
     cleanup_session_bytes_to_storage,
     run_migration_flow,
     list_logo_gallery,
+    list_pillow_gallery,
 )
 
 # ---------------------------------------------------------------------------
