@@ -437,7 +437,7 @@ def _galeria_dialog():
     if not _urls:
         st.info("Galeria jest pusta.")
         return
-    st.caption("Kliknij „Wybierz" pod zdjęciem — wstawi się w dane miejsce, a okno się zamknie.")
+    st.caption("Kliknij przycisk Wybierz pod zdjeciem - zdjecie wstawi sie w dane miejsce, a okno zamknie sie samo.")
     _cols = st.columns(3)
     for _i, _url in enumerate(_urls):
         with _cols[_i % 3]:
