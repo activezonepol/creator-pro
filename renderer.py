@@ -461,6 +461,9 @@ defaults = {
                  'Badanie satysfakcji NPS — raport dla zarządu i działu HR\n'
                  'Wsparcie celów ESG, materiały cyfrowe zamiast druku'),
     'img_app_screen': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/LOGO/aplikacja1.jpg',
+    'img_va_1': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/ASYSTENT/asy1.png',
+    'img_va_2': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/ASYSTENT/asy2.png',
+    'img_va_3': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/ASYSTENT/asy3.png',
     'logo_az': 'https://ckmmtjuolhhboruujdni.supabase.co/storage/v1/object/public/nexa-images/default_user/LOGO/Activezone%20trojkat_png%20przezroczyste.png',
     'brand_hide': False, 'brand_overline': 'IDENTYFIKACJA',
     'brand_title': 'MATERIAŁY\nBRANDINGOWE',
