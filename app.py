@@ -3801,38 +3801,11 @@ with col_form:
         safe_text_area("Opis (tekst główny):", height=200, key="pg_text")
         safe_text_area("Punktory (każda linia = jeden punkt):", height=150, key="pg_features",
                      help="Każda linia to jeden punkt z kwadratowym punktorkiem ■")
-        c1, c2, c3 = st.columns(3)
-        c1.file_uploader(
-            "Zdjęcie 1",
-            key="up_img_pg_1",
-            on_change=_make_upload_callback('img_pg_1')
-        )
-        c2.file_uploader(
-            "Zdjęcie 2 (Pionowe)",
-            key="up_img_pg_2",
-            on_change=_make_upload_callback('img_pg_2')
-        )
-        c3.file_uploader(
-            "Zdjęcie 3",
-            key="up_img_pg_3",
-            on_change=_make_upload_callback('img_pg_3')
-        )
-
-        # GALERIA PILLOW GIFTS - zebrane z wcześniejszych uploadów, do ponownego użycia.
         _pg_gallery = list_pillow_gallery(supabase)
-        if _pg_gallery:
-            with st.expander(f"GALERIA PILLOW GIFTS ({len(_pg_gallery)}) — wybierz zamiast wgrywać", expanded=False):
-                st.caption("Pod każdym zdjęciem kliknij 1 / 2 / 3, aby wstawić je do danego slotu.")
-                _pg_cols = st.columns(4)
-                for _gi, _gurl in enumerate(_pg_gallery):
-                    with _pg_cols[_gi % 4]:
-                        st.image(_gurl, use_container_width=True)
-                        _b1, _b2, _b3 = st.columns(3)
-                        def _pg_assign(_slot, _u=_gurl):
-                            st.session_state[f"img_pg_{_slot}"] = _u
-                        _b1.button("1", key=f"pg_gal_{_gi}_1", on_click=_pg_assign, args=(1,), use_container_width=True)
-                        _b2.button("2", key=f"pg_gal_{_gi}_2", on_click=_pg_assign, args=(2,), use_container_width=True)
-                        _b3.button("3", key=f"pg_gal_{_gi}_3", on_click=_pg_assign, args=(3,), use_container_width=True)
+        c1, c2, c3 = st.columns(3)
+        _render_img_slot(c1, "Zdjęcie 1", "img_pg_1", _pg_gallery)
+        _render_img_slot(c2, "Zdjęcie 2 (Pionowe)", "img_pg_2", _pg_gallery)
+        _render_img_slot(c3, "Zdjęcie 3", "img_pg_3", _pg_gallery)
 
     # -----------------------------------------------------------------------
     # 15. WIRTUALNY ASYSTENT
