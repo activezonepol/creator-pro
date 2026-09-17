@@ -637,7 +637,7 @@ defaults = {
     # Każde pole: number (liczba/symbol, opcjonalne), value (główna wartość), label (etykieta)
     # ESG - 6 pól (po 2 na każdy obszar E/S/G)
     'esg_m1_number': 'GREEN KEY',           'esg_m1_value': '', 'esg_m1_label': 'CERTYFIKAT BAZY NOCLEGOWEJ',
-    'esg_m2_number': 'BREEM',           'esg_m2_value': '',    'esg_m2_label': 'CERTYFIKAT BAZY NOCLEGOWEJ',
+    'esg_m2_number': 'BREEAM',           'esg_m2_value': '',    'esg_m2_label': 'CERTYFIKAT BAZY NOCLEGOWEJ',
     'esg_m3_number': '100%',       'esg_m3_value': '',          'esg_m3_label': 'LOKALNI DOSTAWCY I PRZEWODNICY',
     'esg_m4_number': 'PROGRAMY CSR',           'esg_m4_value': '', 'esg_m4_label': 'DLA FUNDACJI I EKOSYSTEMÓW',
     'esg_m5_number': 'PRACODAWCA WRAŻLIWY', 'esg_m5_value': 'SPOŁECZNIE',       'esg_m5_label': '',
