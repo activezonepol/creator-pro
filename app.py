@@ -1580,7 +1580,7 @@ with st.sidebar:
                     _folder_oferty = _slugify_folder_name(get_project_filename().replace('.json', ''))
                     _oferta_id_pre = None
                     if str(_folder_klienta).strip().lower() in ('nazwa-klienta', 'nazwa_klienta', 'klient', ''):
-                        st.error("Uzupełnij nazwę klienta (pole „Nazwa folderu klienta na serwerze") przed wysłaniem oferty online.")
+                        st.error("Uzupełnij nazwę klienta (pole 'Nazwa folderu klienta na serwerze') przed wysłaniem oferty online.")
                         st.stop()
 
                 _sukces, _wynik = wyslij_oferte_online(client_html, _folder_klienta, _folder_oferty)
