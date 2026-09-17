@@ -3027,8 +3027,8 @@ def build_presentation(current_page="Strona Tytułowa", export_mode=False, activ
                         d_match = re.search(r'Dzień\s+(\d+)', a_day)
                         if d_match and int(d_match.group(1)) == di + 1:
                             ic = icon_map.get(get_data(f"atype_{ai}", "Atrakcja"), "")
-                            nm = get_data(f"amain_{ai}", "")
-                            sub = str(get_data(f"asub_{ai}", "")).strip()
+                            nm = str(get_data(f"amain_{ai}", "") or "").upper()
+                            sub = str(get_data(f"asub_{ai}", "")).strip().upper()
                             opt_label_p = str(get_data(f"aopt_label_{ai}", "") or "").strip()
                             opt_suffix = f" <span style='color:{acc}; font-weight:600;'>({opt_label_p})</span>" if opt_label_p else ""
                             sub_html = (f"<div style='font-size:12px; font-weight:400; color:{c_t}; opacity:0.8; margin-top:-2px; margin-left:26px; line-height:1.2; margin-bottom:8px;'>{sub}</div>"
