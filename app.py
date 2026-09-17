@@ -441,7 +441,11 @@ def _galeria_dialog():
     _cols = st.columns(3)
     for _i, _url in enumerate(_urls):
         with _cols[_i % 3]:
-            st.image(_url, use_container_width=True)
+            st.markdown(
+                f'<img src="{_url}" style="width:100%;height:150px;object-fit:cover;'
+                f'border-radius:8px;display:block;margin-bottom:6px;">',
+                unsafe_allow_html=True,
+            )
             if st.button("Wybierz", key=f"dlg_pick_{_i}", use_container_width=True, type="primary"):
                 if _slot:
                     st.session_state[_slot] = _url
