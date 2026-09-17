@@ -3776,6 +3776,22 @@ with col_form:
             on_change=_make_upload_callback('img_pg_3')
         )
 
+        # GALERIA PILLOW GIFTS - zebrane z wcześniejszych uploadów, do ponownego użycia.
+        _pg_gallery = list_pillow_gallery(supabase)
+        if _pg_gallery:
+            with st.expander(f"GALERIA PILLOW GIFTS ({len(_pg_gallery)}) — wybierz zamiast wgrywać", expanded=False):
+                st.caption("Pod każdym zdjęciem kliknij 1 / 2 / 3, aby wstawić je do danego slotu.")
+                _pg_cols = st.columns(4)
+                for _gi, _gurl in enumerate(_pg_gallery):
+                    with _pg_cols[_gi % 4]:
+                        st.image(_gurl, use_container_width=True)
+                        _b1, _b2, _b3 = st.columns(3)
+                        def _pg_assign(_slot, _u=_gurl):
+                            st.session_state[f"img_pg_{_slot}"] = _u
+                        _b1.button("1", key=f"pg_gal_{_gi}_1", on_click=_pg_assign, args=(1,), use_container_width=True)
+                        _b2.button("2", key=f"pg_gal_{_gi}_2", on_click=_pg_assign, args=(2,), use_container_width=True)
+                        _b3.button("3", key=f"pg_gal_{_gi}_3", on_click=_pg_assign, args=(3,), use_container_width=True)
+
     # -----------------------------------------------------------------------
     # 15. WIRTUALNY ASYSTENT
     # -----------------------------------------------------------------------
