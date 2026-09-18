@@ -432,6 +432,35 @@ def _render_uploader_with_delete(container, label, session_key, is_logo=False):
 GALERIA_WYSOKOSC_MINIATURY = 150   # wysokosc miniatury w px
 GALERIA_KOLUMNY = 3                # ile zdjec w rzedzie
 
+def _storage_path_z_url(url):
+    """Wyciaga sciezke pliku w Storage z publicznego URL-a (ignoruje koncowke ?v=...)."""
+    from storage_utils import STORAGE_BUCKET
+    if not isinstance(url, str):
+        return None
+    _marker = "/public/" + STORAGE_BUCKET + "/"
+    if _marker not in url:
+        return None
+    return url.split(_marker, 1)[1].split("?", 1)[0]
+
+@st.cache_data(ttl=30, show_spinner=False)
+def _uzyte_sciezki_zdjec():
+    """Zbior sciezek zdjec/logo uzytych w JAKIEJKOLWIEK zapisanej ofercie."""
+    from storage_utils import STORAGE_BUCKET
+    _used = set()
+    try:
+        _resp = supabase.table('projects').select('data').execute()
+    except Exception:
+        return _used
+    _pat = re.compile(re.escape("/public/" + STORAGE_BUCKET + "/") + r'([^"?\s\\]+)')
+    for _row in (_resp.data or []):
+        try:
+            _blob = json.dumps(_row.get('data') or {})
+        except Exception:
+            continue
+        for _m in _pat.finditer(_blob):
+            _used.add(_m.group(1))
+    return _used
+
 @st.dialog("Wybierz zdjęcie z galerii", width="large")
 def _galeria_dialog():
     """Wspólne okno wyboru zdjęcia z galerii - duże, czytelne miniatury.
