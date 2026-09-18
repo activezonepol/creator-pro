@@ -470,7 +470,13 @@ def _galeria_dialog():
     if not _urls:
         st.info("Galeria jest pusta.")
         return
-    st.caption("Kliknij przycisk Wybierz pod zdjeciem - zdjecie wstawi sie w dane miejsce, a okno zamknie sie samo.")
+    st.caption("Kliknij Wybierz pod zdjeciem. Kosz (usun) jest tylko przy zdjeciach wolnych - czyli nieuzytych na zadnej ofercie.")
+    _used = set(_uzyte_sciezki_zdjec())
+    for _v in list(st.session_state.values()):
+        if isinstance(_v, str):
+            _p = _storage_path_z_url(_v)
+            if _p:
+                _used.add(_p)
     _cols = st.columns(GALERIA_KOLUMNY)
     for _i, _url in enumerate(_urls):
         with _cols[_i % GALERIA_KOLUMNY]:
@@ -479,12 +485,47 @@ def _galeria_dialog():
                 f'border-radius:8px;display:block;margin-bottom:6px;">',
                 unsafe_allow_html=True,
             )
+            _path = _storage_path_z_url(_url)
+            _is_used = bool(_path and _path in _used)
+            st.caption("✓ używane" if _is_used else "• wolne")
             if st.button("Wybierz", key=f"dlg_pick_{_i}", use_container_width=True, type="primary"):
                 if _slot:
                     st.session_state[_slot] = _url
                     st.session_state['_upload_counter'] = st.session_state.get('_upload_counter', 0) + 1
                 st.session_state.pop('_gal_slot', None)
                 st.rerun()
+            if not _is_used and _path:
+                if st.session_state.get('_gal_confirm_del') == _url:
+                    if st.button("Na pewno? TAK, usuń", key=f"dlg_delyes_{_i}", use_container_width=True):
+                        from storage_utils import STORAGE_BUCKET
+                        try:
+                            supabase.storage.from_(STORAGE_BUCKET).remove([_path])
+                        except Exception:
+                            pass
+                        st.session_state.pop('_gal_confirm_del', None)
+                        st.session_state['_gal_urls'] = [_u for _u in _urls if _u != _url]
+                        try:
+                            list_pillow_gallery.clear()
+                        except Exception:
+                            pass
+                        try:
+                            list_logo_gallery.clear()
+                        except Exception:
+                            pass
+                        try:
+                            from storage_utils import list_country_gallery as _lcg
+                            _lcg.clear()
+                        except Exception:
+                            pass
+                        try:
+                            _uzyte_sciezki_zdjec.clear()
+                        except Exception:
+                            pass
+                    if st.button("Anuluj", key=f"dlg_delno_{_i}", use_container_width=True):
+                        st.session_state.pop('_gal_confirm_del', None)
+                else:
+                    if st.button("🗑 Usuń z galerii", key=f"dlg_del_{_i}", use_container_width=True):
+                        st.session_state['_gal_confirm_del'] = _url
 
 def _render_img_slot(container, label, session_key, gallery_urls, is_logo=False):
     """Jednolity wybór zdjęcia: podgląd + upload z dysku + „Wybierz z galerii" (okno)."""
