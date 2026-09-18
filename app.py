@@ -461,9 +461,6 @@ def _render_img_slot(container, label, session_key, gallery_urls, is_logo=False)
     """Jednolity wybór zdjęcia: podgląd + upload z dysku + „Wybierz z galerii" (okno)."""
     with container:
         st.markdown(f"**{label}**")
-        _cur = st.session_state.get(session_key)
-        if isinstance(_cur, str) and _cur.startswith('http'):
-            st.image(_cur, use_container_width=True)
         st.file_uploader(
             "Wgraj z dysku", key=f"up_{session_key}",
             on_change=_make_upload_callback(session_key, is_logo=is_logo), label_visibility="collapsed",
