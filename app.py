@@ -3824,22 +3824,11 @@ with col_form:
         _section_header("TEKST KOŃCOWY")
         safe_text_area("Tekst na dole slajdu:", height=100, key="brand_footer")
         _section_header("ZDJĘCIA")
+        _brand_gallery = list_brand_gallery(supabase)
         c1, c2, c3 = st.columns(3)
-        c1.file_uploader(
-            "Zdj 1 (Lewa góra)",
-            key="up_img_brand_1",
-            on_change=_make_upload_callback('img_brand_1')
-        )
-        c2.file_uploader(
-            "Zdj 2 (Prawa góra)",
-            key="up_img_brand_2",
-            on_change=_make_upload_callback('img_brand_2')
-        )
-        c3.file_uploader(
-            "Zdj 3 (Dół)",
-            key="up_img_brand_3",
-            on_change=_make_upload_callback('img_brand_3')
-        )
+        _render_img_slot(c1, "Zdj 1 (Lewa góra)", "img_brand_1", _brand_gallery)
+        _render_img_slot(c2, "Zdj 2 (Prawa góra)", "img_brand_2", _brand_gallery)
+        _render_img_slot(c3, "Zdj 3 (Dół)", "img_brand_3", _brand_gallery)
 
     # -----------------------------------------------------------------------
     # 14. PILLOW GIFTS
