@@ -74,7 +74,7 @@ def upload_image(supabase_client, key: str, raw_bytes: bytes, max_dim: int = 140
             # Zdjęcia brandingowe gromadzą się w osobnym folderze (wspólna
             # galeria brandingu) - te same materiały w różnych ofertach.
             _unique_name = f"brand_{uuid.uuid4().hex[:12]}"
-            storage_path = f"{STORAGE_USER}/branding/{_unique_name}.{file_ext}"
+            storage_path = f"{STORAGE_USER}/BRANDING/{_unique_name}.{file_ext}"
         elif _is_attraction_image_key(key):
             # Nazwa unikalna - nic nie nadpisujemy, zdjęcie zostaje w galerii
             # kraju do ponownego wyboru w innych atrakcjach/ofertach.
@@ -220,7 +220,7 @@ def list_pillow_gallery(_supabase_client):
 def list_brand_gallery(_supabase_client):
     """Zwraca listę publicznych URL-i zdjęć brandingowych zebranych w folderze
     branding/ (wspólna galeria dla wszystkich ofert)."""
-    folder_path = f"{STORAGE_USER}/branding"
+    folder_path = f"{STORAGE_USER}/BRANDING"
     try:
         files = _supabase_client.storage.from_(STORAGE_BUCKET).list(folder_path)
     except Exception:
