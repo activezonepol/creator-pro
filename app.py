@@ -40,6 +40,7 @@ from storage_utils import (
     run_migration_flow,
     list_logo_gallery,
     list_pillow_gallery,
+    list_brand_gallery,
 )
 
 # ---------------------------------------------------------------------------
