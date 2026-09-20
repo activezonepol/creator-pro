@@ -3404,7 +3404,7 @@ with col_form:
 
             from storage_utils import list_country_gallery
             _gallery_country = st.session_state.get('country_code', '') or 'XXX'
-            _gallery_urls = list_country_gallery(supabase, _gallery_country, name_prefix="attr_")
+            _gallery_urls = list_country_gallery(supabase, _gallery_country)
 
             def _render_image_field(field_label, target_key, upload_key, widget_suffix):
                 if _gallery_urls:
