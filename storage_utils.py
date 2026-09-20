@@ -146,12 +146,11 @@ def migrate_bytes_to_storage(supabase_client):
     return cleanup_session_bytes_to_storage(supabase_client)
 
 @st.cache_data(ttl=20, show_spinner=False)
-def list_country_gallery(_supabase_client, country_code: str, name_prefix: str = "attr_"):
+def list_country_gallery(_supabase_client, country_code: str, name_prefix: str = ""):
     """
-    Zwraca listę publicznych URL-i zdjęć zapisanych w folderze danego kraju,
-    których nazwa pliku zaczyna się od name_prefix (np. 'attr_' dla galerii
-    zdjęć atrakcji). Używane do wielokrotnego wyboru tego samego zdjęcia
-    w różnych atrakcjach/ofertach zamiast wgrywania go za każdym razem od nowa.
+    Zwraca listę publicznych URL-i WSZYSTKICH zdjęć w folderze danego kraju
+    (atrakcje, strona tytułowa, kierunek, przerywniki) - jedna wspólna galeria
+    per kraj. name_prefix opcjonalny (domyślnie pusty = wszystko).
     """
     _country_prefix = str(country_code or '').strip().upper()
     if not _country_prefix or len(_country_prefix) != 3:
@@ -166,7 +165,9 @@ def list_country_gallery(_supabase_client, country_code: str, name_prefix: str =
     urls = []
     for f in files:
         _name = f.get('name', '')
-        if not _name.startswith(name_prefix):
+        if not _name or _name.startswith('.'):
+            continue
+        if name_prefix and not _name.startswith(name_prefix):
             continue
         _full_path = f"{folder_path}/{_name}"
         try:
