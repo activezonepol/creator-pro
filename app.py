@@ -2549,11 +2549,8 @@ with col_form:
             )
             st.session_state['badge_dark_bg'] = (_bg_choice == "Ciemne")
 
-        st.file_uploader(
-            "Zdjęcie główne (4:5)",
-            key="up_img_hero_t",
-            on_change=_make_upload_callback('img_hero_t')
-        )
+        _country_gal = list_country_gallery(supabase, st.session_state.get('country_code', '') or 'XXX')
+        _render_img_slot(st.container(), "Zdjęcie główne (4:5)", "img_hero_t", _country_gal)
         
         c1, c2 = st.columns(2)
         _render_uploader_with_delete(c1, "Logo Firmy", "logo_az", is_logo=True)
