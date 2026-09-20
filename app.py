@@ -2679,22 +2679,11 @@ with col_form:
         with _kvcol2:
             safe_text_input("Koniec (np. 3:00):", key="kvideo_end")
         _section_header("ZDJĘCIA KIERUNKU (jedno duże u góry + dwa mniejsze pod spodem)")
-        st.file_uploader(
-            "Zdjęcie główne (duże, góra):",
-            key="up_img_hero_k",
-            on_change=_make_upload_callback('img_hero_k')
-        )
+        _country_gal = list_country_gallery(supabase, st.session_state.get('country_code', '') or 'XXX')
+        _render_img_slot(st.container(), "Zdjęcie główne (duże, góra):", "img_hero_k", _country_gal)
         _c1, _c2 = st.columns(2)
-        _c1.file_uploader(
-            "Zdjęcie 2 (lewy dół):",
-            key="up_img_k_th1",
-            on_change=_make_upload_callback('img_k_th1')
-        )
-        _c2.file_uploader(
-            "Zdjęcie 3 (prawy dół):",
-            key="up_img_k_th2",
-            on_change=_make_upload_callback('img_k_th2')
-        )
+        _render_img_slot(_c1, "Zdjęcie 2 (lewy dół):", "img_k_th1", _country_gal)
+        _render_img_slot(_c2, "Zdjęcie 3 (prawy dół):", "img_k_th2", _country_gal)
     
     # -----------------------------------------------------------------------
     # 3. MAPA PODRÓŻY (Całość)
