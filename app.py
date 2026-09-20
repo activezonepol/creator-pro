@@ -3103,11 +3103,8 @@ with col_form:
         _ic2.color_picker("Kolor tytułu:", key="sek_3_txt", value=st.session_state.get("sek_3_txt", "#ffffff"))
         _ic3.color_picker("Kolor nadtytułu:", key="sek_3_sub_color", value=st.session_state.get("sek_3_sub_color", _sub_default))
         
-        st.file_uploader(
-            "Zdjęcie tła (16:9):",
-            key="up_sek_3_img",
-            on_change=_make_upload_callback('sek_3_img')
-        )
+        _country_gal = list_country_gallery(supabase, st.session_state.get('country_code', '') or 'XXX')
+        _render_img_slot(st.container(), "Zdjęcie tła (16:9):", "sek_3_img", _country_gal)
 
     # -----------------------------------------------------------------------
     # 6. PROGRAM WYJAZDU
