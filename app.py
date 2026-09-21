@@ -507,9 +507,9 @@ def _galeria_dialog():
             _hc1, _hc2 = st.columns([1, 1])
             _hc1.markdown(
                 "<span style='color:#16a34a;font-weight:700'>✓</span> "
-                "<span style='color:#6b7280;font-size:0.85rem'>używane</span>"
+                "<span style='color:#374151;font-size:0.85rem;font-weight:600'>używane</span>"
                 if _is_used else
-                "<span style='color:#6b7280;font-size:0.85rem'>• wolne</span>",
+                "<span style='color:#374151;font-size:0.85rem;font-weight:600'>• wolne</span>",
                 unsafe_allow_html=True,
             )
             _can_del = (not _is_used) and bool(_path)
