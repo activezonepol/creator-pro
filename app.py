@@ -505,9 +505,12 @@ def _galeria_dialog():
 
             _hc1, _hc2 = st.columns([1, 1])
             _hc1.caption("✓ używane" if _is_used else "• wolne")
-            _do_del = False
-            if (not _is_used) and _path:
-                _do_del = _hc2.checkbox("chcę usunąć", key=f"dlg_delchk_{_path}")
+            _can_del = (not _is_used) and bool(_path)
+            _do_del = _hc2.checkbox(
+                "chcę usunąć",
+                key=f"dlg_delchk_{_path or _i}",
+                disabled=not _can_del,
+            )
 
             if st.button("Wybierz", key=f"dlg_pick_{_i}", use_container_width=True, type="primary"):
                 if _slot:
