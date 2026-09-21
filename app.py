@@ -504,7 +504,13 @@ def _galeria_dialog():
             _is_used = bool(_path and _path in _used)
 
             _hc1, _hc2 = st.columns([1, 1])
-            _hc1.caption("✓ używane" if _is_used else "• wolne")
+            _hc1.markdown(
+                "<span style='color:#16a34a;font-weight:700'>✓</span> "
+                "<span style='color:#6b7280;font-size:0.85rem'>używane</span>"
+                if _is_used else
+                "<span style='color:#6b7280;font-size:0.85rem'>• wolne</span>",
+                unsafe_allow_html=True,
+            )
             _can_del = (not _is_used) and bool(_path)
             _do_del = _hc2.checkbox(
                 "chcę usunąć",
