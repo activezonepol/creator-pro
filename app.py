@@ -489,40 +489,43 @@ def _galeria_dialog():
             )
             _path = _storage_path_z_url(_url)
             _is_used = bool(_path and _path in _used)
-            st.caption("✓ używane" if _is_used else "• wolne")
+            _hc1, _hc2 = st.columns([1, 1])
+            _hc1.caption("✓ używane" if _is_used else "• wolne")
+            _do_del = False
+            if not _is_used and _path:
+                _do_del = _hc2.checkbox("chcę usunąć", key=f"dlg_delchk_{_i}")
             if st.button("Wybierz", key=f"dlg_pick_{_i}", use_container_width=True, type="primary"):
                 if _slot:
                     st.session_state[_slot] = _url
                     st.session_state['_upload_counter'] = st.session_state.get('_upload_counter', 0) + 1
                 st.session_state.pop('_gal_slot', None)
                 st.rerun()
-            if not _is_used and _path:
-                if st.checkbox("🗑 chcę usunąć", key=f"dlg_delchk_{_i}"):
-                    if st.button("Potwierdź - usuń na stałe", key=f"dlg_delyes_{_i}", use_container_width=True):
-                        from storage_utils import STORAGE_BUCKET
-                        try:
-                            supabase.storage.from_(STORAGE_BUCKET).remove([_path])
-                        except Exception:
-                            pass
-                        st.session_state['_gal_urls'] = [_u for _u in _urls if _u != _url]
-                        try:
-                            list_pillow_gallery.clear()
-                        except Exception:
-                            pass
-                        try:
-                            list_logo_gallery.clear()
-                        except Exception:
-                            pass
-                        try:
-                            from storage_utils import list_country_gallery as _lcg
-                            _lcg.clear()
-                        except Exception:
-                            pass
-                        try:
-                            _uzyte_sciezki_zdjec.clear()
-                        except Exception:
-                            pass
-                        st.rerun()
+            if _do_del:
+                if st.button("Potwierdź trwałe usunięcie", key=f"dlg_delyes_{_i}", use_container_width=True):
+                    from storage_utils import STORAGE_BUCKET
+                    try:
+                        supabase.storage.from_(STORAGE_BUCKET).remove([_path])
+                    except Exception:
+                        pass
+                    st.session_state['_gal_urls'] = [_u for _u in _urls if _u != _url]
+                    try:
+                        list_pillow_gallery.clear()
+                    except Exception:
+                        pass
+                    try:
+                        list_logo_gallery.clear()
+                    except Exception:
+                        pass
+                    try:
+                        from storage_utils import list_country_gallery as _lcg
+                        _lcg.clear()
+                    except Exception:
+                        pass
+                    try:
+                        _uzyte_sciezki_zdjec.clear()
+                    except Exception:
+                        pass
+                    st.rerun()
 
 def _render_img_slot(container, label, session_key, gallery_urls, is_logo=False):
     """Jednolity wybór zdjęcia: podgląd + upload z dysku + „Wybierz z galerii" (okno)."""
