@@ -535,30 +535,7 @@ def _galeria_dialog():
                 st.rerun()
             if _do_del:
                 if st.button("Potwierdź trwałe usunięcie", key=f"dlg_delyes_{_i}", use_container_width=True):
-                    from storage_utils import STORAGE_BUCKET
-                    try:
-                        supabase.storage.from_(STORAGE_BUCKET).remove([_path])
-                    except Exception:
-                        pass
-                    st.session_state['_gal_urls'] = [_u for _u in _urls if _u != _url]
-                    try:
-                        list_pillow_gallery.clear()
-                    except Exception:
-                        pass
-                    try:
-                        list_logo_gallery.clear()
-                    except Exception:
-                        pass
-                    try:
-                        from storage_utils import list_country_gallery as _lcg
-                        _lcg.clear()
-                    except Exception:
-                        pass
-                    try:
-                        _uzyte_sciezki_zdjec.clear()
-                    except Exception:
-                        pass
-                    st.rerun()
+                    st.session_state['_gal_pending_delete'] = _url
 
 def _render_img_slot(container, label, session_key, gallery_urls, is_logo=False):
     """Jednolity wybór zdjęcia: podgląd + upload z dysku + „Wybierz z galerii" (okno)."""
