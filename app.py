@@ -468,6 +468,39 @@ def _galeria_dialog():
     """Wspólne okno wyboru zdjęcia z galerii - duże, czytelne miniatury.
     Slot docelowy i lista URL-i przekazywane przez session_state."""
     _slot = st.session_state.get('_gal_slot')
+    _slot = st.session_state.get('_gal_slot')
+    # Usuwanie przetwarzamy TU, na gorze okna (przy przebiegu po kliknieciu
+    # "Potwierdz"), zeby galeria zostala OTWARTA, a zdjecie zniknelo.
+    _pending = st.session_state.pop('_gal_pending_delete', None)
+    if _pending:
+        _pp = _storage_path_z_url(_pending)
+        if _pp:
+            from storage_utils import STORAGE_BUCKET
+            try:
+                supabase.storage.from_(STORAGE_BUCKET).remove([_pp])
+            except Exception:
+                pass
+        st.session_state['_gal_urls'] = [_u for _u in (st.session_state.get('_gal_urls') or []) if _u != _pending]
+        for _k in list(st.session_state.keys()):
+            if _k.startswith('dlg_delchk_'):
+                st.session_state[_k] = False
+        try:
+            list_pillow_gallery.clear()
+        except Exception:
+            pass
+        try:
+            list_logo_gallery.clear()
+        except Exception:
+            pass
+        try:
+            from storage_utils import list_country_gallery as _lcg
+            _lcg.clear()
+        except Exception:
+            pass
+        try:
+            _uzyte_sciezki_zdjec.clear()
+        except Exception:
+            pass
     _urls = st.session_state.get('_gal_urls') or []
     if not _urls:
         st.info("Galeria jest pusta.")
