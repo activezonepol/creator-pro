@@ -542,6 +542,8 @@ def _galeria_dialog():
             if _do_del:
                 if st.button("Potwierdź trwałe usunięcie", key=f"dlg_delyes_{_i}", use_container_width=True):
                     st.session_state['_gal_pending_delete'] = _url
+                    st.session_state['_gal_reopen'] = True
+                    st.rerun()
 
 def _render_img_slot(container, label, session_key, gallery_urls, is_logo=False):
     """Jednolity wybór zdjęcia: podgląd + upload z dysku + „Wybierz z galerii" (okno)."""
