@@ -497,14 +497,13 @@ def _galeria_dialog():
                 st.session_state.pop('_gal_slot', None)
                 st.rerun()
             if not _is_used and _path:
-                if st.session_state.get('_gal_confirm_del') == _url:
-                    if st.button("Na pewno? TAK, usuń", key=f"dlg_delyes_{_i}", use_container_width=True):
+                if st.checkbox("🗑 chcę usunąć", key=f"dlg_delchk_{_i}"):
+                    if st.button("Potwierdź - usuń na stałe", key=f"dlg_delyes_{_i}", use_container_width=True):
                         from storage_utils import STORAGE_BUCKET
                         try:
                             supabase.storage.from_(STORAGE_BUCKET).remove([_path])
                         except Exception:
                             pass
-                        st.session_state.pop('_gal_confirm_del', None)
                         st.session_state['_gal_urls'] = [_u for _u in _urls if _u != _url]
                         try:
                             list_pillow_gallery.clear()
@@ -523,11 +522,7 @@ def _galeria_dialog():
                             _uzyte_sciezki_zdjec.clear()
                         except Exception:
                             pass
-                    if st.button("Anuluj", key=f"dlg_delno_{_i}", use_container_width=True):
-                        st.session_state.pop('_gal_confirm_del', None)
-                else:
-                    if st.button("🗑 Usuń z galerii", key=f"dlg_del_{_i}", use_container_width=True):
-                        st.session_state['_gal_confirm_del'] = _url
+                        st.rerun()
 
 def _render_img_slot(container, label, session_key, gallery_urls, is_logo=False):
     """Jednolity wybór zdjęcia: podgląd + upload z dysku + „Wybierz z galerii" (okno)."""
