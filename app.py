@@ -477,7 +477,8 @@ def _galeria_dialog():
         return
 
     st.markdown(
-        '<style>div[role="dialog"] button[aria-label="Close"]{position:sticky;top:8px;z-index:1000;}</style>'
+        '<style>div[role="dialog"] button[aria-label="Close"]{position:sticky;top:8px;z-index:1000;}'
+        'div[role="dialog"] div[data-testid="stCheckbox"]:has(input:disabled){opacity:0.3;}</style>'
         '<div style="position:sticky;top:0;z-index:100;background:#ffffff;padding:8px 0 10px 0;'
         'font-size:0.92rem;color:#1f2937;font-weight:600;border-bottom:1px solid #e5e7eb;margin-bottom:10px;">'
         'Kliknij Wybierz, aby wstawić to zdjęcie. Usuwać można tylko zdjęcia nieużywane.'
