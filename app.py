@@ -468,7 +468,6 @@ def _galeria_dialog():
     """Wspólne okno wyboru zdjęcia z galerii - duże, czytelne miniatury.
     Slot docelowy i lista URL-i przekazywane przez session_state."""
     _slot = st.session_state.get('_gal_slot')
-    _slot = st.session_state.get('_gal_slot')
     # Usuwanie przetwarzamy TU, na gorze okna (przy przebiegu po kliknieciu
     # "Potwierdz"), zeby galeria zostala OTWARTA, a zdjecie zniknelo.
     _pending = st.session_state.pop('_gal_pending_delete', None)
