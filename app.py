@@ -504,7 +504,14 @@ def _galeria_dialog():
     if not _urls:
         st.info("Galeria jest pusta.")
         return
-    st.caption("Kliknij Wybierz pod zdjeciem. Kosz (usun) jest tylko przy zdjeciach wolnych - czyli nieuzytych na zadnej ofercie.")
+    st.markdown(
+        '<style>div[role="dialog"] button[aria-label="Close"]{position:sticky;top:8px;z-index:1000;}</style>'
+        '<div style="position:sticky;top:0;z-index:100;background:#ffffff;padding:8px 0 10px 0;'
+        'font-size:0.92rem;color:#1f2937;font-weight:600;border-bottom:1px solid #e5e7eb;margin-bottom:10px;">'
+        'Kliknij Wybierz, aby wstawić to zdjęcie. Usuwać można tylko zdjęcia nieużywane.'
+        '</div>',
+        unsafe_allow_html=True,
+    )
     _used = set(_uzyte_sciezki_zdjec())
     for _v in list(st.session_state.values()):
         if isinstance(_v, str):
