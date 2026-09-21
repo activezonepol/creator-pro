@@ -465,45 +465,17 @@ def _uzyte_sciezki_zdjec():
 
 @st.dialog("Wybierz zdjęcie z galerii", width="large")
 def _galeria_dialog():
-    """Wspólne okno wyboru zdjęcia z galerii - duże, czytelne miniatury.
-    Slot docelowy i lista URL-i przekazywane przez session_state."""
+    """Wspólne okno wyboru zdjęcia z galerii: miniatury, wybór, usuwanie.
+
+    Okno to fragment Streamlita, wiec klikniecia w srodku odswiezaja tylko
+    jego zawartosc przez st.rerun(scope="fragment") - bez zamykania okna.
+    """
     _slot = st.session_state.get('_gal_slot')
-    # Usuwanie przetwarzamy TU, na gorze okna (przy przebiegu po kliknieciu
-    # "Potwierdz"), zeby galeria zostala OTWARTA, a zdjecie zniknelo.
-    _pending = st.session_state.pop('_gal_pending_delete', None)
-    if _pending:
-        _pp = _storage_path_z_url(_pending)
-        if _pp:
-            from storage_utils import STORAGE_BUCKET
-            try:
-                supabase.storage.from_(STORAGE_BUCKET).remove([_pp])
-            except Exception:
-                pass
-        st.session_state['_gal_urls'] = [_u for _u in (st.session_state.get('_gal_urls') or []) if _u != _pending]
-        for _k in list(st.session_state.keys()):
-            if _k.startswith('dlg_delchk_'):
-                st.session_state[_k] = False
-        try:
-            list_pillow_gallery.clear()
-        except Exception:
-            pass
-        try:
-            list_logo_gallery.clear()
-        except Exception:
-            pass
-        try:
-            from storage_utils import list_country_gallery as _lcg
-            _lcg.clear()
-        except Exception:
-            pass
-        try:
-            _uzyte_sciezki_zdjec.clear()
-        except Exception:
-            pass
     _urls = st.session_state.get('_gal_urls') or []
     if not _urls:
         st.info("Galeria jest pusta.")
         return
+
     st.markdown(
         '<style>div[role="dialog"] button[aria-label="Close"]{position:sticky;top:8px;z-index:1000;}</style>'
         '<div style="position:sticky;top:0;z-index:100;background:#ffffff;padding:8px 0 10px 0;'
@@ -512,12 +484,14 @@ def _galeria_dialog():
         '</div>',
         unsafe_allow_html=True,
     )
+
     _used = set(_uzyte_sciezki_zdjec())
     for _v in list(st.session_state.values()):
         if isinstance(_v, str):
             _p = _storage_path_z_url(_v)
             if _p:
                 _used.add(_p)
+
     _cols = st.columns(GALERIA_KOLUMNY)
     for _i, _url in enumerate(_urls):
         with _cols[_i % GALERIA_KOLUMNY]:
@@ -528,22 +502,39 @@ def _galeria_dialog():
             )
             _path = _storage_path_z_url(_url)
             _is_used = bool(_path and _path in _used)
+
             _hc1, _hc2 = st.columns([1, 1])
             _hc1.caption("✓ używane" if _is_used else "• wolne")
             _do_del = False
-            if not _is_used and _path:
-                _do_del = _hc2.checkbox("chcę usunąć", key=f"dlg_delchk_{_i}")
+            if (not _is_used) and _path:
+                _do_del = _hc2.checkbox("chcę usunąć", key=f"dlg_delchk_{_path}")
+
             if st.button("Wybierz", key=f"dlg_pick_{_i}", use_container_width=True, type="primary"):
                 if _slot:
                     st.session_state[_slot] = _url
                     st.session_state['_upload_counter'] = st.session_state.get('_upload_counter', 0) + 1
                 st.session_state.pop('_gal_slot', None)
                 st.rerun()
+
             if _do_del:
-                if st.button("Potwierdź trwałe usunięcie", key=f"dlg_delyes_{_i}", use_container_width=True):
-                    st.session_state['_gal_pending_delete'] = _url
-                    st.session_state['_gal_reopen'] = True
-                    st.rerun()
+                if st.button("Potwierdź trwałe usunięcie", key=f"dlg_delyes_{_path}", use_container_width=True):
+                    if _path:
+                        from storage_utils import STORAGE_BUCKET
+                        try:
+                            supabase.storage.from_(STORAGE_BUCKET).remove([_path])
+                        except Exception:
+                            pass
+                    st.session_state['_gal_urls'] = [_u for _u in _urls if _u != _url]
+                    try:
+                        _uzyte_sciezki_zdjec.clear()
+                    except Exception:
+                        pass
+                    try:
+                        from storage_utils import list_country_gallery as _lcg
+                        _lcg.clear()
+                    except Exception:
+                        pass
+                    st.rerun(scope="fragment")
 
 def _render_img_slot(container, label, session_key, gallery_urls, is_logo=False):
     """Jednolity wybór zdjęcia: podgląd + upload z dysku + „Wybierz z galerii" (okno)."""
