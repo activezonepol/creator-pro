@@ -548,9 +548,6 @@ def _render_img_slot(container, label, session_key, gallery_urls, is_logo=False)
             if st.button("✕ Usuń zdjęcie", key=f"del_{session_key}", use_container_width=True):
                 _delete_image(session_key)
         if gallery_urls:
-            if st.session_state.get('_gal_reopen') and st.session_state.get('_gal_slot') == session_key:
-                st.session_state.pop('_gal_reopen', None)
-                _galeria_dialog()
             if st.button("🖼 Wybierz z galerii", key=f"opengal_{session_key}", use_container_width=True):
                 for _k in list(st.session_state.keys()):
                     if _k.startswith('dlg_delchk_'):
