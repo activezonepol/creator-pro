@@ -519,13 +519,6 @@ def _galeria_dialog():
                 disabled=not _can_del,
             )
 
-            if st.button("Wybierz", key=f"dlg_pick_{_i}", use_container_width=True, type="primary"):
-                if _slot:
-                    st.session_state[_slot] = _url
-                    st.session_state['_upload_counter'] = st.session_state.get('_upload_counter', 0) + 1
-                st.session_state.pop('_gal_slot', None)
-                st.rerun()
-
             if _do_del:
                 if st.button("Potwierdź trwałe usunięcie", key=f"dlg_delyes_{_path}", use_container_width=True):
                     if _path:
@@ -546,6 +539,12 @@ def _galeria_dialog():
                         pass
                     st.rerun(scope="fragment")
 
+            if st.button("Wybierz", key=f"dlg_pick_{_i}", use_container_width=True, type="primary"):
+                if _slot:
+                    st.session_state[_slot] = _url
+                    st.session_state['_upload_counter'] = st.session_state.get('_upload_counter', 0) + 1
+                st.session_state.pop('_gal_slot', None)
+                st.rerun()
 def _render_img_slot(container, label, session_key, gallery_urls, is_logo=False):
     """Jednolity wybór zdjęcia: podgląd + upload z dysku + „Wybierz z galerii" (okno)."""
     with container:
