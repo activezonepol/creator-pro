@@ -493,7 +493,9 @@ def _galeria_dialog():
             if _p:
                 _used.add(_p)
 
-    _cols = st.columns(GALERIA_KOLUMNY)
+    _box = st.container(height=520)
+    with _box:
+        _cols = st.columns(GALERIA_KOLUMNY)
     for _i, _url in enumerate(_urls):
         with _cols[_i % GALERIA_KOLUMNY]:
             st.markdown(
