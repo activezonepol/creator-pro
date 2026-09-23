@@ -70,9 +70,8 @@ def upload_image(supabase_client, key: str, raw_bytes: bytes, max_dim: int = 140
             # te same prezenty w różnych ofertach, bez wgrywania od nowa.
             _unique_name = f"pg_{uuid.uuid4().hex[:12]}"
             storage_path = f"{STORAGE_USER}/prezenty/{_unique_name}.{file_ext}"
-        elif key.startswith('img_brand_'):
-            # Zdjęcia brandingowe gromadzą się w osobnym folderze (wspólna
-            # galeria brandingu) - te same materiały w różnych ofertach.
+        elif key.startswith('img_brand_') or key.startswith('img_va_') or key == 'img_app_screen':
+            # Wspólna galeria: branding + wirtualny asystent + ekran aplikacji.
             _unique_name = f"brand_{uuid.uuid4().hex[:12]}"
             storage_path = f"{STORAGE_USER}/BRANDING/{_unique_name}.{file_ext}"
         elif _is_attraction_image_key(key) or key in ('img_hero_t', 'img_hero_k', 'img_k_th1', 'img_k_th2') or key.startswith('img_koszt_') or (key.startswith('sek_') and key.endswith('_img')):
