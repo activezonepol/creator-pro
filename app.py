@@ -3825,22 +3825,11 @@ with col_form:
         safe_text_area("Główny tytuł H1:", key="va_title")
         safe_text_input("Podtytuł:", key="va_subtitle")
         safe_text_area("Treść oferty:", height=300, key="va_text")
+        _brand_gal = list_brand_gallery(supabase)
         c1, c2, c3 = st.columns(3)
-        c1.file_uploader(
-            "Zdj 1 (Szerokie)",
-            key="up_img_va_1",
-            on_change=_make_upload_callback('img_va_1')
-        )
-        c2.file_uploader(
-            "Zdj 2 (Lewy dół)",
-            key="up_img_va_2",
-            on_change=_make_upload_callback('img_va_2')
-        )
-        c3.file_uploader(
-            "Zdj 3 (Prawy dół)",
-            key="up_img_va_3",
-            on_change=_make_upload_callback('img_va_3')
-        )
+        _render_img_slot(c1, "Zdj 1 (Szerokie)", "img_va_1", _brand_gal)
+        _render_img_slot(c2, "Zdj 2 (Lewy dół)", "img_va_2", _brand_gal)
+        _render_img_slot(c3, "Zdj 3 (Prawy dół)", "img_va_3", _brand_gal)
 
     # -----------------------------------------------------------------------
     # 16-17. KOSZTORYS
