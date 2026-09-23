@@ -3420,49 +3420,14 @@ with col_form:
             with _vcol2:
                 safe_text_input("Koniec (np. 3:00):", key=f"avideo_end_{_i}")
 
-            from storage_utils import list_country_gallery
-            _gallery_country = st.session_state.get('country_code', '') or 'XXX'
-            _gallery_urls = list_country_gallery(supabase, _gallery_country)
+            _gallery_urls = list_country_gallery(supabase, st.session_state.get('country_code', '') or 'XXX')
 
-            def _render_image_field(field_label, target_key, upload_key, widget_suffix):
-                if _gallery_urls:
-                    _source = st.radio(
-                        field_label,
-                        ["Z dysku", f"Z galerii ({_gallery_country})"],
-                        key=f"src_{widget_suffix}",
-                        horizontal=True,
-                    )
-                else:
-                    _source = "Z dysku"
-                if _source == "Z dysku":
-                    st.file_uploader(
-                        field_label,
-                        key=upload_key,
-                        on_change=_make_upload_callback(target_key),
-                        label_visibility="collapsed" if _gallery_urls else "visible",
-                    )
-                else:
-                    _gcols = st.columns(2)
-                    for _gi, _gurl in enumerate(_gallery_urls):
-                        with _gcols[_gi % 2]:
-                            st.image(_gurl, use_container_width=True)
-                            def _pick_gallery(_tk=target_key, _sk=f"src_{widget_suffix}", _url=_gurl):
-                                st.session_state[_tk] = _url
-                                st.session_state[_sk] = "Z dysku"
-                            st.button("Użyj", key=f"gal_{widget_suffix}_{_gi}",
-                                      use_container_width=True, on_click=_pick_gallery)
-
-            _render_image_field("Foto Główne", f"ah_{_i}", f"up_ah_{_i}", f"ah_{_i}")
+            _render_img_slot(st.container(), "Foto Główne", f"ah_{_i}", _gallery_urls)
 
             _ac1, _ac2, _ac3 = st.columns(3)
-
-            with _ac1:
-                _render_image_field("Fot. 1", f"at1_{_i}", f"up_at1_{_i}", f"at1_{_i}")
-            with _ac2:
-                _render_image_field("Fot. 2", f"at2_{_i}", f"up_at2_{_i}", f"at2_{_i}")
-            with _ac3:
-                _render_image_field("Fot. 3", f"at3_{_i}", f"up_at3_{_i}", f"at3_{_i}")
-
+            _render_img_slot(_ac1, "Fot. 1", f"at1_{_i}", _gallery_urls)
+            _render_img_slot(_ac2, "Fot. 2", f"at2_{_i}", _gallery_urls)
+            _render_img_slot(_ac3, "Fot. 3", f"at3_{_i}", _gallery_urls)
     # -----------------------------------------------------------------------
     # 9. PRZERYWNIK HOTEL
     # -----------------------------------------------------------------------
