@@ -75,7 +75,7 @@ def upload_image(supabase_client, key: str, raw_bytes: bytes, max_dim: int = 140
             # galeria brandingu) - te same materiały w różnych ofertach.
             _unique_name = f"brand_{uuid.uuid4().hex[:12]}"
             storage_path = f"{STORAGE_USER}/BRANDING/{_unique_name}.{file_ext}"
-        elif _is_attraction_image_key(key) or key in ('img_hero_t', 'img_hero_k', 'img_k_th1', 'img_k_th2') or (key.startswith('sek_') and key.endswith('_img')):
+        elif _is_attraction_image_key(key) or key in ('img_hero_t', 'img_hero_k', 'img_k_th1', 'img_k_th2') or key.startswith('img_koszt_') or (key.startswith('sek_') and key.endswith('_img')):
             # Nazwa unikalna - nic nie nadpisujemy. Wszystkie zdjecia zwiazane z
             # danym krajem (atrakcje, strona tytulowa, kierunek, przerywniki)
             # laduja w jednym folderze kraju = wspolna galeria per kraj.
