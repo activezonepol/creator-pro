@@ -3730,17 +3730,11 @@ with col_form:
         safe_text_input("Podtytuł:", key="app_subtitle")
         safe_text_area("Punkty na liście (Enter = nowy punkt):", height=200, key="app_features")
         
+        _country_gal = list_country_gallery(supabase, st.session_state.get('country_code', '') or 'XXX')
+        _brand_gal = list_brand_gallery(supabase)
         c1, c2 = st.columns(2)
-        c1.file_uploader(
-            "Zdj. tła (Prawa str.)",
-            key="up_img_app_bg",
-            on_change=_make_upload_callback('img_app_bg')
-        )
-        c2.file_uploader(
-            "Ekran Aplikacji",
-            key="up_img_app_screen",
-            on_change=_make_upload_callback('img_app_screen')
-        )
+        _render_img_slot(c1, "Zdj. tła (Prawa str.)", "img_app_bg", _country_gal)
+        _render_img_slot(c2, "Ekran Aplikacji", "img_app_screen", _brand_gal)
     # -----------------------------------------------------------------------
     # 13. MATERIAŁY BRANDINGOWE
     # -----------------------------------------------------------------------
