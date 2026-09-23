@@ -3894,17 +3894,10 @@ with col_form:
         safe_text_area("Nie policzone w cenie:", height=100, key="koszt_nie_zawiera")
         safe_text_area("Koszty opcjonalne:", height=100, key="koszt_opcje")
         _section_header("ZDJĘCIA")
+        _country_gal = list_country_gallery(supabase, st.session_state.get('country_code', '') or 'XXX')
         c1, c2 = st.columns(2)
-        c1.file_uploader(
-            "Zdjęcie (Slajd 1)",
-            key="up_img_koszt_1",
-            on_change=_make_upload_callback('img_koszt_1')
-        )
-        c2.file_uploader(
-            "Zdjęcie (Slajd 2)",
-            key="up_img_koszt_2",
-            on_change=_make_upload_callback('img_koszt_2')
-        )
+        _render_img_slot(c1, "Zdjęcie (Slajd 1)", "img_koszt_1", _country_gal)
+        _render_img_slot(c2, "Zdjęcie (Slajd 2)", "img_koszt_2", _country_gal)
 
     # -----------------------------------------------------------------------
     # 18. PRZERYWNIK NASZA AGENCJA
