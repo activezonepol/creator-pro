@@ -156,7 +156,10 @@ def list_country_gallery(_supabase_client, country_code: str, name_prefix: str =
         _country_prefix = "XXX"
     folder_path = f"{STORAGE_USER}/{_country_prefix}"
     try:
-        files = _supabase_client.storage.from_(STORAGE_BUCKET).list(folder_path)
+        files = _supabase_client.storage.from_(STORAGE_BUCKET).list(
+            folder_path,
+            {"limit": 1000, "sortBy": {"column": "created_at", "order": "desc"}},
+        )
     except Exception:
         return []
     if not files:
@@ -181,7 +184,10 @@ def list_logo_gallery(_supabase_client):
     loga_klientow/ (każde wgrane logo klienta ląduje tu z unikalną nazwą)."""
     folder_path = f"{STORAGE_USER}/loga_klientow"
     try:
-        files = _supabase_client.storage.from_(STORAGE_BUCKET).list(folder_path)
+        files = _supabase_client.storage.from_(STORAGE_BUCKET).list(
+            folder_path,
+            {"limit": 1000, "sortBy": {"column": "created_at", "order": "desc"}},
+        )
     except Exception:
         return []
     if not files:
@@ -202,7 +208,10 @@ def list_pillow_gallery(_supabase_client):
     prezenty/ (każde wgrane zdjęcie prezentu ląduje tu z unikalną nazwą)."""
     folder_path = f"{STORAGE_USER}/prezenty"
     try:
-        files = _supabase_client.storage.from_(STORAGE_BUCKET).list(folder_path)
+        files = _supabase_client.storage.from_(STORAGE_BUCKET).list(
+            folder_path,
+            {"limit": 1000, "sortBy": {"column": "created_at", "order": "desc"}},
+        )
     except Exception:
         return []
     if not files:
@@ -223,7 +232,10 @@ def list_brand_gallery(_supabase_client):
     branding/ (wspólna galeria dla wszystkich ofert)."""
     folder_path = f"{STORAGE_USER}/BRANDING"
     try:
-        files = _supabase_client.storage.from_(STORAGE_BUCKET).list(folder_path)
+        files = _supabase_client.storage.from_(STORAGE_BUCKET).list(
+            folder_path,
+            {"limit": 1000, "sortBy": {"column": "created_at", "order": "desc"}},
+        )
     except Exception:
         return []
     if not files:
