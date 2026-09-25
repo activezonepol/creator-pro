@@ -74,6 +74,10 @@ def upload_image(supabase_client, key: str, raw_bytes: bytes, max_dim: int = 140
             # Wspólna galeria: branding + wirtualny asystent + ekran aplikacji.
             _unique_name = f"brand_{uuid.uuid4().hex[:12]}"
             storage_path = f"{STORAGE_USER}/BRANDING/{_unique_name}.{file_ext}"
+        elif key in ('img_hero_l', 'img_hero_j'):
+            # Wspólna galeria TRANSPORT (samolot / autokar itp.).
+            _unique_name = f"trans_{uuid.uuid4().hex[:12]}"
+            storage_path = f"{STORAGE_USER}/TRANSPORT/{_unique_name}.{file_ext}"
         elif _is_attraction_image_key(key) or key in ('img_hero_t', 'img_hero_k', 'img_k_th1', 'img_k_th2', 'img_app_bg') or key.startswith('img_koszt_') or (key.startswith('sek_') and key.endswith('_img')):
             # Nazwa unikalna - nic nie nadpisujemy. Wszystkie zdjecia zwiazane z
             # danym krajem (atrakcje, strona tytulowa, kierunek, przerywniki)
