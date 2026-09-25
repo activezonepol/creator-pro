@@ -2986,11 +2986,8 @@ with col_form:
         _render_przesiadka("l_przesiadka_pow", "l_port_pow", "l_czas_pow", 2, 4, _d_end)
         for k, l in [('l_desc', 'Opis'), ('l_extra', 'Dodatkowe info')]:
             safe_text_area(l, key=k)
-        st.file_uploader(
-            "Foto Samolotu",
-            key="up_img_hero_l",
-            on_change=_make_upload_callback('img_hero_l')
-        )
+        _transport_gal = list_transport_gallery(supabase)
+        _render_img_slot(st.container(), "Foto Samolotu", "img_hero_l", _transport_gal)
 
     # -----------------------------------------------------------------------
     # 4b. JAK JEDZIEMY? (alternatywny slajd transportowy)
