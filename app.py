@@ -3150,11 +3150,8 @@ with col_form:
                 d_keys = [f'img_d_{d}', f'attr_{d}', f'desc_{d}']
                 section_template_manager(d_keys, "PRG", f"Dzien_{d+1}", f"prg_{d}", index=d)
                 
-                st.file_uploader(
-                    f"Foto D{d+1} (16:9)",
-                    key=f"up_img_d_{d}",
-                    on_change=_make_upload_callback(f'img_d_{d}')
-                )
+                _country_gal = list_country_gallery(supabase, st.session_state.get('country_code', '') or 'XXX')
+                _render_img_slot(st.container(), f"Foto D{d+1} (16:9)", f"img_d_{d}", _country_gal)
                 safe_text_input("Wyróżnienie dnia (nagłówek):", key=f"attr_{d}")
                 safe_text_area("Opis dnia:", height=100, key=f"desc_{d}")
 
