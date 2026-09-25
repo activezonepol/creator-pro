@@ -3012,11 +3012,8 @@ with col_form:
         safe_text_input("Trasa:", key="jaj_route")
         safe_text_area("Opis:", key="jaj_desc")
         safe_text_area("Dodatkowe info:", key="jaj_extra")
-        st.file_uploader(
-            "Zdjęcie (np. autokar):",
-            key="up_img_hero_j",
-            on_change=_make_upload_callback('img_hero_j')
-        )
+        _transport_gal = list_transport_gallery(supabase)
+        _render_img_slot(st.container(), "Zdjęcie (np. autokar):", "img_hero_j", _transport_gal)
         
         # === SEKCJA ODLEGŁOŚCI (analogicznie do mapy) ===
         _section_header("ODLEGŁOŚCI I CZAS DOJAZDU")
