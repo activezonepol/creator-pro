@@ -42,6 +42,7 @@ from storage_utils import (
     list_pillow_gallery,
     list_brand_gallery,
     list_country_gallery,
+    list_transport_gallery,
 )
 
 # ---------------------------------------------------------------------------
