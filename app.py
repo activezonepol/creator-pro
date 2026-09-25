@@ -1566,8 +1566,7 @@ with st.sidebar:
     # 3. ZAPISZ JAKO NOWY
     st.markdown(
         "<style>"
-        ".st-key-btn_version_current_top button, .st-key-btn_dup_current_top button"
-        "{min-height:3.4em;height:auto;white-space:normal;line-height:1.15;}"
+        'div[data-testid="stButton"] button{white-space:normal !important;height:auto !important;min-height:2.6em !important;line-height:1.2 !important;}'
         "</style>",
         unsafe_allow_html=True,
     )
