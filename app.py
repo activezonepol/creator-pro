@@ -1572,12 +1572,6 @@ with st.sidebar:
         st.rerun()
 
     # 3. ZAPISZ JAKO NOWY
-    st.markdown(
-        "<style>"
-        'div[data-testid="stButton"] button{white-space:normal !important;height:auto !important;min-height:2.6em !important;line-height:1.2 !important;}'
-        "</style>",
-        unsafe_allow_html=True,
-    )
     if st.button("ZAPISZ WCZYTANY JAKO NOWY", use_container_width=True, type="primary", key="btn_dup_current_top"):
         _duplicate_current_project()
     
