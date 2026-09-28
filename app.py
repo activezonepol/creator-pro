@@ -960,6 +960,14 @@ section[data-testid="stSidebar"] > div {
     min-height: 28px !important;
     height: 28px !important;
 }
+[data-testid="stSidebar"] div.stButton > button[kind="primary"] {
+    height: auto !important;
+    min-height: 56px !important;
+    white-space: normal !important;
+    line-height: 1.2 !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+}
 /* Pozostałe buttony (poza sidearem) - normalne */
 div.stButton > button {
     border-radius: 4px !important;
