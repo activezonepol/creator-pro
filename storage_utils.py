@@ -208,6 +208,7 @@ def list_logo_gallery(_supabase_client):
             continue
     return urls
 
+@st.cache_data(ttl=20, show_spinner=False)
 def list_pillow_gallery(_supabase_client):
     """Zwraca listę publicznych URL-i zdjęć pillow gifts zebranych w folderze
     prezenty/ (każde wgrane zdjęcie prezentu ląduje tu z unikalną nazwą)."""
