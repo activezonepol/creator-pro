@@ -3254,17 +3254,25 @@ with col_form:
         # Znajdź pozycję atrakcji w _all_pages.
         # page jest stripowane (bez sufiksów), _all_pages zawiera labele Z sufiksami.
         # Porównanie po stripowaniu — spójne z zasadą "label = wyświetlanie, stripped = identyfikator".
-        _pos = -1
-        _opis_idx = -1
-        _page_idx = -1
-        for _ii, _ll in enumerate(_all_pages):
-            _ll_stripped = _strip_hide_suffix(_ll)
-            if _ll_stripped == "Zarządzanie atrakcjami":
-                _opis_idx = _ii
-            if _ll_stripped == page:
-                _page_idx = _ii
-        if _opis_idx >= 0 and _page_idx >= 0:
-            _pos = _page_idx - _opis_idx - 1 
+        # Którą atrakcję edytujemy - ustalamy po STABILNYM indeksie zapamiętanym
+        # przy wyborze w nawigacji (_last_attr_idx), a NIE po nazwie strony.
+        # Dopasowanie po nazwie zawodziło, gdy dwie atrakcje miały identyczny
+        # tytuł: edytor trafiał na pierwszą z nich (ten sam błąd co przy hotelach).
+        _order_attr = _attr_order()
+        _stable_ai = st.session_state.get('_last_attr_idx')
+        _pos = _order_attr.index(_stable_ai) if (_stable_ai is not None and _stable_ai in _order_attr) else -1
+        if _pos < 0:
+            # Awaryjnie (gdy brak zapamiętanego indeksu) - po pozycji strony.
+            _opis_idx = -1
+            _page_idx = -1
+            for _ii, _ll in enumerate(_all_pages):
+                _ll_stripped = _strip_hide_suffix(_ll)
+                if _ll_stripped == "Zarządzanie atrakcjami":
+                    _opis_idx = _ii
+                if _ll_stripped == page:
+                    _page_idx = _ii
+            if _opis_idx >= 0 and _page_idx >= 0:
+                _pos = _page_idx - _opis_idx - 1
         
         if _pos >= 0 and _pos < _n_attr:
             # Pobierz rzeczywisty indeks z naszej listy kolejności
