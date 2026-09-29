@@ -183,6 +183,7 @@ def list_country_gallery(_supabase_client, country_code: str, name_prefix: str =
             continue
     return urls
 
+@st.cache_data(ttl=20, show_spinner=False)
 def list_logo_gallery(_supabase_client):
     """Zwraca listę publicznych URL-i logotypów klientów zebranych w folderze
     loga_klientow/ (każde wgrane logo klienta ląduje tu z unikalną nazwą)."""
