@@ -258,6 +258,7 @@ def list_transport_gallery(_supabase_client):
             continue
     return urls
 
+@st.cache_data(ttl=20, show_spinner=False)
 def list_brand_gallery(_supabase_client):
     """Zwraca listę publicznych URL-i zdjęć brandingowych zebranych w folderze
     branding/ (wspólna galeria dla wszystkich ofert)."""
