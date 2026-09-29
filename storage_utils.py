@@ -233,6 +233,7 @@ def list_pillow_gallery(_supabase_client):
             continue
     return urls
 
+@st.cache_data(ttl=20, show_spinner=False)
 def list_transport_gallery(_supabase_client):
     """Zwraca listę publicznych URL-i z folderu TRANSPORT (wspólna galeria dla
     slajdów 'Jak lecimy' i 'Jak jedziemy')."""
