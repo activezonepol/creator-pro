@@ -3244,14 +3244,14 @@ with col_form:
                     unsafe_allow_html=True,
                 )
                 if pos > 0:
-                    if col_up.button("⬆️", key=f"attr_up_{pos}", use_container_width=True, help="Przesuń w górę"):
+                    if col_up.button("▲", key=f"attr_up_{pos}", use_container_width=True, help="Przesuń w górę"):
                         _attr_move(pos, -1)
                         st.rerun()
                 if pos < len(_attr_order_list) - 1:
-                    if col_dn.button("⬇️", key=f"attr_dn_{pos}", use_container_width=True, help="Przesuń w dół"):
+                    if col_dn.button("▼", key=f"attr_dn_{pos}", use_container_width=True, help="Przesuń w dół"):
                         _attr_move(pos, 1)
                         st.rerun()
-                if col_del.button("🗑️", key=f"attr_del_{pos}", use_container_width=True, help="Usuń atrakcję"):
+                if col_del.button("✕", key=f"attr_del_{pos}", use_container_width=True, help="Usuń atrakcję"):
                     _attr_delete(pos)
                     st.rerun()
             
