@@ -2371,6 +2371,10 @@ button[data-testid="baseButton-primary"],
     border-color: {_acc_global} !important;
     color: white !important;
 }}
+.stButton button[kind="secondary"],
+div.stButton > button:not([kind="primary"]) {{
+    color: #1e293b !important;
+}}
 </style>""", unsafe_allow_html=True)
 
 st.markdown("""<style>
