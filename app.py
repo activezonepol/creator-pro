@@ -4269,7 +4269,9 @@ with col_preview:
         _current_p = st.session_state.get('last_page', "Strona tytułowa")
         _current_attr_idx = st.session_state.get('_last_attr_idx')
         _current_hotel_idx = st.session_state.get('_last_hotel_idx')
+        _pt_prev = time.time()
         build_presentation(_current_p, active_attr_idx=_current_attr_idx, active_hotel_idx=_current_hotel_idx)
+        st.session_state['_perf_preview'] = round(time.time() - _pt_prev, 2)
                 
     _preview()
     
