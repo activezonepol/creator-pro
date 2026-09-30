@@ -1417,7 +1417,10 @@ if not st.session_state.get('client_mode', False):
         # nowego wiersza samoistnie - tylko aktualizuje już istniejący,
         # aktywny projekt. Zapobiega "widmowym" pustym wierszom powstającym
         # tylko dlatego, że minęło 20s bezczynności na świeżym/pustym stanie.
+        _pt_save = time.time()
         save_to_supabase(allow_create=False)
+        st.session_state['_perf_autosave'] = round(time.time() - _pt_save, 2)
+    st.sidebar.caption(f"⏱ auto-zapis: {st.session_state.get('_perf_autosave','—')} s · Streamlit {st.__version__}")
 
 # --- DEFINICJA ZMIENNYCH GLOBALNYCH (Bez spacji na początku!) ---
 _n_attr = st.session_state.get('num_attr', 0)
