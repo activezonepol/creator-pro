@@ -531,13 +531,13 @@ def _galeria_dialog():
                         except Exception:
                             pass
                     st.session_state['_gal_urls'] = [_u for _u in _urls if _u != _url]
+                    for _gl in (list_country_gallery, list_logo_gallery, list_pillow_gallery, list_brand_gallery, list_transport_gallery):
+                        try:
+                            _gl.clear()
+                        except Exception:
+                            pass
                     try:
                         _uzyte_sciezki_zdjec.clear()
-                    except Exception:
-                        pass
-                    try:
-                        from storage_utils import list_country_gallery as _lcg
-                        _lcg.clear()
                     except Exception:
                         pass
                     st.rerun(scope="fragment")
