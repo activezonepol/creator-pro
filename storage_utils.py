@@ -148,7 +148,7 @@ def migrate_bytes_to_storage(supabase_client):
     """Alias dla nowej funkcji (dla kompatybilności wstecznej z app.py)."""
     return cleanup_session_bytes_to_storage(supabase_client)
 
-@st.cache_data(ttl=20, show_spinner=False)
+@st.cache_data(ttl=600, show_spinner=False)
 def list_country_gallery(_supabase_client, country_code: str, name_prefix: str = ""):
     """
     Zwraca listę publicznych URL-i WSZYSTKICH zdjęć w folderze danego kraju
@@ -183,7 +183,7 @@ def list_country_gallery(_supabase_client, country_code: str, name_prefix: str =
             continue
     return urls
 
-@st.cache_data(ttl=20, show_spinner=False)
+@st.cache_data(ttl=600, show_spinner=False)
 def list_logo_gallery(_supabase_client):
     """Zwraca listę publicznych URL-i logotypów klientów zebranych w folderze
     loga_klientow/ (każde wgrane logo klienta ląduje tu z unikalną nazwą)."""
@@ -208,7 +208,7 @@ def list_logo_gallery(_supabase_client):
             continue
     return urls
 
-@st.cache_data(ttl=20, show_spinner=False)
+@st.cache_data(ttl=600, show_spinner=False)
 def list_pillow_gallery(_supabase_client):
     """Zwraca listę publicznych URL-i zdjęć pillow gifts zebranych w folderze
     prezenty/ (każde wgrane zdjęcie prezentu ląduje tu z unikalną nazwą)."""
@@ -233,7 +233,7 @@ def list_pillow_gallery(_supabase_client):
             continue
     return urls
 
-@st.cache_data(ttl=20, show_spinner=False)
+@st.cache_data(ttl=600, show_spinner=False)
 def list_transport_gallery(_supabase_client):
     """Zwraca listę publicznych URL-i z folderu TRANSPORT (wspólna galeria dla
     slajdów 'Jak lecimy' i 'Jak jedziemy')."""
@@ -258,7 +258,7 @@ def list_transport_gallery(_supabase_client):
             continue
     return urls
 
-@st.cache_data(ttl=20, show_spinner=False)
+@st.cache_data(ttl=600, show_spinner=False)
 def list_brand_gallery(_supabase_client):
     """Zwraca listę publicznych URL-i zdjęć brandingowych zebranych w folderze
     branding/ (wspólna galeria dla wszystkich ofert)."""
