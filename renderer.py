@@ -1245,7 +1245,7 @@ Napisz sam opis, bez żadnego wstępu ani komentarza."""
         )
         _body = _json.dumps({
             "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"temperature": 0.8, "maxOutputTokens": 2048},
+            "generationConfig": {"temperature": 0.8, "maxOutputTokens": 8192},
         }).encode('utf-8')
         _err = None
         for _attempt in range(retries):
