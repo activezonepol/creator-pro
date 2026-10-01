@@ -597,7 +597,7 @@ def _upload_image(file_bytes, session_key, is_logo=False):
             else:
                 save_to_supabase(allow_create=True)
         else:
-            st.error("Nie udało się uzyskać adresu URL po uploadzie.")
+            st.error(f"Nie udało się wgrać zdjęcia. Szczegóły: {st.session_state.get('_upload_error', '(brak)')}")
     except Exception as e:
         st.error(f"Błąd krytyczny uploadu: {e}")
 
