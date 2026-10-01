@@ -590,8 +590,12 @@ def _upload_image(file_bytes, session_key, is_logo=False):
                     _gl.clear()
                 except Exception:
                     pass
-            # WAŻNE: wymuszamy natychmiastowy zapis do Supabase (bez czekania na auto-save)
-            save_to_supabase()
+            # Natychmiastowy zapis URL-a. Dla istniejącego projektu szybka ścieżka
+            # (bez dodatkowego sprawdzania w bazie); nowy projekt - normalnie z tworzeniem.
+            if st.session_state.get('active_project_id'):
+                save_to_supabase(allow_create=False)
+            else:
+                save_to_supabase(allow_create=True)
         else:
             st.error("Nie udało się uzyskać adresu URL po uploadzie.")
     except Exception as e:
