@@ -3,7 +3,9 @@ import re
 import uuid
 import streamlit as st
 from PIL import Image, ImageOps
-
+# Nie odrzucaj bardzo dużych zdjęć (domyślny limit Pillow na "bomby" obrazowe).
+# Operator wgrywa własne, zaufane zdjęcia, a i tak są zmniejszane do max_dim.
+Image.MAX_IMAGE_PIXELS = None
 from renderer import IMAGE_KEYS
 from db_utils import save_to_supabase
 
