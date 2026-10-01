@@ -182,20 +182,23 @@ def save_to_supabase(allow_create: bool = True):
         # i go nadpisywało - realna utrata danych klienta.
         existing_id = st.session_state.get('active_project_id')
         
-        if existing_id:
-            # Sprawdzamy czy wiersz o tym ID faktycznie istnieje (obrona przed
-            # nieaktualnym/skasowanym ID w sesji)
+        # Cichy auto-zapis (allow_create=False) POMIJA obronne sprawdzenie
+        # istnienia wiersza - to była druga, zbędna podróż do bazy przy KAŻDYM
+        # zapisie (co 30 s). Aktualizujemy od razu po ID, folder bierzemy z sesji.
+        # Jawny zapis (allow_create=True) nadal sprawdza - tam potrzeba pewności.
+        if existing_id and allow_create:
             check = supabase_client.table('projects').select('id, storage_folder').eq(
                 'id', existing_id
             ).execute()
         else:
             check = None
         
-        if existing_id and check and check.data:
-            existing_folder = check.data[0].get('storage_folder')
-            if existing_folder:
-                storage_folder = existing_folder
-                st.session_state['storage_folder'] = existing_folder
+        if (existing_id and not allow_create) or (existing_id and check and check.data):
+            if check and check.data:
+                existing_folder = check.data[0].get('storage_folder')
+                if existing_folder:
+                    storage_folder = existing_folder
+                    st.session_state['storage_folder'] = existing_folder
             
             update_data = {
                 'project_name': project_name,
