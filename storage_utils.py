@@ -102,6 +102,7 @@ def upload_image(supabase_client, key: str, raw_bytes: bytes, max_dim: int = 140
         import time
         return f"{public_url}?v={int(time.time())}"
     except Exception as e:
+        st.session_state['_upload_error'] = str(e)
         print(f"Błąd uploadu: {e}") 
         return None
 
