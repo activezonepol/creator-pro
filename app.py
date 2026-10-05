@@ -1434,9 +1434,7 @@ _n_hotels = st.session_state.get('num_hotels', 0)
 # SIDEBAR — NAWIGACJA (WERSJA CZYSTA I KOMPLETNA)
 # ---------------------------------------------------------------------------
 with st.sidebar:
-    # Pokaż status load w sidebarze (debug)
-    if '_debug_loaded' in st.session_state:
-        st.caption(st.session_state['_debug_loaded'])
+    
     # 1. STATUS AUTO-SAVE
     save_status = st.session_state.get('last_save_status', '⏳ Czekam na zmiany...')
     save_count = st.session_state.get('last_save_count', 0)
