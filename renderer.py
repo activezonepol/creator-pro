@@ -1914,7 +1914,7 @@ def get_local_css(return_str=False):
 
         body {{ counter-reset: slide_counter; background-color: #f4f5f7; scroll-behavior: smooth; margin: 0; }}
         .presentation-wrapper {{ height: 100vh; overflow-y: auto; scroll-snap-type: y proximity; scroll-behavior: smooth; background-color: #f4f5f7; padding: 5vh 0 15vh 0; box-sizing: border-box; }}
-        .slide-scaler {{ display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%; scroll-snap-align: center; padding: 10vh 0; }}
+        .slide-scaler {{ display: flex; justify-content: safe center; align-items: center; min-height: 100vh; width: 100%; scroll-snap-align: center; padding: 10vh 0; }}
         .slide-page {{ width: 297mm !important; height: 210mm !important; min-width: 297mm !important; min-height: 210mm !important; margin: auto; box-sizing: border-box !important; background-color: white; box-shadow: 0 15px 45px rgba(0,0,0,0.08); padding: 30px 45px 15px 45px; position: relative; overflow: hidden; display: flex; flex-direction: column; font-family: '{f_txt}', sans-serif; color: {c_t}; transition: transform 0.3s ease, box-shadow 0.3s ease; }}
         @media screen and (max-height: 950px) {{ .slide-page {{ zoom: 0.90; }} }}
         @media screen and (max-height: 800px) {{ .slide-page {{ zoom: 0.80; }} }}
